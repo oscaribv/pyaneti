@@ -60,7 +60,7 @@ P  = 1.673774
 #duration
 D = 2. / 24.
 
-sd = [2016,1,28]
+sd = [2016,1,29]
 fd = [2016,2,2]
 
 jdsd = jd.gcal2jd(sd[0],sd[1],sd[2])
@@ -81,10 +81,10 @@ days = [None]*m
 fase = [None]*m
 dm = (jdfd[1] - jdsd[1]) / m
 days[0] = sd_float
-fase[0] = np.sin(2.0*np.pi *(days[0] - T0) / P )
+fase[0] = - np.sin(2.0*np.pi *(days[0] - T0) / P )
 for i in range(1,m):
 	days[i] = days[i-1] + dm 
-	fase[i] = np.sin(2.0*np.pi *(days[i] - T0) / P )
+	fase[i] = - np.sin(2.0*np.pi *(days[i] - T0) / P )
 
 #When will it be night?
 night,fnight = find_night(days,fase)
