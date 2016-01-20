@@ -35,6 +35,17 @@ nextec = np.float64(hmd) % np.float64(P)
 
 print "Today phase is: ", nextec * 360 / P
 
+#Let us create a vector with the days
+m = 100
+days = [None]*m
+fase = [None]*m
+dm = 2*P / m
+for i in range(0,m):
+	days[i] = T0 + i*dm
+	fase[i] = np.sin(2.0*np.pi * i * dm / P )
+
+plt.plot(days,fase)
+
 
 #The next eclipse will be in P - nextec days
 #Let us add this to todayjd
@@ -54,3 +65,4 @@ for i in range(0,n):
 	minu = (eclipse[3] * 24.0 - hour) * 60
 	print ("eclipse %3d --> %2d %2d %4d - %2d : %2d "  \
 	% (i+1,eclipse[2], eclipse[1], eclipse[0],hour,int(minu)))
+
