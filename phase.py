@@ -31,6 +31,30 @@ def find_night(days,fase):
 			fnight.append(fase[i])
 	return night, fnight
 
+#T0, period, duration, startday, endday
+def find_eclipse(T0,P,D,jds,jdf):
+	eclipses = []
+	#How many days since T0?
+	hmd = jds - T0
+	if ( hmd < 0 ):
+		print "You have not observed this planet yet!"
+		sys.exit("Error message")
+	#How much time do we need for the next eclipse?
+	#The residual will give us the elapsed period
+	elapsed = np.float64(hmd) % np.float64(P)
+	remaining =  P - elapsed
+	#The following eclipse will be on
+	nextec = jds + remaining
+	#Now we have the midpoint of the next eclise
+	#Let us find the starting and ending points (by using D)
+	#eclipses.append(nextec - 0.5*D)
+	#eclipses.append(nextec + 0.5*D)
+	while ( nextec < jdf ):
+		eclipses.append(nextec - 0.5*D)
+		eclipses.append(nextec + 0.5*D)
+		nextec = nextec + P
+	return eclipses
+
 T0 = 2307.72237 + 2454833.0
 P  = 1.673774
 #duration
@@ -55,6 +79,10 @@ for i in range(1,m):
 #When will it be night?
 night,fnight = find_night(days,fase)
 
+#Let us find the eclipses
+eclipses = find_eclipse(T0,P,D,jdsd[0]+jdsd[1],jdfd[0]+jdfd[1])
+dummy = [0]*len(eclipses)
+
 #Let us do a nice plot 
 #for i in range(0,m):
 #	days[i] = days[i] - (jdsd[1] + jdsd[0])
@@ -62,6 +90,4 @@ night,fnight = find_night(days,fase)
 #for i in range(0,len(night)):
 #	night[i] = night[i] - (jdsd[1] + jdsd[0])
 
-
-
-plt.plot(days,fase,'r--',night,fnight,'bo')
+plt.plot(days,fase,'r--',night,fnight,'bo',eclipses,dummy,'gs')
