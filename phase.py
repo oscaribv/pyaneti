@@ -61,26 +61,36 @@ P  = 1.673774
 D = 2. / 24.
 
 sd = [2016,1,28]
-fd = [2016,2,1]
+fd = [2016,2,2]
 
 jdsd = jd.gcal2jd(sd[0],sd[1],sd[2])
 jdfd = jd.gcal2jd(fd[0],fd[1],fd[2])
-m = 100
+
+sd_float = jdsd[0] + jdsd[1]
+fd_float = jdfd[0] + jdfd[1]
+
+#
+#Let us add the timezone
+tz = 0
+sd_float = sd_float + tz / 24.0
+fd_float = fd_float + tz / 24.0
+#
+m = 1000
 #Let us create a vector with the days and fase
 days = [None]*m
 fase = [None]*m
 dm = (jdfd[1] - jdsd[1]) / m
-days[0] = jdsd[1] + jdsd[0]
+days[0] = sd_float
 fase[0] = np.sin(2.0*np.pi *(days[0] - T0) / P )
 for i in range(1,m):
-	days[i] = days[i-1] + dm
+	days[i] = days[i-1] + dm 
 	fase[i] = np.sin(2.0*np.pi *(days[i] - T0) / P )
 
 #When will it be night?
 night,fnight = find_night(days,fase)
 
 #Let us find the eclipses
-eclipses = find_eclipse(T0,P,D,jdsd[0]+jdsd[1],jdfd[0]+jdfd[1])
+eclipses = find_eclipse(T0,P,D,sd_float,fd_float)
 dummy = [0]*len(eclipses)
 
 #Let us do a nice plot 
