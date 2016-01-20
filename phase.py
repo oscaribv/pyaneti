@@ -1,68 +1,67 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import datetime as dt
 import jdcal as jd
 import sys
 
 #Ask for the values
-print "Please enter the T0 and Period of the planet"
-T0 = input("T0 (JD):")
-P  = input("P (days):")
+#print "Please enter the T0 and Period of the planet"
+#T0 = input("T0 (JD):")
+#P  = input("P (days):")
 
-#What day is today?
-now = dt.datetime.now()
-year=now.year
-month=now.month
-day=now.day
-print "Today is (y, m, d)", year, month, day
+def find_night(days,fase):
+	#Define your night (start and end)
+	night=[]
+	fnight=[]
+	sn = 20 #hours
+	en = 6 #hours
+	#In JD the midnight is at 0.5
+	#This assumes that the night ends the next day that starts
+	sndf = 24 % sn #star night day fraction
+	endf = 24 % ( 24 - en ) #end night day fraction
+	n1 = sndf / 24.0
+	n2 = endf / 24.0
+	#Then the night will be at
+	start = 0.5 - n1
+	end   = 0.5 + n2
+	#Then all the day rages between these values will be night
+	for i in range(0,len(days)-1):
+		if ( days[i] > int(days[i])+start and days[i] < int(days[i])+end ):
+			night.append(days[i])
+			fnight.append(fase[i])
+	return night, fnight
 
-#Let us transform today to Julian Date
-nowjd = jd.gcal2jd(year,month,day)
-todayjd= np.float64(nowjd[0]) + np.float64(nowjd[1])
-print "today JD is (days)", todayjd
+T0 = 2307.72237 + 2454833.0
+P  = 1.673774
+#duration
+D = 2. / 24.
 
-#How many days since T0?
-hmd = np.float64(todayjd) - np.float64(T0)
+sd = [2016,1,28]
+fd = [2016,2,1]
 
-#If dum is negative, then you have not oberved the planet!
-if ( hmd < 0 ): 
-	print "You have not observed this planet yet!"
-	sys.exit("Error message")
-
-#How much time do we need for the next eclipse?
-#The residual will give us the elapsed period
-nextec = np.float64(hmd) % np.float64(P)
-
-
-print "Today phase is: ", nextec * 360 / P
-
-#Let us create a vector with the days
+jdsd = jd.gcal2jd(sd[0],sd[1],sd[2])
+jdfd = jd.gcal2jd(fd[0],fd[1],fd[2])
 m = 100
+#Let us create a vector with the days and fase
 days = [None]*m
 fase = [None]*m
-dm = 2*P / m
-for i in range(0,m):
-	days[i] = T0 + i*dm
-	fase[i] = np.sin(2.0*np.pi * i * dm / P )
+dm = (jdfd[1] - jdsd[1]) / m
+days[0] = jdsd[1] + jdsd[0]
+fase[0] = np.sin(2.0*np.pi *(days[0] - T0) / P )
+for i in range(1,m):
+	days[i] = days[i-1] + dm
+	fase[i] = np.sin(2.0*np.pi *(days[i] - T0) / P )
 
-plt.plot(days,fase)
+#When will it be night?
+night,fnight = find_night(days,fase)
+
+#Let us do a nice plot 
+#for i in range(0,m):
+#	days[i] = days[i] - (jdsd[1] + jdsd[0])
+
+#for i in range(0,len(night)):
+#	night[i] = night[i] - (jdsd[1] + jdsd[0])
 
 
-#The next eclipse will be in P - nextec days
-#Let us add this to todayjd
-eclipsejd = np.float64(todayjd) + np.float64(P) - np.float64(nextec)
-#Now we know when the next eclipse will happen (in JD)
 
-#We want to know when the next n eclispes will happen
-n=input("Number of following eclipses you want to know?") 
-
-for i in range(0,n):
-	#The first next eclipse will be on eclipsejd
-	#Then we just need to add the period i times
-	nexteclipse = np.float64(eclipsejd) + i*np.float64(P)
-	#Put the eclipse date in a human friendly way
-	eclipse=jd.jd2gcal(2400000.5,nexteclipse-2400000.5) 
-	hour = int(eclipse[3] * 24.0)
-	minu = (eclipse[3] * 24.0 - hour) * 60
-	print ("eclipse %3d --> %2d %2d %4d - %2d : %2d "  \
-	% (i+1,eclipse[2], eclipse[1], eclipse[0],hour,int(minu)))
-
+plt.plot(days,fase,'r--',night,fnight,'bo')
