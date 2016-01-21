@@ -28,6 +28,11 @@ for i in range(0,len(data)-1):
 #http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.curve_fit.html
 popt,pcov = curve_fit(rv_curve,time,fase,sigma=err)
 
+rvrv0= popt[0]
+rvk  = popt[1]
+sdrv0= np.sqrt(pcov[0][0])
+sdk  = np.sqrt(pcov[1][1])
+
 n = 1000
 xmin = min(time) - Porb/2.
 xmax = max(time) + Porb/2.
@@ -36,13 +41,14 @@ rvx = []
 rvy = []
 dn = ( xmax - xmin ) / n
 rvx.append(xmin)
-rvy.append(rv_curve(rvx[0],popt[0],popt[1]))
+rvy.append(rv_curve(rvx[0],rvrv0,rvk))
 for	i in range(1,n-1):
 	xnew = rvx[i-1] + dn
 	rvx.append( xnew )
-	rvy.append( rv_curve(xnew,popt[0],popt[1]) )
+	rvy.append( rv_curve(xnew,rvrv0,rvk) )
 
-print ('k = %f, and rv0 = %f'%(popt[0], popt[1]))
+print ('k   = %5.5f +- %5.5f'%(rvk  , sdk  ))
+print ('rv0 = %5.5f +- %5.5f'%(rvrv0, sdrv0))
 
 
 #error bars -> http://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
