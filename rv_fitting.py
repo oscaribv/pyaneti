@@ -56,8 +56,8 @@ time,fase,err,tspe = np.loadtxt(fname,usecols=(0,1,2,3), \
 telescopes = ['F','H','M']
 
 #Transform fase from km/s to m/s
-fase=fase*100.
-err=err*100.
+fase=fase*1000.
+err=err*1000.
 
 #Let us separate the data for the different telescopes
 time_F=[]
@@ -125,15 +125,13 @@ rvx = [None]*n
 rvy = [None]*n
 xmin = T0
 xmax = T0 + Porb
-dn = (xmax - xmin) /  n 
+dn = (xmax - xmin) /  n  
 rvx[0] = xmin 
 rvy[0] = rv_curve_k(rvx[0],k)
 for i in range(1,n):
 	newx   = rvx[i-1] + dn
 	rvx[i] = newx 
 	rvy[i] = rv_curve_k(rvx[i],k)
-
-#plt.plot(rvx,rvy,'k')
 
 #Let us scale the time with the Period
 p_F  = scale_period(time_F,T0,Porb)
@@ -144,10 +142,11 @@ p_rv = scale_period(rvx   ,T0,Porb)
 #error bars -> http://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
 plt.xlabel("Phase")
 plt.ylabel("k (m/s)")
-plt.ylim(-15,30)
+plt.ylim(1.5*min(rvy),max(rvy)*3)
 plt.plot(p_rv,rvy,'k',label=('RV fit with k=%2.2f m/s'%k ))
 plt.errorbar(p_F, fase_F, err_F, fmt='o', color='g', label='FIES')
 plt.errorbar(p_H, fase_H, err_H, fmt='o', color='r', label='HARPS')
 plt.errorbar(p_M, fase_M, err_M, fmt='o', color='y', label='McDonald')
 plt.legend()
+plt.savefig('rv_fit.png')
 plt.show()
