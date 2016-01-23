@@ -40,6 +40,20 @@ def scale_period(jd,T0,P):
 
 #-----------------------------
 
+def planet_mass(mstar,k,P,ecc):
+	#Gravitational costant
+	Gc = 6.67408e-11 #m^3 / (kgs^2)
+	Gc = Gc * 1.989e30 # m^3 / (Msun s^2)
+	#period in seconds
+	P = P * 24. * 3600
+
+	mpsin = k * ( 2. * np.pi * Gc / P)**(-1./3.)  * \
+	mstar**(2./3.) * np.sqrt( 1.0 - ecc*ecc )
+
+	return mpsin
+
+#-----------------------------
+
 #Planet parameters
 Porb = 3.258907
 T0 = 7064.43314 
@@ -150,3 +164,16 @@ plt.errorbar(p_M, fase_M, err_M, fmt='o', color='y', label='McDonald')
 plt.legend()
 plt.savefig('rv_fit.png')
 plt.show()
+
+
+#Now let us calculate the plantary mass
+ecc = 0.0
+
+mpsin = planet_mass(1.0,k,Porb,ecc)
+mjupiter = 0.0009543
+mearth = 0.000003003 
+
+print 'planet mass = '
+print ('%3.5e solar masses' %mpsin)
+print ('%3.5e jupiter masses' %(mpsin/mjupiter))
+print ('%3.5e earth masses' %(mpsin/mearth))
