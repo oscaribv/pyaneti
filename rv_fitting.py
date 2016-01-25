@@ -55,11 +55,18 @@ def planet_mass(mstar,k,P,ecc):
 
 #-----------------------------
 
-#INPUT PARAMETERS
-Porb = 3.258907
-T0 = 7064.43314 
-telescopes = ['F','H','M']
-fname='prueba.dat'
+#Read the input parameters from input_rv.txt
+idata = np.loadtxt('input_rv.txt',comments='#',unpack=True,dtype='S')
+
+#Let us use all the read data
+Porb = np.float(idata[0])
+T0	 = np.float(idata[1])
+tpes = idata[2]
+fname= idata[3]
+telescopes = [None]*len(idata[2])
+for i in range(0,len(idata[2])):
+	telescopes[i] = idata[2][i]
+#
 
 #Read the data file
 time,fase,err,tspe = np.loadtxt(fname,usecols=(0,1,2,3), \
