@@ -52,22 +52,22 @@ def find_eclipse(T0,P,D,jds,jdf):
 
 #USER INPUT VALUES 
 #T0 of the eclise (JD)
-T0 = 2307.72237 + 2454833.0
+T0 = 7063.801714 + 2450000
 #Period (days)
-P  = 1.673774
-#Duration (hours)
-D = 2
+P  = 4.0985
+#Duration (days)
+D = 0.0967
 #Starting date (year,month,day)
 sd = [2016,1,29]
 #Ending date (year,month,day)
-fd = [2016,2,3]
+fd = [2016,2,2]
 #Number of points to plot
 m = 1000
 
 #THE MAGIC BEGINS HERE
 
 #durations in day fraction
-D = D / 24.0
+#D = D / 24.0
 
 #Let us obtain starting date (sd) and final date (fd) in JD
 jdsd = jd.gcal2jd(sd[0],sd[1],sd[2])
@@ -113,7 +113,7 @@ plt.ylabel( 'Phase' )
 plt.ylim(-1.2,2.2)
 plt.plot(days,fase,'r--', label="Theoretical RV")
 plt.plot(night,fnight,'bo', label="night")
-plt.plot(eclipses,dummy,'gs', label="eclipse")
+plt.plot(eclipses,dummy,'gs', label="transit")
 plt.legend()
-plt.savefig('test.png')
+plt.savefig('C4_7318.png')
 plt.show()
