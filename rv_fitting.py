@@ -166,8 +166,9 @@ plt.ylabel("k (m/s)")
 plt.ylim(1.5*min(rvy),max(rvy)*3)
 plt.plot(p_rv,rvy,'k',label=('RV fit with k=%2.2f m/s'%k ))
 
+mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
 for i in range(0,len(telescopes)):
-	plt.errorbar(p_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt='.')
+	plt.errorbar(p_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i])
 plt.legend()
 plt.savefig('rv_fit.png')
 plt.show()
