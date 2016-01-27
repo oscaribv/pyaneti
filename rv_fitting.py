@@ -16,6 +16,11 @@ def rv_curve_k(t,k):
 	return rv
 
 #------------------------------------
+
+def find_anomaly():
+	a = 1
+
+#------------------------------------
 			
 def find_k_rv0(time,fase,err,tpe):
 	#How is the fit made? 
