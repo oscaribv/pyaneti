@@ -9,57 +9,63 @@ import sys
 #-----------------------------------
 #This function find the eccentry anomaly by using the
 #Newton-Rapshon method
+#Input values are man -> array, ecc -> float
 def find_anomaly(man,ecc,delta=1.e-4,imax=5000):
+	#Let us start with a zero value for the anomaly
 	anomaly = [0.0]*len(man)
 	f  = anomaly - ecc * np.sin(anomaly) - man
 	df =	   1.0 - ecc * np.cos(anomaly)
 	counter = 0
+	#Let us do it for all the man values
 	for i in range(0,len(man)):
 		counter = 0
+			#Do we find the zero of f?
 		while ( np.absolute(f[i]) >= delta):
 			dum = anomaly[i] - f[i] / df[i]
 			anomaly[i] = dum
 			f[i] = anomaly[i] - ecc * np.sin(anomaly[i]) - man[i]
 			df[i]=	1 - ecc * np.cos(anomaly[i])
+			#Let us use a counter to get rid off of infinite loops
 			counter = counter + 1
 			if (counter > imax):
 				sys.exit("I am tired!")
+	#The result is the eccentric anomaly vector!
 	return anomaly	
 #-------------------------------------
-	#This functions assumes that the orbit is circular
+	#This functions gives the rv functions
+	#it assumes a circular orbit
 def rv_circular(t,rv0,k):
 	rv = rv0 - k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
-	#rv = rv0 + k * np.sin( 2.0 * np.pi * ( t ) / Porb )
 	return rv
 #------------------------------------
 def rv_curve_rv0(t,rv0,k0,ecc,omega):
-	#The general equation for rv motion is
+	#man is the mean anomally
 	man = 2 * np.pi * (t - T0) / Porb
-	#man = 2 * np.pi * (t) / Porb
+	#call to find_anomaly function to find the eccentric anomaly
 	anomaly = find_anomaly(man,ecc)
+	#The general equation for rv motion is
 	rv = rv0 + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1.0 - ecc*ecc)
 	return rv
 #------------------------------------
 def rv_curve(t,k0,ecc,omega):
-	#The general equation for rv motion is
+	#man is the mean anomally
 	man = 2 * np.pi * ( t - T0 ) / Porb
-	#man = 2 * np.pi * ( t ) / Porb
+	#call to find_anomaly function to find the eccentric anomaly
 	anomaly = find_anomaly(man,ecc)
+	#The general equation for rv motion is
 	rv =  k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) )  / np.sqrt(1.0 - ecc*ecc)
 	return rv
 #------------------------------------
-#Extract systemic velocities is highly important, so let us take care with this
+#Extract systemic velocities is highly important
+#so let us take care with this
 def find_rv0(time,fase,err,tpe):
-	#Let us first fit assuming a circular orbit (to first estimate v0 and k0)
+	#Let us first fit assuming a circular orbit 
+	#(to first estimate v0 and k0)
 	popt,pcov = curve_fit(rv_circular,time,fase)
-	#This results will be our first guesses for v0 and k0
+	#These results will be our first guesses for v0 and k0
 	rv0 = popt[0]
 	k0  = popt[1]
-	#Now let us fit again now with your guesses as input
-	#popt,pcov = curve_fit(rv_circular,time,fase,sigma=err,p0=[rv0,k0])
-	#rv0 = popt[0]
-	#k0  = popt[1]
-	#Now rv0 and kv0 are really good guesses to try to fit an eccentric orbit
+	#Now let us fit again now with the guesses as input
 	popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[rv0,k0,0,0])
 	rv0 = popt[0]
 	k0  = popt[1]
@@ -175,11 +181,11 @@ mjup = 0.0009543
 mearth = 0.000003003 
 
 #Print the results
-print (' k= %4.4e +/- %4.4e m/s' %(k,sigk))
-print (' w= %4.4e +/- %4.4e rad' %(w,sigw))
-print (' e= %4.4e +/- %4.4e    ' %(e,sige))
+print (' k = %4.4e +/- %4.4e m/s' %(k,sigk))
+print (' w = %4.4e +/- %4.4e rad' %(w,sigw))
+print (' e = %4.4e +/- %4.4e    ' %(e,sige))
 
-print ('This corresponds to a planet mass of %1.4e M_j for a %2.2f solar mass star' % (mpsin/mjup, mstar))
+print ('Planet mass of %1.4e M_j (for a %2.2f solar mass star)' % (mpsin/mjup, mstar))
 
 #Let us do a nice plot
 
