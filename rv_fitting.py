@@ -9,23 +9,26 @@ import sys
 #-----------------------------------
 #This function find the eccentry anomaly by using the
 #Newton-Rapshon method
-def find_anomaly(man,ecc,delta=1.e-5):
+def find_anomaly(man,ecc,delta=1.e-4,imax=5000):
 	anomaly = [0.0]*len(man)
 	f  = anomaly - ecc * np.sin(anomaly) - man
 	df =	   1.0 - ecc * np.cos(anomaly)
-	#print f,df
-	#sys.exit()
+	counter = 0
 	for i in range(0,len(man)):
+		counter = 0
 		while ( np.absolute(f[i]) >= delta):
 			dum = anomaly[i] - f[i] / df[i]
 			anomaly[i] = dum
 			f[i] = anomaly[i] - ecc * np.sin(anomaly[i]) - man[i]
 			df[i]=	1 - ecc * np.cos(anomaly[i])
+			counter = counter + 1
+			if (counter > imax):
+				sys.exit("I am tired!")
 	return anomaly	
 #-------------------------------------
 	#This functions assumes that the orbit is circular
 def rv_circular(t,rv0,k):
-	rv = rv0 + k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
+	rv = rv0 - k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
 	#rv = rv0 + k * np.sin( 2.0 * np.pi * ( t ) / Porb )
 	return rv
 #------------------------------------
@@ -42,7 +45,7 @@ def rv_curve(t,k0,ecc,omega):
 	man = 2 * np.pi * ( t - T0 ) / Porb
 	#man = 2 * np.pi * ( t ) / Porb
 	anomaly = find_anomaly(man,ecc)
-	rv = + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) )  / np.sqrt(1.0 - ecc*ecc)
+	rv =  k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) )  / np.sqrt(1.0 - ecc*ecc)
 	return rv
 #------------------------------------
 #Extract systemic velocities is highly important, so let us take care with this
@@ -153,7 +156,7 @@ for i in range(0,len(telescopes)):
 popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[1,0,0])
 kg = popt[0]
 wg = popt[2]
-popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[kg,0,wg])
+popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[kg,0.0,wg])
 
 #Let us store the values of k and its corresponding sigma
 k = popt[0]
@@ -161,8 +164,8 @@ sigk = np.sqrt(pcov[0][0])
 e = popt[1]
 sige = np.sqrt(pcov[1][1])
 w = popt[2]
+w = w % (2*np.pi)
 sigw = np.sqrt(pcov[2][2])
-
 
 #Now let us calculate the plantary mass
 
@@ -172,9 +175,9 @@ mjup = 0.0009543
 mearth = 0.000003003 
 
 #Print the results
-print ('semi-amplitude k= %8f +- %8f m/s' %(k,sigk))
-print ('semi-amplitude e= %8f +- %8f m/s' %(e,sige))
-print ('semi-amplitude w= %8f +- %8f m/s' %(w,sigw))
+print (' k= %4.4e +/- %4.4e m/s' %(k,sigk))
+print (' w= %4.4e +/- %4.4e rad' %(w,sigw))
+print (' e= %4.4e +/- %4.4e    ' %(e,sige))
 
 print ('This corresponds to a planet mass of %1.4e M_j for a %2.2f solar mass star' % (mpsin/mjup, mstar))
 
