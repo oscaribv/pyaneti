@@ -4,60 +4,61 @@ from scipy.optimize import curve_fit
 import sys
 
 #-----------------------------------
-
-def rv_curve(t,rv0,k):
-	rv = rv0 - k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
+#This function find the eccentry anomaly by using the
+#Newton-Rapshon method
+def find_anomaly(man,ecc,anomaly=1.0,delta=1e-3):
+	f = anomaly - ecc * np.sin(anomaly) - man
+	df=	1 - ecc * np.cos(anomaly)
+	while ( f>delta):
+		dum = anomaly - f / df
+		anomaly = dum
+		f = anomaly - ecc * np.sin(anomaly) - man
+		df=	1 - ecc * np.cos(anomaly)
+	return anomaly	
+#------------------------------------
+def rv_curve_rv0(t,rv0,k0,ecc,omega):
+	#rv = rv0 - k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
+	#The general equation for rv motion is
+	man = 2 * np.pi * ( t - T0 ) / Porb
+	anomaly = man
+	#anomaly = find_anomaly(man,ecc)
+	rv = rv0 + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1 - ecc*ecc)
+	#print rv
 	return rv
-
 #------------------------------------
-
-def rv_curve_k(t,k):
-	rv = - k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
+def rv_curve(t,k0,ecc,omega):
+	man = 2 * np.pi * (t - T0) / Porb
+	anomaly = man
+	#anomaly = find_anomaly(man,ecc)
+	rv = k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1 - ecc*ecc)
 	return rv
-
 #------------------------------------
-
-def find_anomaly():
-	a = 1
-
-#------------------------------------
-			
-def find_k_rv0(time,fase,err,tpe):
+def find_rv0(time,fase,err,tpe):
 	#How is the fit made? 
 	#http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.curve_fit.html
-	popt,pcov = curve_fit(rv_curve,time,fase,sigma=err)
-
+	popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[1,1,0,0])
 	rvrv0= popt[0]
 	rvk  = popt[1]
 	sdrv0= np.sqrt(pcov[0][0])
 	sdk  = np.sqrt(pcov[1][1])
-
 	print ('for %1s -> rv0 = %5.5f +/- %5.5f m/s'%(tpe,rvrv0,sdrv0))
-
 	return rvrv0
-
 #-----------------------------
-
 def scale_period(jd,T0,P):
 	x = [None]*len(jd)
 	for i in range(len(jd)):
 		x[i] = ( ( jd[i] - T0 ) % P ) /  P
 	return x
-
 #-----------------------------
-
 def planet_mass(mstar,k,P,ecc):
 	#Gravitational costant
 	Gc = 6.67408e-11 #m^3 / (kgs^2)
 	Gc = Gc * 1.989e30 # m^3 / (Msun s^2)
 	#period in seconds
 	P = P * 24. * 3600
-
 	mpsin = k * ( 2. * np.pi * Gc / P)**(-1./3.)  * \
 	mstar**(2./3.) * np.sqrt( 1.0 - ecc*ecc )
-
 	return mpsin
-
 #-----------------------------
 
 #Read the input parameters from input_rv.txt
@@ -78,6 +79,9 @@ time,fase,err,tspe = np.loadtxt(fname,usecols=(0,1,2,3), \
   dtype={'names': ('time', 'fase', 'err','telescope'), \
 	'formats': ('float', 'float', 'float', 'S1')}, \
 	comments='#',unpack=True)
+
+
+ecc=0.0
 
 #Transform fase from km/s to m/s
 fase=fase*1000.
@@ -107,7 +111,7 @@ rv0_all=[None]*len(telescopes)
 print ("Extracting systemic velocities for the %i telescopes"%len(telescopes))
 #Find all the systematic velocities and put them in rv0_all
 for i in range(0,len(telescopes)):
-	rv0_all[i] = find_k_rv0(time_all[i],fase_all[i],errs_all[i],telescopes[i])
+	rv0_all[i] = find_rv0(time_all[i],fase_all[i],errs_all[i],telescopes[i])
 
 #Let us take off the offset for each telescope
 for i in range(0,len(telescopes)):
@@ -125,14 +129,13 @@ for i in range(0,len(telescopes)):
 		mega_err.append(errs_all[i][j])
 
 #It is time to fit the curve for k for all the data
-popt,pcov = curve_fit(rv_curve_k,mega_time,mega_fase,sigma=mega_err)
+popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[1,0,0])
 
 #Let us store the values of k and its corresponding sigma
 k = popt[0]
 sigk = np.sqrt(pcov[0][0])
 
 #Now let us calculate the plantary mass
-ecc = 0.0
 
 mstar = 1.0
 mpsin = planet_mass(mstar,k,Porb,ecc)
@@ -154,11 +157,11 @@ xmin = T0
 xmax = T0 + Porb
 dn = (xmax - xmin) /  n  
 rvx[0] = xmin 
-rvy[0] = rv_curve_k(rvx[0],k)
+rvy[0] = rv_curve(rvx[0],k,0,0)
 for i in range(1,n):
 	newx   = rvx[i-1] + dn
 	rvx[i] = newx 
-	rvy[i] = rv_curve_k(rvx[i],k)
+	rvy[i] = rv_curve(rvx[i],k,0,0)
 
 p_rv = scale_period(rvx   ,T0,Porb)
 p_all = [None]*len(telescopes)
