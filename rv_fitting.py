@@ -15,28 +15,40 @@ def find_anomaly(man,ecc,anomaly=1.0,delta=1e-3):
 		f = anomaly - ecc * np.sin(anomaly) - man
 		df=	1 - ecc * np.cos(anomaly)
 	return anomaly	
+#-------------------------------------
+def rv_circular(t,rv0,k0):
+	#This script calculates a fit assuming a circular orbit
+	rv = rv0 - k0 * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
+	return rv
 #------------------------------------
 def rv_curve_rv0(t,rv0,k0,ecc,omega):
 	#rv = rv0 - k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
 	#The general equation for rv motion is
-	man = 2 * np.pi * ( t - T0 ) / Porb
-	anomaly = man
-	#anomaly = find_anomaly(man,ecc)
-	rv = rv0 + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1 - ecc*ecc)
-	#print rv
-	return rv
-#------------------------------------
-def rv_curve(t,k0,ecc,omega):
 	man = 2 * np.pi * (t - T0) / Porb
 	anomaly = man
 	#anomaly = find_anomaly(man,ecc)
-	rv = k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1 - ecc*ecc)
+	rv = rv0 + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1 - ecc*ecc)
+	return rv
+#------------------------------------
+def rv_curve(t,k0,ecc,omega):
+	man = 2 * np.pi * ( t - T0 ) / Porb
+	anomaly = man
+	#anomaly = find_anomaly(man,ecc)
+	rv = + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1 - ecc*ecc)
 	return rv
 #------------------------------------
 def find_rv0(time,fase,err,tpe):
 	#How is the fit made? 
 	#http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.curve_fit.html
-	popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[1,1,0,0])
+	#First let us do a fit assuming a circular orbit
+	popt,pcov = curve_fit(rv_circular,time,fase,sigma=err)
+	rv0 = popt[0]
+	k0  = popt[1]
+	popt,pcov = curve_fit(rv_circular,time,fase,sigma=err,p0=[rv0,k0])
+	rv0 = popt[0]
+	k0  = popt[1]
+	#Now we have a first estimate of rv0 and k0
+	popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[rv0,k0,0,0])
 	rvrv0= popt[0]
 	rvk  = popt[1]
 	sdrv0= np.sqrt(pcov[0][0])
@@ -134,16 +146,23 @@ popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[1,0,0])
 #Let us store the values of k and its corresponding sigma
 k = popt[0]
 sigk = np.sqrt(pcov[0][0])
+e = popt[1]
+sige = np.sqrt(pcov[1][1])
+w = popt[2]
+sigw = np.sqrt(pcov[2][2])
+
 
 #Now let us calculate the plantary mass
 
 mstar = 1.0
-mpsin = planet_mass(mstar,k,Porb,ecc)
+mpsin = planet_mass(mstar,k,Porb,e)
 mjup = 0.0009543
 mearth = 0.000003003 
 
 #Print the results
 print ('semi-amplitude k= %8f +- %8f m/s' %(k,sigk))
+print ('semi-amplitude e= %8f +- %8f m/s' %(e,sige))
+print ('semi-amplitude w= %8f +- %8f m/s' %(w,sigw))
 
 print ('This corresponds to a planet mass of %1.4e M_j for a %2.2f solar mass star' % (mpsin/mjup, mstar))
 
@@ -157,16 +176,18 @@ xmin = T0
 xmax = T0 + Porb
 dn = (xmax - xmin) /  n  
 rvx[0] = xmin 
-rvy[0] = rv_curve(rvx[0],k,0,0)
+rvy[0] = rv_curve(rvx[0],k,e,w)
 for i in range(1,n):
 	newx   = rvx[i-1] + dn
 	rvx[i] = newx 
-	rvy[i] = rv_curve(rvx[i],k,0,0)
+	rvy[i] = rv_curve(rvx[i],k,e,w)
 
 p_rv = scale_period(rvx   ,T0,Porb)
 p_all = [None]*len(telescopes)
 for i in range(0,len(telescopes)):
 	p_all[i] = scale_period(time_all[i],T0,Porb)
+	#p_all[i] = time_all[i]
+
 
 #error bars -> http://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
 plt.xlabel("Phase")
