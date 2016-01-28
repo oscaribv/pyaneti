@@ -35,7 +35,7 @@ def find_anomaly(man,ecc,delta=1.e-4,imax=5000):
 	#This functions gives the rv functions
 	#it assumes a circular orbit
 def rv_circular(t,rv0,k):
-	rv = rv0 - k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
+	rv = rv0 + k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
 	return rv
 #------------------------------------
 def rv_curve_rv0(t,rv0,k0,ecc,omega):
@@ -53,29 +53,40 @@ def rv_curve(t,k0,ecc,omega):
 	#call to find_anomaly function to find the eccentric anomaly
 	anomaly = find_anomaly(man,ecc)
 	#The general equation for rv motion is
-	rv =  k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) )  / np.sqrt(1.0 - ecc*ecc)
+	rv = + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) )  / np.sqrt(1.0 - ecc*ecc)
 	return rv
+#------------------------------------
+
 #------------------------------------
 #Extract systemic velocities is highly important
 #so let us take care with this
 def find_rv0(time,fase,err,tpe):
 	#Let us first fit assuming a circular orbit 
 	#(to first estimate v0 and k0)
-	popt,pcov = curve_fit(rv_circular,time,fase)
+	popt,pcov = curve_fit(rv_circular,time,fase,sigma=err)
 	#These results will be our first guesses for v0 and k0
-	rv0 = popt[0]
-	k0  = popt[1]
+	rvc = popt[0]
+	sdrvc= np.sqrt(pcov[0][0])
+	kc  = popt[1]
 	#Now let us fit again now with the guesses as input
-	popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[rv0,k0,0,0])
-	rv0 = popt[0]
-	k0  = popt[1]
-	w   = popt[3]
-	#Now we have guesses for rv0, k0 and w, let us re do the fit, now to improve e
-	popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[rv0,k0,0,w])
-	rvrv0= popt[0]
-	sdrv0= np.sqrt(pcov[0][0])
-	print ('for %1s -> rv0 = %5.5f +/- %5.5f m/s'%(tpe,rvrv0,sdrv0))
-	return rvrv0
+	popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[rvc,kc,0,0])
+	#Let us check if the function is "ellipsable"
+	#If we have two points, try to fit an elliptical orbit is not correct
+	#If this is the case, the errors wll go to infinite, let us check this
+	if ( np.isinf(pcov[0][0]) == True ): #Then the function is not ellipsable
+		rv0 = rvc
+		sdrv0= sdrvc
+	else: #The function is ellipsable, let us keep playing with the fit!
+		rv0 = popt[0]
+		sdrv0 = pcov[0][0]
+		k0 = popt[1]
+		w = popt[2]
+		#Now we have guesses for rv0, k0 and w, let us re do the fit, now to improve e
+		popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[rv0,k0,0,w])
+		rv0= popt[0]
+		sdrv0= np.sqrt(pcov[0][0])
+	print ('for %1s -> rv0 = %5.5f +/- %5.5f m/s'%(tpe,rv0,sdrv0))
+	return rv0
 #-----------------------------
 def scale_period(jd,T0,P):
 	x = [None]*len(jd)
@@ -159,7 +170,14 @@ for i in range(0,len(telescopes)):
 		mega_err.append(errs_all[i][j])
 
 #It is time to fit the curve for k for all the data
-popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[1,0,0])
+popt,pcov = curve_fit(rv_circular,mega_time,mega_fase,sigma=mega_err,p0=[0.0,1])
+rc=popt[0]
+kc=popt[1]
+print popt
+popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[kc,0,0])
+kg = popt[0]
+wg = popt[2]
+popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[kg,0.0,0.0])
 kg = popt[0]
 wg = popt[2]
 popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[kg,0.0,wg])
@@ -170,8 +188,12 @@ sigk = np.sqrt(pcov[0][0])
 e = popt[1]
 sige = np.sqrt(pcov[1][1])
 w = popt[2]
+if ( k < 0.0 ): #Then the phase is shifted pi
+	w = w + np.pi	
+	k = np.absolute(k)
 w = w % (2*np.pi)
 sigw = np.sqrt(pcov[2][2])
+
 
 #Now let us calculate the plantary mass
 
