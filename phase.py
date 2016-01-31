@@ -63,6 +63,7 @@ D = 0.0967  #C4_7318
 #Name
 #fname = "C4_9792.png"
 fname = "C4_7318.png"
+objeto = 'C4_7318'
 #Starting date (year,month,day)
 sd = [2016,1,31]
 #Ending date (year,month,day)
@@ -151,6 +152,7 @@ for i in range(0,len(hdate)):
 	hdate[i] = jd.jd2gcal(sd_float,np.array(nightfa[i]))
 	
 
+print ('#Object: %s'%objeto)
 print '# hour	phase'
 print '#------------------------#'
 print('# %4i %2i %2i'%(hdate[0][0],hdate[0][1],hdate[0][2]))
