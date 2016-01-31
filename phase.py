@@ -8,8 +8,8 @@ import sys
 def find_night(days,fase):
 	night=[]
 	fnight=[]
-	sn = 23 #night start in hours
-	en = 1 	#night end in hours
+	sn = 19 #night start in hours
+	en = 7 	#night end in hours
 	#This assumes that the night ends the next day that starts
 	sndf = 24 % sn #star night day fraction
 	n1 = sndf / 24.0
@@ -52,36 +52,40 @@ def find_eclipse(T0,P,D,jds,jdf):
 
 #USER INPUT VALUES 
 #T0 of the eclise (JD)
-T0 = 7383.80544 + 2450000 #C4_9792
-#T0 = 7063.80714 + 2450000 #C4_7318
+#T0 = 7383.80544 + 2450000 #C4_9792
+T0 = 7063.80714 + 2450000 #C4_7318
 #Period (days)
-P  = 3.2589265  #C4_9792
-#P  = 4.098503  #C4_7318
+#P  = 3.2589265  #C4_9792
+P  = 4.098503  #C4_7318
 #Duration (days)
-D = 0.0967
+#D = 0.08882 #C4_9792
+D = 0.0967  #C4_7318
+#Name
+#fname = "C4_9792.png"
+fname = "C4_7318.png"
 #Starting date (year,month,day)
-sd = [2016,1,30]
+sd = [2016,1,31]
 #Ending date (year,month,day)
 fd = [2016,1,31]
-#Number of points to plot
-m = 5000
+#Huso horario
+huso = -0.0/24.
 
 #THE MAGIC BEGINS HERE
-
-#durations in day fraction
-#D = D / 24.0
 
 #Let us obtain starting date (sd) and final date (fd) in JD
 jdsd = jd.gcal2jd(sd[0],sd[1],sd[2])
 jdfd = jd.gcal2jd(fd[0],fd[1],fd[2])
-sd_float = jdsd[0] + jdsd[1] + 0.5
-fd_float = jdfd[0] + jdfd[1] + 0.5
+sd_float = jdsd[0] + jdsd[1] + 0.5 + huso
+fd_float = jdfd[0] + jdfd[1] + 1.5 + huso
+#Number of points to plot (48 per day)
+m = 48 * int(fd_float - sd_float)
 #Let us create a vector with the days and fase
 days = [None]*m
 fase = [None]*m
 rv   = [None]*m
 #jump size
-dm = (jdfd[1] - jdsd[1]) / m
+#dm = (jdfd[1] - jdsd[1]) / m
+dm = (fd_float - sd_float) / m
 #The calculation start at the midnight of the first night
 days[0] = sd_float
 rv[0]   = - np.sin(2.0*np.pi *(days[0] - T0) / P )
@@ -122,7 +126,7 @@ plt.subplot(211)
 plt.xlabel( ' T (JD - %7f)'%sd_float )
 plt.ylabel( 'RV' )
 plt.ylim(-1.2,1.2)
-plt.plot(days,rv,'r--', label="Theoretical RV")
+plt.plot(days,rv,'r-', label="RV/Phase")
 plt.plot(nightrv,fnightrv,'bo', label="night")
 plt.plot(eclipses,dummy,'gs', label="transit")
 #plt.legend()
@@ -132,9 +136,12 @@ plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
 plt.subplot(212)
 plt.xlabel( ' T (JD - %7f)'%sd_float )
 plt.ylabel( 'phase' )
-#plt.ylim(-0.1,1.1)
-plt.plot(days,fase,'r--', label="Theoretical RV")
+plt.ylim(0,1.1)
+plt.plot(days,fase,'r-', label="Theoretical RV")
 plt.plot(nightfa,fnightfa,'bo', label="night")
 #plt.legend()
-plt.savefig('C4_7318.png')
+plt.savefig(fname)
 plt.show()
+
+for i in range(0,len(nightfa)):
+	print nightfa[i]*24 + 12,fnightfa[i]
