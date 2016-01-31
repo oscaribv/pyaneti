@@ -5,11 +5,9 @@ import jdcal as jd
 import sys
 
 #
-def find_night(days,fase):
+def find_night(days,fase,sn,en):
 	night=[]
 	fnight=[]
-	sn = 19 #night start in hours
-	en = 7 	#night end in hours
 	#This assumes that the night ends the next day that starts
 	sndf = 24 % sn #star night day fraction
 	n1 = sndf / 24.0
@@ -74,17 +72,16 @@ fname = "C4_7318.png"
 #Read the input parameters from input_phase.txt
 idata = np.loadtxt('input_phase.txt',comments='#',unpack=True,dtype='S')
 
+#Put the data in the correct variables
 T0 = np.float(idata[0])
 P  = np.float(idata[1])
 D  = np.float(idata[2])
-objeto  = idata[3]
+objeto = idata[3]
 sd = [np.int(idata[4][0:4]),np.int(idata[4][5:7]),np.int(idata[4][8:10])]
 fd = [np.int(idata[5][0:4]),np.int(idata[5][5:7]),np.int(idata[5][8:10])]
-#fd = [np.float(idata[5][0:3]),np.float(idata[5][5:6]),np.float(idata[5][8:9])]
+sn = np.float(idata[6][0:2])
+en = np.float(idata[6][3:5])
 
-print idata[4][8:10]
-
-print sd,fd
 
 #THE MAGIC BEGINS HERE
 
@@ -115,8 +112,8 @@ for i in range(1,m):
 	fase[i] = (days[i] - T0) / P - int(fase[i])
 
 #When will it be night?
-nightrv,fnightrv = find_night(days,rv)
-nightfa,fnightfa = find_night(days,fase)
+nightrv,fnightrv = find_night(days,rv,sn,en)
+nightfa,fnightfa = find_night(days,fase,sn,en)
 
 #Let us find the eclipses
 eclipses = find_eclipse(T0,P,D,sd_float,fd_float)
