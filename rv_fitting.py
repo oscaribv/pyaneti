@@ -173,7 +173,10 @@ for i in range(0,len(telescopes)):
 popt,pcov = curve_fit(rv_circular,mega_time,mega_fase,sigma=mega_err,p0=[0.0,1])
 rc=popt[0]
 kc=popt[1]
-print popt
+
+rv0s = rc
+mega_fase = mega_fase - rv0s
+
 popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[kc,0,0])
 kg = popt[0]
 wg = popt[2]
@@ -193,7 +196,6 @@ if ( k < 0.0 ): #Then the phase is shifted pi
 	k = np.absolute(k)
 w = w % (2*np.pi)
 sigw = np.sqrt(pcov[2][2])
-
 
 #Now let us calculate the plantary mass
 
@@ -230,12 +232,14 @@ for i in range(0,len(telescopes)):
 #error bars -> http://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
 plt.xlabel("Phase")
 plt.ylabel("k (m/s)")
-plt.ylim(1.5*min(rvy),max(rvy)*3)
-plt.plot(p_rv,rvy,'k',label=('RV fit with k=%2.2f m/s'%k ))
+plt.ylim(1.5*min(rvy),max(rvy)*1.5)
+plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k ))
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
 for i in range(0,len(telescopes)):
 	plt.errorbar(p_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i])
-plt.legend()
+#plt.legend()
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
+           ncol=4, mode="expand", borderaxespad=0.)
 plt.savefig('rv_fit.png')
 plt.show()
 
