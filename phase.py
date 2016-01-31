@@ -143,5 +143,21 @@ plt.plot(nightfa,fnightfa,'bo', label="night")
 plt.savefig(fname)
 plt.show()
 
+#Let us make a nice print in the screen with hours and date
+
+hdate = [None]*len(nightfa)
+
+for i in range(0,len(hdate)):
+	hdate[i] = jd.jd2gcal(sd_float,np.array(nightfa[i]))
+	
+
+print '# hour	phase'
+print '#------------------------#'
+print('# %4i %2i %2i'%(hdate[0][0],hdate[0][1],hdate[0][2]))
+print '#------------------------#'
 for i in range(0,len(nightfa)):
-	print nightfa[i]*24 + 12,fnightfa[i]
+	print ('%2.2f	%1.4f'%(hdate[i][3]*24.0,fnightfa[i]))
+	if (hdate[i][2] != hdate[i-1][2] and i > 1):
+		print '#------------------------#'
+		print('# %4i %2i %2i'%(hdate[i][0],hdate[i][1],hdate[i][2]))
+		print '#------------------------#'
