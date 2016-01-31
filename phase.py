@@ -53,31 +53,46 @@ def find_eclipse(T0,P,D,jds,jdf):
 #USER INPUT VALUES 
 #T0 of the eclise (JD)
 #T0 = 7383.80544 + 2450000 #C4_9792
-T0 = 7063.80714 + 2450000 #C4_7318
+#T0 = 7063.80714 + 2450000 #C4_7318
 #Period (days)
 #P  = 3.2589265  #C4_9792
-P  = 4.098503  #C4_7318
+#P  = 4.098503  #C4_7318
 #Duration (days)
 #D = 0.08882 #C4_9792
-D = 0.0967  #C4_7318
+#D = 0.0967  #C4_7318
 #Name
 #fname = "C4_9792.png"
 fname = "C4_7318.png"
-objeto = 'C4_7318'
+#objeto = 'C4_7318'
 #Starting date (year,month,day)
-sd = [2016,1,31]
+#sd = [2016,1,31]
 #Ending date (year,month,day)
-fd = [2016,1,31]
+#fd = [2016,1,31]
 #Huso horario
-huso = -0.0/24.
+#huso = -0.0/24.
+
+#Read the input parameters from input_phase.txt
+idata = np.loadtxt('input_phase.txt',comments='#',unpack=True,dtype='S')
+
+T0 = np.float(idata[0])
+P  = np.float(idata[1])
+D  = np.float(idata[2])
+objeto  = idata[3]
+sd = [np.int(idata[4][0:4]),np.int(idata[4][5:7]),np.int(idata[4][8:10])]
+fd = [np.int(idata[5][0:4]),np.int(idata[5][5:7]),np.int(idata[5][8:10])]
+#fd = [np.float(idata[5][0:3]),np.float(idata[5][5:6]),np.float(idata[5][8:9])]
+
+print idata[4][8:10]
+
+print sd,fd
 
 #THE MAGIC BEGINS HERE
 
 #Let us obtain starting date (sd) and final date (fd) in JD
 jdsd = jd.gcal2jd(sd[0],sd[1],sd[2])
 jdfd = jd.gcal2jd(fd[0],fd[1],fd[2])
-sd_float = jdsd[0] + jdsd[1] + 0.5 + huso
-fd_float = jdfd[0] + jdfd[1] + 1.5 + huso
+sd_float = jdsd[0] + jdsd[1] + 0.5 
+fd_float = jdfd[0] + jdfd[1] + 1.5 
 #Number of points to plot (48 per day)
 m = 48 * int(fd_float - sd_float)
 #Let us create a vector with the days and fase
