@@ -46,28 +46,7 @@ def find_eclipse(T0,P,D,jds,jdf):
 		nextec = nextec + P
 	return eclipses
 
-#Here starts the main program
-
-#USER INPUT VALUES 
-#T0 of the eclise (JD)
-#T0 = 7383.80544 + 2450000 #C4_9792
-#T0 = 7063.80714 + 2450000 #C4_7318
-#Period (days)
-#P  = 3.2589265  #C4_9792
-#P  = 4.098503  #C4_7318
-#Duration (days)
-#D = 0.08882 #C4_9792
-#D = 0.0967  #C4_7318
-#Name
-#fname = "C4_9792.png"
-fname = "C4_7318.png"
-#objeto = 'C4_7318'
-#Starting date (year,month,day)
-#sd = [2016,1,31]
-#Ending date (year,month,day)
-#fd = [2016,1,31]
-#Huso horario
-#huso = -0.0/24.
+#Here the main program starts
 
 #Read the input parameters from input_phase.txt
 idata = np.loadtxt('input_phase.txt',comments='#',unpack=True,dtype='S')
@@ -97,7 +76,6 @@ days = [None]*m
 fase = [None]*m
 rv   = [None]*m
 #jump size
-#dm = (jdfd[1] - jdsd[1]) / m
 dm = (fd_float - sd_float) / m
 #The calculation start at the midnight of the first night
 days[0] = sd_float
@@ -133,6 +111,8 @@ for i in range(0,len(nightrv)):
 for i in range(0,len(eclipses)):
 	eclipses[i] = eclipses[i] - sd_float
 
+fname = objeto + '_' + idata[4] + '_to_' + idata[5] 
+
 #Let us create some labels
 plt.figure(1,figsize=(8,6))
 plt.subplot(211)
@@ -142,8 +122,6 @@ plt.ylim(-1.2,1.2)
 plt.plot(days,rv,'r-', label="RV/Phase")
 plt.plot(nightrv,fnightrv,'bo', label="night")
 plt.plot(eclipses,dummy,'gs', label="transit")
-#plt.legend()
-#plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
            ncol=3, mode="expand", borderaxespad=0.)
 plt.subplot(212)
@@ -152,8 +130,7 @@ plt.ylabel( 'phase' )
 plt.ylim(0,1.1)
 plt.plot(days,fase,'r-', label="Theoretical RV")
 plt.plot(nightfa,fnightfa,'bo', label="night")
-#plt.legend()
-plt.savefig(fname)
+plt.savefig(fname + '.pdf')
 plt.show()
 
 #Let us make a nice print in the screen with hours and date
@@ -162,16 +139,21 @@ hdate = [None]*len(nightfa)
 
 for i in range(0,len(hdate)):
 	hdate[i] = jd.jd2gcal(sd_float,np.array(nightfa[i]))
-	
 
-print ('#Object: %s'%objeto)
-print '# hour	phase'
-print '#------------------------#'
-print('# %4i %2i %2i'%(hdate[0][0],hdate[0][1],hdate[0][2]))
-print '#------------------------#'
+dataf = open(fname+'.dat','w')	
+
+dataf.write('#Object: %s\n'%objeto)
+dataf.write('#Phases between %s and %s\n'%(idata[4],idata[5]))
+dataf.write('# hour	phase\n')
+dataf.write( '#------------------------#\n')
+dataf.write('# %4i %2i %2i\n'%(hdate[0][0],hdate[0][1],hdate[0][2]))
+dataf.write('#------------------------#\n')
 for i in range(0,len(nightfa)):
-	print ('%2.2f	%1.4f'%(hdate[i][3]*24.0,fnightfa[i]))
+	dataf.write('%2.2f	%1.4f\n'%(hdate[i][3]*24.0,fnightfa[i]))
 	if (hdate[i][2] != hdate[i-1][2] and i > 1):
-		print '#------------------------#'
-		print('# %4i %2i %2i'%(hdate[i][0],hdate[i][1],hdate[i][2]))
-		print '#------------------------#'
+		dataf.write('#------------------------#\n')
+		dataf.write(('# %4i %2i %2i\n'%(hdate[i][0],hdate[i][1],hdate[i][2])))
+		dataf.write('#------------------------#\n')
+
+dataf.close()
+
