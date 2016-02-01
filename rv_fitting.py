@@ -105,6 +105,8 @@ def planet_mass(mstar,k,P,ecc):
 	return mpsin
 #-----------------------------
 
+#----- HERE THE MAIN PROGRAM STARTS -----#
+
 #Read the input parameters from input_rv.txt
 idata = np.loadtxt('input_rv.txt',comments='#',unpack=True,dtype='S')
 
@@ -113,6 +115,7 @@ Porb = np.float(idata[0])
 T0	 = np.float(idata[1])
 tpes = idata[2]
 fname= idata[3]
+mstar= np.float(idata[4])
 telescopes = [None]*len(idata[2])
 for i in range(0,len(idata[2])):
 	telescopes[i] = idata[2][i]
@@ -133,8 +136,11 @@ time_all=[]
 fase_all=[]
 errs_all=[]
 
+#Number of telescopes
+nt = len(telescopes)
+
 #tspe is the data with the telescopes read from the file
-for i in range(0,len(telescopes)):
+for i in range(0,nt):
 	time_dum =[]
 	fase_dum =[]
 	errs_dum =[]
@@ -143,55 +149,60 @@ for i in range(0,len(telescopes)):
 			time_dum.append(time[j])
 			fase_dum.append(fase[j])
 			errs_dum.append(err[j])
+	#The *all variables are lists of lists, each list constains
+	# a list with the data of each telescope
 	time_all.append(time_dum)
 	fase_all.append(fase_dum)
 	errs_all.append(errs_dum)
 
-rv0_all=[None]*len(telescopes)
-
-print ("Extracting systemic velocities for the %i telescopes"%len(telescopes))
+print ("Extracting systemic velocities for the %i telescopes"%nt)
 #Find all the systematic velocities and put them in rv0_all
-for i in range(0,len(telescopes)):
+rv0_all=[None]*nt
+for i in range(0,nt):
 	rv0_all[i] = find_rv0(time_all[i],fase_all[i],errs_all[i],telescopes[i])
 
 #Let us take off the offset for each telescope
-for i in range(0,len(telescopes)):
+for i in range(0,nt): #each i is a different telescope
 	for j in range(0,len(fase_all[i])):
 		fase_all[i][j] = fase_all[i][j] - rv0_all[i]
 
+#The mega* variables contains all telescope data
 mega_fase = []
 mega_time = []
 mega_err  = []
-#Let us create a mega array with all the data
-for i in range(0,len(telescopes)):
+for i in range(0,nt):
 	for j in range(0,len(fase_all[i])):
 		mega_fase.append(fase_all[i][j])
 		mega_time.append(time_all[i][j])
 		mega_err.append(errs_all[i][j])
 
-#It is time to fit the curve for k for all the data
+
+#Now we are ready to fit an elliptical orbit!
+#Let us first assume a circular orbit to have inital guesses
 popt,pcov = curve_fit(rv_circular,mega_time,mega_fase,sigma=mega_err,p0=[0.0,1])
 rc=popt[0]
 kc=popt[1]
-
+#Let us remove a small rv0 (it is smaller than the error bars)
 rv0s = rc
 mega_fase = mega_fase - rv0s
-
+#Now kc is our inital guess to fit an eccentric orbit
 popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[kc,0,0])
 kg = popt[0]
-wg = popt[2]
+#Now kg was calculated assuming an elliptical orbit
 popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[kg,0.0,0.0])
+#Now we have guesses for k and w (kg and wg)
 kg = popt[0]
 wg = popt[2]
+#Now let us estimate everyting!
 popt,pcov = curve_fit(rv_curve,mega_time,mega_fase,sigma=mega_err,p0=[kg,0.0,wg])
 
-#Let us store the values of k and its corresponding sigma
+#Let us save the fitted values
 k = popt[0]
 sigk = np.sqrt(pcov[0][0])
 e = popt[1]
 sige = np.sqrt(pcov[1][1])
 w = popt[2]
-if ( k < 0.0 ): #Then the phase is shifted pi
+if ( k < 0.0 ): #Then the phase is shifted by pi
 	w = w + np.pi	
 	k = np.absolute(k)
 w = w % (2*np.pi)
@@ -199,7 +210,6 @@ sigw = np.sqrt(pcov[2][2])
 
 #Now let us calculate the plantary mass
 
-mstar = 1.0
 mpsin = planet_mass(mstar,k,Porb,e)
 mjup = 0.0009543
 mearth = 0.000003003 
@@ -225,8 +235,8 @@ for i in range(1,n):
 rvy = rv_curve(rvx,k,e,w)
 
 p_rv = scale_period(rvx,T0,Porb)
-p_all = [None]*len(telescopes)
-for i in range(0,len(telescopes)):
+p_all = [None]*nt
+for i in range(0,nt):
 	p_all[i] = scale_period(time_all[i],T0,Porb)
 
 #error bars -> http://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
@@ -235,7 +245,7 @@ plt.ylabel("k (m/s)")
 plt.ylim(1.5*min(rvy),max(rvy)*1.5)
 plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k ))
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
-for i in range(0,len(telescopes)):
+for i in range(0,nt):
 	plt.errorbar(p_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i])
 #plt.legend()
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
