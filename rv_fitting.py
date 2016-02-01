@@ -240,6 +240,7 @@ for i in range(0,nt):
 	p_all[i] = scale_period(time_all[i],T0,Porb)
 
 #error bars -> http://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
+plt.figure(1,figsize=(10,5))
 plt.xlabel("Phase")
 plt.ylabel("k (m/s)")
 plt.ylim(1.5*min(rvy),max(rvy)*1.5)
