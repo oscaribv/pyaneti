@@ -13,6 +13,8 @@ import sys
 def find_anomaly(man,ecc,delta=1.e-4,imax=5000):
 	#Let us start with a zero value for the anomaly
 	anomaly = [0.0]*len(man)
+	anomaly = np.array(anomaly)
+	#Let us find the eccentric anomally by using Newton-Raphson
 	f  = anomaly - ecc * np.sin(anomaly) - man
 	df =	   1.0 - ecc * np.cos(anomaly)
 	counter = 0
@@ -30,6 +32,11 @@ def find_anomaly(man,ecc,delta=1.e-4,imax=5000):
 			if (counter > imax):
 				sys.exit("I am tired!")
 	#The result is the eccentric anomaly vector!
+	#Now we have the eccentric anomaly, let us calculate
+	#The TRUE anomaly
+	anomaly = np.sqrt(1+ecc/(1-ecc)) * np.tan(anomaly/2.0)
+	anomaly = 2. * np.arctan(anomaly)
+	#Now we have calculated the true anomaly :-)!
 	return anomaly	
 #-------------------------------------
 	#This functions gives the rv functions
@@ -144,16 +151,19 @@ for i in range(0,nt):
 	time_dum =[]
 	fase_dum =[]
 	errs_dum =[]
-	for j in range(0,len(tspe)):
-		if (tspe[j] == telescopes[i]):
-			time_dum.append(time[j])
-			fase_dum.append(fase[j])
-			errs_dum.append(err[j])
+	if (len(telescopes[i]) == 0):
+		print ("There is no data for %s"% telescopes[i])
+	else:
+		for j in range(0,len(tspe)):
+			if (tspe[j] == telescopes[i]):
+				time_dum.append(time[j])
+				fase_dum.append(fase[j])
+				errs_dum.append(err[j])
 	#The *all variables are lists of lists, each list constains
 	# a list with the data of each telescope
-	time_all.append(time_dum)
-	fase_all.append(fase_dum)
-	errs_all.append(errs_dum)
+		time_all.append(time_dum)
+		fase_all.append(fase_dum)
+		errs_all.append(errs_dum)
 
 print ("Extracting systemic velocities for the %i telescopes"%nt)
 #Find all the systematic velocities and put them in rv0_all
