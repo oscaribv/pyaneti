@@ -7,24 +7,39 @@
 !Date -->
 !-------------------------------------------------------------------------
 
-program !Program name
+subroutine find_anomaly(man,ta,ec,delta,imax,dman)
+implicit none
 
- implicit none !All the variables must be defined
+integer, intent(in) :: dman
+double precision, intent(in) , dimension(0:dman-1) :: man
+double precision, intent(out), dimension(0:dman-1) :: ta
+double precision, intent(in) :: ec, delta
+integer, intent(in) :: imax
 
- !define the constants, SI, cgs, etc?
- double precision, parameter :: c = 299792458, h = 6.63e-34, k = 1.38e-23 
- !define the variables, SI, cgs, etc?
- double precision :: !Here 
- integer :: !variables to count
+integer :: i,j,n
+double precision, dimension(0:dman-1) :: f, df
 
-!print and read
- !print*,''
- !read(*,*)
+  ta(:)  = 0.0
+  f(:)   = ta(:) - ec * sin(ta(:)) - man(:)
+  df(:)  =   1.0 - ec * cos(ta(:))
+  n = 0
 
- !do while ( )
-  !do magic here
- !end do
- !the integration is done
- !add the constants
+  do i = 0, dman-1
+    do while ( abs(f(i)) >= delta .and. n <= imax )
+      ta(i)  = ta(i) - f(i) / df(i)
+      f(i)   = ta(i) - ec * sin(ta(i)) - man(i)
+      df(i)  =   1.0 - ec * cos(ta(i))
+      n = n + 1
+    end do
+  end do
 
-end program !Program name
+  if ( n > imax ) then
+    print *, 'I am tired, so much N-R'
+    stop
+  end if 
+
+  ta(:) = sqrt( (1. + ec) / (1. -ec) ) * tan(ta(:)*0.5)
+  ta(:) = 2. * atan(ta(:))
+
+end subroutine
+
