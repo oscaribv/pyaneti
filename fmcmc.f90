@@ -43,3 +43,22 @@ double precision, dimension(0:dman-1) :: f, df
 
 end subroutine
 
+!-----------------------------------------------------------
+
+subroutine rv_circular(t,rv0,t0,k,P,rv,ts)
+implicit none
+
+integer, intent(in) :: ts
+double precision, intent(in), dimension(0:ts-1)  :: t
+double precision, intent(out), dimension(0:ts-1) :: rv
+double precision, intent(in) :: k, rv0, t0, P
+
+double precision, parameter :: pi = 3.1415926535897932384626
+
+  rv(:) = rv0 - k * sin( 2.*pi*( t(:) - t0) / P )
+
+end subroutine
+
+
+!-----------------------------------------------------------
+!-----------------------------------------------------------
