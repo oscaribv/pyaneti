@@ -16,7 +16,7 @@ double precision, intent(out), dimension(0:dman-1) :: ta
 double precision, intent(in) :: ec, delta
 integer, intent(in) :: imax
 
-integer :: i,j,n
+integer :: i,n
 double precision, dimension(0:dman-1) :: f, df
 
   ta(:)  = 0.0
@@ -72,9 +72,11 @@ double precision, intent(in) :: k, rv0, t0, P, ec, w
 double precision, parameter :: pi = 3.1415926535897932384626
 double precision, dimension(0:ts-1) :: ma, ta
 double precision :: delta = 1e-4
-integer :: imax = 1e5
+integer :: imax
 
 external :: find_anomaly
+
+  imax = int(1e5)
 
   ma(:) = 2.* pi * ( t(:) - t0 ) / P
   call find_anomaly(ma,ta,ec,delta,imax,ts)
@@ -137,14 +139,14 @@ external :: find_chi2
 
   sk = k * prec
   srv0 = rv0 * prec
-  st0 = st0 * prec
-  sP = sP * prec
+  st0 = t0 * prec
+  sP = P * prec
   sec = 1. * prec
   sw = 2*pi * prec
 
   call find_chi2(xd,yd,errs,rv0mc(0),kmc(0),ecmc(0),wmc(0),t0mc(0),Pmc(0),chi2_old,datas)
 
-  call init_random_seed()
+  !call init_random_seed()
   !Let us create an array of random numbers to save time
   !Check the ram consumption
   call random_number(r)
@@ -153,6 +155,8 @@ external :: find_chi2
   do i = 1, imcmc - 1
     rv0mc(i) = rv0mc(i-1) + r(i,0) * srv0
     kmc(i)   =   kmc(i-1) + r(i,1) * sk
+    ecmc(i)   =  ecmc(i-1) + r(i,1) * sk
+    wmc(i)   =   wmc(i-1) + r(i,1) * sk
     call find_chi2(xd,yd,errs,rv0mc(i),kmc(i),ecmc(0),wmc(0),t0mc(0),Pmc(0),chi2_new,datas)
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
     if ( q < abs(r(i,2)) ) then
