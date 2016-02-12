@@ -177,29 +177,43 @@ end subroutine
 
 !-----------------------------------------------------------
 
-subroutine mcmc_rv(xd,yd,errs,rv0,k,ec,w,t0,P,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,prec,imcmc,datas)
+!subroutine mcmc_rv(xd,yd,errs,rv0,k,ec,w,t0,P,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,prec,imcmc,datas)
+subroutine mcmc_rv(xd,yd,errs,rv0,k,ec,w,t0,P,rv0mco,kmco,ecmco,wmco,t0mco,Pmco,prec,imcmc,ndata,datas)
 implicit none
 
-integer, intent(in) :: imcmc, datas
+integer, intent(in) :: imcmc, ndata, datas
 double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
 double precision, intent(in)  :: k, rv0, t0, P, ec, w,prec
-double precision, intent(out), dimension(0:imcmc-1)  :: kmc, rv0mc, t0mc, Pmc, ecmc, wmc
+double precision, intent(out), dimension(0:ndata-1)  :: rv0mco, kmco, ecmco, wmco, t0mco, Pmco
 
 double precision, parameter :: pi = 3.1415926535897932384626
 double precision :: chi2_old, chi2_new
+double precision :: kmc, rv0mc, t0mc, Pmc, ecmc, wmc
+double precision :: kmcn, rv0mcn, t0mcn, Pmcn, ecmcn, wmcn
 double precision  :: sk, srv0, st0, sP, sec, sw
 double precision  :: q
-integer :: i
+integer :: i, check, n
 real, dimension(0:4) :: r
 
 external :: init_random_seed, find_chi2
 
-  kmc(0)    = k
-  rv0mc(0)  = rv0
-  t0mc(0)   = t0
-  Pmc(0)    = P
-  ecmc(0)   = ec
-  wmc(0)    = w
+  check = imcmc / ndata
+
+  if ( imcmc < ndata ) check = 1
+
+  kmc    = k
+  rv0mc  = rv0
+  t0mc   = t0
+  Pmc    = P
+  ecmc   = ec
+  wmc    = w
+
+rv0mco(0) = rv0mc
+  kmco(0) = kmc
+ ecmco(0) = ecmc
+  wmco(0) = wmc
+ t0mco(0) = t0mc
+  Pmco(0) = Pmc
 
   sk = k * prec
   srv0 = k * prec
@@ -208,29 +222,49 @@ external :: init_random_seed, find_chi2
   sec = 1. * prec
   sw = 2.*pi * prec
 
-  call find_chi2(xd,yd,errs,rv0mc(0),kmc(0),ecmc(0),wmc(0),t0mc(0),Pmc(0),chi2_old,datas)
+  call find_chi2(xd,yd,errs,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,chi2_old,datas)
 
   call init_random_seed()
   !Let us create an array of random numbers to save time
   !Check the ram consumption
 
+  n = 1
+  open(unit=101,file='mcmc_rv.dat',status='unknown')
+  write(101,*)'# i rv0 k ec w t0 P'
+  write(101,*) 0,rv0mc, kmc, ecmc, wmc, t0mc, Pmc
+
   do i = 1, imcmc - 1
     call random_number(r)
     r(0:3) = ( r(0:3) - 0.5) * 2.
-    rv0mc(i) =   rv0mc(i-1) + r(0) * srv0
-    kmc(i)   =   kmc(i-1)   + r(1) * sk
-    ecmc(i)  =   ecmc(i-1)  + r(2) * sec
-    wmc(i)   =   wmc(i-1)   + r(3) * sw
-    call find_chi2(xd,yd,errs,rv0mc(i),kmc(i),ecmc(i),wmc(i),t0mc(i),Pmc(i),chi2_new,datas)
+    rv0mcn =   rv0mc + r(0) * srv0
+    kmcn   =   kmc   + r(1) * sk
+    ecmcn  =   ecmc  + r(2) * sec
+    ecmcn  =   abs(ecmcn)
+    wmcn   =   wmc   + r(3) * sw
+    t0mcn  =   t0mc
+    Pmcn   =   Pmc
+    call find_chi2(xd,yd,errs,rv0mcn,kmcn,ecmcn,wmcn,t0mcn,Pmcn,chi2_new,datas)
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
-    if ( q < r(4) ) then
-      rv0mc(i) = rv0mc(i-1)
-        kmc(i) = kmc(i-1)
-       ecmc(i) = ecmc(i-1)
-        wmc(i) = wmc(i-1)
-    else
+    if ( q > r(4) ) then
       chi2_old = chi2_new
+       rv0mc = rv0mcn
+         kmc = kmcn
+        ecmc = ecmcn
+         wmc = wmcn
+    end if
+    if ( mod(i,check) == 0 ) then
+       print *, 'iter ',i,' out of ',imcmc
+       write(101,*) i, rv0mc, kmc, ecmc, wmc, t0mc, Pmc
+       rv0mco(n) = rv0mc
+         kmco(n) = kmc
+        ecmco(n) = ecmc
+         wmco(n) = wmc
+        t0mco(n) = t0mc
+         Pmco(n) = Pmc
+               n = n + 1
     end if
   end do
+
+  close(101)
 
 end subroutine

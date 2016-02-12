@@ -233,19 +233,24 @@ kmin = min(mega_fase)
 kmax = max(mega_fase)
 k0 = (kmax - kmin) /  2.0
 v0 = min(mega_fase) + k0
-e0 = 0.0
-w0 = 1.0
+e0 = 0.01
+w0 = 0.0
 prec = 5e-5
-stepk = k0 / prec
-stepv = v0 / prec
-stepe = 1. / prec
-stepw = 2*np.pi / prec
-
 
 #Start the FORTRAN calling
 print "Now all the work is done by FORTRAN"
 
-vmc, kmc, emc, wmc, t0mc, pmc = fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,v0,k0,e0,w0,T0,Porb,prec,imcmc)
+ndata = 1000
+
+vmc = np.empty(ndata)
+kmc = np.empty(ndata)
+emc = np.empty(ndata)
+wmc = np.empty(ndata)
+t0mc= np.empty(ndata)
+pmc = np.empty(ndata)
+
+vmc, kmc, emc, wmc, t0mc, pmc = fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,v0,k0,e0,w0,T0,Porb,prec,imcmc,ndata)
+#fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,v0,k0,e0,w0,T0,Porb,prec,imcmc,ndata)
 
 #end fortran calling	
 
@@ -260,10 +265,11 @@ plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
            ncol=4, mode="expand", borderaxespad=0.)
 plt.show()
 
-kval,sigk  = find_errb(kmc,imcmc) 
-vval,sigv  = find_errb(vmc,imcmc)
-ecval,sige = find_errb(emc,imcmc)
-wval,sigw  = find_errb(wmc,imcmc)
+
+kval,sigk  = find_errb(kmc,ndata) 
+vval,sigv  = find_errb(vmc,ndata)
+ecval,sige = find_errb(emc,ndata)
+wval,sigw  = find_errb(wmc,ndata)
 #hval,sigh  = find_errb(hmc,imcmc)
 #cval,sigc  = find_errb(cmc,imcmc)
 #tval,sigt  = find_errb(tmc,imcmc)
