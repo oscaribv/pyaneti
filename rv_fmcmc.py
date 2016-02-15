@@ -185,7 +185,7 @@ v0 = np.zeros(nt)
 kmin = min(mega_fase)
 kmax = max(mega_fase)
 k0 = (kmax - kmin) /  2.0
-e0 = 0.2
+e0 = 0.1
 w0 = np.pi
 prec = 1e-3
 chi_limit = 1.0
@@ -213,24 +213,29 @@ vmc, kmc, emc, wmc, t0mc, pmc = fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,tlab,
 
 #end fortran calling	
 
-plt.figure(1,figsize=(8,4))
-plt.xlabel("Iteration")
-plt.ylabel("Value")
+#plt.figure(1,figsize=(8,4))
+#plt.xlabel("Iteration")
+#plt.ylabel("Value")
 #plt.plot(vmc,label='v0')
-plt.plot(kmc,label='k')
-plt.plot(emc,label='e')
-plt.plot(wmc,label='w')
+#plt.plot(kmc,label='k')
+#plt.plot(emc,label='e')
+#plt.plot(wmc,label='w')
 #plt.plot(t0mc,label='w')
-plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
-           ncol=4, mode="expand", borderaxespad=0.)
-plt.show()
+#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
+#           ncol=4, mode="expand", borderaxespad=0.)
+#plt.show()
 
 kval,sigk  = find_errb(kmc) 
-vval,sigv  = find_errb(vmc)
 ecval,sige = find_errb(emc)
 wval,sigw  = find_errb(wmc)
 tval,sigt  = find_errb(t0mc)
 pval,sigp  = find_errb(pmc)
+
+vval = [None]*nt
+sigv = [None]*nt
+
+for i in range(0,nt):
+	vval[i], sigv[i]  = find_errb(vmc[i])
 
 #if eccentricity is negative, there is a shift in omega
 if (ecval < 0.0 ):
@@ -255,11 +260,12 @@ mearth = 0.000003003
 
 #Print the results
 print (' k = %4.4e +/- %4.4e m/s' %(k,sigk))
-print (' v = %4.4e +/- %4.4e m/s' %(vval,sigv))
 print (' w = %4.4e +/- %4.4e rad' %(wval,sigw))
 print (' e = %4.4e +/- %4.4e    ' %(ecval,sige))
 print (' t0= %4.4e +/- %4.4e    ' %(tval,sigt))
 print (' P = %4.4e +/- %4.4e    ' %(pval,sigp))
+for i in range(0,nt):
+	print ('For %s, v = %4.4e +/- %4.4e m/s' %(tspe[i],vval[i],sigv[i]))
 
 print ('Planet mass of %1.4e M_j (for a %2.2f solar mass star)' % (mpsin/mjup, mstar))
 
@@ -279,12 +285,13 @@ for i in range(1,n):
 #rvy = rv_curve(rvx,k,e,w)
 #rvy = rv_circular(rvx,vval,kval)
 #rvy = rv_curve_rv0(rvx,vval,kval,ecval,wval)
-rvy = fmcmc.rv_curve(rvx      ,vval,T0,kval,Porb,ecval,wval)
+rvy = fmcmc.rv_curve(rvx,0.0,T0,kval,Porb,ecval,wval)
 #rvy = rv_curve_wh(rvx,hval,cval,ecval,vval,tval)
 
 res = [None]*nt
 for i in range(0,nt):
-	res[i] = fmcmc.rv_curve(time_all[i],vval,T0,kval,Porb,ecval,wval)
+	res[i] = fmcmc.rv_curve(time_all[i],0.0,T0,kval,Porb,ecval,wval)
+	fase_all[i] = fase_all[i] - vval[i]
 	res[i] = fase_all[i] - res[i]
 
 #Residuals

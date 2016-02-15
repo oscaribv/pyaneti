@@ -192,7 +192,8 @@ double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs, tlab
 double precision, intent(in), dimension(0:nt-1)  :: rv0
 double precision, intent(in)  :: k,t0, P, ec, w,prec,chi_limit
 double precision, intent(out), dimension(0:ndata-1)  :: kmco, ecmco, wmco, t0mco, Pmco
-double precision, intent(out), dimension(0:ndata-1, 0:nt-1) :: rv0mco
+!double precision, intent(out), dimension(0:ndata-1, 0:nt-1) :: rv0mco
+double precision, intent(out), dimension(0:nt-1,0:ndata-1) :: rv0mco
 
 double precision, parameter :: pi = 3.1415926535897932384626
 double precision :: chi2_old, chi2_new
@@ -217,7 +218,7 @@ external :: init_random_seed, find_chi2
   ecmc   = ec
   wmc    = w
 
-rv0mco(0,:) = rv0mc(:)
+rv0mco(:,0) = rv0mc(:)
   kmco(0) = kmc
  ecmco(0) = ecmc
   wmco(0) = wmc
@@ -269,9 +270,9 @@ rv0mco(0,:) = rv0mc(:)
          Pmc = Pmcn
     end if
     if ( mod(i,check) == 0 ) then
-       print *, 'iter ',i,' out of ',imcmc
+       print *, 'iter ',i,'  of ',imcmc
        write(101,*) i, kmc, ecmc, wmc, t0mc, Pmc, rv0mc
-       rv0mco(n,:) = rv0mc
+       rv0mco(:,n) = rv0mc
          kmco(n) = kmc
         ecmco(n) = ecmc
          wmco(n) = wmc
