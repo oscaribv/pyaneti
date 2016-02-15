@@ -5,8 +5,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.stats import norm
-import fmcmc
 import sys
+import os
+import fmcmc
 
 #-----------------------------------
 #This function find the eccentry anomaly by using the
@@ -121,19 +122,14 @@ def planet_mass(mstar,k,P,ecc):
 
 #----- HERE THE MAIN PROGRAM STARTS -----#
 
-#Read the input parameters from input_rv.txt
-idata = np.loadtxt('input_rv.txt',comments='#',unpack=True,dtype='S')
+Porb = 1.0
+T0   = 0.0
+mstar= 1.0
+extract_rv = False
+units_ms = False
 
-#Let us use all the read data
-Porb = np.float(idata[0])
-T0	 = np.float(idata[1])
-tpes = idata[2]
-fname= idata[3]
-mstar= np.float(idata[4])
-telescopes = [None]*len(idata[2])
-for i in range(0,len(idata[2])):
-	telescopes[i] = idata[2][i]
-#
+#Read the input_rv.py to know the 
+execfile('input_rv.py')
 
 #Read the data file
 time,fase,err,tspe = np.loadtxt(fname,usecols=(0,1,2,3), \
@@ -142,8 +138,10 @@ time,fase,err,tspe = np.loadtxt(fname,usecols=(0,1,2,3), \
 	comments='#',unpack=True)
 
 #Transform fase from km/s to m/s
-#fase=fase*1000.
-#err=err*1000
+if(units_ms):
+	fase=fase*1000.
+	err=err*1000
+
 #These lists have lists with data for the different telescopes
 time_all=[]
 fase_all=[]
@@ -171,17 +169,18 @@ for i in range(0,nt):
 		fase_all.append(fase_dum)
 		errs_all.append(errs_dum)
 
-print ("Extracting systemic velocities for the %i telescopes"%nt)
-#Find all the systematic velocities and put them in rv0_all
-rv0_all=[None]*nt
-for i in range(0,nt):
-	rv0_all[i] = find_rv0(time_all[i],fase_all[i],errs_all[i],telescopes[i])
-	rv0_all[i] = 0.0
+if (extract_rv):
+	print ("Extracting systemic velocities for the %i telescopes"%nt)
+	#Find all the systematic velocities and put them in rv0_all
+	rv0_all=[None]*nt
+	for i in range(0,nt):
+		rv0_all[i] = find_rv0(time_all[i],fase_all[i],errs_all[i],telescopes[i])
 
-#Let us take off the offset for each telescope
-for i in range(0,nt): #each i is a different telescope
-	for j in range(0,len(fase_all[i])):
-		fase_all[i][j] = fase_all[i][j] - rv0_all[i]
+	#Let us take off the offset for each telescope
+	for i in range(0,nt): #each i is a different telescope
+		for j in range(0,len(fase_all[i])):
+			fase_all[i][j] = fase_all[i][j] - rv0_all[i]
+
 
 #The mega* variables contains all telescope data
 mega_fase = []
