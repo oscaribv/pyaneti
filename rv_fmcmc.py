@@ -6,67 +6,6 @@ from scipy.stats import norm
 import sys
 import fmcmc
 
-#-------------------------------------
-	#This functions gives the rv functions
-	#it assumes a circular orbit
-def rv_circular(t,rv0,k):
-	rv = rv0 - k * np.sin( 2.0 * np.pi * ( t - T0 ) / Porb )
-	return rv
-#------------------------------------
-def rv_curve_rv0(t,rv0,k0,ecc,omega):
-	#man is the mean anomally
-	man = 2 * np.pi * (t - T0) / Porb
-	#call to find_anomaly function to find the eccentric anomaly
-	anomaly = fmcmc.find_anomaly(man,ecc,1e-4,1e6)
-	#The general equation for rv motion is
-	rv = rv0 + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1.0 - ecc*ecc)
-	return rv
-#Linearized model from:
-#http://adsabs.harvard.edu/abs/2009ApJS..182..205W
-def rv_curve_wh(t,h,c,ecc,v0,tp):
-  man = 2 * np.pi * ( t - tp ) / Porb
-  anomaly = fmcmc.find_anomaly(man,ecc,1e-4,1e6)
-  ut = h * np.cos(anomaly) + c * np.sin(anomaly) + v0
-  return ut
-#------------------------------------
-def rv_curve(t,k0,ecc,omega):
-	#man is the mean anomally
-	man = 2 * np.pi * ( t - T0 ) / Porb
-	#call to find_anomaly function to find the eccentric anomaly
-	anomaly = fmcmc.find_anomaly(man,ecc,1e-4,1e6)
-	#The general equation for rv motion is
-	rv = + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) )  / np.sqrt(1.0 - ecc*ecc)
-	return rv
-#------------------------------------
-#Extract systemic velocities is highly important
-#so let us take care with this
-def find_rv0(time,fase,err,tpe):
-	#Let us first fit assuming a circular orbit 
-	#(to first estimate v0 and k0)
-	popt,pcov = curve_fit(rv_circular,time,fase,sigma=err)
-	#These results will be our first guesses for v0 and k0
-	rvc = popt[0]
-	sdrvc= np.sqrt(pcov[0][0])
-	kc  = popt[1]
-	#Now let us fit again now with the guesses as input
-	popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[rvc,kc,0,0])
-	#Let us check if the function is "ellipsable"
-	#If we have two points, try to fit an elliptical orbit is not correct
-	#If this is the case, the errors wll go to infinite, let us check this
-	if ( np.isinf(pcov[0][0]) == True ): #Then the function is not ellipsable
-		rv0 = rvc
-		sdrv0= sdrvc
-	else: #The function is ellipsable, let us keep playing with the fit!
-		rv0 = popt[0]
-		sdrv0 = pcov[0][0]
-		k0 = popt[1]
-		w = popt[2]
-		#Now we have guesses for rv0, k0 and w, let us re do the fit, now to improve e
-		popt,pcov = curve_fit(rv_curve_rv0,time,fase,sigma=err,p0=[rv0,k0,0,w])
-		rv0= popt[0]
-		sdrv0= np.sqrt(pcov[0][0])
-	print ('for %1s -> rv0 = %5.5f +/- %5.5f m/s'%(tpe,rv0,sdrv0))
-	return rv0
 #-----------------------------
 def scale_period(jd,T0,P):
 	x = [None]*len(jd)
@@ -140,19 +79,6 @@ for i in range(0,nt):
 		fase_all.append(fase_dum)
 		errs_all.append(errs_dum)
 
-if (extract_rv):
-	print ("Extracting systemic velocities for the %i telescopes"%nt)
-	#Find all the systematic velocities and put them in rv0_all
-	rv0_all=[None]*nt
-	for i in range(0,nt):
-		rv0_all[i] = find_rv0(time_all[i],fase_all[i],errs_all[i],telescopes[i])
-
-	#Let us take off the offset for each telescope
-	for i in range(0,nt): #each i is a different telescope
-		for j in range(0,len(fase_all[i])):
-			fase_all[i][j] = fase_all[i][j] - rv0_all[i]
-
-
 #The mega* variables contains all telescope data
 mega_fase = []
 mega_time = []
@@ -195,7 +121,7 @@ for i in range(0,nt):
 
 #Start the FORTRAN calling
 
-ndata = 1000
+ndata = 10000
 
 #vmc = np.empty(ndata,nt)
 kmc = np.empty(ndata)
@@ -204,26 +130,10 @@ wmc = np.empty(ndata)
 t0mc= np.empty(ndata)
 pmc = np.empty(ndata)
 
-print tlab
-
-#sys.exit()
-
 vmc, kmc, emc, wmc, t0mc, pmc = fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,tlab,v0,k0,e0,w0,T0,Porb,prec,imcmc,ndata,chi_limit)
-#fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,v0,k0,e0,w0,T0,Porb,prec,imcmc,ndata)
 
 #end fortran calling	
 
-#plt.figure(1,figsize=(8,4))
-#plt.xlabel("Iteration")
-#plt.ylabel("Value")
-#plt.plot(vmc,label='v0')
-#plt.plot(kmc,label='k')
-#plt.plot(emc,label='e')
-#plt.plot(wmc,label='w')
-#plt.plot(t0mc,label='w')
-#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
-#           ncol=4, mode="expand", borderaxespad=0.)
-#plt.show()
 
 kval,sigk  = find_errb(kmc) 
 ecval,sige = find_errb(emc)
@@ -249,10 +159,7 @@ if (ecval < 0.0 ):
 #----------------------------------------------
 
 #Now let us calculate the plantary mass
-#e = 0.0
 k = kval
-
-#ecval = 0.0
 
 mpsin = planet_mass(mstar,k*ktom,Porb,ecval)
 mjup = 0.0009543
@@ -265,7 +172,7 @@ print (' e = %4.4e +/- %4.4e    ' %(ecval,sige))
 print (' t0= %4.4e +/- %4.4e    ' %(tval,sigt))
 print (' P = %4.4e +/- %4.4e    ' %(pval,sigp))
 for i in range(0,nt):
-	print ('For %s, v = %4.4e +/- %4.4e m/s' %(tspe[i],vval[i],sigv[i]))
+	print ('For %s, v = %4.4e +/- %4.4e m/s' %(telescopes[i],vval[i],sigv[i]))
 
 print ('Planet mass of %1.4e M_j (for a %2.2f solar mass star)' % (mpsin/mjup, mstar))
 
@@ -311,8 +218,6 @@ plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k ))
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
 for i in range(0,nt):
 	plt.errorbar(p_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.7)
-	#plt.errorbar(time_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i])
-#plt.legend()
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
            ncol=4, mode="expand", borderaxespad=0.)
 plt.subplot(212)
@@ -322,7 +227,5 @@ plt.plot([0.,1.],[0.,0.],'k--')
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
 for i in range(0,nt):
 	plt.errorbar(p_all[i],res[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.7)
-#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
-#           ncol=4, mode="expand", borderaxespad=0.)
 plt.savefig('rv_fit.png')
 plt.show()
