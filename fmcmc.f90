@@ -1,6 +1,3 @@
-!Template to write a fortran90 program
-!written by Oscar Barragán, Jan 13 2014
-
 !-------------------------------------------------------------------------
 !Name of the program
 !Here write a simple description of the program
@@ -193,7 +190,7 @@ double precision :: kmcn, rv0mcn, t0mcn, Pmcn, ecmcn, wmcn
 double precision  :: sk, srv0, st0, sP, sec, sw
 double precision  :: q
 integer :: i, check, n
-real, dimension(0:4) :: r
+real, dimension(0:6) :: r
 
 external :: init_random_seed, find_chi2
 
@@ -224,6 +221,9 @@ rv0mco(0) = rv0mc
 
   call find_chi2(xd,yd,errs,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,chi2_old,datas)
 
+  print *, 'Starting MCMC calculation'
+  print *, 'Initial Chi_2: ', chi2_old
+
   call init_random_seed()
   !Let us create an array of random numbers to save time
   !Check the ram consumption
@@ -235,22 +235,24 @@ rv0mco(0) = rv0mc
 
   do i = 1, imcmc - 1
     call random_number(r)
-    r(0:3) = ( r(0:3) - 0.5) * 2.
+    r(0:5) = ( r(0:5) - 0.5) * 2.
     rv0mcn =   rv0mc + r(0) * srv0
     kmcn   =   kmc   + r(1) * sk
     ecmcn  =   ecmc  + r(2) * sec
-    ecmcn  =   abs(ecmcn)
+    !ecmcn  =   abs(ecmcn)
     wmcn   =   wmc   + r(3) * sw
-    t0mcn  =   t0mc
-    Pmcn   =   Pmc
+    t0mcn  =   t0mc  + r(4) * st0
+    Pmcn   =   Pmc   + r(5) * sP
     call find_chi2(xd,yd,errs,rv0mcn,kmcn,ecmcn,wmcn,t0mcn,Pmcn,chi2_new,datas)
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
-    if ( q > r(4) ) then
+    if ( q > r(6) ) then
       chi2_old = chi2_new
        rv0mc = rv0mcn
          kmc = kmcn
         ecmc = ecmcn
          wmc = wmcn
+        t0mc = t0mcn
+         Pmc = Pmcn
     end if
     if ( mod(i,check) == 0 ) then
        print *, 'iter ',i,' out of ',imcmc
@@ -264,6 +266,8 @@ rv0mco(0) = rv0mc
                n = n + 1
     end if
   end do
+
+  print *, 'Final Chi_2: ', chi2_old
 
   close(101)
 

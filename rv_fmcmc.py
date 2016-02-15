@@ -1,46 +1,11 @@
-#More information about curve_fit in the following link
-#http://docs.scipy.org/doc/scipy-0.16.0/reference/generated/scipy.optimize.curve_fit.html
 
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.stats import norm
 import sys
-import os
 import fmcmc
 
-#-----------------------------------
-#This function find the eccentry anomaly by using the
-#Newton-Rapshon method
-#Input values are man -> array, ecc -> float
-def find_anomaly(man,ecc,delta=1.e-4,imax=10000):
-	#Let us start with a zero value for the anomaly
-	anomaly = np.zeros(len(man))
-	#Let us find the eccentric anomally by using Newton-Raphson
-	f  = anomaly - ecc * np.sin(anomaly) - man
-	df =	   1.0 - ecc * np.cos(anomaly)
-	counter = 0
-	#Let us do it for all the man values
-	for i in range(0,len(man)):
-		counter = 0
-			#Do we find the zero of f?
-		while ( np.absolute(f[i]) >= delta):
-			dum = anomaly[i] - f[i] / df[i]
-			anomaly[i] = dum
-			f[i] = anomaly[i] - ecc * np.sin(anomaly[i]) - man[i]
-			df[i]=	1.0 - ecc * np.cos(anomaly[i])
-			#Let us use a counter to get rid off of infinite loops
-			counter = counter + 1
-			if (counter > imax):
-				print i, ecc, f[i], man[i]
-				sys.exit("I am tired!")
-	#The result is the eccentric anomaly vector!
-	#Now we have the eccentric anomaly, let us calculate
-	#The TRUE anomaly
-	anomaly = np.sqrt(1+ecc/(1-ecc)) * np.tan(anomaly/2.0)
-	anomaly = 2. * np.arctan(anomaly)
-	#Now we have calculated the true anomaly :-)!
-	return anomaly	
 #-------------------------------------
 	#This functions gives the rv functions
 	#it assumes a circular orbit
@@ -52,7 +17,7 @@ def rv_curve_rv0(t,rv0,k0,ecc,omega):
 	#man is the mean anomally
 	man = 2 * np.pi * (t - T0) / Porb
 	#call to find_anomaly function to find the eccentric anomaly
-	anomaly = find_anomaly(man,ecc)
+	anomaly = fmcmc.find_anomaly(man,ecc)
 	#The general equation for rv motion is
 	rv = rv0 + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1.0 - ecc*ecc)
 	return rv
@@ -60,7 +25,7 @@ def rv_curve_rv0(t,rv0,k0,ecc,omega):
 #http://adsabs.harvard.edu/abs/2009ApJS..182..205W
 def rv_curve_wh(t,h,c,ecc,v0,tp):
   man = 2 * np.pi * ( t - tp ) / Porb
-  anomaly = find_anomaly(man,ecc)
+  anomaly = fmcmc.find_anomaly(man,ecc)
   ut = h * np.cos(anomaly) + c * np.sin(anomaly) + v0
   return ut
 #------------------------------------
@@ -68,7 +33,7 @@ def rv_curve(t,k0,ecc,omega):
 	#man is the mean anomally
 	man = 2 * np.pi * ( t - T0 ) / Porb
 	#call to find_anomaly function to find the eccentric anomaly
-	anomaly = find_anomaly(man,ecc)
+	anomaly = fmcmc.find_anomaly(man,ecc)
 	#The general equation for rv motion is
 	rv = + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) )  / np.sqrt(1.0 - ecc*ecc)
 	return rv
@@ -127,6 +92,7 @@ T0   = 0.0
 mstar= 1.0
 extract_rv = False
 units_ms = False
+imcmc = 5000000
 
 #Read the input_rv.py to know the 
 execfile('input_rv.py')
@@ -198,18 +164,6 @@ for i in range(0,nt):
 #
 #----------------------------------------------
 
-def find_chi(xd,yd,errs,rv0,k,ecc,w):
-#def find_chi(xd,yd,errs,h,c,ecc,v0,tp):
-	chi2 = 0.0
-	xd = np.array(xd)
-	#mod_i = rv_circular(xd,rv0,k) #model fit
-	mod_i = rv_curve_rv0(xd,rv0,k,ecc,w) #model fit
-	#mod_i = rv_curve_wh(xd,h,c,ecc,v0,tp) #model fit
-	res = (yd - mod_i) / errs
-	for i in range(0,len(yd)):
-		chi2 = chi2 + res[i]*res[i]
-	return chi2
-
 def find_errb(x,imcmc):
 	iout = imcmc/5 * 4
 	#Let us take only the converging part
@@ -217,15 +171,8 @@ def find_errb(x,imcmc):
 	mu,std = norm.fit(xnew)
 	return mu, std 
 
-def check_ecc(e):
-	if (e < 0):
-		e = -e
-	elif (e > 1):
-		e = e*.5  		
-	return e
 
 #Let us initialize the MCMC Metropolis-Hasting algorithm
-imcmc = 20000000
 #Let us try to do a guess for the init values
 kmin = min(mega_fase)
 kmax = max(mega_fase)
@@ -233,10 +180,9 @@ k0 = (kmax - kmin) /  2.0
 v0 = min(mega_fase) + k0
 e0 = 0.2
 w0 = np.pi
-prec = 5e-4
+prec = 1e-3
 
 #Start the FORTRAN calling
-print "Now all the work is done by FORTRAN"
 
 ndata = 1000
 
@@ -255,11 +201,11 @@ vmc, kmc, emc, wmc, t0mc, pmc = fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,v0,k0
 plt.figure(1,figsize=(8,4))
 plt.xlabel("Iteration")
 plt.ylabel("Value")
-plt.plot(vmc,label='v0')
+#plt.plot(vmc,label='v0')
 plt.plot(kmc,label='k')
 plt.plot(emc,label='e')
 plt.plot(wmc,label='w')
-plt.plot(t0mc,label='w')
+#plt.plot(t0mc,label='w')
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
            ncol=4, mode="expand", borderaxespad=0.)
 plt.show()
@@ -311,7 +257,7 @@ print ('Planet mass of %1.4e M_j (for a %2.2f solar mass star)' % (mpsin/mjup, m
 
 #Let us do a nice plot
 
-#T0 = tval
+T0 = tval
 
 #Create the RV fitted curve
 n = 500
@@ -324,7 +270,8 @@ for i in range(1,n):
 	rvx[i] = rvx[i-1] + dn
 #rvy = rv_curve(rvx,k,e,w)
 #rvy = rv_circular(rvx,vval,kval)
-rvy = rv_curve_rv0(rvx,vval,kval,ecval,wval)
+#rvy = rv_curve_rv0(rvx,vval,kval,ecval,wval)
+rvy = fmcmc.rv_curve(rvx,vval,T0,kval,Porb,ecval,wval)
 #rvy = rv_curve_wh(rvx,hval,cval,ecval,vval,tval)
 
 p_rv = scale_period(rvx,T0,Porb)
@@ -341,9 +288,9 @@ plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k ))
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
 for i in range(0,nt):
 	plt.errorbar(p_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i])
+	#plt.errorbar(time_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i])
 #plt.legend()
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
            ncol=4, mode="expand", borderaxespad=0.)
 plt.savefig('rv_fit.png')
 plt.show()
-
