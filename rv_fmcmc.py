@@ -142,9 +142,8 @@ time,fase,err,tspe = np.loadtxt(fname,usecols=(0,1,2,3), \
 	comments='#',unpack=True)
 
 #Transform fase from km/s to m/s
-fase=fase*1000.
-err=err*1000.
-
+#fase=fase*1000.
+#err=err*1000
 #These lists have lists with data for the different telescopes
 time_all=[]
 fase_all=[]
@@ -177,6 +176,7 @@ print ("Extracting systemic velocities for the %i telescopes"%nt)
 rv0_all=[None]*nt
 for i in range(0,nt):
 	rv0_all[i] = find_rv0(time_all[i],fase_all[i],errs_all[i],telescopes[i])
+	rv0_all[i] = 0.0
 
 #Let us take off the offset for each telescope
 for i in range(0,nt): #each i is a different telescope
@@ -212,7 +212,7 @@ def find_chi(xd,yd,errs,rv0,k,ecc,w):
 	return chi2
 
 def find_errb(x,imcmc):
-	iout = imcmc/5.0
+	iout = imcmc/5 * 4
 	#Let us take only the converging part
 	xnew = x[iout:]
 	mu,std = norm.fit(xnew)
@@ -226,16 +226,15 @@ def check_ecc(e):
 	return e
 
 #Let us initialize the MCMC Metropolis-Hasting algorithm
-imcmc = 10000000
-#imcmc = 100
+imcmc = 20000000
 #Let us try to do a guess for the init values
 kmin = min(mega_fase)
 kmax = max(mega_fase)
 k0 = (kmax - kmin) /  2.0
 v0 = min(mega_fase) + k0
-e0 = 0.01
-w0 = 0.0
-prec = 5e-5
+e0 = 0.2
+w0 = np.pi
+prec = 5e-4
 
 #Start the FORTRAN calling
 print "Now all the work is done by FORTRAN"
@@ -261,6 +260,7 @@ plt.plot(vmc,label='v0')
 plt.plot(kmc,label='k')
 plt.plot(emc,label='e')
 plt.plot(wmc,label='w')
+plt.plot(t0mc,label='w')
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
            ncol=4, mode="expand", borderaxespad=0.)
 plt.show()
@@ -270,6 +270,8 @@ kval,sigk  = find_errb(kmc,ndata)
 vval,sigv  = find_errb(vmc,ndata)
 ecval,sige = find_errb(emc,ndata)
 wval,sigw  = find_errb(wmc,ndata)
+tval,sigt  = find_errb(t0mc,ndata)
+pval,sigp  = find_errb(pmc,ndata)
 #hval,sigh  = find_errb(hmc,imcmc)
 #cval,sigc  = find_errb(cmc,imcmc)
 #tval,sigt  = find_errb(tmc,imcmc)
@@ -277,6 +279,10 @@ wval,sigw  = find_errb(wmc,ndata)
 #kval = np.sqrt(hval*hval+cval*cval)
 #wval = np.arctan(-cval / hval)
 #vval = vval - kval *ecval * np.cos(wval)
+
+if (ecval < 0.0 ):
+	ecval = - ecval
+	wval  = wval + np.pi
 
 #----------------------------------------------
 #
@@ -299,10 +305,14 @@ print (' k = %4.4e +/- %4.4e m/s' %(k,sigk))
 print (' v = %4.4e +/- %4.4e m/s' %(vval,sigv))
 print (' w = %4.4e +/- %4.4e rad' %(wval,sigw))
 print (' e = %4.4e +/- %4.4e    ' %(ecval,sige))
+print (' t0= %4.4e +/- %4.4e    ' %(tval,sigt))
+print (' P = %4.4e +/- %4.4e    ' %(pval,sigp))
 
 print ('Planet mass of %1.4e M_j (for a %2.2f solar mass star)' % (mpsin/mjup, mstar))
 
 #Let us do a nice plot
+
+#T0 = tval
 
 #Create the RV fitted curve
 n = 500
