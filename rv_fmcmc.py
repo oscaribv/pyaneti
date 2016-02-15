@@ -17,7 +17,7 @@ def rv_curve_rv0(t,rv0,k0,ecc,omega):
 	#man is the mean anomally
 	man = 2 * np.pi * (t - T0) / Porb
 	#call to find_anomaly function to find the eccentric anomaly
-	anomaly = fmcmc.find_anomaly(man,ecc)
+	anomaly = fmcmc.find_anomaly(man,ecc,1e-4,1e6)
 	#The general equation for rv motion is
 	rv = rv0 + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) ) / np.sqrt(1.0 - ecc*ecc)
 	return rv
@@ -25,7 +25,7 @@ def rv_curve_rv0(t,rv0,k0,ecc,omega):
 #http://adsabs.harvard.edu/abs/2009ApJS..182..205W
 def rv_curve_wh(t,h,c,ecc,v0,tp):
   man = 2 * np.pi * ( t - tp ) / Porb
-  anomaly = fmcmc.find_anomaly(man,ecc)
+  anomaly = fmcmc.find_anomaly(man,ecc,1e-4,1e6)
   ut = h * np.cos(anomaly) + c * np.sin(anomaly) + v0
   return ut
 #------------------------------------
@@ -33,7 +33,7 @@ def rv_curve(t,k0,ecc,omega):
 	#man is the mean anomally
 	man = 2 * np.pi * ( t - T0 ) / Porb
 	#call to find_anomaly function to find the eccentric anomaly
-	anomaly = fmcmc.find_anomaly(man,ecc)
+	anomaly = fmcmc.find_anomaly(man,ecc,1e-4,1e6)
 	#The general equation for rv motion is
 	rv = + k0 * (np.cos( anomaly + omega ) + ecc*np.cos( omega ) )  / np.sqrt(1.0 - ecc*ecc)
 	return rv
@@ -87,6 +87,8 @@ def planet_mass(mstar,k,P,ecc):
 
 #----- HERE THE MAIN PROGRAM STARTS -----#
 
+ylab = 'RV (km/s)'
+ktom = 1.0
 Porb = 1.0
 T0   = 0.0
 mstar= 1.0
@@ -105,8 +107,11 @@ time,fase,err,tspe = np.loadtxt(fname,usecols=(0,1,2,3), \
 
 #Transform fase from km/s to m/s
 if(units_ms):
-	fase=fase*1000.
-	err=err*1000
+	ktom = 1000
+	fase=fase*ktom
+	err=err*ktom
+	ylab = 'RV (m/s)'
+	
 
 #These lists have lists with data for the different telescopes
 time_all=[]
@@ -152,8 +157,10 @@ if (extract_rv):
 mega_fase = []
 mega_time = []
 mega_err  = []
-for i in range(0,nt):
+tlab = []
+for i in range(0,nt): 
 	for j in range(0,len(fase_all[i])):
+		tlab.append(i)
 		mega_fase.append(fase_all[i][j])
 		mega_time.append(time_all[i][j])
 		mega_err.append(errs_all[i][j])
@@ -164,8 +171,8 @@ for i in range(0,nt):
 #
 #----------------------------------------------
 
-def find_errb(x,imcmc):
-	iout = imcmc/5 * 4
+def find_errb(x):
+	iout = len(x)/5 * 4
 	#Let us take only the converging part
 	xnew = x[iout:]
 	mu,std = norm.fit(xnew)
@@ -174,26 +181,34 @@ def find_errb(x,imcmc):
 
 #Let us initialize the MCMC Metropolis-Hasting algorithm
 #Let us try to do a guess for the init values
+v0 = np.zeros(nt)
 kmin = min(mega_fase)
 kmax = max(mega_fase)
 k0 = (kmax - kmin) /  2.0
-v0 = min(mega_fase) + k0
 e0 = 0.2
 w0 = np.pi
 prec = 1e-3
+chi_limit = 1.0
+
+for i in range(0,nt):
+	v0[i] = k0 + kmin
 
 #Start the FORTRAN calling
 
 ndata = 1000
 
-vmc = np.empty(ndata)
+#vmc = np.empty(ndata,nt)
 kmc = np.empty(ndata)
 emc = np.empty(ndata)
 wmc = np.empty(ndata)
 t0mc= np.empty(ndata)
 pmc = np.empty(ndata)
 
-vmc, kmc, emc, wmc, t0mc, pmc = fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,v0,k0,e0,w0,T0,Porb,prec,imcmc,ndata)
+print tlab
+
+#sys.exit()
+
+vmc, kmc, emc, wmc, t0mc, pmc = fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,tlab,v0,k0,e0,w0,T0,Porb,prec,imcmc,ndata,chi_limit)
 #fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,v0,k0,e0,w0,T0,Porb,prec,imcmc,ndata)
 
 #end fortran calling	
@@ -210,21 +225,14 @@ plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
            ncol=4, mode="expand", borderaxespad=0.)
 plt.show()
 
+kval,sigk  = find_errb(kmc) 
+vval,sigv  = find_errb(vmc)
+ecval,sige = find_errb(emc)
+wval,sigw  = find_errb(wmc)
+tval,sigt  = find_errb(t0mc)
+pval,sigp  = find_errb(pmc)
 
-kval,sigk  = find_errb(kmc,ndata) 
-vval,sigv  = find_errb(vmc,ndata)
-ecval,sige = find_errb(emc,ndata)
-wval,sigw  = find_errb(wmc,ndata)
-tval,sigt  = find_errb(t0mc,ndata)
-pval,sigp  = find_errb(pmc,ndata)
-#hval,sigh  = find_errb(hmc,imcmc)
-#cval,sigc  = find_errb(cmc,imcmc)
-#tval,sigt  = find_errb(tmc,imcmc)
-
-#kval = np.sqrt(hval*hval+cval*cval)
-#wval = np.arctan(-cval / hval)
-#vval = vval - kval *ecval * np.cos(wval)
-
+#if eccentricity is negative, there is a shift in omega
 if (ecval < 0.0 ):
 	ecval = - ecval
 	wval  = wval + np.pi
@@ -241,7 +249,7 @@ k = kval
 
 #ecval = 0.0
 
-mpsin = planet_mass(mstar,k,Porb,ecval)
+mpsin = planet_mass(mstar,k*ktom,Porb,ecval)
 mjup = 0.0009543
 mearth = 0.000003003 
 
@@ -271,8 +279,15 @@ for i in range(1,n):
 #rvy = rv_curve(rvx,k,e,w)
 #rvy = rv_circular(rvx,vval,kval)
 #rvy = rv_curve_rv0(rvx,vval,kval,ecval,wval)
-rvy = fmcmc.rv_curve(rvx,vval,T0,kval,Porb,ecval,wval)
+rvy = fmcmc.rv_curve(rvx      ,vval,T0,kval,Porb,ecval,wval)
 #rvy = rv_curve_wh(rvx,hval,cval,ecval,vval,tval)
+
+res = [None]*nt
+for i in range(0,nt):
+	res[i] = fmcmc.rv_curve(time_all[i],vval,T0,kval,Porb,ecval,wval)
+	res[i] = fase_all[i] - res[i]
+
+#Residuals
 
 p_rv = scale_period(rvx,T0,Porb)
 p_all = [None]*nt
@@ -280,17 +295,27 @@ for i in range(0,nt):
 	p_all[i] = scale_period(time_all[i],T0,Porb)
 
 #error bars -> http://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
-plt.figure(2,figsize=(8,4))
+plt.figure(2,figsize=(8,8))
+plt.subplot(211)
 plt.xlabel("Phase")
-plt.ylabel("k (m/s)")
+plt.ylabel(ylab)
 #plt.ylim(1.5*min(rvy),max(rvy)*1.5)
 plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k ))
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
 for i in range(0,nt):
-	plt.errorbar(p_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i])
+	plt.errorbar(p_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.7)
 	#plt.errorbar(time_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i])
 #plt.legend()
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
            ncol=4, mode="expand", borderaxespad=0.)
+plt.subplot(212)
+plt.xlabel("Phase")
+plt.ylabel(ylab)
+plt.plot([0.,1.],[0.,0.],'k--')
+mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
+for i in range(0,nt):
+	plt.errorbar(p_all[i],res[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.7)
+#plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
+#           ncol=4, mode="expand", borderaxespad=0.)
 plt.savefig('rv_fit.png')
 plt.show()

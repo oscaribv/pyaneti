@@ -145,16 +145,18 @@ end subroutine
 
 !-----------------------------------------------------------
 
-subroutine find_chi2(xd,yd,errs,rv0,k,ec,w,t0,P,chi2,datas)
+subroutine find_chi2(xd,yd,errs,tlab,rv0,k,ec,w,t0,P,chi2,datas,nt)
 implicit none
 
-integer, intent(in) :: datas
-double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-double precision, intent(in)  :: k, rv0, t0, P, ec, w
+integer, intent(in) :: datas, nt
+double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs, tlab
+double precision, intent(in), dimension(0:nt-1)  :: rv0
+double precision, intent(in)  :: k, t0, P, ec, w
 double precision, intent(out) :: chi2
 
 double precision, parameter :: pi = 3.1415926535897932384626
 double precision, dimension(0:datas-1) :: model, res
+integer :: i, tel
 
 external :: rv_circular, rv_curve
 
@@ -162,8 +164,15 @@ external :: rv_circular, rv_curve
 
   !Here we could control what kind of fit we want to do
 
+  tel = 0
+  i = 0
+  do i = 0, datas-1
   !call rv_circular(xd,rv0,t0,k,P,model,datas)
-  call rv_curve(xd,rv0,t0,k,P,ec,w,model,datas)
+    if ( tel .ne. tlab(i)  ) tel = tel + 1 
+    call rv_curve(xd(i),rv0(tel),t0,k,P,ec,w,model(i),1)
+  end do
+
+  !We will assume that the data is sorted, plese sort it!
 
   res(:) = ( yd(:) - model(:) ) / errs(:)
   res(:) = res(:) * res(:)
@@ -175,22 +184,25 @@ end subroutine
 !-----------------------------------------------------------
 
 !subroutine mcmc_rv(xd,yd,errs,rv0,k,ec,w,t0,P,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,prec,imcmc,datas)
-subroutine mcmc_rv(xd,yd,errs,rv0,k,ec,w,t0,P,rv0mco,kmco,ecmco,wmco,t0mco,Pmco,prec,imcmc,ndata,datas)
+subroutine mcmc_rv(xd,yd,errs,tlab,rv0,k,ec,w,t0,P,rv0mco,kmco,ecmco,wmco,t0mco,Pmco,prec,imcmc,ndata,chi_limit,datas,nt)
 implicit none
 
-integer, intent(in) :: imcmc, ndata, datas
-double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-double precision, intent(in)  :: k, rv0, t0, P, ec, w,prec
-double precision, intent(out), dimension(0:ndata-1)  :: rv0mco, kmco, ecmco, wmco, t0mco, Pmco
+integer, intent(in) :: imcmc, ndata, datas, nt
+double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs, tlab
+double precision, intent(in), dimension(0:nt-1)  :: rv0
+double precision, intent(in)  :: k,t0, P, ec, w,prec,chi_limit
+double precision, intent(out), dimension(0:ndata-1)  :: kmco, ecmco, wmco, t0mco, Pmco
+double precision, intent(out), dimension(0:ndata-1, 0:nt-1) :: rv0mco
 
 double precision, parameter :: pi = 3.1415926535897932384626
 double precision :: chi2_old, chi2_new
-double precision :: kmc, rv0mc, t0mc, Pmc, ecmc, wmc
-double precision :: kmcn, rv0mcn, t0mcn, Pmcn, ecmcn, wmcn
+double precision, dimension(0:nt-1)  :: rv0mc, rv0mcn
+double precision :: kmc, t0mc, Pmc, ecmc, wmc
+double precision :: kmcn, t0mcn, Pmcn, ecmcn, wmcn
 double precision  :: sk, srv0, st0, sP, sec, sw
 double precision  :: q
-integer :: i, check, n
-real, dimension(0:6) :: r
+integer :: i, j, check, n
+real, dimension(0:5+nt) :: r
 
 external :: init_random_seed, find_chi2
 
@@ -205,7 +217,7 @@ external :: init_random_seed, find_chi2
   ecmc   = ec
   wmc    = w
 
-rv0mco(0) = rv0mc
+rv0mco(0,:) = rv0mc(:)
   kmco(0) = kmc
  ecmco(0) = ecmc
   wmco(0) = wmc
@@ -219,7 +231,7 @@ rv0mco(0) = rv0mc
   sec = 1. * prec
   sw = 2.*pi * prec
 
-  call find_chi2(xd,yd,errs,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,chi2_old,datas)
+  call find_chi2(xd,yd,errs,tlab,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,chi2_old,datas,nt)
 
   print *, 'Starting MCMC calculation'
   print *, 'Initial Chi_2: ', chi2_old
@@ -228,24 +240,26 @@ rv0mco(0) = rv0mc
   !Let us create an array of random numbers to save time
   !Check the ram consumption
 
-  n = 1
   open(unit=101,file='mcmc_rv.dat',status='unknown')
-  write(101,*)'# i rv0 k ec w t0 P'
+  write(101,*)'# i k ec w t0 P rv0mc(vector)'
   write(101,*) 0,rv0mc, kmc, ecmc, wmc, t0mc, Pmc
 
-  do i = 1, imcmc - 1
+  n = 1
+  i = 1
+  do while ( chi2_old >= chi_limit .and. i <= imcmc - 1 )
     call random_number(r)
-    r(0:5) = ( r(0:5) - 0.5) * 2.
-    rv0mcn =   rv0mc + r(0) * srv0
+    r(1:5+nt) = ( r(1:5+nt) - 0.5) * 2.
     kmcn   =   kmc   + r(1) * sk
     ecmcn  =   ecmc  + r(2) * sec
-    !ecmcn  =   abs(ecmcn)
     wmcn   =   wmc   + r(3) * sw
     t0mcn  =   t0mc  + r(4) * st0
     Pmcn   =   Pmc   + r(5) * sP
-    call find_chi2(xd,yd,errs,rv0mcn,kmcn,ecmcn,wmcn,t0mcn,Pmcn,chi2_new,datas)
+    do j = 0, nt-1
+      rv0mcn(j) =   rv0mc(j) + r(6+j) * srv0
+    end do
+    call find_chi2(xd,yd,errs,tlab,rv0mcn,kmcn,ecmcn,wmcn,t0mcn,Pmcn,chi2_new,datas,nt)
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
-    if ( q > r(6) ) then
+    if ( q > r(0) ) then
       chi2_old = chi2_new
        rv0mc = rv0mcn
          kmc = kmcn
@@ -256,8 +270,8 @@ rv0mco(0) = rv0mc
     end if
     if ( mod(i,check) == 0 ) then
        print *, 'iter ',i,' out of ',imcmc
-       write(101,*) i, rv0mc, kmc, ecmc, wmc, t0mc, Pmc
-       rv0mco(n) = rv0mc
+       write(101,*) i, kmc, ecmc, wmc, t0mc, Pmc, rv0mc
+       rv0mco(n,:) = rv0mc
          kmco(n) = kmc
         ecmco(n) = ecmc
          wmco(n) = wmc
@@ -265,6 +279,7 @@ rv0mco(0) = rv0mc
          Pmco(n) = Pmc
                n = n + 1
     end if
+    i = i + 1
   end do
 
   print *, 'Final Chi_2: ', chi2_old
