@@ -166,16 +166,16 @@ external :: rv_circular, rv_curve
 
   tel = 0
   i = 0
+  !We will assume that the data is sorted, plese sort it!
   do i = 0, datas-1
   !call rv_circular(xd,rv0,t0,k,P,model,datas)
     if ( tel .ne. tlab(i)  ) tel = tel + 1 
     call rv_curve(xd(i),rv0(tel),t0,k,P,ec,w,model(i),1)
   end do
 
-  !We will assume that the data is sorted, plese sort it!
 
-  res(:) = ( yd(:) - model(:) ) / (errs(:)*errs(:))
-  res(:) = res(:) * res(:)
+  res(:) = model(:) - yd(:)  
+  res(:) = res(:) * res(:) / ( errs(:) * errs(:) )
 
   chi2 = sum(res)
 
@@ -184,32 +184,28 @@ end subroutine
 !-----------------------------------------------------------
 
 !subroutine mcmc_rv(xd,yd,errs,tlab,rv0,k,ec,w,t0,P,rv0mco,kmco,ecmco,wmco,t0mco,Pmco,prec,imcmc,ndata,chi_limit,datas,nt)
-subroutine mcmc_rv(xd,yd,errs,tlab,rv0,k,ec,w,t0,P,prec,imcmc,ndata,chi_limit,datas,nt)
+subroutine mcmc_rv(xd,yd,errs,tlab,rv0,k,ec,w,t0,P,prec,imcmc,thin_factor,chi2_toler,datas,nt)
 implicit none
 
-integer, intent(in) :: imcmc, ndata, datas, nt
+integer, intent(in) :: imcmc, thin_factor, datas, nt
 double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs, tlab
 double precision, intent(in), dimension(0:nt-1)  :: rv0
-double precision, intent(in)  :: k,t0, P, ec, w,prec,chi_limit
+double precision, intent(in)  :: k,t0, P, ec, w,prec,chi2_toler
 !double precision, intent(out), dimension(0:ndata-1)  :: kmco, ecmco, wmco, t0mco, Pmco
 !double precision, intent(out), dimension(0:ndata-1, 0:nt-1) :: rv0mco
 !double precision, intent(out), dimension(0:nt-1,0:ndata-1) :: rv0mco
 
 double precision, parameter :: pi = 3.1415926535897932384626
-double precision :: chi2_old, chi2_new
+double precision :: chi2_old, chi2_new, chi2_red
 double precision, dimension(0:nt-1)  :: rv0mc, rv0mcn
 double precision :: kmc, t0mc, Pmc, ecmc, wmc
 double precision :: kmcn, t0mcn, Pmcn, ecmcn, wmcn
 double precision  :: sk, srv0, st0, sP, sec, sw
 double precision  :: q
-integer :: i, j, check, n
+integer :: i, j, n, nu
 real, dimension(0:5+nt) :: r
 
 external :: init_random_seed, find_chi2
-
-  check = imcmc / ndata
-
-  if ( imcmc < ndata ) check = 1
 
   kmc    = k
   rv0mc  = rv0
@@ -234,20 +230,23 @@ external :: init_random_seed, find_chi2
 
   call find_chi2(xd,yd,errs,tlab,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,chi2_old,datas,nt)
 
+  nu = datas - 5 - nt
+  !\nu = Parameters + observations - 1
   print *, 'Starting MCMC calculation'
-  print *, 'Initial Chi_2: ', chi2_old
+  print *, 'Initial Chi_2: ', chi2_old,'nu =', nu
+  chi2_red = chi2_old / nu
 
   call init_random_seed()
   !Let us create an array of random numbers to save time
   !Check the ram consumption
 
   open(unit=101,file='mcmc_rv.dat',status='unknown')
-  write(101,*)'# i k ec w t0 P rv0mc(vector)'
-  write(101,*) 0,rv0mc, kmc, ecmc, wmc, t0mc, Pmc
+  write(101,*)'# i chi2 chi2_red k ec w t0 P rv0mc(vector)'
+  write(101,*) 0,chi2_old,chi2_red,kmc, ecmc, wmc, t0mc, Pmc,rv0mc
 
   n = 1
   i = 1
-  do while ( chi2_old >= chi_limit .and. i <= imcmc - 1 )
+  do while ( chi2_red >= 1 + chi2_toler .and. i <= imcmc - 1 )
     call random_number(r)
     r(1:5+nt) = ( r(1:5+nt) - 0.5) * 2.
     kmcn   =   kmc   + r(1) * sk
@@ -269,16 +268,12 @@ external :: init_random_seed, find_chi2
         t0mc = t0mcn
          Pmc = Pmcn
     end if
-    if ( mod(i,check) == 0 ) then
-       print *, 'iter ',i,'  of ',imcmc,'chi2 = ',chi2_old
-       write(101,*) i, kmc, ecmc, wmc, t0mc, Pmc, rv0mc
-       !rv0mco(:,n) = rv0mc
-       !  kmco(n) = kmc
-       ! ecmco(n) = ecmc
-       !  wmco(n) = wmc
-       ! t0mco(n) = t0mc
-       !  Pmco(n) = Pmc
-               n = n + 1
+    chi2_red = chi2_old / nu
+    if ( mod(i,thin_factor) == 0 ) then
+      print *, 'iter ',i,'  of ',imcmc
+      print *, 'chi2 = ',chi2_old,'reduced chi2 =', chi2_red
+      write(101,*) i,chi2_old,chi2_red,kmc, ecmc, wmc, t0mc, Pmc, rv0mc
+      n = n + 1
     end if
     i = i + 1
   end do
@@ -288,3 +283,6 @@ external :: init_random_seed, find_chi2
   close(101)
 
 end subroutine
+
+!-------------------------------------------------------
+

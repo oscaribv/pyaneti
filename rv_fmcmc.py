@@ -20,7 +20,7 @@ def planet_mass(mstar,k,P,ecc):
 	#period in seconds
 	P = P * 24. * 3600
 	mpsin = k * ( 2. * np.pi * Gc / P)**(-1./3.)  * \
-	mstar**(2./3.) * np.sqrt( 1.0 - ecc*ecc )
+	mstar**(2./3.) 
 	return mpsin
 #-----------------------------
 
@@ -113,26 +113,27 @@ kmax = max(mega_fase)
 k0 = (kmax - kmin) /  2.0
 e0 = 0.1
 w0 = np.pi
-prec = 1e-3
-chi_limit = 1.0
+prec = 1e-5
+chi_toler = 0.2
 
 for i in range(0,nt):
 	v0[i] = k0 + kmin
 
 #Start the FORTRAN calling
 
-ndata = 10000
+tfactor = 10000
 
-#vmc = np.empty(ndata,nt)
-kmc = np.empty(ndata)
-emc = np.empty(ndata)
-wmc = np.empty(ndata)
-t0mc= np.empty(ndata)
-pmc = np.empty(ndata)
 
-vmc, kmc, emc, wmc, t0mc, pmc = fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,tlab,v0,k0,e0,w0,T0,Porb,prec,imcmc,ndata,chi_limit)
+fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,tlab,v0,k0,e0,w0,T0,Porb,prec,imcmc,tfactor,chi_toler)
+
+vmc = [None]*nt
 
 #end fortran calling	
+vari,chi2,chi2red,kmc, emc, wmc, t0mc, pmc = np.loadtxt('mcmc_rv.dat', comments='#',unpack=True, usecols=(0,1,2,3,4,5,6,7))
+
+for i in range(0,nt):
+	n = [8+i]
+	vmc[i] = np.loadtxt('mcmc_rv.dat', comments='#',unpack=True, usecols=(n))
 
 
 kval,sigk  = find_errb(kmc) 

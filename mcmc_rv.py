@@ -223,16 +223,30 @@ def check_ecc(e):
 	elif (e > 1):
 		e = e*.5  		
 	return e
+	
 
 #Let us initialize the MCMC Metropolis-Hasting algorithm
-imcmc = 1000000
+imcmc = 5000000
 v0 = 5.0
-k0 = 10.0
+k0 = 80.0
 e0 = 0.0
 w0 = 0.0
 h0 = 10.0
 c0 = 10.0
 t0 = 0.0
+#Let us try to do a guess for the init values
+kmin = min(mega_fase)
+kmax = max(mega_fase)
+k0 = (kmax - kmin) /  2.0
+v0 = min(mega_fase) + k0
+e0 = 0.0
+w0 = np.pi
+prec = 5e3
+stepk = k0 / prec
+stepv = v0 / prec
+stepe = 1. / prec
+stepw = 2*np.pi / prec
+#
 vmc = np.empty(imcmc)
 kmc = np.empty(imcmc)
 emc = np.zeros(imcmc)
@@ -249,20 +263,20 @@ cmc[0] = c0
 tmc[0] = t0
 chi_old = find_chi(mega_time,mega_fase,mega_err,vmc[0],kmc[0],emc[0],wmc[0]) 
 #chi_old = find_chi(mega_time,mega_fase,mega_err,hmc[0],cmc[0],emc[0],vmc[0],tmc[0]) 
-step = 0.05
+step = 0.1
 print 'Calculating %i MCMC steps'%imcmc
 di = imcmc / 100
 for i in range(1,imcmc):
 	if ( i % di == 0 ):
 		print i
-	vmc[i] = vmc[i-1] + ((np.random.rand(1)-0.5)*2)*step
-	kmc[i] = kmc[i-1] + ((np.random.rand(1)-0.5)*2)*step
-	cmc[i] = cmc[i-1] + ((np.random.rand(1)-0.5)*2)*step
-	hmc[i] = hmc[i-1] + ((np.random.rand(1)-0.5)*2)*step
-	tmc[i] = tmc[i-1] + ((np.random.rand(1)-0.5)*2)*step
-	emc[i] = emc[i-1] + ((np.random.rand(1)-0.5)*2)*step*0.01
-	emc[i] = check_ecc(emc[i])
-	wmc[i] = wmc[i-1] + ((np.random.rand(1)-0.5)*2)*step
+	vmc[i] = vmc[i-1] + ((np.random.rand(1)-0.5)*2)*stepv
+	kmc[i] = kmc[i-1] + ((np.random.rand(1)-0.5)*2)*stepk
+	#cmc[i] = cmc[i-1] + ((np.random.rand(1)-0.5)*2)*step
+	#hmc[i] = hmc[i-1] + ((np.random.rand(1)-0.5)*2)*step
+	#tmc[i] = tmc[i-1] + ((np.random.rand(1)-0.5)*2)*step
+	emc[i] = emc[i-1] + ((np.random.rand(1)-0.5)*2)*stepe
+	#emc[i] = check_ecc(emc[i])
+	wmc[i] = wmc[i-1] + ((np.random.rand(1)-0.5)*2)*stepw
 	chi_new = find_chi(mega_time,mega_fase,mega_err,vmc[i],kmc[i],emc[i],wmc[i]) 
 	#chi_new = find_chi(mega_time,mega_fase,mega_err,hmc[i],cmc[i],emc[i],vmc[i],tmc[i]) 
 	q = np.exp((chi_old - chi_new)/2.0)	
@@ -308,10 +322,10 @@ tval,sigt  = find_errb(tmc,imcmc)
 #----------------------------------------------
 
 #Now let us calculate the plantary mass
-e = 0.0
+#e = 0.0
 k = np.absolute(kval)
 
-mpsin = planet_mass(mstar,k,Porb,e)
+mpsin = planet_mass(mstar,k,Porb,ecval)
 mjup = 0.0009543
 mearth = 0.000003003 
 
