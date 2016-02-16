@@ -174,7 +174,7 @@ external :: rv_circular, rv_curve
 
   !We will assume that the data is sorted, plese sort it!
 
-  res(:) = ( yd(:) - model(:) ) / errs(:)
+  res(:) = ( yd(:) - model(:) ) / (errs(:)*errs(:))
   res(:) = res(:) * res(:)
 
   chi2 = sum(res)
@@ -183,17 +183,17 @@ end subroutine
 
 !-----------------------------------------------------------
 
-!subroutine mcmc_rv(xd,yd,errs,rv0,k,ec,w,t0,P,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,prec,imcmc,datas)
-subroutine mcmc_rv(xd,yd,errs,tlab,rv0,k,ec,w,t0,P,rv0mco,kmco,ecmco,wmco,t0mco,Pmco,prec,imcmc,ndata,chi_limit,datas,nt)
+!subroutine mcmc_rv(xd,yd,errs,tlab,rv0,k,ec,w,t0,P,rv0mco,kmco,ecmco,wmco,t0mco,Pmco,prec,imcmc,ndata,chi_limit,datas,nt)
+subroutine mcmc_rv(xd,yd,errs,tlab,rv0,k,ec,w,t0,P,prec,imcmc,ndata,chi_limit,datas,nt)
 implicit none
 
 integer, intent(in) :: imcmc, ndata, datas, nt
 double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs, tlab
 double precision, intent(in), dimension(0:nt-1)  :: rv0
 double precision, intent(in)  :: k,t0, P, ec, w,prec,chi_limit
-double precision, intent(out), dimension(0:ndata-1)  :: kmco, ecmco, wmco, t0mco, Pmco
+!double precision, intent(out), dimension(0:ndata-1)  :: kmco, ecmco, wmco, t0mco, Pmco
 !double precision, intent(out), dimension(0:ndata-1, 0:nt-1) :: rv0mco
-double precision, intent(out), dimension(0:nt-1,0:ndata-1) :: rv0mco
+!double precision, intent(out), dimension(0:nt-1,0:ndata-1) :: rv0mco
 
 double precision, parameter :: pi = 3.1415926535897932384626
 double precision :: chi2_old, chi2_new
@@ -218,12 +218,12 @@ external :: init_random_seed, find_chi2
   ecmc   = ec
   wmc    = w
 
-rv0mco(:,0) = rv0mc(:)
-  kmco(0) = kmc
- ecmco(0) = ecmc
-  wmco(0) = wmc
- t0mco(0) = t0mc
-  Pmco(0) = Pmc
+!rv0mco(:,0) = rv0mc(:)
+!  kmco(0) = kmc
+! ecmco(0) = ecmc
+!  wmco(0) = wmc
+! t0mco(0) = t0mc
+!  Pmco(0) = Pmc
 
   sk = k * prec
   srv0 = k * prec
@@ -270,14 +270,14 @@ rv0mco(:,0) = rv0mc(:)
          Pmc = Pmcn
     end if
     if ( mod(i,check) == 0 ) then
-       print *, 'iter ',i,'  of ',imcmc
+       print *, 'iter ',i,'  of ',imcmc,'chi2 = ',chi2_old
        write(101,*) i, kmc, ecmc, wmc, t0mc, Pmc, rv0mc
-       rv0mco(:,n) = rv0mc
-         kmco(n) = kmc
-        ecmco(n) = ecmc
-         wmco(n) = wmc
-        t0mco(n) = t0mc
-         Pmco(n) = Pmc
+       !rv0mco(:,n) = rv0mc
+       !  kmco(n) = kmc
+       ! ecmco(n) = ecmc
+       !  wmco(n) = wmc
+       ! t0mco(n) = t0mc
+       !  Pmco(n) = Pmc
                n = n + 1
     end if
     i = i + 1
