@@ -5,3 +5,5 @@
 *.tar
 *.pdf
 *.o
+*.so
+input_rv.py
