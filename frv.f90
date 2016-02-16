@@ -208,15 +208,16 @@ implicit none
   !If we want a circular fit, let us do it!
   if ( isc ) then
     do i = 0, datas-1
-    if ( tel .ne. tlab(i) ) tel = tel + 1 
-    call rv_circular(xd(i),rv0(tel),t0,k,P,model(i),1)
-  end do
+      if ( tel .ne. tlab(i) ) tel = tel + 1 
+      call rv_circular(xd(i),rv0(tel),t0,k,P,model(i),1)
+    end do
   !If we want an eccentric fit, let us do it!
   else
-   do i = 0, datas-1
-    if ( tel .ne. tlab(i)  ) tel = tel + 1 
-    call rv_curve(xd(i),rv0(tel),t0,k,P,ec,w,model(i),1)
-  end do
+    do i = 0, datas-1
+      if ( tel .ne. tlab(i)  ) tel = tel + 1 
+      call rv_curve(xd(i),rv0(tel),t0,k,P,ec,w,model(i),1)
+    end do
+  end if
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
@@ -250,9 +251,11 @@ implicit none
 
 !In/Out variables
   integer, intent(in) :: maxi, thin_factor, datas, nt
-  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs, tlab
-  double precision, intent(in), dimension(0:nt-1)  :: rv0mc
-  double precision, intent(in)  :: kmc,t0mc, Pmc, ecmc, wmc, prec, chi2_toler
+  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  integer, intent(in), dimension(0:datas-1)  :: tlab
+  double precision, intent(inout), dimension(0:nt-1)  :: rv0mc
+  double precision, intent(inout)  :: kmc,t0mc, Pmc, ecmc, wmc, prec, chi2_toler
+  !f2py intent(in,out)  ::rv0mc, kmc,t0mc, Pmc, ecmc, wmc, prec, chi2_toler
   logical, intent(in) :: ics
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
@@ -268,17 +271,19 @@ implicit none
 
   !Calculate the step size based in the actual value of the
   !parameters and the prec variable
-  sk   = k     * prec
-  srv0 = k     * prec
-  st0  = t0    * prec
-  sP   = P     * prec
-  sec  = 1.    * prec
-  sw   = 2.*pi * prec
+  sk   = kmc     * prec
+  srv0 = kmc     * prec
+  st0  = t0mc    * prec
+  sP   = Pmc     * prec
+  sec  = 1.      * prec
+  sw   = 2.*pi  * prec
 
   !Let us estimate our fist chi_2 value
   call find_chi2(xd,yd,errs,tlab,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,chi2_old,ics,datas,nt)
   !Calculate the degrees of freedom
   nu = datas - 5 - nt
+  !If we are fixing a circular orbit, ec and w are not used 
+  if ( isc ) nu = nu + 2 
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting MCMC calculation'
