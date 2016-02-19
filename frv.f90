@@ -93,6 +93,7 @@ implicit none
 
   do i = 0, dman-1
     do while ( abs(f(i)) >= delta .and. n <= imax )
+      !This can be improved, do it!
       ta(i)  = ta(i) - f(i) / df(i)
       f(i)   = ta(i) - ec * sin(ta(i)) - man(i)
       df(i)  =   1.0 - ec * cos(ta(i))
@@ -166,6 +167,95 @@ implicit none
 
   rv(:) = rv0 + k * ( cos(ta(:) + w ) + ec * cos(w) )
   
+end subroutine
+
+!-----------------------------------------------------------
+!  Find z suborutine
+!------------------------------------------------------------
+subroutine find_z(t,t0,e,w,P,i,a,z,ts)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: ts
+  double precision, intent(in), dimension(0:ts-1)  :: t
+  double precision, intent(in) :: t0, e, w, P, i, a
+  double precision, intent(out), dimension(0:ts-1) :: z
+!Local variables
+  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, dimension(0:ts-1) :: ma, ta
+  double precision :: si
+  integer :: imax
+!External function
+  external :: find_anomaly
+!
+
+  si = sin(i)
+
+  imax = int(1e5)
+  !Calculate the mean anomaly from the input values
+  ma(:) = 2.* pi * ( t(:) - t0 ) / P
+  !Obtain the eccentric anomaly by using find_anomaly
+  call find_anomaly(ma,ta,e,delta,imax,ts)
+
+  z(:) = a * ( 1- e*e ) / (1 + e * cos(ta(:))) * &
+         sqrt( 1. - sin(w+ta(:))*sin(w+ta(:))*si*si) 
+
+  !z has been calculated
+  
+end subroutine
+
+!-----------------------------------------------------------
+! This routine calculates the chi square for a RV curve
+! given a set of xd-yd data points
+! It takes into acount the possible difference in systematic
+! velocities for different telescopes.
+!Input parameters are:
+! xd, yd, errs -> set of data to fit (array(datas))
+! tlab -> Telescope labels (array of integers number)
+! rv0  -> array for the different systemic velocities,
+!         its size is the number of telescopes
+! k, ec, w, t0, P -> typical planet parameters
+! ics -> is circular flag, True or False.
+! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)  
+!Output parameter:
+! chi2 -> a double precision value with the chi2 value
+!-----------------------------------------------------------
+subroutine find_chi2_transit(xd,yd,t0,e,w,P,i,a,u1,u2,pz,chi2,isc,datas)
+!subroutine find_z(t,t0,e,w,P,i,a,z,ts)
+implicit none
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: datas
+  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  double precision, intent(in) :: t0, e, w, P, i, a, u1, u2, pz
+  logical, intent(in)  :: isc
+  double precision, intent(out) :: chi2
+!Local variables
+  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, dimension(0:datas-1) :: z, res, muld, mu
+!External function
+  external :: rv_circular, rv_curve
+
+  !Let us find the project distance z
+  call find_z(xd,t0,e,w,P,i,a,z,datas)
+  !Now we have z, let us use Agol's routines
+  !If we want a circular fit, let us do it!
+  if ( isc ) then
+    print "This option is obsolete now"
+    stop
+  else
+    call occultquad(z,u1,u2,pz,muld,mu,nz)
+  end if
+
+  !Let us calculate the residuals
+  ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
+  !Here I am assuming that we want linmd darkening
+  !If this is not true, use mu 
+  res(:) = muld(:) - yd(:)  
+  res(:) = res(:) * res(:) / ( errs(:) * errs(:) )
+  chi2 = sum(res)
+
 end subroutine
 
 !-----------------------------------------------------------
@@ -246,6 +336,8 @@ end subroutine
 !Output parameter:
 ! This functions outputs a file called mh_rvfit.dat
 !-----------------------------------------------------------
+!I could deal with differences in parameters by ussing vectors insead of
+!independient float parameters, PLEASE OSCAR DO THIS!
 subroutine metropolis_hastings_rv(xd,yd,errs,tlab,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,prec,maxi,thin_factor,chi2_toler,ics,datas,nt)
 implicit none
 
