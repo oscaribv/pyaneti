@@ -136,7 +136,7 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:datas-1) :: model, res
-  integer :: i, j, tel
+  integer :: i, tel
 !External function
   external :: rv_circular, rv_curve
 
@@ -212,7 +212,7 @@ implicit none
   double precision, dimension(0:np-1) :: kmcn, t0mcn, Pmcn, ecmcn, wmcn
   double precision  :: sk, srv0, st0, sP, sec, sw
   double precision  :: q
-  integer :: i, j, nu, yo
+  integer :: i, j, nu, n
   real, dimension(0:5+nt) :: r
 !external calls
   external :: init_random_seed, find_chi2_rv
@@ -246,7 +246,7 @@ implicit none
   write(101,*) 0,chi2_old,chi2_red,kmc, ecmc, wmc, t0mc, Pmc,rv0mc
   !Initialize the values
   i = 1
-  yo = 0
+  n = 0
 
   !The infinite cycle starts!
   do while ( chi2_red >= 1. + chi2_toler .and. i <= maxi )
@@ -254,12 +254,12 @@ implicit none
     !Let us add a random shift to each parameter
     call random_number(r)
     r(1:5+nt) = ( r(1:5+nt) - 0.5) * 2.
-    kmcn(yo)   =   kmc(yo)   + r(1) * sk
-    ecmcn(yo)  =   ecmc(yo)  + r(2) * sec
-    ecmcn(yo)  =   abs(ecmcn(yo))  
-    wmcn(yo)   =   wmc(yo)   + r(3) * sw
-    t0mcn(yo)  =   t0mc(yo)  + r(4) * st0
-    Pmcn(yo)   =   Pmc(yo)   + r(5) * sP
+    kmcn(n)   =   kmc(n)   + r(1) * sk
+    ecmcn(n)  =   ecmc(n)  + r(2) * sec
+    ecmcn(n)  =   abs(ecmcn(n))  
+    wmcn(n)   =   wmc(n)   + r(3) * sw
+    t0mcn(n)  =   t0mc(n)  + r(4) * st0
+    Pmcn(n)   =   Pmc(n)   + r(5) * sP
     do j = 0, nt-1
       rv0mcn(j) =   rv0mc(j) + r(6+j) * srv0
     end do
@@ -270,14 +270,14 @@ implicit none
     !If the new model is better, let us save it
     if ( q > r(0) ) then
       chi2_old = chi2_new
-       rv0mc(yo) = rv0mcn(yo)
-         kmc(yo) = kmcn(yo)
-        ecmc(yo) = ecmcn(yo)
-         wmc(yo) = wmcn(yo)
-        t0mc(yo) = t0mcn(yo)
-         Pmc(yo) = Pmcn(yo)
+       rv0mc(n) = rv0mcn(n)
+         kmc(n) = kmcn(n)
+        ecmc(n) = ecmcn(n)
+         wmc(n) = wmcn(n)
+        t0mc(n) = t0mcn(n)
+         Pmc(n) = Pmcn(n)
     end if
-    yo = mod(i,np)
+    n = mod(i,np)
     !Calculate the reduced chi square
     chi2_red = chi2_old / nu
     !Save the data each thin_factor iteration

@@ -1,5 +1,5 @@
 !------------------------------------------------------------
-!                         frv.f90
+!                         ftr.f90
 ! This file contains subroutines to calculate Marcov Chain 
 ! Monte Carlo simulations in order to obtain planet parameters
 ! from light curve fitting of transit planets
@@ -9,22 +9,48 @@
 !------------------------------------------------------------
 
 !-----------------------------------------------------------
-!  Find z suborutine
+!  Find P
 !------------------------------------------------------------
-subroutine find_z(t,t0,e,w,P,i,a,z,ts)
+
+subroutine find_porb(t0,ntr,P)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: ts
-  double precision, intent(in), dimension(0:ts-1)  :: t
-  double precision, intent(in) :: t0, e, w, P, i, a
+  integer, intent(in) :: ntr
+  double precision, intent(in), dimension(0:ntr-1)  :: t0
+  double precision, intent(out) :: P
+!Local variables
+  integer :: i, n
+!
+
+  P = 0.0
+  do i = 0, ntr-2
+    P = P + t0(i+1) - t0(i)
+  end do
+
+  P = P / (ntr-1)
+  
+end subroutine
+
+!-----------------------------------------------------------
+!  Find z suborutine
+!------------------------------------------------------------
+subroutine find_z(t,t0,e,w,P,i,a,z,tl,ts,ntr)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: ts, ntr
+  integer, intent(in), dimension(0:ntr) :: tl !size of the time arrays
+  double precision, intent(in), dimension(0:ts-1) :: t
+  double precision, intent(in), dimension(0:ntr-1) :: t0
+  double precision, intent(in) :: e, w, P, i, a
   double precision, intent(out), dimension(0:ts-1) :: z
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:ts-1) :: ma, ta
   double precision :: delta = 1e-4
   double precision :: si
-  integer :: imax
+  integer :: imax, j
 !External function
   external :: find_anomaly
 !
@@ -32,13 +58,17 @@ implicit none
   si = sin(i)
 
   imax = int(1e7)
-  !Calculate the mean anomaly from the input values
-  ma(:) = 2.* pi * ( t(:) - t0 ) / P
-  !Obtain the eccentric anomaly by using find_anomaly
-  call find_anomaly(ma,ta,e,delta,imax,ts)
-
-  z(:) = a * ( 1- e*e ) / (1 + e * cos(ta(:))) * &
-         sqrt( 1. - sin(w+ta(:))*sin(w+ta(:))*si*si) 
+  j = 0
+  !tl(0) ALWAYS must be 0
+  do j = 1, ntr - 1
+    !Calculate the mean anomaly from the input values
+     ma(tl(j):tl(j+1)) = 2.* pi * ( t(tl(j):tl(j+1)) - t0(j) ) / P
+     !Obtain the eccentric anomaly by using find_anomaly
+     call find_anomaly(ma,ta,e,delta,imax,tl(j+1)-tl(j))
+     z(tl(j):tl(j+1)) = &
+      a * ( 1- e*e ) / (1 + e * cos(ta(tl(j):tl(j+1)))) * &
+      sqrt( 1. - sin(w+ta(tl(j):tl(j+1)))*sin(w+ta(tl(j):tl(j+1)))*si*si) 
+  end do
 
   !z has been calculated
   
@@ -60,23 +90,28 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_tr(xd,yd,errs,t0,e,w,P,i,a,u1,u2,pz,chi2,isc,datas)
+subroutine find_chi2_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,chi2,isc,datas,ntr)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas
+  integer, intent(in) :: datas, ntr
+  integer, intent(in), dimension(0:ntr) :: tlims !size of the time arrays
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  double precision, intent(in) :: t0, e, w, P, i, a, u1, u2, pz
+  double precision, intent(in), dimension(0:ntr-1) :: t0
+  double precision, intent(in) :: e, w, i, a, u1, u2, pz
   logical, intent(in)  :: isc
   double precision, intent(out) :: chi2
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
+  double precision :: P
   double precision, dimension(0:datas-1) :: z, res, muld, mu
 !External function
-  external :: occultquad, find_z
+  external :: occultquad, find_z, find_porb
 
+  !Let us estimate a first period
+  call find_porb(t0,ntr,P)
   !Let us find the projected distance z
-  call find_z(xd,t0,e,w,P,i,a,z,datas)
+  call find_z(xd,t0,e,w,P,i,a,z,tlims,datas,ntr)
   !Now we have z, let us use Agol's routines
   !If we want a circular fit, let us do it!
   if ( isc ) then
@@ -117,32 +152,35 @@ end subroutine
 !-----------------------------------------------------------
 !I could deal with differences in parameters by ussing vectors insead of
 !independient float parameters, PLEASE OSCAR DO THIS!
-subroutine metropolis_hastings_tr(xd,yd,errs,t0,e,w,P,i,a,u1,u2,pz,prec,maxi,thin_factor,chi2_toler,ics,datas)
+subroutine metropolis_hastings_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,prec,maxi,thin_factor,chi2_toler,ics,datas,ntr)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: maxi, thin_factor, datas
-  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  double precision, intent(inout)  :: t0,e,w,P,i,a,u1,u2,pz,prec,chi2_toler
-  !f2py intent(in,out)  :: t0,e,w,P,i,a,u1,u2,pz,prec,chi2_toler
+  integer, intent(in) :: maxi, thin_factor, datas, ntr
+  integer, intent(in),dimension(0:ntr) :: tlims
+  double precision, intent(in), dimension(0:datas-1) :: xd, yd, errs
+  double precision, intent(in)  :: prec,chi2_toler
+  double precision, intent(inout)  :: e,w,i,a,u1,u2,pz
+  double precision, intent(inout), dimension(0:ntr-1)  :: t0
+  !f2py intent(in,out)  :: t0,e,w,P,i,a,u1,u2,pz
   logical, intent(in) :: ics
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_old, chi2_new, chi2_red
-  double precision :: t0n,en,wn,Pn,ni,an,u1n,u2n,pzn
+  double precision :: en,wn,Pn,ni,an,u1n,u2n,pzn
   double precision :: st0,se,sw,sP,si,sa,su1,su2,spz
+  double precision, dimension(0:ntr-1) :: t0n
   double precision  :: q
-  integer :: j, n, nu
-  real, dimension(0:9) :: r
+  integer :: j, nu
+  real, dimension(0:7+ntr) :: r
 !external calls
   external :: init_random_seed, find_chi2_tr
  
   !Calculate the step size based in the actual value of the
   !parameters and the prec variable
-  st0 = t0*prec
+  st0 = prec
   se  = e*prec
   sw  = w*prec
-  sP  = P*prec
   si  = i*prec
   sa  = a*prec
   su1 = u1*prec
@@ -150,9 +188,9 @@ implicit none
   spz = pz*prec
 
   !Let us estimate our fist chi_2 value
-  call find_chi2_tr(xd,yd,errs,t0,e,w,P,i,a,u1,u2,pz,chi2_old,ics,datas)
+  call find_chi2_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,chi2_old,ics,datas,ntr)
   !Calculate the degrees of freedom
-  nu = datas - 9
+  nu = datas - size(r) + 1
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting MCMC calculation'
@@ -166,7 +204,6 @@ implicit none
   write(101,*)'# i chi2 chi2_red k ec w t0 P rv0mc(vector)'
   write(101,*) 0,chi2_old,chi2_red
   !Initialize the values
-  n = 1
   j = 1
 
   !The infinite cycle starts!
@@ -174,19 +211,18 @@ implicit none
     !r will contain random numbers for each variable
     !Let us add a random shift to each parameter
     call random_number(r)
-    r(1:9) = ( r(1:9) - 0.5) * 2.
-     t0n = t0 + r(1) * st0
-     en  = e  + r(2) * se
-     wn  = w  + r(3) * sw
-     Pn  = P  + r(4) * sP
-     ni  = i  + r(5) * si
-     an  = a  + r(6) * sa
-     u1n = u1 !+ r(7) * su1
-     u2n = u2 !+ r(8) * su2
-     pzn = pz + r(9) * spz
+    r(1:7+ntr) = ( r(1:7+ntr) - 0.5) * 2.
+     en  = e  + r(1) * se
+     wn  = w  + r(2) * sw
+     ni  = i  + r(3) * si
+     an  = a  + r(4) * sa
+     u1n = u1 !+ r(5) * su1
+     u2n = u2 !+ r(6) * su2
+     pzn = pz + r(7) * spz
+     t0n(:) = t0(:) + r(8:7+ntr) * st0
       !print *, u1n, u2n
     !Let us calculate our new chi2
-    call find_chi2_tr(xd,yd,errs,t0n,en,wn,Pn,ni,an,u1n,u2n,pzn,chi2_new,ics,datas)
+    call find_chi2_tr(xd,yd,errs,t0n,en,wn,ni,an,u1n,u2n,pzn,tlims,chi2_new,ics,datas,ntr)
     !Ratio between the models
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
     !If the new model is better, let us save it
@@ -195,7 +231,6 @@ implicit none
       t0 = t0n
       e  = en
       w  = wn
-      P  = Pn
       i  = ni
       a  = an
 !      u1 = u1n
@@ -208,8 +243,7 @@ implicit none
     if ( mod(j,thin_factor) == 0 ) then
       print *, 'iter ',j,'  of ',maxi
       print *, 'chi2 = ',chi2_old,'reduced chi2 =', chi2_red
-      write(101,*) j,chi2_old,chi2_red,t0,e,w,P,i,a,u1,u2,pz
-      n = n + 1
+      write(101,*) j,chi2_old,chi2_red,t0,e,w,i,a,u1,u2,pz
     end if
     j = j + 1
   end do
