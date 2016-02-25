@@ -1,3 +1,13 @@
+
+!------------------------------------------------------------
+!                         quad_agol.f90
+! This file contains a modification of the original occultquad.f 
+!Agol file written in f77. This file was adapted to run in f90.
+! The subroutines can be called from python by using f2py
+! They also can be used in a fortran program
+!              Date --> Feb  2016, Oscar Barragán
+!------------------------------------------------------------
+
 subroutine occultquad(z0,u1,u2,p,muo1,mu0,nz)
 !  This routine computes the lightcurve for occultation
 !  of a quadratically limb-darkened source without microlensing.
