@@ -178,8 +178,8 @@ implicit none
   double precision :: en,wn,ni,an,u1n,u2n,pzn
   double precision :: st0,se,sw,si,sa,su1,su2,spz
   double precision, dimension(0:ntr-1) :: t0n
-  double precision  :: q, dummyt
-  integer :: n, j, nu
+  double precision  :: q
+  integer :: j, nu
   real, dimension(0:7+ntr) :: r
 !external calls
   external :: init_random_seed, find_chi2_tr
