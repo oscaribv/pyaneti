@@ -20,7 +20,7 @@ implicit none
   double precision, intent(in), dimension(0:ntr-1)  :: t0
   double precision, intent(out) :: P
 !Local variables
-  integer :: i, n
+  integer :: i
 !
 
   P = 0.0
@@ -35,7 +35,7 @@ end subroutine
 !-----------------------------------------------------------
 !  Find z suborutine
 !------------------------------------------------------------
-subroutine find_z(t,t0,e,w,P,i,a,z,tl,ts,ntr)
+subroutine find_z(t,t0,e,w,P,i,a,tl,z,ts,ntr)
 implicit none
 
 !In/Out variables
@@ -59,16 +59,24 @@ implicit none
 
   imax = int(1e7)
   j = 0
+  !print *, t0
   !tl(0) ALWAYS must be 0
-  do j = 1, ntr - 1
+  do j = 0, ntr - 1
+    !print *, tl(j),tl(j+1)-1, tl(j+1)-tl(j),t0(j)
     !Calculate the mean anomaly from the input values
-     ma(tl(j):tl(j+1)) = 2.* pi * ( t(tl(j):tl(j+1)) - t0(j) ) / P
+     ma(tl(j):tl(j+1)-1) = 2.* pi * ( t(tl(j):tl(j+1)-1) - t0(j) ) / P
      !Obtain the eccentric anomaly by using find_anomaly
-     call find_anomaly(ma,ta,e,delta,imax,tl(j+1)-tl(j))
-     z(tl(j):tl(j+1)) = &
-      a * ( 1- e*e ) / (1 + e * cos(ta(tl(j):tl(j+1)))) * &
-      sqrt( 1. - sin(w+ta(tl(j):tl(j+1)))*sin(w+ta(tl(j):tl(j+1)))*si*si) 
+     call find_anomaly(ma(tl(j):tl(j+1)-1),ta(tl(j):tl(j+1)-1),e,delta,imax,tl(j+1)-tl(j))
+     z(tl(j):tl(j+1)-1) = &
+      a * ( 1. - e*e ) / (1. + e * cos(ta(tl(j):tl(j+1)-1))) * &
+      sqrt( 1. - sin(w+ta(tl(j):tl(j+1)-1))*sin(w+ta(tl(j):tl(j+1)-1))*si*si) 
   end do
+
+  ! print*, t(tl(0):tl(1))
+  ! print*, P, si, t0
+  ! print*, tl
+  ! print*, ma
+  ! print*, ta
 
   !z has been calculated
   
@@ -111,7 +119,7 @@ implicit none
   !Let us estimate a first period
   call find_porb(t0,ntr,P)
   !Let us find the projected distance z
-  call find_z(xd,t0,e,w,P,i,a,z,tlims,datas,ntr)
+  call find_z(xd,t0,e,w,P,i,a,tlims,z,datas,ntr)
   !Now we have z, let us use Agol's routines
   !If we want a circular fit, let us do it!
   if ( isc ) then
@@ -167,17 +175,18 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_old, chi2_new, chi2_red
-  double precision :: en,wn,Pn,ni,an,u1n,u2n,pzn
-  double precision :: st0,se,sw,sP,si,sa,su1,su2,spz
+  double precision :: en,wn,ni,an,u1n,u2n,pzn
+  double precision :: st0,se,sw,si,sa,su1,su2,spz
   double precision, dimension(0:ntr-1) :: t0n
-  double precision  :: q
-  integer :: j, nu
+  double precision  :: q, dummyt
+  integer :: n, j, nu
   real, dimension(0:7+ntr) :: r
 !external calls
   external :: init_random_seed, find_chi2_tr
  
   !Calculate the step size based in the actual value of the
   !parameters and the prec variable
+
   st0 = prec
   se  = e*prec
   sw  = w*prec
@@ -186,6 +195,7 @@ implicit none
   su1 = u1*prec
   su2 = u2*prec
   spz = pz*prec
+
 
   !Let us estimate our fist chi_2 value
   call find_chi2_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,chi2_old,ics,datas,ntr)
@@ -213,13 +223,16 @@ implicit none
     call random_number(r)
     r(1:7+ntr) = ( r(1:7+ntr) - 0.5) * 2.
      en  = e  + r(1) * se
-     wn  = w  + r(2) * sw
+     en  = abs(en)
+     wn  = w  + r(2) * sw 
+     !wn  = mod(wn,2.*pi)
      ni  = i  + r(3) * si
-     an  = a  + r(4) * sa
+     !ni  = mod(ni,2.*pi)
+     an  = a  + r(4) * sa 
      u1n = u1 !+ r(5) * su1
      u2n = u2 !+ r(6) * su2
      pzn = pz + r(7) * spz
-     t0n(:) = t0(:) + r(8:7+ntr) * st0
+     t0n = t0 + r(8:7+ntr) * st0
       !print *, u1n, u2n
     !Let us calculate our new chi2
     call find_chi2_tr(xd,yd,errs,t0n,en,wn,ni,an,u1n,u2n,pzn,tlims,chi2_new,ics,datas,ntr)
