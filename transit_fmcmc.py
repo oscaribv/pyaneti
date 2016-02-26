@@ -157,6 +157,20 @@ chi2_toler = 0.89
 thin_factor = int(1e3)
 ics = False
 
+fit_e = False
+fit_w = True
+fit_i = True
+fit_a = True
+fit_u1 = False
+fit_u2 = False
+fit_pz = True
+fit_t0 = True
+
+what_fit = [int(fit_e),int(fit_w),int(fit_i),int(fit_a), \
+					  int(fit_u1),int(fit_u2),int(fit_pz),int(fit_t0)]
+
+print what_fit
+
 P = T0[1] - T0[0]
 
 print megax
@@ -177,7 +191,7 @@ mud, mu0 = pti.occultquad(zvec,u1,u2,pz)
 
 t0o = [None]*ntr
 
-t0o, eo, wo, io, ao, u1o, u2o, pzo = pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics)
+t0o, eo, wo, io, ao, u1o, u2o, pzo = pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit)
 
 
 Po = pti.find_porb(t0o)

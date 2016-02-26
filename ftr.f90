@@ -160,12 +160,13 @@ end subroutine
 !-----------------------------------------------------------
 !I could deal with differences in parameters by ussing vectors insead of
 !independient float parameters, PLEASE OSCAR DO THIS!
-subroutine metropolis_hastings_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,prec,maxi,thin_factor,chi2_toler,ics,datas,ntr)
+subroutine metropolis_hastings_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,prec,maxi,thin_factor,chi2_toler,ics,wtf,datas,ntr)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: maxi, thin_factor, datas, ntr
   integer, intent(in),dimension(0:ntr) :: tlims
+  integer, intent(in),dimension(0:7) :: wtf
   double precision, intent(in), dimension(0:datas-1) :: xd, yd, errs
   double precision, intent(in)  :: prec,chi2_toler
   double precision, intent(inout)  :: e,w,i,a,u1,u2,pz
@@ -222,18 +223,14 @@ implicit none
     !Let us add a random shift to each parameter
     call random_number(r)
     r(1:7+ntr) = ( r(1:7+ntr) - 0.5) * 2.
-     en  = e  + r(1) * se
-     en  = abs(en)
-     wn  = w  + r(2) * sw 
-     !wn  = mod(wn,2.*pi)
-     ni  = i  + r(3) * si
-     !ni  = mod(ni,2.*pi)
-     an  = a  + r(4) * sa 
-     u1n = u1 !+ r(5) * su1
-     u2n = u2 !+ r(6) * su2
-     pzn = pz + r(7) * spz
-     t0n = t0 + r(8:7+ntr) * st0
-      !print *, u1n, u2n
+     en  = e  + r(1) * se*wtf(0)
+     wn  = w  + r(2) * sw*wtf(1) 
+     ni  = i  + r(3) * si*wtf(2)
+     an  = a  + r(4) * sa*wtf(3)
+     u1n = u1 + r(5) * su1*wtf(4)
+     u2n = u2 + r(6) * su2*wtf(5)
+     pzn = pz + r(7) * spz*wtf(6)
+     t0n = t0 + r(8:7+ntr) * st0*wtf(7)
     !Let us calculate our new chi2
     call find_chi2_tr(xd,yd,errs,t0n,en,wn,ni,an,u1n,u2n,pzn,tlims,chi2_new,ics,datas,ntr)
     !Ratio between the models
