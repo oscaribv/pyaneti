@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.stats import norm, sigmaclip
 import sys
-import frv
+import pyaneti as pti
 
 #----- HERE THE MAIN PROGRAM STARTS -----#
 
@@ -28,11 +28,11 @@ ntr = 2
 tls = [None]*ntr 
 
 tls[0] = [3217,3218]
-#tls[1] = 
+tls[1] = [3232.1,3233.1] 
 
 plt.xlim(tls[0])
-plt.plot(hdate,wflux)
-plt.show()
+#plt.plot(hdate,wflux)
+#plt.show()
 #Let us try to fit a parabola to the curve
 
 def parabola(x,a,b,c):
@@ -79,16 +79,129 @@ def normalize(x,y,err,limits):
 xt= [None]*ntr	
 yt= [None]*ntr	
 et= [None]*ntr	
+#
+#
+#TAKE CARE WITH THE ARRAY SIZES
+##
 xt[0],yt[0], et[0] = normalize(hdate,wflux,errs,tls[0])
+xt[1],yt[1], et[1] = normalize(hdate,wflux,errs,tls[1])
 
-plt.plot(xt[0],yt[0],'k')
+#plt.plot(xt[0],yt[0])
+#plt.show()
+#plt.plot(xt[1],yt[1])
+#plt.show()
+
+if ( ntr < 2):
+	print "you do not have enought transit data!"
+	sys.exit("I could crash!")
+
+#Let us start to make a good priors calculation
+T0 = [None]*ntr
+for i in range(0,ntr):
+	T0[i] = min(xt[i]) + 0.5*(max(xt[i])-min(xt[i]))
+
+#
+nx = [None]*ntr
+ny = [None]*ntr
+ne = [None]*ntr
+dx = []
+dy = []
+de = []
+for i in range(0,ntr):
+	for j in range(0,len(xt[i])):
+		if ( j % 1 == 0):
+			dx.append(xt[i][j])
+			dy.append(yt[i][j])
+			de.append(et[i][j])
+	nx[i] = dx
+	ny[i] = dy
+	ne[i] = de
+	dx = []
+	dy = []
+	de = []
+
+xt = []
+yt = []
+et = []
+
+xt = nx
+yt = ny
+et = ne
+
+#
+
+
+tlimits = [None]*(ntr+1)
+
+tlimits[0] = int(0)
+for i in range(1,ntr+1):
+	tlimits[i] = tlimits[i-1] + len(xt[i-1])
+
+print tlimits
+
+megax = np.concatenate(xt)
+megay = np.concatenate(yt)
+megae = np.concatenate(et)
+
+
+e = 0.3
+w = np.pi / 2.0
+i = np.pi/2
+a = 30.0
+u1 = 0.42
+u2 = 0.25
+pz = 0.1
+prec = 5e-5
+maxi = int(1e8)
+chi2_toler = 0.89
+thin_factor = int(1e3)
+ics = False
+
+P = T0[1] - T0[0]
+
+print megax
+
+#Plot the initial conditions
+zvec = pti.find_z(megax,T0,e,w,P, i, a, tlimits)
+
+print len(zvec)
+print zvec
+
+mud, mu0 = pti.occultquad(zvec,u1,u2,pz)
+
+#plt.plot(megax,mud,'bo',megax,mu0,'rs')
+#plt.show()
+
+
+#sys.exit('test here')
+
+t0o = [None]*ntr
+
+t0o, eo, wo, io, ao, u1o, u2o, pzo = pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics)
+
+
+Po = pti.find_porb(t0o)
+
+
+print t0o, Po, eo, wo, io, ao, u1o, u2o, pzo
+
+#Plot the initial conditions
+zvec = pti.find_z(megax,t0o,eo,wo,Po, io, ao, tlimits)
+
+mud, mu0 = pti.occultquad(zvec,u1,u2,pzo)
+
+
+plt.figure(1,figsize=(8,4))
+plt.xlim(min(xt[0]),max(xt[0]),'r')
+plt.plot(megax,megay,'bo',alpha=0.5)
+plt.plot(megax,mud,'k')
+plt.plot(linewidth=2.0)
 plt.show()
 
-def mandel_agol():
-	#Write here the function
-	#This function has to be written in fortran	
+
 
 sys.exit('I am here!')
+
 
 plt.figure(2,figsize=(8,8))
 plt.subplot(211)
