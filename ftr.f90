@@ -160,11 +160,11 @@ end subroutine
 !-----------------------------------------------------------
 !I could deal with differences in parameters by ussing vectors insead of
 !independient float parameters, PLEASE OSCAR DO THIS!
-subroutine metropolis_hastings_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,prec,maxi,thin_factor,chi2_toler,ics,wtf,datas,ntr)
+subroutine metropolis_hastings_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,prec,maxi,thin_factor,chi2_toler,ics,wtf,nconv,datas,ntr)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: maxi, thin_factor, datas, ntr
+  integer, intent(in) :: maxi, thin_factor, nconv, datas, ntr
   integer, intent(in),dimension(0:ntr) :: tlims
   integer, intent(in),dimension(0:7) :: wtf
   double precision, intent(in), dimension(0:datas-1) :: xd, yd, errs
@@ -179,9 +179,11 @@ implicit none
   double precision :: en,wn,ni,an,u1n,u2n,pzn
   double precision :: st0,se,sw,si,sa,su1,su2,spz
   double precision, dimension(0:ntr-1) :: t0n
-  double precision  :: q
-  integer :: j, nu
+  double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
+  double precision  :: q, chi2_y, chi2_slope, toler_slope
+  integer :: j, nu, n
   real, dimension(0:7+ntr) :: r
+  logical :: get_out
 !external calls
   external :: init_random_seed, find_chi2_tr
  
@@ -189,14 +191,13 @@ implicit none
   !parameters and the prec variable
 
   st0 = prec
-  se  = e*prec
-  sw  = w*prec
-  si  = i*prec
-  sa  = a*prec
-  su1 = u1*prec
-  su2 = u2*prec
-  spz = pz*prec
-
+  se  = prec
+  sw  = prec
+  si  = prec
+  sa  = prec
+  su1 = prec
+  su2 = prec
+  spz = prec
 
   !Let us estimate our fist chi_2 value
   call find_chi2_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,chi2_old,ics,datas,ntr)
@@ -215,10 +216,12 @@ implicit none
   write(101,*)'# i chi2 chi2_red k ec w t0 P rv0mc(vector)'
   write(101,*) 0,chi2_old,chi2_red
   !Initialize the values
+  toler_slope = 3. * prec / thin_factor
   j = 1
-
+  n = 0
+  get_out = .TRUE.
   !The infinite cycle starts!
-  do while ( chi2_red >= 1 + chi2_toler .and. j <= maxi - 1 )
+  do while ( get_out )
     !r will contain random numbers for each variable
     !Let us add a random shift to each parameter
     call random_number(r)
@@ -251,9 +254,20 @@ implicit none
     chi2_red = chi2_old / nu
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 ) then
-      print *, 'iter ',j,'  of ',maxi
-      print *, 'chi2 = ',chi2_old,'reduced chi2 =', chi2_red
+      print *, 'iter ',j, ', Chi2_red =', chi2_red
       write(101,*) j,chi2_old,chi2_red,t0,e,w,i,a,u1,u2,pz
+      chi2_vec(n) = chi2_red
+      x_vec(n) = j
+      n = n + 1
+      if ( n == size(chi2_vec) ) then
+        call check_chi2_convergence(x_vec,chi2_vec,chi2_y,chi2_slope,size(x_vec))        
+        n = 0
+        print *, 'slope = ', chi2_slope
+        if ( abs(chi2_slope) < toler_slope ) then
+          print *, 'I did my best to converge, chi2_red =', chi2_y
+          get_out = .FALSE.
+        end if
+      end if
     end if
     j = j + 1
   end do

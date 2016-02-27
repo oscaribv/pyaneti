@@ -130,7 +130,6 @@ et = ne
 
 #
 
-
 tlimits = [None]*(ntr+1)
 
 tlimits[0] = int(0)
@@ -143,19 +142,19 @@ megax = np.concatenate(xt)
 megay = np.concatenate(yt)
 megae = np.concatenate(et)
 
-
 e = 0.3
 w = np.pi / 2.0
 i = np.pi/2
-a = 30.0
+a = 20.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.1
-prec = 5e-5
+prec = 1e-3
 maxi = int(1e8)
-chi2_toler = 0.89
+chi2_toler = 0.3
 thin_factor = int(1e3)
 ics = False
+nconv = 200
 
 fit_e = False
 fit_w = True
@@ -191,7 +190,7 @@ mud, mu0 = pti.occultquad(zvec,u1,u2,pz)
 
 t0o = [None]*ntr
 
-t0o, eo, wo, io, ao, u1o, u2o, pzo = pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit)
+t0o, eo, wo, io, ao, u1o, u2o, pzo = pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit, nconv)
 
 
 Po = pti.find_porb(t0o)

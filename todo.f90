@@ -110,3 +110,30 @@ implicit none
   ta(:) = 2. * atan(ta(:))
 
 end subroutine
+
+!Subroutine to check if the chi2 minimization is working
+subroutine check_chi2_convergence(x_vec,chi2_vec,a,b,svec)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: svec
+  double precision, intent(in), dimension(0:svec-1) :: chi2_vec, x_vec
+  double precision, intent(out) :: a, b
+
+!Local variables
+  double precision :: meanx, meany
+  double precision, dimension(0:svec-1) :: resx, resy
+
+!Compute the linear fit by the least square method
+  meanx = sum(x_vec) / float(svec)
+  meany = sum(chi2_vec) / float(svec)
+
+  resx = x_vec - meanx
+  resy = chi2_vec - meany
+
+  b = sum( resx * resy )
+  b = b / sum ( resx * resx )
+
+  a = meany - b * meanx
+
+end subroutine
