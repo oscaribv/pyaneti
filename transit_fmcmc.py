@@ -154,7 +154,7 @@ maxi = int(1e8)
 chi2_toler = 0.3
 thin_factor = int(1e3)
 ics = False
-nconv = 200
+nconv = 100
 
 fit_e = False
 fit_w = True
@@ -190,21 +190,51 @@ mud, mu0 = pti.occultquad(zvec,u1,u2,pz)
 
 t0o = [None]*ntr
 
-t0o, eo, wo, io, ao, u1o, u2o, pzo = pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit, nconv)
+#t0o, eo, wo, io, ao, u1o, u2o, pzo = pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit, nconv)
+pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit, nconv)
 
+vari,chi2,chi2red,t0o[0],t0o[1], eo, wo, io, ao, u1o, u2o, pzo = np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
 
-Po = pti.find_porb(t0o)
+def find_errb(x,nconv):
+  iout = len(x) - nconv
+  #Let us take only the converging part
+  xnew = x[iout:]
+  mu,std = norm.fit(xnew)
+  return mu, std
 
+t0_val = [None]*ntr
+t0_err = [None]*ntr
+for i in range(0,ntr):
+	t0_val[i],t0_err[i] = find_errb(t0o[i],nconv)
 
-print t0o, Po, eo, wo, io, ao, u1o, u2o, pzo
+e_val,e_err = find_errb(eo,nconv)
+w_val,w_err = find_errb(wo,nconv)
+i_val,i_err = find_errb(io,nconv)
+a_val,a_err = find_errb(ao,nconv)
+u1_val,u1_err = find_errb(u1o,nconv)
+u2_val,u2_err = find_errb(u2o,nconv)
+pz_val,pz_err = find_errb(pzo,nconv)
+P_val = pti.find_porb(t0_val)
+
+print ('The planet parameters are:')
+print ('T0= %4.4e +/- %4.4e' %(t0_val[0],t0_err[0]))
+print ('e = %4.4e +/- %4.4e' %(e_val,e_err))
+print ('w = %4.4e +/- %4.4e' %(w_val,w_err))
+print ('i = %4.4e +/- %4.4e' %(i_val,i_err))
+print ('a = %4.4e +/- %4.4e' %(a_val,a_err))
+print ('u1= %4.4e +/- %4.4e' %(u1_val,u1_err))
+print ('u2= %4.4e +/- %4.4e' %(u2_val,u2_err))
+print ('pz= %4.4e +/- %4.4e' %(pz_val,pz_err))
+print ('P = %4.4e +/- %4.4e' %(P_val,t0_err[0]))
+
 
 #Plot the initial conditions
-zvec = pti.find_z(megax,t0o,eo,wo,Po, io, ao, tlimits)
+zvec = pti.find_z(megax,t0_val,e_val,w_val,P_val,i_val,a_val, tlimits)
 
-mud, mu0 = pti.occultquad(zvec,u1,u2,pzo)
+mud, mu0 = pti.occultquad(zvec,u1_val,u2_val,pz_val)
 
 
-plt.figure(1,figsize=(8,4))
+plt.figure(1,figsize=(10,5))
 plt.xlim(min(xt[0]),max(xt[0]),'r')
 plt.plot(megax,megay,'bo',alpha=0.5)
 plt.plot(megax,mud,'k')

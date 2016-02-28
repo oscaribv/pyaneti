@@ -216,7 +216,7 @@ implicit none
   write(101,*)'# i chi2 chi2_red k ec w t0 P rv0mc(vector)'
   write(101,*) 0,chi2_old,chi2_red
   !Initialize the values
-  toler_slope = 3. * prec / thin_factor
+  toler_slope = prec / thin_factor
   j = 1
   n = 0
   get_out = .TRUE.
