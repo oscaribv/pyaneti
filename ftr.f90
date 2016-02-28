@@ -213,8 +213,8 @@ implicit none
 
   !Let us start the otput file
   open(unit=101,file='mh_trfit.dat',status='unknown')
-  write(101,*)'# i chi2 chi2_red k ec w t0 P rv0mc(vector)'
-  write(101,*) 0,chi2_old,chi2_red
+  !write(101,*)'# i chi2 chi2_red k ec w t0 P rv0mc(vector)'
+  !write(101,*) 0,chi2_old,chi2_red
   !Initialize the values
   toler_slope = prec / thin_factor
   j = 1
@@ -255,7 +255,7 @@ implicit none
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 ) then
       print *, 'iter ',j, ', Chi2_red =', chi2_red
-      write(101,*) j,chi2_old,chi2_red,t0,e,w,i,a,u1,u2,pz
+      write(101,*) j,chi2_old,chi2_red,e,w,i,a,u1,u2,pz,t0
       chi2_vec(n) = chi2_red
       x_vec(n) = j
       n = n + 1

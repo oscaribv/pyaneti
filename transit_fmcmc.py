@@ -149,7 +149,7 @@ a = 20.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.1
-prec = 1e-3
+prec = 1e-4
 maxi = int(1e8)
 chi2_toler = 0.3
 thin_factor = int(1e3)
@@ -168,39 +168,24 @@ fit_t0 = True
 what_fit = [int(fit_e),int(fit_w),int(fit_i),int(fit_a), \
 					  int(fit_u1),int(fit_u2),int(fit_pz),int(fit_t0)]
 
-print what_fit
+pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit, nconv)
 
-P = T0[1] - T0[0]
-
-print megax
-
-#Plot the initial conditions
-zvec = pti.find_z(megax,T0,e,w,P, i, a, tlimits)
-
-print len(zvec)
-print zvec
-
-mud, mu0 = pti.occultquad(zvec,u1,u2,pz)
-
-#plt.plot(megax,mud,'bo',megax,mu0,'rs')
-#plt.show()
-
-
-#sys.exit('test here')
+vari,chi2,chi2red,eo, wo, io, ao, u1o, u2o, pzo = np.loadtxt('mh_trfit.dat', comments='#',unpack=True,usecols=range(0,10))
 
 t0o = [None]*ntr
 
-#t0o, eo, wo, io, ao, u1o, u2o, pzo = pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit, nconv)
-pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit, nconv)
+for j in range(0,ntr):
+	n = [10+j]
+	t0o[j] = np.loadtxt('mh_trfit.dat', comments='#',unpack=True, usecols=(n))
 
-vari,chi2,chi2red,t0o[0],t0o[1], eo, wo, io, ao, u1o, u2o, pzo = np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
+
 
 def find_errb(x,nconv):
-  iout = len(x) - nconv
-  #Let us take only the converging part
-  xnew = x[iout:]
-  mu,std = norm.fit(xnew)
-  return mu, std
+	iout = len(x) - nconv
+	#Let us take only the converging part
+	xnew = x[iout:]
+	mu,std = norm.fit(xnew)
+	return mu, std
 
 t0_val = [None]*ntr
 t0_err = [None]*ntr
@@ -216,6 +201,14 @@ u2_val,u2_err = find_errb(u2o,nconv)
 pz_val,pz_err = find_errb(pzo,nconv)
 P_val = pti.find_porb(t0_val)
 
+#radians to deg
+#factor = 180. / np.pi
+#w_val = w_val*factor
+#w_err = w_err*factor
+#i_val = i_val*factor
+#i_err = i_err*factor
+
+
 print ('The planet parameters are:')
 print ('T0= %4.4e +/- %4.4e' %(t0_val[0],t0_err[0]))
 print ('e = %4.4e +/- %4.4e' %(e_val,e_err))
@@ -227,41 +220,30 @@ print ('u2= %4.4e +/- %4.4e' %(u2_val,u2_err))
 print ('pz= %4.4e +/- %4.4e' %(pz_val,pz_err))
 print ('P = %4.4e +/- %4.4e' %(P_val,t0_err[0]))
 
+x_dum = [None]*ntr
+for i in range(0,ntr):
+	x_dum[i] = xt[i] - t0_val[i]
+
+#New megax
+megax = np.concatenate(x_dum)
 
 #Plot the initial conditions
-zvec = pti.find_z(megax,t0_val,e_val,w_val,P_val,i_val,a_val, tlimits)
+zvec = pti.find_z(megax,np.zeros(ntr),e_val,w_val,P_val,i_val,a_val, tlimits)
 
 mud, mu0 = pti.occultquad(zvec,u1_val,u2_val,pz_val)
 
+res = megay - mud
 
-plt.figure(1,figsize=(10,5))
-plt.xlim(min(xt[0]),max(xt[0]),'r')
-plt.plot(megax,megay,'bo',alpha=0.5)
-plt.plot(megax,mud,'k')
-plt.plot(linewidth=2.0)
-plt.show()
-
-
-
-sys.exit('I am here!')
-
-
-plt.figure(2,figsize=(8,8))
+plt.figure(2,figsize=(10,10))
 plt.subplot(211)
-plt.xlabel("Phase")
-plt.ylabel(ylab)
-plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k ))
-mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
-for i in range(0,nt):
-	plt.errorbar(p_all[i],rv_all[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
-plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
-           ncol=4, mode="expand", borderaxespad=0.)
+plt.xlim(min(megax),max(megax))
+plt.plot(linewidth=2.0)
+plt.plot(megax,megay,'bo',alpha=0.3)
+plt.plot(megax,mud,'sk')
 plt.subplot(212)
-plt.xlabel("Phase")
-plt.ylabel(ylab)
-plt.plot([0.,1.],[0.,0.],'k--')
-mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
-for i in range(0,nt):
-	plt.errorbar(p_all[i],res[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
-plt.savefig('rv_fit.png')
+plt.xlim(min(megax),max(megax))
+plt.plot(linewidth=2.0)
+plt.plot(megax,res,'bo',alpha=0.3)
+plt.plot(megax,np.zeros(len(megax)),'k--')
 plt.show()
+
