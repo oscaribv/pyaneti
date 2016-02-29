@@ -20,7 +20,9 @@ implicit none
   double precision, intent(in), dimension(0:ntr-1)  :: t0
   double precision, intent(out) :: P
 !
+
   P = sum(t0(1:ntr-1) - t0(0:ntr-2)) / (ntr-1)
+
 end subroutine
 
 !-----------------------------------------------------------
@@ -41,6 +43,7 @@ implicit none
   double precision, dimension(0:ts-1) :: ma, ta
   double precision :: delta = 1e-4
   double precision :: si, P
+  double precision, dimension(0:ts-1) :: swt
   integer :: imax, j
 !External function
   external :: find_anomaly
@@ -50,26 +53,19 @@ implicit none
 
   !Let us estimate a first period
   call find_porb(t0,ntr,P)
+
   imax = int(1e7)
   j = 0
-  !print *, t0
   !tl(0) ALWAYS must be 0
   do j = 0, ntr - 1
-    !print *, tl(j),tl(j+1)-1, tl(j+1)-tl(j),t0(j)
     !Calculate the mean anomaly from the input values
      ma(tl(j):tl(j+1)-1) = 2.* pi * ( t(tl(j):tl(j+1)-1) - t0(j) ) / P
-     !Obtain the eccentric anomaly by using find_anomaly
-     call find_anomaly(ma(tl(j):tl(j+1)-1),ta(tl(j):tl(j+1)-1),e,delta,imax,tl(j+1)-tl(j))
-     z(tl(j):tl(j+1)-1) = &
-      a * ( 1. - e*e ) / (1. + e * cos(ta(tl(j):tl(j+1)-1))) * &
-      sqrt( 1. - sin(w+ta(tl(j):tl(j+1)-1))*sin(w+ta(tl(j):tl(j+1)-1))*si*si) 
   end do
-
-  ! print*, t(tl(0):tl(1))
-  ! print*, P, si, t0
-  ! print*, tl
-  ! print*, ma
-  ! print*, ta
+ !Obtain the eccentric anomaly by using find_anomaly
+ call find_anomaly(ma,ta,e,delta,imax,ts)
+ swt = sin(w+ta)
+ z = a * ( 1. - e * e ) / (1. + e * cos(ta) ) * &
+     sqrt( 1. - swt * swt * si * si ) 
 
   !z has been calculated
   
@@ -123,9 +119,8 @@ implicit none
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
   !Here I am assuming that we want linmd darkening
   !If this is not true, use mu 
-  res(:) = muld(:) - yd(:)  
-  res(:) = res(:) * res(:) / ( errs(:) * errs(:) )
-  chi2 = sum(res)
+  res(:) = ( muld(:) - yd(:) ) / errs(:) 
+  chi2 = dot_product(res,res)
 
 
 end subroutine
@@ -192,21 +187,21 @@ implicit none
   !Let us estimate our fist chi_2 value
   call find_chi2_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,chi2_old,ics,datas,ntr)
   !Calculate the degrees of freedom
-  nu = datas - size(r) + 1
+  nu = datas - size(r)
+  chi2_red = chi2_old / nu
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting MCMC calculation'
-  print *, 'Initial Chi_2: ', chi2_old,'nu =', nu
-  chi2_red = chi2_old / nu
+  print *, 'Initial Chi2_red= ',chi2_red,'nu =',nu
+
   !Call a random seed 
   call init_random_seed()
 
   !Let us start the otput file
   open(unit=101,file='mh_trfit.dat',status='unknown')
-  !write(101,*)'# i chi2 chi2_red k ec w t0 P rv0mc(vector)'
-  !write(101,*) 0,chi2_old,chi2_red
+
   !Initialize the values
-  toler_slope = prec / thin_factor
+  toler_slope = 0.1 * prec / thin_factor
   j = 1
   n = 0
   get_out = .TRUE.
@@ -236,15 +231,15 @@ implicit none
       w  = wn
       i  = ni
       a  = an
-!      u1 = u1n
-!      u2 = u2n
+      u1 = u1n
+      u2 = u2n
       pz = pzn
     end if
     !Calculate the reduced chi square
     chi2_red = chi2_old / nu
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 ) then
-      print *, 'iter ',j, ', Chi2_red =', chi2_red
+      print *, 'iter ',j,', Chi2_red =', chi2_red
       write(101,*) j,chi2_old,chi2_red,e,w,i,a,u1,u2,pz,t0
       chi2_vec(n) = chi2_red
       x_vec(n) = j
@@ -252,7 +247,6 @@ implicit none
       if ( n == size(chi2_vec) ) then
         call check_chi2_convergence(x_vec,chi2_vec,chi2_y,chi2_slope,size(x_vec))        
         n = 0
-        print *, 'slope = ', chi2_slope
         if ( abs(chi2_slope) < toler_slope ) then
           print *, 'I did my best to converge, chi2_red =', chi2_y
           get_out = .FALSE.
@@ -261,8 +255,6 @@ implicit none
     end if
     j = j + 1
   end do
-
-  print *, 'Final chi2 = ',chi2_old,'. Final reduced chi2 =', chi2_red
 
   close(101)
 
