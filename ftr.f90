@@ -19,23 +19,14 @@ implicit none
   integer, intent(in) :: ntr
   double precision, intent(in), dimension(0:ntr-1)  :: t0
   double precision, intent(out) :: P
-!Local variables
-  integer :: i
 !
-
-  P = 0.0
-  do i = 0, ntr-2
-    P = P + t0(i+1) - t0(i)
-  end do
-
-  P = P / (ntr-1)
-  
+  P = sum(t0(1:ntr-1) - t0(0:ntr-2)) / (ntr-1)
 end subroutine
 
 !-----------------------------------------------------------
 !  Find z suborutine
 !------------------------------------------------------------
-subroutine find_z(t,t0,e,w,P,i,a,tl,z,ts,ntr)
+subroutine find_z(t,t0,e,w,i,a,tl,z,ts,ntr)
 implicit none
 
 !In/Out variables
@@ -43,13 +34,13 @@ implicit none
   integer, intent(in), dimension(0:ntr) :: tl !size of the time arrays
   double precision, intent(in), dimension(0:ts-1) :: t
   double precision, intent(in), dimension(0:ntr-1) :: t0
-  double precision, intent(in) :: e, w, P, i, a
+  double precision, intent(in) :: e, w, i, a
   double precision, intent(out), dimension(0:ts-1) :: z
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:ts-1) :: ma, ta
   double precision :: delta = 1e-4
-  double precision :: si
+  double precision :: si, P
   integer :: imax, j
 !External function
   external :: find_anomaly
@@ -57,6 +48,8 @@ implicit none
 
   si = sin(i)
 
+  !Let us estimate a first period
+  call find_porb(t0,ntr,P)
   imax = int(1e7)
   j = 0
   !print *, t0
@@ -111,15 +104,12 @@ implicit none
   double precision, intent(out) :: chi2
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
-  double precision :: P
   double precision, dimension(0:datas-1) :: z, res, muld, mu
 !External function
   external :: occultquad, find_z, find_porb
 
-  !Let us estimate a first period
-  call find_porb(t0,ntr,P)
   !Let us find the projected distance z
-  call find_z(xd,t0,e,w,P,i,a,tlims,z,datas,ntr)
+  call find_z(xd,t0,e,w,i,a,tlims,z,datas,ntr)
   !Now we have z, let us use Agol's routines
   !If we want a circular fit, let us do it!
   if ( isc ) then

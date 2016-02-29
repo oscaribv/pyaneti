@@ -23,17 +23,14 @@ for i in range(0,len(flag)):
 
 errs = np.sqrt(wflux)
 
+#----------------------------------------------
+
 ntr = 2
 
 tls = [None]*ntr 
 
 tls[0] = [3217,3218]
 tls[1] = [3232.1,3233.1] 
-
-plt.xlim(tls[0])
-#plt.plot(hdate,wflux)
-#plt.show()
-#Let us try to fit a parabola to the curve
 
 def parabola(x,a,b,c):
 	y = a + b*x +c*x*x 
@@ -59,19 +56,11 @@ def normalize(x,y,err,limits):
 			newx.append(dummyx[i])
 			newerr.append(dummyerr[i])
 
-	#print len(x),len(newx), len(newy[0])	
 	popt, cov = curve_fit(parabola,newx,newy[0],sigma=newerr)
 	dummyx = np.array(dummyx)
 	par = parabola(dummyx,popt[0],popt[1],popt[2])
-	#plt.plot(newx,newy[0],'b',dummyx,par,'k')
-	#plt.show()
-	#print popt
-
 	dummyy = dummyy / par
 	dummyerr = dummyerr / par
-	#plt.plot(dummyx,dummyy,'k')
-	#plt.show()
-
 	return dummyx, dummyy, dummyerr
 	
 	#Now we have  the values around the transit
@@ -80,16 +69,8 @@ xt= [None]*ntr
 yt= [None]*ntr	
 et= [None]*ntr	
 #
-#
-#TAKE CARE WITH THE ARRAY SIZES
-##
 xt[0],yt[0], et[0] = normalize(hdate,wflux,errs,tls[0])
 xt[1],yt[1], et[1] = normalize(hdate,wflux,errs,tls[1])
-
-#plt.plot(xt[0],yt[0])
-#plt.show()
-#plt.plot(xt[1],yt[1])
-#plt.show()
 
 if ( ntr < 2):
 	print "you do not have enought transit data!"
@@ -136,8 +117,6 @@ tlimits[0] = int(0)
 for i in range(1,ntr+1):
 	tlimits[i] = tlimits[i-1] + len(xt[i-1])
 
-print tlimits
-
 megax = np.concatenate(xt)
 megay = np.concatenate(yt)
 megae = np.concatenate(et)
@@ -145,14 +124,14 @@ megae = np.concatenate(et)
 e = 0.3
 w = np.pi / 2.0
 i = np.pi/2
-a = 20.0
+a = 16.0
 u1 = 0.42
 u2 = 0.25
-pz = 0.1
-prec = 1e-4
+pz = 0.2
+prec = 1.e-3
 maxi = int(1e8)
 chi2_toler = 0.3
-thin_factor = int(1e3)
+thin_factor = int(2e3)
 ics = False
 nconv = 100
 
@@ -181,8 +160,8 @@ for j in range(0,ntr):
 
 
 def find_errb(x,nconv):
-	iout = len(x) - nconv
 	#Let us take only the converging part
+	iout = len(x) - nconv
 	xnew = x[iout:]
 	mu,std = norm.fit(xnew)
 	return mu, std
@@ -200,14 +179,6 @@ u1_val,u1_err = find_errb(u1o,nconv)
 u2_val,u2_err = find_errb(u2o,nconv)
 pz_val,pz_err = find_errb(pzo,nconv)
 P_val = pti.find_porb(t0_val)
-
-#radians to deg
-#factor = 180. / np.pi
-#w_val = w_val*factor
-#w_err = w_err*factor
-#i_val = i_val*factor
-#i_err = i_err*factor
-
 
 print ('The planet parameters are:')
 print ('T0= %4.4e +/- %4.4e' %(t0_val[0],t0_err[0]))
@@ -228,7 +199,7 @@ for i in range(0,ntr):
 megax = np.concatenate(x_dum)
 
 #Plot the initial conditions
-zvec = pti.find_z(megax,np.zeros(ntr),e_val,w_val,P_val,i_val,a_val, tlimits)
+zvec = pti.find_z(megax,np.zeros(ntr),e_val,w_val,i_val,a_val, tlimits)
 
 mud, mu0 = pti.occultquad(zvec,u1_val,u2_val,pz_val)
 
