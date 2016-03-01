@@ -23,15 +23,11 @@ for i in range(0,len(flag)):
 		nobin_wflux.append(dummyf[i])
 		nobin_hdate.append(dummyd[i])
 
-nbin = 10
+nbin = 16
 
 #bin the data to do fastest test
-hdate = bin_data(nobin_hdate,nbin)
-wflux = bin_data(nobin_wflux,nbin)
-
-#Calculate the errors of flux
-errs = np.sqrt(wflux)
-
+hdate, err_hdate = bin_data(nobin_hdate,nbin)
+wflux, errs = bin_data(nobin_wflux,nbin)
 
 #THIS HAS TO BE DONE AUTOMATICALLY
 
@@ -70,7 +66,7 @@ megae = np.concatenate(et)
 #Let us set a good set of priors
 T0 = min(xt[0]) + 0.5*(max(xt[0])-min(xt[0]))
 P = 15.
-e = 0.0
+e = 0.3
 w = np.pi / 2.0
 i = np.pi/2
 a = 13.0

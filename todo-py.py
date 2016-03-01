@@ -1,7 +1,7 @@
 #-----------------------------------------------------------
 #											todo-py.py
 # This file contains a lot of useful of python functions.
-#					Oscar Barragán, March 1st, 2016   
+#					Oscar Barragan, March 1st, 2016   
 #-----------------------------------------------------------
 
 
@@ -53,15 +53,19 @@ def planet_mass(mstar,k,P,ecc):
 #will lost the last residual points
 #-----------------------------------------------------------
 def bin_data(x,nbin):
-  nx = []
-  dx = 0.0
-  for i in range(0,len(x)):
-    dx = dx + x[i]
-    if ( (i+1)%nbin == 0 ):
-      nx.append(dx/nbin)
-      dx = 0.0
+	nx = []
+	sd = []
+	dx = [None]*nbin
+	for i in range(0,len(x)):
+		dx[int(i%nbin)] = x[i]
+		if ( (i+1)%nbin == 0 ):
+			nx.append(np.mean(dx))
+			sd.append(np.std(dx))
+			dx = [None]*nbin
+	
+	sd = sd / np.sqrt(nbin)
 
-  return nx
+	return nx,sd
 #----------------------------------------------
 
 def find_transits(x,y):

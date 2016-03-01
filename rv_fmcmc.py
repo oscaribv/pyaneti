@@ -36,7 +36,7 @@ is_circular = False
 chi_toler = 0.099
 prec = 1e-5
 tfactor = 10000
-e0 = 0.1
+e0 = 0.3
 w0 = np.pi
 
 #Read the input_rv.py to know the 

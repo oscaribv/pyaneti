@@ -143,7 +143,7 @@ implicit none
   se  = prec
   sw  = prec
   si  = prec
-  sa  = prec*10
+  sa  = prec
   su1 = prec
   su2 = prec
   spz = prec
@@ -166,7 +166,7 @@ implicit none
   open(unit=101,file='mh_trfit.dat',status='unknown')
 
   !Initialize the values
-  toler_slope = 0.1 * prec 
+  toler_slope = 0.2 * prec 
   j = 1
   n = 0
   get_out = .TRUE.
@@ -217,6 +217,7 @@ implicit none
         call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)        
         n = 0
         !If chi2_red has not changed the last nconv iterations
+        print *, abs(chi2_slope), toler_slope
         if ( abs(chi2_slope) < toler_slope ) then
           print *, 'I did my best to converge, chi2_red =', &
                     chi2_y

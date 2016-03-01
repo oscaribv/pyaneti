@@ -129,7 +129,7 @@ rvm.set_param_hint('h',value=h)
 rvm.set_param_hint('c',value=c)
 rvm.set_param_hint('v0',value=v0)
 rvm.set_param_hint('tp',value=0)
-result = rvm.fit(mega_fase,t=mega_time,weights=mega_err)
+result = rvm.fit(mega_fase,t=mega_time,weights=mega_err,verbose=False)
 
 h  = result.values['h']
 c  = result.values['c']
