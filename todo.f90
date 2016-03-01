@@ -112,7 +112,7 @@ implicit none
 end subroutine
 
 !Subroutine to check if the chi2 minimization is working
-subroutine check_chi2_convergence(x_vec,chi2_vec,a,b,svec)
+subroutine fit_a_line(x_vec,chi2_vec,a,b,svec)
 implicit none
 
 !In/Out variables

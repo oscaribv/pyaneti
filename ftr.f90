@@ -68,7 +68,6 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:datas-1) :: z, res, muld, mu
-  integer :: j
 !External function
   external :: occultquad, find_z
 
@@ -167,7 +166,7 @@ implicit none
   open(unit=101,file='mh_trfit.dat',status='unknown')
 
   !Initialize the values
-  toler_slope = 0.1 * prec / thin_factor
+  toler_slope = 0.1 * prec 
   j = 1
   n = 0
   get_out = .TRUE.
