@@ -28,21 +28,21 @@ end subroutine
 !-----------------------------------------------------------
 !  Find z suborutine
 !------------------------------------------------------------
-subroutine find_z(t,t0,e,w,i,a,tl,z,ts,ntr)
+subroutine find_z(t,t0,P,e,w,i,a,tl,z,ts,ntr)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: ts, ntr
   integer, intent(in), dimension(0:ntr) :: tl !size of the time arrays
   double precision, intent(in), dimension(0:ts-1) :: t
-  double precision, intent(in), dimension(0:ntr-1) :: t0
-  double precision, intent(in) :: e, w, i, a
+!  double precision, intent(in), dimension(0:ntr-1) :: t0
+  double precision, intent(in) :: t0, P, e, w, i, a
   double precision, intent(out), dimension(0:ts-1) :: z
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:ts-1) :: ma, ta
   double precision :: delta = 1e-4
-  double precision :: si, P
+  double precision :: si
   double precision, dimension(0:ts-1) :: swt
   integer :: imax, j
 !External function
@@ -52,15 +52,16 @@ implicit none
   si = sin(i)
 
   !Let us estimate a first period
-  call find_porb(t0,ntr,P)
+  !call find_porb(t0,ntr,P)
 
   imax = int(1e7)
   j = 0
   !tl(0) ALWAYS must be 0
-  do j = 0, ntr - 1
+  !do j = 0, ntr - 1
     !Calculate the mean anomaly from the input values
-     ma(tl(j):tl(j+1)-1) = 2.* pi * ( t(tl(j):tl(j+1)-1) - t0(j) ) / P
-  end do
+  !   ma(tl(j):tl(j+1)-1) = 2.* pi * ( t(tl(j):tl(j+1)-1) - t0(j) ) / P
+  !end do
+  ma = 2. *  pi * (t - t0) / P
  !Obtain the eccentric anomaly by using find_anomaly
  call find_anomaly(ma,ta,e,delta,imax,ts)
  swt = sin(w+ta)
@@ -87,15 +88,15 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,chi2,isc,datas,ntr)
+subroutine find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,tlims,chi2,isc,datas,ntr)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas, ntr
   integer, intent(in), dimension(0:ntr) :: tlims !size of the time arrays
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  double precision, intent(in), dimension(0:ntr-1) :: t0
-  double precision, intent(in) :: e, w, i, a, u1, u2, pz
+!  double precision, intent(in), dimension(0:ntr-1) :: t0
+  double precision, intent(in) :: t0, P,e, w, i, a, u1, u2, pz
   logical, intent(in)  :: isc
   double precision, intent(out) :: chi2
 !Local variables
@@ -105,7 +106,7 @@ implicit none
   external :: occultquad, find_z, find_porb
 
   !Let us find the projected distance z
-  call find_z(xd,t0,e,w,i,a,tlims,z,datas,ntr)
+  call find_z(xd,t0,P,e,w,i,a,tlims,z,datas,ntr)
   !Now we have z, let us use Agol's routines
   !If we want a circular fit, let us do it!
   if ( isc ) then
@@ -145,29 +146,29 @@ end subroutine
 !-----------------------------------------------------------
 !I could deal with differences in parameters by ussing vectors insead of
 !independient float parameters, PLEASE OSCAR DO THIS!
-subroutine metropolis_hastings_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,prec,maxi,thin_factor,chi2_toler,ics,wtf,nconv,datas,ntr)
+subroutine metropolis_hastings_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,tlims,prec,maxi,thin_factor,chi2_toler,ics,wtf,nconv,datas,ntr)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: maxi, thin_factor, nconv, datas, ntr
   integer, intent(in),dimension(0:ntr) :: tlims
-  integer, intent(in),dimension(0:7) :: wtf
+  integer, intent(in),dimension(0:8) :: wtf
   double precision, intent(in), dimension(0:datas-1) :: xd, yd, errs
   double precision, intent(in)  :: prec,chi2_toler
-  double precision, intent(inout)  :: e,w,i,a,u1,u2,pz
-  double precision, intent(inout), dimension(0:ntr-1)  :: t0
+  double precision, intent(inout)  :: t0,P,e,w,i,a,u1,u2,pz
+!  double precision, intent(inout), dimension(0:ntr-1)  :: t0
   !f2py intent(in,out)  :: t0,e,w,P,i,a,u1,u2,pz
   logical, intent(in) :: ics
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_old, chi2_new, chi2_red
-  double precision :: en,wn,ni,an,u1n,u2n,pzn
-  double precision :: st0,se,sw,si,sa,su1,su2,spz
-  double precision, dimension(0:ntr-1) :: t0n
+  double precision :: t0n,Pn,en,wn,ni,an,u1n,u2n,pzn
+  double precision :: st0,sP,se,sw,si,sa,su1,su2,spz
+!  double precision, dimension(0:ntr-1) :: t0n
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
   integer :: j, nu, n
-  real, dimension(0:7+ntr) :: r
+  real, dimension(0:9) :: r
   logical :: get_out
 !external calls
   external :: init_random_seed, find_chi2_tr
@@ -183,9 +184,10 @@ implicit none
   su1 = prec
   su2 = prec
   spz = prec
+  sP = prec
 
   !Let us estimate our fist chi_2 value
-  call find_chi2_tr(xd,yd,errs,t0,e,w,i,a,u1,u2,pz,tlims,chi2_old,ics,datas,ntr)
+  call find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,tlims,chi2_old,ics,datas,ntr)
   !Calculate the degrees of freedom
   nu = datas - size(r)
   chi2_red = chi2_old / nu
@@ -218,9 +220,11 @@ implicit none
      u1n = u1 + r(5) * su1*wtf(4)
      u2n = u2 + r(6) * su2*wtf(5)
      pzn = pz + r(7) * spz*wtf(6)
-     t0n = t0 + r(8:7+ntr) * st0*wtf(7)
+     t0n = t0 + r(8) * st0*wtf(7)
+     if (t0n > 3218.5  ) t0n = t0
+     Pn  = P  + r(9) * st0*wtf(8)
     !Let us calculate our new chi2
-    call find_chi2_tr(xd,yd,errs,t0n,en,wn,ni,an,u1n,u2n,pzn,tlims,chi2_new,ics,datas,ntr)
+    call find_chi2_tr(xd,yd,errs,t0n,Pn,en,wn,ni,an,u1n,u2n,pzn,tlims,chi2_new,ics,datas,ntr)
     !Ratio between the models
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
     !If the new model is better, let us save it
@@ -234,13 +238,14 @@ implicit none
       u1 = u1n
       u2 = u2n
       pz = pzn
+      P  = Pn
     end if
     !Calculate the reduced chi square
     chi2_red = chi2_old / nu
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 ) then
       print *, 'iter ',j,', Chi2_red =', chi2_red
-      write(101,*) j,chi2_old,chi2_red,e,w,i,a,u1,u2,pz,t0
+      write(101,*) j,chi2_old,chi2_red,e,w,i,a,u1,u2,pz,t0,P
       chi2_vec(n) = chi2_red
       x_vec(n) = j
       n = n + 1

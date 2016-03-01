@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
@@ -22,6 +24,12 @@ for i in range(0,len(flag)):
 		hdate.append(dummyd[i])
 
 errs = np.sqrt(wflux)
+
+def find_transits(x,y):
+
+	newy = sigmaclip(y,low=3.0,high=3.0)
+
+	transits, miny, maxy = y - newy	
 
 #----------------------------------------------
 
@@ -77,9 +85,10 @@ if ( ntr < 2):
 	sys.exit("I could crash!")
 
 #Let us start to make a good priors calculation
-T0 = [None]*ntr
-for i in range(0,ntr):
-	T0[i] = min(xt[i]) + 0.5*(max(xt[i])-min(xt[i]))
+#T0 = [None]*ntr
+#for i in range(0,ntr):
+#	T0[i] = min(xt[i]) + 0.5*(max(xt[i])-min(xt[i]))
+T0 = min(xt[0]) + 0.5*(max(xt[0])-min(xt[0]))
 
 #
 nx = [None]*ntr
@@ -121,6 +130,8 @@ megax = np.concatenate(xt)
 megay = np.concatenate(yt)
 megae = np.concatenate(et)
 
+P = max(megax) - min(megax)
+P = 15.
 e = 0.3
 w = np.pi / 2.0
 i = np.pi/2
@@ -128,7 +139,7 @@ a = 16.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.2
-prec = 1.e-3
+prec = 2.5e-3
 maxi = int(1e8)
 chi2_toler = 0.3
 thin_factor = int(2e3)
@@ -143,19 +154,21 @@ fit_u1 = False
 fit_u2 = False
 fit_pz = True
 fit_t0 = True
+fit_P = True
 
 what_fit = [int(fit_e),int(fit_w),int(fit_i),int(fit_a), \
-					  int(fit_u1),int(fit_u2),int(fit_pz),int(fit_t0)]
+					  int(fit_u1),int(fit_u2),int(fit_pz),int(fit_t0), \
+						int(fit_P)]
 
-pti.metropolis_hastings_tr(megax, megay, megae, T0, e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit, nconv)
+#pti.metropolis_hastings_tr(megax, megay,megae, T0,P,e, w, i, a, u1, u2, pz,tlimits,prec, maxi, thin_factor, chi2_toler, ics, what_fit, nconv)
 
-vari,chi2,chi2red,eo, wo, io, ao, u1o, u2o, pzo = np.loadtxt('mh_trfit.dat', comments='#',unpack=True,usecols=range(0,10))
+vari,chi2,chi2red,eo, wo, io, ao, u1o, u2o, pzo,t0o,Po = np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
 
-t0o = [None]*ntr
+#t0o = [None]*ntr
 
-for j in range(0,ntr):
-	n = [10+j]
-	t0o[j] = np.loadtxt('mh_trfit.dat', comments='#',unpack=True, usecols=(n))
+#for j in range(0,ntr):
+#	n = [10+j]
+#	t0o[j] = np.loadtxt('mh_trfit.dat', comments='#',unpack=True, usecols=(n))
 
 
 
@@ -166,10 +179,12 @@ def find_errb(x,nconv):
 	mu,std = norm.fit(xnew)
 	return mu, std
 
-t0_val = [None]*ntr
-t0_err = [None]*ntr
-for i in range(0,ntr):
-	t0_val[i],t0_err[i] = find_errb(t0o[i],nconv)
+#t0_val = [None]*ntr
+#t0_err = [None]*ntr
+#for i in range(0,ntr):
+#	t0_val[i],t0_err[i] = find_errb(t0o[i],nconv)
+
+
 
 e_val,e_err = find_errb(eo,nconv)
 w_val,w_err = find_errb(wo,nconv)
@@ -178,10 +193,11 @@ a_val,a_err = find_errb(ao,nconv)
 u1_val,u1_err = find_errb(u1o,nconv)
 u2_val,u2_err = find_errb(u2o,nconv)
 pz_val,pz_err = find_errb(pzo,nconv)
-P_val = pti.find_porb(t0_val)
+t0_val,t0_err = find_errb(t0o,nconv)
+P_val, P_err  = find_errb(Po,nconv)
 
 print ('The planet parameters are:')
-print ('T0= %4.4e +/- %4.4e' %(t0_val[0],t0_err[0]))
+print ('T0= %4.4e +/- %4.4e' %(t0_val,t0_err))
 print ('e = %4.4e +/- %4.4e' %(e_val,e_err))
 print ('w = %4.4e +/- %4.4e' %(w_val,w_err))
 print ('i = %4.4e +/- %4.4e' %(i_val,i_err))
@@ -189,17 +205,17 @@ print ('a = %4.4e +/- %4.4e' %(a_val,a_err))
 print ('u1= %4.4e +/- %4.4e' %(u1_val,u1_err))
 print ('u2= %4.4e +/- %4.4e' %(u2_val,u2_err))
 print ('pz= %4.4e +/- %4.4e' %(pz_val,pz_err))
-print ('P = %4.4e +/- %4.4e' %(P_val,t0_err[0]))
+print ('P = %4.4e +/- %4.4e' %(P_val,P_err))
 
-x_dum = [None]*ntr
-for i in range(0,ntr):
-	x_dum[i] = xt[i] - t0_val[i]
+#x_dum = [None]*ntr
+#for i in range(0,ntr):
+#	x_dum[i] = xt[i] - t0_val[i]
 
 #New megax
-megax = np.concatenate(x_dum)
+#megax = np.concatenate(x_dum)
 
 #Plot the initial conditions
-zvec = pti.find_z(megax,np.zeros(ntr),e_val,w_val,i_val,a_val, tlimits)
+zvec = pti.find_z(megax,t0_val,P_val,e_val,w_val,i_val,a_val, tlimits)
 
 mud, mu0 = pti.occultquad(zvec,u1_val,u2_val,pz_val)
 
@@ -207,12 +223,12 @@ res = megay - mud
 
 plt.figure(2,figsize=(10,10))
 plt.subplot(211)
-plt.xlim(min(megax),max(megax))
+plt.xlim(min(xt[0]),max(xt[0]))
 plt.plot(linewidth=2.0)
 plt.plot(megax,megay,'bo',alpha=0.3)
-plt.plot(megax,mud,'sk')
+plt.plot(megax,mud,'k')
 plt.subplot(212)
-plt.xlim(min(megax),max(megax))
+plt.xlim(min(xt[0]),max(xt[0]))
 plt.plot(linewidth=2.0)
 plt.plot(megax,res,'bo',alpha=0.3)
 plt.plot(megax,np.zeros(len(megax)),'k--')
