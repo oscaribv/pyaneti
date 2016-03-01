@@ -41,7 +41,7 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:ts-1) :: ma, ta
-  double precision :: delta = 1e-4
+  double precision :: delta = 1e-7
   double precision :: si
   double precision, dimension(0:ts-1) :: swt
   integer :: imax, j
@@ -61,12 +61,16 @@ implicit none
     !Calculate the mean anomaly from the input values
   !   ma(tl(j):tl(j+1)-1) = 2.* pi * ( t(tl(j):tl(j+1)-1) - t0(j) ) / P
   !end do
-  ma = 2. *  pi * (t - t0) / P
+  ma = mod(2.*pi*(t-t0) / P, 2.*pi)
  !Obtain the eccentric anomaly by using find_anomaly
  call find_anomaly(ma,ta,e,delta,imax,ts)
  swt = sin(w+ta)
  z = a * ( 1. - e * e ) / (1. + e * cos(ta) ) * &
      sqrt( 1. - swt * swt * si * si ) 
+!  do j = 0, ts-1
+!    print *, ma(j), ta(j), t(j), t(j)-t0, z(j)
+!  end do
+!  stop
 
   !z has been calculated
   
@@ -102,6 +106,7 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:datas-1) :: z, res, muld, mu
+  integer :: j
 !External function
   external :: occultquad, find_z, find_porb
 
@@ -115,6 +120,11 @@ implicit none
   else
     call occultquad(z,u1,u2,pz,muld,mu,datas)
   end if
+
+  !do j = 1, datas-1
+  !  print *, xd(j), z(j), muld(j), yd(j)
+  !end do
+  !stop
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
@@ -240,6 +250,8 @@ implicit none
       pz = pzn
       P  = Pn
     end if
+    !print *, j
+    !if ( j == 10 ) stop
     !Calculate the reduced chi square
     chi2_red = chi2_old / nu
     !Save the data each thin_factor iteration

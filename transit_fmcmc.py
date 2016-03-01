@@ -16,14 +16,38 @@ skrow = 0
 dummyd,dummyf,flag = np.loadtxt(fname,usecols=(2,9,10), comments='\\',unpack=True,skiprows=skrow)
 
 #Let us take the good data with the flag
-wflux = []
-hdate = []
+nobin_wflux = []
+nobin_hdate = []
 for i in range(0,len(flag)):
 	if ( flag[i] == 0):
-		wflux.append(dummyf[i])
-		hdate.append(dummyd[i])
+		nobin_wflux.append(dummyf[i])
+		nobin_hdate.append(dummyd[i])
 
-errs = np.sqrt(wflux)
+nobin_errs = np.sqrt(nobin_wflux)
+
+#----------------------------------------------
+
+def bin_data(x,y,e,nbin):
+	nx = []
+	ny = []
+	ne = []
+	dx = 0.0
+	dy = 0.0
+	de = 0.0
+	for i in range(0,len(x)):
+		dx = dx + x[i]
+		dy = dy + y[i]
+		de = de + e[i]
+		if ( (i+1)%nbin == 0 ):
+			nx.append(dx/nbin)
+			ny.append(dy/nbin)
+			ne.append(de/nbin)
+			dx = 0.0
+			dy = 0.0
+			de = 0.0
+
+	return nx, ny, ne
+#----------------------------------------------
 
 def find_transits(x,y):
 
@@ -32,6 +56,15 @@ def find_transits(x,y):
 	transits, miny, maxy = y - newy	
 
 #----------------------------------------------
+
+#bin the data to do fastest test
+
+hdate, wflux, dummy = bin_data(nobin_hdate,nobin_wflux,nobin_errs,10)
+
+errs = np.sqrt(wflux)
+
+plt.xlim(3217,3218)
+plt.errorbar(hdate,wflux,errs)
 
 ntr = 2
 
@@ -90,36 +123,6 @@ if ( ntr < 2):
 #	T0[i] = min(xt[i]) + 0.5*(max(xt[i])-min(xt[i]))
 T0 = min(xt[0]) + 0.5*(max(xt[0])-min(xt[0]))
 
-#
-nx = [None]*ntr
-ny = [None]*ntr
-ne = [None]*ntr
-dx = []
-dy = []
-de = []
-for i in range(0,ntr):
-	for j in range(0,len(xt[i])):
-		if ( j % 1 == 0):
-			dx.append(xt[i][j])
-			dy.append(yt[i][j])
-			de.append(et[i][j])
-	nx[i] = dx
-	ny[i] = dy
-	ne[i] = de
-	dx = []
-	dy = []
-	de = []
-
-xt = []
-yt = []
-et = []
-
-xt = nx
-yt = ny
-et = ne
-
-#
-
 tlimits = [None]*(ntr+1)
 
 tlimits[0] = int(0)
@@ -130,16 +133,15 @@ megax = np.concatenate(xt)
 megay = np.concatenate(yt)
 megae = np.concatenate(et)
 
-P = max(megax) - min(megax)
 P = 15.
-e = 0.3
+e = 0.0
 w = np.pi / 2.0
 i = np.pi/2
-a = 16.0
+a = 13.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.2
-prec = 2.5e-3
+prec = 5.e-5
 maxi = int(1e8)
 chi2_toler = 0.3
 thin_factor = int(2e3)
@@ -147,7 +149,7 @@ ics = False
 nconv = 100
 
 fit_e = False
-fit_w = True
+fit_w = False
 fit_i = True
 fit_a = True
 fit_u1 = False
@@ -184,8 +186,6 @@ def find_errb(x,nconv):
 #for i in range(0,ntr):
 #	t0_val[i],t0_err[i] = find_errb(t0o[i],nconv)
 
-
-
 e_val,e_err = find_errb(eo,nconv)
 w_val,w_err = find_errb(wo,nconv)
 i_val,i_err = find_errb(io,nconv)
@@ -207,30 +207,42 @@ print ('u2= %4.4e +/- %4.4e' %(u2_val,u2_err))
 print ('pz= %4.4e +/- %4.4e' %(pz_val,pz_err))
 print ('P = %4.4e +/- %4.4e' %(P_val,P_err))
 
-#x_dum = [None]*ntr
-#for i in range(0,ntr):
-#	x_dum[i] = xt[i] - t0_val[i]
 
-#New megax
-#megax = np.concatenate(x_dum)
+for i in range(0,ntr):
+	xt[i] = xt[i] - P_val * i
 
-#Plot the initial conditions
-zvec = pti.find_z(megax,t0_val,P_val,e_val,w_val,i_val,a_val, tlimits)
+megax = np.concatenate(xt)
+
+z_val = pti.find_z(megax,t0_val,P_val,e_val,w_val,i_val,a_val, tlimits)
+
+mud_val, mu0_val = pti.occultquad(z_val,u1_val,u2_val,pz_val)
+
+res = megay - mud_val
+
+#Get the model data to do the plot
+
+nvec = int(1e3)
+dx = ( max(megax) - min(megax) ) / nvec
+xvec = np.zeros(nvec)
+xvec[0] = min(megax) 
+for i in range(1,nvec):
+	xvec[i] = xvec[i-1] + dx
+
+zvec = pti.find_z(xvec,t0_val,P_val,e_val,w_val,i_val,a_val, tlimits)
 
 mud, mu0 = pti.occultquad(zvec,u1_val,u2_val,pz_val)
 
-res = megay - mud
+
 
 plt.figure(2,figsize=(10,10))
 plt.subplot(211)
 plt.xlim(min(xt[0]),max(xt[0]))
-plt.plot(linewidth=2.0)
-plt.plot(megax,megay,'bo',alpha=0.3)
-plt.plot(megax,mud,'k')
+plt.errorbar(megax,megay,megae,fmt='o',alpha=0.3)
+plt.plot(xvec,mud,'k',linewidth=2.0)
 plt.subplot(212)
 plt.xlim(min(xt[0]),max(xt[0]))
-plt.plot(linewidth=2.0)
-plt.plot(megax,res,'bo',alpha=0.3)
-plt.plot(megax,np.zeros(len(megax)),'k--')
+#plt.plot(megax,res,'bo',alpha=0.3)
+plt.errorbar(megax,res,megae,fmt='o',alpha=0.3)
+plt.plot(megax,np.zeros(len(megax)),'k--',linewidth=2.0)
 plt.show()
 
