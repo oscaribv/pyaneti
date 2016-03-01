@@ -1,10 +1,9 @@
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.stats import norm
 import sys
-import fmcmc
+import pyaneti as pti
 
 #-----------------------------
 def scale_period(jd,T0,P):
@@ -27,34 +26,38 @@ def planet_mass(mstar,k,P,ecc):
 #----- HERE THE MAIN PROGRAM STARTS -----#
 
 ylab = 'RV (km/s)'
+units_ms = False
 ktom = 1.0
 Porb = 1.0
 T0   = 0.0
 mstar= 1.0
-extract_rv = False
-units_ms = False
 imcmc = 5000000
+is_circular = False
+chi_toler = 0.099
+prec = 1e-5
+tfactor = 10000
+e0 = 0.1
+w0 = np.pi
 
 #Read the input_rv.py to know the 
 execfile('input_rv.py')
 
 #Read the data file
-time,fase,err,tspe = np.loadtxt(fname,usecols=(0,1,2,3), \
-  dtype={'names': ('time', 'fase', 'err','telescope'), \
+time,rv,err,tspe = np.loadtxt(fname,usecols=(0,1,2,3), \
+  dtype={'names': ('time', 'rv', 'err','telescope'), \
 	'formats': ('float', 'float', 'float', 'S1')}, \
 	comments='#',unpack=True)
 
-#Transform fase from km/s to m/s
+#Transform rv from km/s to m/s
 if(units_ms):
 	ktom = 1000
-	fase=fase*ktom
+	rv=rv*ktom
 	err=err*ktom
 	ylab = 'RV (m/s)'
-	
 
 #These lists have lists with data for the different telescopes
 time_all=[]
-fase_all=[]
+rv_all=[]
 errs_all=[]
 
 #Number of telescopes
@@ -63,7 +66,7 @@ nt = len(telescopes)
 #tspe is the data with the telescopes read from the file
 for i in range(0,nt):
 	time_dum =[]
-	fase_dum =[]
+	rv_dum =[]
 	errs_dum =[]
 	if (len(telescopes[i]) == 0):
 		print ("There is no data for %s"% telescopes[i])
@@ -71,31 +74,25 @@ for i in range(0,nt):
 		for j in range(0,len(tspe)):
 			if (tspe[j] == telescopes[i]):
 				time_dum.append(time[j])
-				fase_dum.append(fase[j])
+				rv_dum.append(rv[j])
 				errs_dum.append(err[j])
 	#The *all variables are lists of lists, each list constains
 	# a list with the data of each telescope
 		time_all.append(time_dum)
-		fase_all.append(fase_dum)
+		rv_all.append(rv_dum)
 		errs_all.append(errs_dum)
 
 #The mega* variables contains all telescope data
-mega_fase = []
+mega_rv = []
 mega_time = []
 mega_err  = []
 tlab = []
 for i in range(0,nt): 
-	for j in range(0,len(fase_all[i])):
+	for j in range(0,len(rv_all[i])):
 		tlab.append(i)
-		mega_fase.append(fase_all[i][j])
+		mega_rv.append(rv_all[i][j])
 		mega_time.append(time_all[i][j])
 		mega_err.append(errs_all[i][j])
-
-#----------------------------------------------
-#
-# MCMC calculation starts here
-#
-#----------------------------------------------
 
 def find_errb(x):
 	iout = len(x)/5 * 4
@@ -104,37 +101,30 @@ def find_errb(x):
 	mu,std = norm.fit(xnew)
 	return mu, std 
 
-
 #Let us initialize the MCMC Metropolis-Hasting algorithm
 #Let us try to do a guess for the init values
+k0vecmax = [None]*nt
+k0vecmin = [None]*nt
+k0 = 0.0
+for i in range(0,nt):
+	k0vecmin[i] = min(rv_all[i])
+	k0vecmax[i] = max(rv_all[i])
+	k0 = k0 + ( k0vecmax[i] - k0vecmin[i] ) / 2
+
+k0 = k0 / nt
 v0 = np.zeros(nt)
-kmin = min(mega_fase)
-kmax = max(mega_fase)
-k0 = (kmax - kmin) /  2.0
-e0 = 0.1
-w0 = np.pi
-prec = 1e-5
-chi_toler = 0.2
 
 for i in range(0,nt):
-	v0[i] = k0 + kmin
+	v0[i] = ( k0vecmin[i] + k0vecmax[i] ) / 2.0
 
-#Start the FORTRAN calling
+pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,v0,k0,e0,w0,T0,Porb,prec,imcmc,tfactor,chi_toler,is_circular)
 
-tfactor = 10000
-
-
-fmcmc.mcmc_rv(mega_time,mega_fase,mega_err,tlab,v0,k0,e0,w0,T0,Porb,prec,imcmc,tfactor,chi_toler)
+vari,chi2,chi2red,kmc, emc, wmc, t0mc, pmc = np.loadtxt('mh_rvfit.dat', comments='#',unpack=True, usecols=(0,1,2,3,4,5,6,7))
 
 vmc = [None]*nt
-
-#end fortran calling	
-vari,chi2,chi2red,kmc, emc, wmc, t0mc, pmc = np.loadtxt('mcmc_rv.dat', comments='#',unpack=True, usecols=(0,1,2,3,4,5,6,7))
-
 for i in range(0,nt):
 	n = [8+i]
-	vmc[i] = np.loadtxt('mcmc_rv.dat', comments='#',unpack=True, usecols=(n))
-
+	vmc[i] = np.loadtxt('mh_rvfit.dat', comments='#',unpack=True, usecols=(n))
 
 kval,sigk  = find_errb(kmc) 
 ecval,sige = find_errb(emc)
@@ -152,12 +142,6 @@ for i in range(0,nt):
 if (ecval < 0.0 ):
 	ecval = - ecval
 	wval  = wval + np.pi
-
-#----------------------------------------------
-#
-# MCMC calculation finishes here
-#
-#----------------------------------------------
 
 #Now let us calculate the plantary mass
 k = kval
@@ -182,7 +166,7 @@ print ('Planet mass of %1.4e M_j (for a %2.2f solar mass star)' % (mpsin/mjup, m
 T0 = tval
 
 #Create the RV fitted curve
-n = 500
+n = 5000
 xmin = T0
 xmax = T0 + Porb
 dn = (xmax - xmin) /  n  
@@ -190,17 +174,19 @@ rvx = np.empty([n])
 rvx[0] = xmin 
 for i in range(1,n):
 	rvx[i] = rvx[i-1] + dn
-#rvy = rv_curve(rvx,k,e,w)
-#rvy = rv_circular(rvx,vval,kval)
-#rvy = rv_curve_rv0(rvx,vval,kval,ecval,wval)
-rvy = fmcmc.rv_curve(rvx,0.0,T0,kval,Porb,ecval,wval)
-#rvy = rv_curve_wh(rvx,hval,cval,ecval,vval,tval)
+if ( is_circular ):
+	rvy = pti.rv_circular(rvx,0.0,T0,kval,Porb)
+else:
+	rvy = pti.rv_curve(rvx,0.0,T0,kval,Porb,ecval,wval)
 
 res = [None]*nt
 for i in range(0,nt):
-	res[i] = fmcmc.rv_curve(time_all[i],0.0,T0,kval,Porb,ecval,wval)
-	fase_all[i] = fase_all[i] - vval[i]
-	res[i] = fase_all[i] - res[i]
+	if (is_circular):
+		res[i] = pti.rv_circular(time_all[i],0.0,T0,kval,Porb)
+	else:
+		res[i] = pti.rv_curve(time_all[i],0.0,T0,kval,Porb,ecval,wval)
+	rv_all[i] = rv_all[i] - vval[i]
+	res[i] = rv_all[i] - res[i]
 
 #Residuals
 
@@ -209,16 +195,14 @@ p_all = [None]*nt
 for i in range(0,nt):
 	p_all[i] = scale_period(time_all[i],T0,Porb)
 
-#error bars -> http://matplotlib.org/1.2.1/examples/pylab_examples/errorbar_demo.html
 plt.figure(2,figsize=(8,8))
 plt.subplot(211)
 plt.xlabel("Phase")
 plt.ylabel(ylab)
-#plt.ylim(1.5*min(rvy),max(rvy)*1.5)
 plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k ))
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
 for i in range(0,nt):
-	plt.errorbar(p_all[i],fase_all[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.7)
+	plt.errorbar(p_all[i],rv_all[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
            ncol=4, mode="expand", borderaxespad=0.)
 plt.subplot(212)
@@ -227,6 +211,6 @@ plt.ylabel(ylab)
 plt.plot([0.,1.],[0.,0.],'k--')
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
 for i in range(0,nt):
-	plt.errorbar(p_all[i],res[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.7)
+	plt.errorbar(p_all[i],res[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
 plt.savefig('rv_fit.png')
 plt.show()
