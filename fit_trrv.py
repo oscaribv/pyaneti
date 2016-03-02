@@ -9,7 +9,6 @@ import pyaneti as pti
 #Read the file with all the python functions
 execfile('todo-py.py')
 
-
 #PREPATARION RV DATA
 
 ylab = 'RV (km/s)'
@@ -84,7 +83,6 @@ for i in range(0,nt):
 		mega_rv.append(rv_all[i][j])
 		mega_time.append(time_all[i][j])
 		mega_err.append(errs_all[i][j])
-
 
 #PREPARATION TRANSIT DATA
 
@@ -174,7 +172,7 @@ a = 13.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.5
-prec = 5.e-3
+prec = 5.e-5
 maxi = int(1e8)
 chi2_toler = 0.3
 thin_factor = int(2e3)
@@ -193,31 +191,42 @@ fit_pz 	= True
 fit_k		= True
 fit_v0	= True
 
+fit_rv = False
+fit_tr = True
 
-#Transform the logical values to integers to select what
-# to fit
-what_fit = [int(fit_t0), int(fit_P), int(fit_e), int(fit_w), \
-            int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),  \
-            int(fit_pz), int(fit_k), int(fit_v0)]
+if (fit_rv and fit_tr ):
 
-dummy = [T0,P,e,w,i,a,u1,u2,pz,k0]
-params = np.concatenate((dummy,v0))
+	#Transform the logical values to integers to select what
+	# to fit
+	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
+              int(fit_i),int(fit_a),int(fit_u1),int(fit_u2),\
+              int(fit_pz), int(fit_k), int(fit_v0)]
+	dummy = [T0,P,e,w,i,a,u1,u2,pz,k0]
+	params = np.concatenate((dummy,v0))
+	pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab,megax, megay, megae, params, prec, maxi, thin_factor, ics, what_fit, nconv)
+	vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko = np.loadtxt('mh_fit.dat', comments='#',unpack=True,usecols=range(0,13))
+	vo = [None]*nt
+	for i in range(0,nt):
+		n = [13+i]
+  	vo[i] = np.loadtxt('mh_fit.dat', comments='#',unpack=True, usecols=(n))
 
-#Start the powerful mcmc routine to do the fit
-#pti.metropolis_hastings_tr(megax, megay, megae, T0, P, e, \
-#	 w, i, a, u1, u2, pz, prec, maxi, thin_factor, ics,     \
-#	 what_fit, nconv)
+elif ( not fit_rv and fit_tr ):
 
-#pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab,megax, megay, megae, params, prec, maxi, thin_factor, ics, what_fit, nconv)
+	print 'RUNNING (ONLY) TRANSIT FIT'
 
+	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
+              int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),\
+            int(fit_pz)]
+	params = [T0,P,e,w,i,a,u1,u2,pz]
+	pti.metropolis_hastings_tr_improved(megax, megay, megae,  \
+	params, prec, maxi, thin_factor, ics, what_fit, nconv)
+	vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
+       np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
 
-vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko = np.loadtxt('mh_fit.dat', comments='#',unpack=True,usecols=range(0,13))
+elif ( fit_rv and not fit_tr ):
 
-vo = [None]*nt
-for i in range(0,nt):
-  n = [13+i]
-  vo[i] = np.loadtxt('mh_fit.dat', comments='#',unpack=True, usecols=(n))
-
+	print "I am not ready!"	
+	sys.exit('')
 
 #Read the output values from the file mh_trfit.dat
 #vari,chi2,chi2red,eo, wo, io, ao, u1o, u2o, pzo, t0o, Po = \
@@ -228,16 +237,18 @@ t0_val,t0_err = find_vals_gauss(t0o,nconv)
 P_val, P_err  = find_vals_gauss(Po,nconv)
 e_val,e_err 	= find_vals_gauss(eo,nconv)
 w_val,w_err 	= find_vals_gauss(wo,nconv)
-i_val,i_err 	= find_vals_gauss(io,nconv)
-a_val,a_err 	= find_vals_gauss(ao,nconv)
-u1_val,u1_err = find_vals_gauss(u1o,nconv)
-u2_val,u2_err = find_vals_gauss(u2o,nconv)
-pz_val,pz_err = find_vals_gauss(pzo,nconv)
-k_val, k_err  = find_vals_gauss(ko,nconv)
-v_val = [None]*nt
-v_err = [None]*nt
-for i in range(0,nt):
-	v_val[i], v_err[i] = find_vals_gauss(vo[i],nconv)
+if ( fit_tr ):
+	i_val,i_err 	= find_vals_gauss(io,nconv)
+	a_val,a_err 	= find_vals_gauss(ao,nconv)
+	u1_val,u1_err = find_vals_gauss(u1o,nconv)
+	u2_val,u2_err = find_vals_gauss(u2o,nconv)
+	pz_val,pz_err = find_vals_gauss(pzo,nconv)
+if ( fit_rv ):
+	k_val, k_err  = find_vals_gauss(ko,nconv)
+	v_val = [None]*nt
+	v_err = [None]*nt
+	for i in range(0,nt):
+		v_val[i], v_err[i] = find_vals_gauss(vo[i],nconv)
 
 w_deg = w_val * 180. / np.pi
 w_deg_err = w_err * 180. / np.pi
@@ -259,90 +270,92 @@ print ('P     = %4.4e +/- %4.4e' 		%(P_val,P_err))
 
 #PLOT TRANSIT
 
-#Move all the points to T0
-for i in range(0,ntr):
-	xt[i] = xt[i] - P_val * i
+if ( fit_tr ):
 
-#Redefine megax with the new xt valies
-megax = np.concatenate(xt)
-z_val = pti.find_z(megax,t0_val,P_val,e_val,w_val,i_val,a_val)
-mud_val, mu0_val = pti.occultquad(z_val,u1_val,u2_val,pz_val)
-#Residuals
-res = megay - mud_val
+	#Move all the points to T0
+	for i in range(0,ntr):
+		xt[i] = xt[i] - P_val * i
 
-#Get the model data to do the plot
-nvec = int(1e5)
-dx = ( max(megax) - min(megax) ) / nvec
-xvec = np.zeros(nvec)
-xvec[0] = min(megax) 
-for i in range(1,nvec):
-	xvec[i] = xvec[i-1] + dx
-zvec = pti.find_z(xvec,t0_val,P_val,e_val,w_val,i_val,a_val)
-mud, mu0 = pti.occultquad(zvec,u1_val,u2_val,pz_val)
-#Now we have data to plot a nice model
+	#Redefine megax with the new xt valies
+	megax = np.concatenate(xt)
+	z_val = pti.find_z(megax,t0_val,P_val,e_val,w_val,i_val,a_val)
+	mud_val, mu0_val = pti.occultquad(z_val,u1_val,u2_val,pz_val)
+	#Residuals
+	res = megay - mud_val
 
-#Do the plot
-plt.figure(2,figsize=(10,10))
-#Plot the transit light curve
-plt.subplot(211)
-plt.xlim(min(xt[0]),max(xt[0]))
-plt.errorbar(megax,megay,megae,fmt='o',alpha=0.3)
-plt.plot(xvec,mud,'k',linewidth=2.0)
-#Plot the residuals
-plt.subplot(212)
-plt.xlim(min(xt[0]),max(xt[0]))
-plt.errorbar(megax,res,megae,fmt='o',alpha=0.3)
-plt.plot(megax,np.zeros(len(megax)),'k--',linewidth=2.0)
-plt.show()
+	#Get the model data to do the plot
+	nvec = int(1e5)
+	dx = ( max(megax) - min(megax) ) / nvec
+	xvec = np.zeros(nvec)
+	xvec[0] = min(megax) 
+	for i in range(1,nvec):
+		xvec[i] = xvec[i-1] + dx
+	zvec = pti.find_z(xvec,t0_val,P_val,e_val,w_val,i_val,a_val)
+	mud, mu0 = pti.occultquad(zvec,u1_val,u2_val,pz_val)
+	#Now we have data to plot a nice model
+
+	#Do the plot
+	plt.figure(2,figsize=(10,10))
+	#Plot the transit light curve
+	plt.subplot(211)
+	plt.xlim(min(xt[0]),max(xt[0]))
+	plt.errorbar(megax,megay,megae,fmt='o',alpha=0.3)
+	plt.plot(xvec,mud,'k',linewidth=2.0)
+	#Plot the residuals
+	plt.subplot(212)
+	plt.xlim(min(xt[0]),max(xt[0]))
+	plt.errorbar(megax,res,megae,fmt='o',alpha=0.3)
+	plt.plot(megax,np.zeros(len(megax)),'k--',linewidth=2.0)
+	plt.show()
 
 #PLOT RV CURVE
+if ( fit_rv ):
 
+	#Create the RV fitted curve
+	n = 5000
+	xmin = t0_val
+	xmax = t0_val + P_val
+	dn = (xmax - xmin) /  n
+	rvx = np.empty([n])
+	rvx[0] = xmin
+	for i in range(1,n):
+	  rvx[i] = rvx[i-1] + dn
+	if ( is_circular ):
+	  rvy = pti.rv_circular(rvx,0.0,t0_val,k_val,P_val)
+	else:
+	  rvy = pti.rv_curve(rvx,0.0,t0_val,k_val,P_val,e_val,w_val)
+	
+	res = [None]*nt
+	for i in range(0,nt):
+ 	 if (is_circular):
+	    res[i] = pti.rv_circular(time_all[i],0.0,t0_val,k_val,P_val)
+ 	 else:
+	    res[i] = pti.rv_curve(time_all[i],0.0,t0_val,k_val,P_val,e_val,w_val)
+ 	 rv_all[i] = rv_all[i] - v_val[i]
+ 	 res[i] = rv_all[i] - res[i]
+	
+	p_rv = scale_period(rvx,t0_val,P_val)
+	p_all = [None]*nt
+	for i in range(0,nt):
+		p_all[i] = scale_period(time_all[i],t0_val,P_val)
 
-#Create the RV fitted curve
-n = 5000
-xmin = t0_val
-xmax = t0_val + P_val
-dn = (xmax - xmin) /  n
-rvx = np.empty([n])
-rvx[0] = xmin
-for i in range(1,n):
-  rvx[i] = rvx[i-1] + dn
-if ( is_circular ):
-  rvy = pti.rv_circular(rvx,0.0,t0_val,k_val,P_val)
-else:
-  rvy = pti.rv_curve(rvx,0.0,t0_val,k_val,P_val,e_val,w_val)
-
-res = [None]*nt
-for i in range(0,nt):
-  if (is_circular):
-    res[i] = pti.rv_circular(time_all[i],0.0,t0_val,k_val,P_val)
-  else:
-    res[i] = pti.rv_curve(time_all[i],0.0,t0_val,k_val,P_val,e_val,w_val)
-  rv_all[i] = rv_all[i] - v_val[i]
-  res[i] = rv_all[i] - res[i]
-
-p_rv = scale_period(rvx,t0_val,P_val)
-p_all = [None]*nt
-for i in range(0,nt):
-  p_all[i] = scale_period(time_all[i],t0_val,P_val)
-
-plt.figure(3,figsize=(10,10))
-plt.subplot(311)
-plt.xlabel("Phase")
-plt.ylabel(ylab)
-plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k_val ))
-mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
-for i in range(0,nt):
-  plt.errorbar(p_all[i],rv_all[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
-plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
-           ncol=4, mode="expand", borderaxespad=0.)
-plt.subplot(312)
-plt.xlabel("Phase")
-plt.ylabel(ylab)
-plt.plot([0.,1.],[0.,0.],'k--')
-mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
-for i in range(0,nt):
-  plt.errorbar(p_all[i],res[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
-plt.savefig('rv_fit.png')
-plt.show()
+	plt.figure(3,figsize=(10,10))
+	plt.subplot(311)
+	plt.xlabel("Phase")
+	plt.ylabel(ylab)
+	plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k_val ))
+	mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
+	for i in range(0,nt):
+	  plt.errorbar(p_all[i],rv_all[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
+	plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
+  	         ncol=4, mode="expand", borderaxespad=0.)
+	plt.subplot(312)
+	plt.xlabel("Phase")
+	plt.ylabel(ylab)
+	plt.plot([0.,1.],[0.,0.],'k--')
+	mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
+	for i in range(0,nt):
+	  plt.errorbar(p_all[i],res[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
+	plt.savefig('rv_fit.png')
+	plt.show()
 
