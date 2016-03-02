@@ -94,12 +94,6 @@ for i in range(0,nt):
 		mega_time.append(time_all[i][j])
 		mega_err.append(errs_all[i][j])
 
-def find_errb(x):
-	iout = len(x)/5 * 4
-	#Let us take only the converging part
-	xnew = x[iout:]
-	mu,std = norm.fit(xnew)
-	return mu, std 
 
 #Let us initialize the MCMC Metropolis-Hasting algorithm
 #Let us try to do a guess for the init values
