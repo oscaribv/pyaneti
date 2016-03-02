@@ -56,33 +56,38 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2,isc,datas)
+!subroutine find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2,isc,datas)
+subroutine find_chi2_tr(xd,yd,errs,params,chi2,isc,datas)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  double precision, intent(in) :: t0, P,e, w, i, a, u1, u2, pz
+  !double precision, intent(in) :: t0, P,e, w, i, a, u1, u2, pz
+  double precision, intent(in), dimension (0:8) :: params
   logical, intent(in)  :: isc
   double precision, intent(out) :: chi2
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:datas-1) :: z, res, muld, mu
+  double precision :: t0, P, e, w, i, a, u1, u2, pz
 !External function
   external :: occultquad, find_z
+
+  t0  = params(0)
+  P   = params(1)
+  e   = params(2)
+  w   = params(3)
+  i   = params(4)
+  a   = params(5)
+  u1  = params(6)
+  u2  = params(7)
+  pz  = params(8) 
 
   !Let us find the projected distance z
   call find_z(xd,t0,P,e,w,i,a,z,datas)
   !Now we have z, let us use Agol's routines
-
-  !If we want a circular fit, let us do it!
-  if ( isc ) then
-    print *, "ics = True is obsolete now"
-    stop
-  else
-  !Call to the Agol's routines
-    call occultquad(z,u1,u2,pz,muld,mu,datas)
-  end if
+  call occultquad(z,u1,u2,pz,muld,mu,datas)
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
@@ -113,7 +118,127 @@ end subroutine
 !-----------------------------------------------------------
 !I could deal with differences in parameters by ussing vectors insead of
 !independient float parameters, PLEASE OSCAR DO THIS!
-subroutine metropolis_hastings_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,prec,maxi,thin_factor,ics,wtf,nconv,datas)
+!subroutine metropolis_hastings_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,prec,maxi,thin_factor,ics,wtf,nconv,datas)
+!implicit none
+
+!In/Out variables
+!  integer, intent(in) :: maxi, thin_factor, nconv, datas
+!  integer, intent(in),dimension(0:8) :: wtf
+!  double precision, intent(in), dimension(0:datas-1) :: xd, yd, errs
+!  double precision, intent(in)  :: prec
+!  double precision, intent(inout)  :: t0,P,e,w,i,a,u1,u2,pz
+!  !f2py intent(in,out)  :: t0,e,w,P,i,a,u1,u2,pz
+!  logical, intent(in) :: ics
+!!Local variables
+!  double precision, parameter :: pi = 3.1415926535897932384626
+!  double precision :: chi2_old, chi2_new, chi2_red
+!  double precision :: t0n,Pn,en,wn,ni,an,u1n,u2n,pzn
+!  double precision :: st0,sP,se,sw,si,sa,su1,su2,spz
+!  double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
+!  double precision  :: q, chi2_y, chi2_slope, toler_slope
+!  integer :: j, nu, n
+!  real, dimension(0:9) :: r
+!  logical :: get_out
+!!external calls
+!  external :: init_random_seed, find_chi2_tr
+! 
+!  !Calculate the step size based in the actual value of the
+!  !parameters and the prec variable
+!  st0 = prec
+!  se  = prec
+!  sw  = prec
+!  si  = prec
+!  sa  = prec
+!  su1 = prec
+!  su2 = prec
+!  spz = prec
+!  sP  = prec
+!
+!  !Let us estimate our fist chi_2 value
+!  call find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2_old,ics,datas)
+!  !Calculate the degrees of freedom
+!  nu = datas - size(r)
+!  chi2_red = chi2_old / nu
+!  !Print the initial cofiguration
+!  print *, ''
+!  print *, 'Starting MCMC calculation'
+!  print *, 'Initial Chi2_red= ',chi2_red,'nu =',nu
+!
+!  !Call a random seed 
+!  call init_random_seed()
+!
+!  !Let us start the otput file
+!  open(unit=101,file='mh_trfit.dat',status='unknown')
+!
+!  !Initialize the values
+!  toler_slope = 0.2 * prec 
+!  j = 1
+!  n = 0
+!  get_out = .TRUE.
+!
+!  !The infinite cycle starts!
+!  do while ( get_out )
+!    !r will contain random numbers for each variable
+!    !Let us add a random shift to each parameter
+!    call random_number(r)
+!    r(1:9) = ( r(1:9) - 0.5) * 2.
+!     en  = e  + r(1) * se*wtf(0)
+!     wn  = w  + r(2) * sw*wtf(1) 
+!     ni  = i  + r(3) * si*wtf(2)
+!     an  = a  + r(4) * sa*wtf(3)
+!     u1n = u1 + r(5) * su1*wtf(4)
+!     u2n = u2 + r(6) * su2*wtf(5)
+!     pzn = pz + r(7) * spz*wtf(6)
+!     t0n = t0 + r(8) * st0*wtf(7)
+!     Pn  = P  + r(9) * st0*wtf(8)
+!    !Let us calculate our new chi2
+!    call find_chi2_tr(xd,yd,errs,t0n,Pn,en,wn,ni,an,u1n,u2n,pzn,chi2_new,ics,datas)
+!    !Ratio between the models
+!    q = exp( ( chi2_old - chi2_new ) * 0.5  )
+!    !If the new model is better, let us save it
+!    if ( q > r(0) ) then
+!      chi2_old = chi2_new
+!      t0 = t0n
+!      e  = en
+!      w  = wn
+!      i  = ni
+!      a  = an
+!      u1 = u1n
+!      u2 = u2n
+!      pz = pzn
+!      P  = Pn
+!    end if
+!    !Calculate the reduced chi square
+!    chi2_red = chi2_old / nu
+!    !Save the data each thin_factor iteration
+!    if ( mod(j,thin_factor) == 0 ) then
+!      print *, 'iter ',j,', Chi2_red =', chi2_red
+!      write(101,*) j,chi2_old,chi2_red,e,w,i,a,u1,u2,pz,t0,P
+!      !Check convergence here
+!      chi2_vec(n) = chi2_red
+!      x_vec(n) = n
+!      n = n + 1
+!      if ( n == size(chi2_vec) ) then
+!        call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)        
+!        n = 0
+!        !If chi2_red has not changed the last nconv iterations
+!        print *, abs(chi2_slope), toler_slope
+!        if ( abs(chi2_slope) < toler_slope ) then
+!          print *, 'I did my best to converge, chi2_red =', &
+!                    chi2_y
+!          get_out = .FALSE.
+!        end if
+!      end if
+!      !I checked covergence
+!    end if
+!    j = j + 1
+!  end do
+!
+!  close(101)
+!
+!end subroutine
+!
+subroutine metropolis_hastings_tr_improved(xd,yd,errs,params,prec,maxi,thin_factor,ics,wtf,nconv,datas)
 implicit none
 
 !In/Out variables
@@ -121,14 +246,15 @@ implicit none
   integer, intent(in),dimension(0:8) :: wtf
   double precision, intent(in), dimension(0:datas-1) :: xd, yd, errs
   double precision, intent(in)  :: prec
-  double precision, intent(inout)  :: t0,P,e,w,i,a,u1,u2,pz
-  !f2py intent(in,out)  :: t0,e,w,P,i,a,u1,u2,pz
+  !Params vector contains all the parameters
+  !t0,P,e,w,i,a,u1,u2,pz
+  double precision, intent(inout), dimension(0:8) :: params
+  !f2py intent(in,out)  :: params
   logical, intent(in) :: ics
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_old, chi2_new, chi2_red
-  double precision :: t0n,Pn,en,wn,ni,an,u1n,u2n,pzn
-  double precision :: st0,sP,se,sw,si,sa,su1,su2,spz
+  double precision, dimension(0:8) :: params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
   integer :: j, nu, n
@@ -137,22 +263,11 @@ implicit none
 !external calls
   external :: init_random_seed, find_chi2_tr
  
-  !Calculate the step size based in the actual value of the
-  !parameters and the prec variable
-  st0 = prec
-  se  = prec
-  sw  = prec
-  si  = prec
-  sa  = prec
-  su1 = prec
-  su2 = prec
-  spz = prec
-  sP  = prec
-
   !Let us estimate our fist chi_2 value
-  call find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2_old,ics,datas)
+  !call find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2_old,ics,datas)
+  call find_chi2_tr(xd,yd,errs,params,chi2_old,ics,datas)
   !Calculate the degrees of freedom
-  nu = datas - size(r)
+  nu = datas - size(params)
   chi2_red = chi2_old / nu
   !Print the initial cofiguration
   print *, ''
@@ -166,7 +281,7 @@ implicit none
   open(unit=101,file='mh_trfit.dat',status='unknown')
 
   !Initialize the values
-  toler_slope = 0.2 * prec 
+  toler_slope = prec 
   j = 1
   n = 0
   get_out = .TRUE.
@@ -177,38 +292,22 @@ implicit none
     !Let us add a random shift to each parameter
     call random_number(r)
     r(1:9) = ( r(1:9) - 0.5) * 2.
-     en  = e  + r(1) * se*wtf(0)
-     wn  = w  + r(2) * sw*wtf(1) 
-     ni  = i  + r(3) * si*wtf(2)
-     an  = a  + r(4) * sa*wtf(3)
-     u1n = u1 + r(5) * su1*wtf(4)
-     u2n = u2 + r(6) * su2*wtf(5)
-     pzn = pz + r(7) * spz*wtf(6)
-     t0n = t0 + r(8) * st0*wtf(7)
-     Pn  = P  + r(9) * st0*wtf(8)
+    params_new = params + r(1:9) * prec * wtf
     !Let us calculate our new chi2
-    call find_chi2_tr(xd,yd,errs,t0n,Pn,en,wn,ni,an,u1n,u2n,pzn,chi2_new,ics,datas)
+    call find_chi2_tr(xd,yd,errs,params_new,chi2_new,ics,datas)
     !Ratio between the models
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
     !If the new model is better, let us save it
     if ( q > r(0) ) then
       chi2_old = chi2_new
-      t0 = t0n
-      e  = en
-      w  = wn
-      i  = ni
-      a  = an
-      u1 = u1n
-      u2 = u2n
-      pz = pzn
-      P  = Pn
+      params = params_new
     end if
     !Calculate the reduced chi square
     chi2_red = chi2_old / nu
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 ) then
       print *, 'iter ',j,', Chi2_red =', chi2_red
-      write(101,*) j,chi2_old,chi2_red,e,w,i,a,u1,u2,pz,t0,P
+      write(101,*) j, chi2_old, chi2_red, params
       !Check convergence here
       chi2_vec(n) = chi2_red
       x_vec(n) = n
@@ -232,4 +331,5 @@ implicit none
   close(101)
 
 end subroutine
+
 

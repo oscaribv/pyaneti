@@ -63,8 +63,6 @@ def bin_data(x,nbin):
 			sd.append(np.std(dx))
 			dx = [None]*nbin
 	
-	sd = sd / np.sqrt(nbin)
-
 	return nx,sd
 #----------------------------------------------
 

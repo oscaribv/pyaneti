@@ -29,16 +29,19 @@ nbin = 16
 hdate, err_hdate = bin_data(nobin_hdate,nbin)
 wflux, errs = bin_data(nobin_wflux,nbin)
 
+print errs[0], np.sqrt(wflux[0])
+
 #THIS HAS TO BE DONE AUTOMATICALLY
 
 plt.xlim(3217,3218)
 plt.errorbar(hdate,wflux,errs)
+plt.show()
 
 ntr = 2
 
 tls = [None]*ntr 
 
-tls[0] = [3217,3218]
+tls[0] = [3217.,3218.]
 tls[1] = [3232.1,3233.1] 
 
 #
@@ -72,8 +75,8 @@ i = np.pi/2
 a = 13.0
 u1 = 0.42
 u2 = 0.25
-pz = 0.2
-prec = 1.e-5
+pz = 0.5
+prec = 5.e-5
 maxi = int(1e8)
 chi2_toler = 0.3
 thin_factor = int(2e3)
@@ -92,20 +95,30 @@ fit_P 	= True
 
 #Transform the logical values to integers to select what
 # to fit
-what_fit = [int(fit_e),int(fit_w),int(fit_i),int(fit_a), 		 \
-					  int(fit_u1),int(fit_u2),int(fit_pz),int(fit_t0), \
-						int(fit_P)]
+what_fit = [int(fit_t0), int(fit_P), int(fit_e), int(fit_w), \
+						int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),  \
+						int(fit_pz)]
+
+params = [T0,P,e,w,i,a,u1,u2,pz]
 
 #Start the powerful mcmc routine to do the fit
-pti.metropolis_hastings_tr(megax, megay, megae, T0, P, e, \
-	 w, i, a, u1, u2, pz, prec, maxi, thin_factor, ics,     \
-	 what_fit, nconv)
+#pti.metropolis_hastings_tr(megax, megay, megae, T0, P, e, \
+#	 w, i, a, u1, u2, pz, prec, maxi, thin_factor, ics,     \
+#	 what_fit, nconv)
 
-#Read the output values from the file mh_trfit.dat
-vari,chi2,chi2red,eo, wo, io, ao, u1o, u2o, pzo, t0o, Po = \
+pti.metropolis_hastings_tr_improved(megax, megay, megae,  \
+	params, prec, maxi, thin_factor, ics, what_fit, nconv)
+
+vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
 			 np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
 
+#Read the output values from the file mh_trfit.dat
+#vari,chi2,chi2red,eo, wo, io, ao, u1o, u2o, pzo, t0o, Po = \
+#			 np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
+
 #Find the values and errors
+t0_val,t0_err = find_vals_gauss(t0o,nconv)
+P_val, P_err  = find_vals_gauss(Po,nconv)
 e_val,e_err 	= find_vals_gauss(eo,nconv)
 w_val,w_err 	= find_vals_gauss(wo,nconv)
 i_val,i_err 	= find_vals_gauss(io,nconv)
@@ -113,8 +126,6 @@ a_val,a_err 	= find_vals_gauss(ao,nconv)
 u1_val,u1_err = find_vals_gauss(u1o,nconv)
 u2_val,u2_err = find_vals_gauss(u2o,nconv)
 pz_val,pz_err = find_vals_gauss(pzo,nconv)
-t0_val,t0_err = find_vals_gauss(t0o,nconv)
-P_val, P_err  = find_vals_gauss(Po,nconv)
 
 w_deg = w_val * 180. / np.pi
 w_deg_err = w_err * 180. / np.pi
@@ -123,15 +134,15 @@ i_deg_err = i_err * 180. / np.pi
 
 #Print the best fit values values
 print ('The best fit planet parameters are:')
-print ('T0	 = %4.4e +/- %4.4e days'%(t0_val,t0_err))
-print ('e 	 = %4.4e +/- %4.4e'			%(e_val,e_err))
-print ('w 	 = %4.4e +/- %4.4e deg'	%(w_deg,w_deg_err))
-print ('i    = %4.4e +/- %4.4e deg' %(i_val,i_err))
-print ('a/r* = %4.4e +/- %4.4e' 		%(a_val,a_err))
-print ('u1	 = %4.4e +/- %4.4e' 		%(u1_val,u1_err))
-print ('u2   = %4.4e +/- %4.4e' 		%(u2_val,u2_err))
-print ('rp/r*= %4.4e +/- %4.4e' 		%(pz_val,pz_err))
-print ('P 	 = %4.4e +/- %4.4e' 		%(P_val,P_err))
+print ('T0    = %4.4e +/- %4.4e days'%(t0_val,t0_err))
+print ('e     = %4.4e +/- %4.4e'			%(e_val,e_err))
+print ('w     = %4.4e +/- %4.4e deg'	%(w_deg,w_deg_err))
+print ('i     = %4.4e +/- %4.4e deg' %(i_val,i_err))
+print ('a/r*  = %4.4e +/- %4.4e' 		%(a_val,a_err))
+print ('u1	  = %4.4e +/- %4.4e' 		%(u1_val,u1_err))
+print ('u2    = %4.4e +/- %4.4e' 		%(u2_val,u2_err))
+print ('rp/r* = %4.4e +/- %4.4e' 		%(pz_val,pz_err))
+print ('P     = %4.4e +/- %4.4e' 		%(P_val,P_err))
 
 
 #Let us obtain the residuals to do a nice plot
