@@ -45,7 +45,7 @@ if(units_ms):
 	ylab = 'RV (m/s)'
 
 
-These lists have lists with data for the different telescopes
+#These lists have lists with data for the different telescopes
 time_all=[]
 rv_all=[]
 errs_all=[]
@@ -190,18 +190,18 @@ fit_a 	= True
 fit_u1 	= False
 fit_u2 	= False
 fit_pz 	= True
-fit_k	= True
-fit_rv0	= True
+fit_k		= True
+fit_v0	= True
 
 
 #Transform the logical values to integers to select what
 # to fit
 what_fit = [int(fit_t0), int(fit_P), int(fit_e), int(fit_w), \
             int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),  \
-            int(fit_pz), int(fit_k), int(fit_rv0)]
+            int(fit_pz), int(fit_k), int(fit_v0)]
 
 dummy = [T0,P,e,w,i,a,u1,u2,pz,k0]
-params = np.concatenate((dummy,rv0))
+params = np.concatenate((dummy,v0))
 
 #Start the powerful mcmc routine to do the fit
 #pti.metropolis_hastings_tr(megax, megay, megae, T0, P, e, \
