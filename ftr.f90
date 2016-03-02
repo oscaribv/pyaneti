@@ -211,13 +211,14 @@ implicit none
 end subroutine
 !
 
-subroutine metropolis_hastings(xd_rv,yd_rv,errs_rv,xd_tr,yd_tr,errs_tr,params,prec,maxi,thin_factor,ics,wtf,nconv,drv,dtr,ntl)
+subroutine metropolis_hastings(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params,prec,maxi,thin_factor,ics,wtf,nconv,drv,dtr,ntl)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: maxi, thin_factor, nconv, drv, dtr, ntl
-  integer, intent(in),dimension(0:9+ntl) :: wtf
-  double precision, intent(in), dimension(0:drv-1) :: xd_rv, yd_rv, errs_rv
+  integer, intent(in),dimension(0:10) :: wtf
+  double precision, intent(in), dimension(0:drv-1)::xd_rv,yd_rv,errs_rv
+  integer, intent(in), dimension(0:drv-1):: tlab
   double precision, intent(in), dimension(0:dtr-1) :: xd_tr, yd_tr, errs_tr
   double precision, intent(in)  :: prec
   !Params vector contains all the parameters
@@ -246,7 +247,8 @@ implicit none
 
   !Let us estimate our fist chi_2 value
   call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,chi2_tr_old,ics,dtr)
-  call find_chi2_rv(xd_rv,yd_rv,errs_rv,params_rv,chi2_rv_old,ics,drv)
+  call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,chi2_rv_old,ics,drv,ntl)
+  print *, chi2_rv_old, chi2_tr_old
   chi2_old_total = chi2_tr_old + chi2_rv_old
   !Calculate the degrees of freedom
   nu = dtr + drv - size(params)
@@ -274,14 +276,14 @@ implicit none
     !Let us add a random shift to each parameter
     call random_number(r)
     r(1:10+ntl) = ( r(1:10+ntl) - 0.5) * 2.
-    params_new = params + r(1:10+ntl) * prec * wtf
+    params_new(0:9)      = params(0:9)      + r(1:10)     * prec * wtf(0:9)
+    params_new(10:9+ntl) = params(10:9+ntl) + r(11:10+ntl) * prec * wtf(10)
     !Let us calculate our new chi2
     params_tr_new = params_new(0:8)
     params_rv_new(0:3) = params_new(0:3)
     params_rv_new(4:4+ntl) = params_new(9:9+ntl)
-    !Let us estimate our fist chi_2 value
     call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr_new,chi2_tr_new,ics,dtr)
-    call find_chi2_rv(xd_rv,yd_rv,errs_rv,params_rv_new,chi2_rv_new,ics,drv)
+    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv_new,chi2_rv_new,ics,drv,ntl)
     chi2_new_total = chi2_tr_new + chi2_rv_new
     !Ratio between the models
     q = exp( ( chi2_old_total - chi2_new_total ) * 0.5  )

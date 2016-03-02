@@ -55,7 +55,7 @@ implicit none
   external :: find_anomaly
 !
 
-  imax = int(1e5)
+  imax = int(1e7)
   !Calculate the mean anomaly from the input values
   ma(:) = 2.* pi * ( t(:) - t0 ) / P
   !Obtain the eccentric anomaly by using find_anomaly
@@ -147,7 +147,7 @@ implicit none
   e   = params(2)
   w   = params(3)
   k   = params(4)
-  rv0 = params(4+nt) 
+  rv0 = params(5:4+nt) 
 
   chi2 = 0.0
   tel = 0
@@ -174,7 +174,7 @@ implicit none
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
-  res(:) = model(:) - yd(:) / errs(:) 
+  res(:) = ( model(:) - yd(:) ) / errs(:) 
   chi2 = dot_product(res,res)
 
 end subroutine

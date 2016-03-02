@@ -174,7 +174,7 @@ a = 13.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.5
-prec = 5.e-5
+prec = 5.e-3
 maxi = int(1e8)
 chi2_toler = 0.3
 thin_factor = int(2e3)
@@ -183,7 +183,7 @@ nconv = 100
 
 fit_t0 	= True
 fit_P 	= True
-fit_e 	= True
+fit_e 	= False
 fit_w 	= True
 fit_i 	= True
 fit_a 	= True
@@ -208,11 +208,16 @@ params = np.concatenate((dummy,v0))
 #	 w, i, a, u1, u2, pz, prec, maxi, thin_factor, ics,     \
 #	 what_fit, nconv)
 
-pti.metropolis_hastings_tr_improved(megax, megay, megae,  \
-	params, prec, maxi, thin_factor, ics, what_fit, nconv)
+#pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab,megax, megay, megae, params, prec, maxi, thin_factor, ics, what_fit, nconv)
 
-vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
-			 np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
+
+vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko = np.loadtxt('mh_fit.dat', comments='#',unpack=True,usecols=range(0,13))
+
+vo = [None]*nt
+for i in range(0,nt):
+  n = [13+i]
+  vo[i] = np.loadtxt('mh_fit.dat', comments='#',unpack=True, usecols=(n))
+
 
 #Read the output values from the file mh_trfit.dat
 #vari,chi2,chi2red,eo, wo, io, ao, u1o, u2o, pzo, t0o, Po = \
@@ -228,6 +233,11 @@ a_val,a_err 	= find_vals_gauss(ao,nconv)
 u1_val,u1_err = find_vals_gauss(u1o,nconv)
 u2_val,u2_err = find_vals_gauss(u2o,nconv)
 pz_val,pz_err = find_vals_gauss(pzo,nconv)
+k_val, k_err  = find_vals_gauss(ko,nconv)
+v_val = [None]*nt
+v_err = [None]*nt
+for i in range(0,nt):
+	v_val[i], v_err[i] = find_vals_gauss(vo[i],nconv)
 
 w_deg = w_val * 180. / np.pi
 w_deg_err = w_err * 180. / np.pi
@@ -247,7 +257,7 @@ print ('rp/r* = %4.4e +/- %4.4e' 		%(pz_val,pz_err))
 print ('P     = %4.4e +/- %4.4e' 		%(P_val,P_err))
 
 
-#Let us obtain the residuals to do a nice plot
+#PLOT TRANSIT
 
 #Move all the points to T0
 for i in range(0,ntr):
@@ -285,4 +295,54 @@ plt.errorbar(megax,res,megae,fmt='o',alpha=0.3)
 plt.plot(megax,np.zeros(len(megax)),'k--',linewidth=2.0)
 plt.show()
 
-#The and of transit_fmcmc.py
+#PLOT RV CURVE
+
+
+#Create the RV fitted curve
+n = 5000
+xmin = t0_val
+xmax = t0_val + P_val
+dn = (xmax - xmin) /  n
+rvx = np.empty([n])
+rvx[0] = xmin
+for i in range(1,n):
+  rvx[i] = rvx[i-1] + dn
+if ( is_circular ):
+  rvy = pti.rv_circular(rvx,0.0,t0_val,k_val,P_val)
+else:
+  rvy = pti.rv_curve(rvx,0.0,t0_val,k_val,P_val,e_val,w_val)
+
+res = [None]*nt
+for i in range(0,nt):
+  if (is_circular):
+    res[i] = pti.rv_circular(time_all[i],0.0,t0_val,k_val,P_val)
+  else:
+    res[i] = pti.rv_curve(time_all[i],0.0,t0_val,k_val,P_val,e_val,w_val)
+  rv_all[i] = rv_all[i] - v_val[i]
+  res[i] = rv_all[i] - res[i]
+
+p_rv = scale_period(rvx,t0_val,P_val)
+p_all = [None]*nt
+for i in range(0,nt):
+  p_all[i] = scale_period(time_all[i],t0_val,P_val)
+
+plt.figure(3,figsize=(10,10))
+plt.subplot(311)
+plt.xlabel("Phase")
+plt.ylabel(ylab)
+plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k_val ))
+mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
+for i in range(0,nt):
+  plt.errorbar(p_all[i],rv_all[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
+plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
+           ncol=4, mode="expand", borderaxespad=0.)
+plt.subplot(312)
+plt.xlabel("Phase")
+plt.ylabel(ylab)
+plt.plot([0.,1.],[0.,0.],'k--')
+mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'h', 'H', 'D', 'v']
+for i in range(0,nt):
+  plt.errorbar(p_all[i],res[i],errs_all[i],label=telescopes[i],fmt=mark[i],alpha=0.6)
+plt.savefig('rv_fit.png')
+plt.show()
+
