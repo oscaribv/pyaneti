@@ -12,10 +12,56 @@ import pyaneti as pti
 execfile('todo-py.py')
 
 #Read the file with the default values
-execfile('defaults.py')
+execfile('default.py')
 
 #Read input file
 execfile('input_fit.py')
+
+#Print intial configuration
+print	''
+print	'------------------------------'
+print "INITIAL CONFIGURATION"
+print	'------------------------------'
+print 'is_circular = ', is_circular
+print 'iter max = ', maxi
+print 'step precision= ', prec
+print 'thin factor =', thin_factor
+print	'nconv =',nconv
+print 'fit RV =', fit_rv
+print 'fit Transit =', fit_tr
+print	'------------------------------'
+print 'Priors'
+print	'------------------------------'
+print 'T_0 = ', T0
+print 'Period = ', P
+print 'eccentriciy =', e
+print 'periastron =', w
+if (fit_tr):
+	print 'sin(i) = ', np.sin(ii)
+	print 'a/r*	  = ', a
+	print 'u1     = ', u1
+	print 'u2     = ', u2
+	print 'rp/r*  = ', pz
+print	'------------------------------'
+print 'What am I fitting?'
+print	'------------------------------'
+print 'fit T0= ', fit_t0
+print 'fit P = ', fit_P
+print 'fit e = ', fit_e
+print 'fit w = ', fit_w
+if (fit_tr):
+	print 'fit i = ', fit_i
+	print 'fit a = ', fit_a
+	print 'fit u1= ', fit_u1
+	print 'fit u2= ', fit_u2
+	print 'fit pz= ', fit_pz
+if (fit_rv):
+	print 'fit k = ', fit_k
+	print 'fit v0= ', fit_v0
+print	'------------------------------'
+print ''
+print	'------------------------------'
+
 
 #PREPATARION RV DATA
 if (fit_rv):
@@ -80,7 +126,7 @@ if (fit_tr):
 
 	#Read the data file
 	dummyd,dummyf,flag = np.loadtxt(fname_tr,usecols=(2,9,10), \
-	comments='\\',unpack=True,skiprows=skrow)
+	comments='\\',unpack=True)
 
 	#Let us take the good data with the flag
 	nobin_wflux = []
@@ -155,7 +201,7 @@ if (fit_rv and fit_tr ):
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
               int(fit_i),int(fit_a),int(fit_u1),int(fit_u2),\
               int(fit_pz), int(fit_k), int(fit_v0)]
-	dummy = [T0,P,e,w,i,a,u1,u2,pz,k0]
+	dummy = [T0,P,e,w,ii,a,u1,u2,pz,k0]
 	params = np.concatenate((dummy,v0))
 
 	#Call the fit routine
@@ -179,7 +225,7 @@ elif ( not fit_rv and fit_tr ):
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
               int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),\
             int(fit_pz)]
-	params = [T0,P,e,w,i,a,u1,u2,pz]
+	params = [T0,P,e,w,ii,a,u1,u2,pz]
 
 	#Call fit routine
 	pti.metropolis_hastings_tr_improved(megax, megay, megae,  \
@@ -253,7 +299,7 @@ if (fit_tr):
 if (fit_rv):
 	print ('K    = %4.4e +/- %4.4e' 		%(k_val,k_err))
 	for i in range(0,nt):
-		print ('%s v0 = %4.4e +/- %4.4e' 	%(,tspe[i], \
+		print ('%s v0 = %4.4e +/- %4.4e' 	%(tspe[i], \
 		v_val[i],v_err[i]))
 
 

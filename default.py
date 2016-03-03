@@ -5,9 +5,7 @@ ktom = 1.0
 mstar= 1.0
 
 #MCMC controls
-imcmc = 5000000
 is_circular = False
-chi_toler = 0.099
 tfactor = 10000
 ics = False
 prec = 1.e-4
@@ -19,7 +17,7 @@ nconv = 100
 P = 15.
 e = 0.1
 w = 3.1415926 / 2.0
-i = 3,1415026 / 2
+ii = 3.1415026 / 2
 a = 13.0
 u1 = 0.42
 u2 = 0.25
