@@ -152,8 +152,6 @@ implicit none
   print *, 'Starting MCMC calculation'
   print *, 'Initial Chi2_red= ',chi2_red,'nu =',nu
 
-  !Call a random seed 
-  call init_random_seed()
 
   !Let us start the otput file
   open(unit=101,file='mh_trfit.dat',status='unknown')
@@ -168,6 +166,8 @@ implicit none
   do while ( get_out )
     !r will contain random numbers for each variable
     !Let us add a random shift to each parameter
+    !Call a random seed 
+    call init_random_seed()
     call random_number(r)
     r(1:9) = ( r(1:9) - 0.5) * 2.
     params_new = params + r(1:9) * prec * wtf
@@ -258,8 +258,6 @@ implicit none
   print *, 'Starting MCMC calculation'
   print *, 'Initial Chi2_red= ',chi2_red,'nu =',nu
 
-  !Call a random seed 
-  call init_random_seed()
 
   !Let us start the otput file
   open(unit=101,file='mh_fit.dat',status='unknown')
@@ -272,6 +270,8 @@ implicit none
 
   !The infinite cycle starts!
   do while ( get_out )
+    !Call a random seed 
+    call init_random_seed()
     !r will contain random numbers for each variable
     !Let us add a random shift to each parameter
     call random_number(r)

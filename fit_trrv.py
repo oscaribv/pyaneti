@@ -20,7 +20,7 @@ mstar= 1.0
 imcmc = 5000000
 is_circular = False
 chi_toler = 0.099
-prec = 1e-5
+prec = 5e-6
 tfactor = 10000
 e0 = 0.3
 w0 = np.pi
@@ -106,13 +106,13 @@ nbin = 16
 hdate, err_hdate = bin_data(nobin_hdate,nbin)
 wflux, errs = bin_data(nobin_wflux,nbin)
 
-print errs[0], np.sqrt(wflux[0])
+#print errs[0], np.sqrt(wflux[0])
 
 #THIS HAS TO BE DONE AUTOMATICALLY
 
-plt.xlim(3217,3218)
-plt.errorbar(hdate,wflux,errs)
-plt.show()
+#plt.xlim(3217,3218)
+#plt.errorbar(hdate,wflux,errs)
+#plt.show()
 
 ntr = 2
 
@@ -164,31 +164,32 @@ for i in range(0,nt):
 
 
 T0 = min(xt[0]) + 0.5*(max(xt[0])-min(xt[0]))
+#T0 = min(mega_time)
+print T0
 P = 15.
-e = 0.3
+e = 0.1
 w = np.pi / 2.0
 i = np.pi/2
 a = 13.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.5
-prec = 5.e-5
+prec = 5.e-6
 maxi = int(1e8)
-chi2_toler = 0.3
-thin_factor = int(2e3)
+thin_factor = int(5e3)
 ics = False
 nconv = 100
 
 fit_t0 	= True
 fit_P 	= True
-fit_e 	= False
+fit_e 	= True
 fit_w 	= True
 fit_i 	= True
 fit_a 	= True
 fit_u1 	= False
 fit_u2 	= False
 fit_pz 	= True
-fit_k		= True
+fit_k	= True
 fit_v0	= True
 
 fit_rv = False
@@ -225,12 +226,20 @@ elif ( not fit_rv and fit_tr ):
 
 elif ( fit_rv and not fit_tr ):
 
-	print "I am not ready!"	
-	sys.exit('')
+	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
+					    int(fit_k), int(fit_v0)]
+	dummy = [T0,P,e,w,k0]
+	params = np.concatenate((dummy,v0))
+	pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
+  params, prec, maxi, thin_factor, ics, what_fit, nconv)
+	vari,chi2,chi2red,t0o,Po,eo,wo,ko = np.loadtxt('mh_rvfit.dat', comments='#',unpack=True,usecols=range(0,8))
+	vo = [None]*nt
+	for i in range(0,nt):
+		n = [8+i]
+  	vo[i] = np.loadtxt('mh_rvfit.dat', comments='#',unpack=True, usecols=(n))
 
-#Read the output values from the file mh_trfit.dat
-#vari,chi2,chi2red,eo, wo, io, ao, u1o, u2o, pzo, t0o, Po = \
-#			 np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
+else:
+	sys.exit("everything is false!")
 
 #Find the values and errors
 t0_val,t0_err = find_vals_gauss(t0o,nconv)

@@ -49,12 +49,11 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:ts-1) :: ma, ta
-  double precision :: delta = 1e-4
+  double precision :: delta = 1e-7
   integer :: imax
 !External function
   external :: find_anomaly
 !
-
   imax = int(1e7)
   !Calculate the mean anomaly from the input values
   ma(:) = 2.* pi * ( t(:) - t0 ) / P
@@ -105,7 +104,6 @@ implicit none
   
 end subroutine
 
-
 !-----------------------------------------------------------
 ! This routine calculates the chi square for a RV curve
 ! given a set of xd-yd data points
@@ -149,7 +147,8 @@ implicit none
   k   = params(4)
   rv0 = params(5:4+nt) 
 
-  chi2 = 0.0
+  !print *, t0, P, e, w, k, rv0
+
   tel = 0
   !If we want a circular fit, let us do it!
   if ( isc ) then
@@ -200,107 +199,106 @@ end subroutine
 !-----------------------------------------------------------
 !I could deal with differences in parameters by ussing vectors insead of
 !independient float parameters, PLEASE OSCAR DO THIS!
-!subroutine metropolis_hastings_rv(xd,yd,errs,tlab,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,prec,maxi,thin_factor,chi2_toler,ics,datas,nt,np)
-!implicit none
+subroutine metropolis_hastings_rv(xd,yd,errs,tlab,params,prec,maxi,thin_factor,ics,wtf,nconv,datas,nt)
+implicit none
 
-!!In/Out variables
-!  integer, intent(in) :: maxi, thin_factor, datas, nt, np
-!  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-!  integer, intent(in), dimension(0:datas-1)  :: tlab
-!  double precision, intent(inout), dimension(0:nt-1)  :: rv0mc
-!  double precision, intent(in)  :: prec, chi2_toler
-!  double precision, intent(inout), dimension(0:np-1)  :: kmc,t0mc, Pmc, ecmc, wmc
-!  !f2py intent(in,out)  ::rv0mc, kmc,t0mc, Pmc, ecmc, wmc
-!  logical, intent(in) :: ics
-!!Local variables
-!  double precision, parameter :: pi = 3.1415926535897932384626
-!  double precision :: chi2_old, chi2_new, chi2_red
-!  double precision, dimension(0:nt-1)  :: rv0mcn
-!  double precision, dimension(0:np-1) :: kmcn, t0mcn, Pmcn, ecmcn, wmcn
-!  double precision  :: sk, srv0, st0, sP, sec, sw
-!  double precision  :: q
-!  integer :: i, j, nu, n
-!  real, dimension(0:5+nt) :: r
-!!external calls
-!  external :: init_random_seed, find_chi2_rv
-!
-!  !Calculate the step size based in the actual value of the
-!  !parameters and the prec variable
-!  sk   = kmc(0) * prec
-!  srv0 = kmc(0) * prec
-!  st0  = t0mc(0)* prec
-!  sP   = Pmc(0) * prec
-!  sec  = 1.     * prec
-!  sw   = 2.*pi  * prec
-!
-!  !Let us estimate our fist chi_2 value
-!  call find_chi2_rv(xd,yd,errs,tlab,rv0mc,kmc,ecmc,wmc,t0mc,Pmc,chi2_old,ics,datas,nt,np)
-!  !Calculate the degrees of freedom
-!  nu = datas - 5 - nt
-!  !If we are fixing a circular orbit, ec and w are not used 
-!  if ( ics ) nu = nu + 2 
-!  !Print the initial cofiguration
-!  print *, ''
-!  print *, 'Starting MCMC calculation'
-!  print *, 'Initial Chi_2: ', chi2_old,'nu =', nu
-!  chi2_red = chi2_old / nu
-!  !Call a random seed 
-!  call init_random_seed()
-!
-!  !Let us start the otput file
-!  open(unit=101,file='mh_rvfit.dat',status='unknown')
-!  write(101,*)'# i chi2 chi2_red k ec w t0 P rv0mc(vector)'
-!  write(101,*) 0,chi2_old,chi2_red,kmc, ecmc, wmc, t0mc, Pmc,rv0mc
-!  !Initialize the values
-!  i = 1
-!  n = 0
-!
-!  !The infinite cycle starts!
-!  do while ( chi2_red >= 1. + chi2_toler .and. i <= maxi )
-!    !r will contain random numbers for each variable
-!    !Let us add a random shift to each parameter
-!    call random_number(r)
-!    r(1:5+nt) = ( r(1:5+nt) - 0.5) * 2.
-!    kmcn(n)   =   kmc(n)   + r(1) * sk
-!    ecmcn(n)  =   ecmc(n)  + r(2) * sec
-!    ecmcn(n)  =   abs(ecmcn(n))  
-!    wmcn(n)   =   wmc(n)   + r(3) * sw
-!    t0mcn(n)  =   t0mc(n)  + r(4) * st0
-!    Pmcn(n)   =   Pmc(n)   + r(5) * sP
-!    do j = 0, nt-1
-!      rv0mcn(j) =   rv0mc(j) + r(6+j) * srv0
-!    end do
-!    !Let us calculate our new chi2
-!    call find_chi2_rv(xd,yd,errs,tlab,rv0mcn,kmcn,ecmcn,wmcn,t0mcn,Pmcn,chi2_new,ics,datas,nt,np)
-!    !Ratio between the models
-!    q = exp( ( chi2_old - chi2_new ) * 0.5  )
-!    !If the new model is better, let us save it
-!    if ( q > r(0) ) then
-!      chi2_old = chi2_new
-!       rv0mc(n) = rv0mcn(n)
-!         kmc(n) = kmcn(n)
-!        ecmc(n) = ecmcn(n)
-!         wmc(n) = wmcn(n)
-!        t0mc(n) = t0mcn(n)
-!         Pmc(n) = Pmcn(n)
-!    end if
-!    n = mod(i,np)
-!    !Calculate the reduced chi square
-!    chi2_red = chi2_old / nu
-!    !Save the data each thin_factor iteration
-!    if ( mod(i,thin_factor) == 0 ) then
-!      print *, 'iter ',i,'  of ',maxi
-!      print *, 'chi2 = ',chi2_old,'reduced chi2 =', chi2_red
-!      write(101,*) i,chi2_old,chi2_red,kmc, ecmc, wmc, t0mc, Pmc, rv0mc
-!    end if
-!    i = i + 1
-!  end do
-!
-!  print *, 'Final chi2 = ',chi2_old,'. Final reduced chi2 =', chi2_red
-!
-!  close(101)
-!
-!end subroutine
-!
-!!-------------------------------------------------------
-!!
+!In/Out variables
+  integer, intent(in) :: maxi, thin_factor, datas, nt, nconv
+  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  integer, intent(in), dimension(0:datas-1)  :: tlab
+  double precision, intent(inout), dimension(0:4+nt) :: params
+  !f2py intent(in,out)  :: params
+  double precision, intent(in), dimension(0:5) :: wtf
+  double precision, intent(in)  :: prec
+  logical, intent(in) :: ics
+!Local variables
+  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision :: chi2_old, chi2_new, chi2_red
+  double precision, dimension(0:4+nt) :: params_new
+  double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
+  double precision  :: q, chi2_y, chi2_slope, toler_slope
+  integer :: j, nu, n
+  logical :: get_out
+  real, dimension(0:5+nt) :: r
+!external calls
+  external :: init_random_seed, find_chi2_rv
+
+
+  !Let us estimate our fist chi_2 value
+  call find_chi2_rv(xd,yd,errs,tlab,params,chi2_old,ics,datas,nt)
+  !Calculate the degrees of freedom
+  nu = datas - size(params)
+  !If we are fixing a circular orbit, ec and w are not used 
+  if ( ics ) nu = nu + 2 
+  chi2_red = chi2_old / nu
+  !Print the initial cofiguration
+  print *, ''
+  print *, 'Starting MCMC calculation'
+  print *, 'Initial Chi2_red= ', chi2_red,'nu =', nu
+
+    !Let us start the otput file
+  open(unit=101,file='mh_rvfit.dat',status='unknown')
+  !Initialize the values
+
+  toler_slope = prec
+  j = 1
+  n = 0
+  get_out = .TRUE.
+
+
+  !The infinite cycle starts!
+  do while ( get_out )
+    !r will contain random numbers for each variable
+    !Let us add a random shift to each parameter
+   !Call a random seed 
+    call init_random_seed()
+    call random_number(r)
+    r(1:5+nt) = ( r(1:5+nt) - 0.5 ) * 2.0
+    params_new(0:4) = params(0:4) + r(1:5) * prec * wtf(0:4)
+    params_new(5:4+nt) = params(5:4+nt) + r(6:5+nt) * 10 * prec * wtf(5)
+    !Let us calculate our new chi2
+    !print *, "new"
+    !print *, params(2)
+    !print *, params_new(2)
+    call find_chi2_rv(xd,yd,errs,tlab,params_new,chi2_new,ics,datas,nt)
+    !print *, chi2_old, chi2_new
+    !stop
+    !Ratio between the models
+    q = exp( ( chi2_old - chi2_new ) * 0.5  )
+    !If the new model is better, let us save it
+    if ( q > r(0) ) then
+      chi2_old = chi2_new
+      params = params_new
+    end if
+   !Calculate the reduced chi square
+   chi2_red = chi2_old / nu
+   !Save the data each thin_factor iteration
+   if ( mod(j,thin_factor) == 0 ) then
+    print *, 'iter ',j,', Chi2_red =', chi2_red
+    write(101,*) j, chi2_old, chi2_red, params
+    !Check convergence here
+    chi2_vec(n) = chi2_red
+    x_vec(n) = n
+    n = n + 1
+    if ( n == size(chi2_vec) ) then
+      call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
+      n = 0
+      !If chi2_red has not changed the last nconv iterations
+      print *, abs(chi2_slope), toler_slope
+      if ( abs(chi2_slope) < toler_slope ) then
+        print *, 'I did my best to converge, chi2_red =', &
+                  chi2_y
+        get_out = .FALSE.
+      end if
+    end if
+      !I checked covergence
+  end if
+  j = j + 1
+end do
+
+  close(101)
+
+end subroutine
+
+!-------------------------------------------------------
+

@@ -103,6 +103,7 @@ implicit none
 
   if ( n > imax ) then
     print *, 'I am tired, too much Newton-Raphson for me!'
+    print *, f
     stop
   end if 
 
