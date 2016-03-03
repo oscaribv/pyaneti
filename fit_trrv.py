@@ -222,6 +222,8 @@ if (fit_rv and fit_tr ):
 #FIT TRANSIT CURVE ONLY
 elif ( not fit_rv and fit_tr ):
 
+	flags = [True, True]
+
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
               int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),\
             int(fit_pz)]
@@ -229,7 +231,7 @@ elif ( not fit_rv and fit_tr ):
 
 	#Call fit routine
 	pti.metropolis_hastings_tr_improved(megax, megay, megae,  \
-	params, prec, maxi, thin_factor, ics, what_fit, nconv)
+	params, prec, maxi, thin_factor, ics, what_fit,flags,nconv)
 
 	#Read the data
 	vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
@@ -238,6 +240,8 @@ elif ( not fit_rv and fit_tr ):
 #FIT RV CURVE ONLY
 elif ( fit_rv and not fit_tr ):
 
+	flags = [True, True, True]
+
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
 					    int(fit_k), int(fit_v0)]
 	dummy = [T0,P,e,w,k0]
@@ -245,7 +249,7 @@ elif ( fit_rv and not fit_tr ):
 	
 	#Call fit routine
 	pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
-  params, prec, maxi, thin_factor, ics, what_fit, nconv)
+  params, prec, maxi, thin_factor, ics, what_fit,flags,nconv)
 
 	#Read the data
 	vari,chi2,chi2red,t0o,Po,eo,wo,ko = \

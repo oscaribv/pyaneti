@@ -107,8 +107,8 @@ implicit none
     stop
   end if 
 
-  ta(:) = sqrt( (1. + ec) / (1. - ec) ) * tan(ta(:)*0.5)
-  ta(:) = 2. * atan(ta(:))
+  ta(:) = sqrt(1. + ec)  * tan(ta(:)*0.5)
+  ta(:) = 2. * atan2(ta(:), sqrt( 1. - ec))
 
 end subroutine
 

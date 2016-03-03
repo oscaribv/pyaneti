@@ -57,13 +57,12 @@ end subroutine
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
 !subroutine find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2,isc,datas)
-subroutine find_chi2_tr(xd,yd,errs,params,chi2,isc,datas)
+subroutine find_chi2_tr(xd,yd,errs,params,flag,chi2,isc,datas)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  !double precision, intent(in) :: t0, P,e, w, i, a, u1, u2, pz
   double precision, intent(in), dimension (0:8) :: params
   logical, intent(in)  :: isc
   double precision, intent(out) :: chi2
@@ -71,6 +70,7 @@ implicit none
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:datas-1) :: z, res, muld, mu
   double precision :: t0, P, e, w, i, a, u1, u2, pz
+  logical :: flag(0:1)
 !External function
   external :: occultquad, find_z
 
@@ -84,17 +84,34 @@ implicit none
   u2  = params(7)
   pz  = params(8) 
 
+  if ( flag(0) ) P = 10**params(1)
+  if ( flag(1) ) then
+    e = params(2) * params(2) + params(3) * params(3)
+    w = atan2(params(2),params(3))
+  end if
+
+  !print *, params
+
   !Let us find the projected distance z
   call find_z(xd,t0,P,e,w,i,a,z,datas)
+
+  !print *, z(0), z(10), z(100)
+
   !Now we have z, let us use Agol's routines
   call occultquad(z,u1,u2,pz,muld,mu,datas)
 
+  !print *,yd
+
+  !print *, muld
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
   !Here I am assuming that we want limb darkening
   !If this is not true, use mu 
   res(:) = ( muld(:) - yd(:) ) / errs(:) 
   chi2 = dot_product(res,res)
+  
+  !print *, chi2
+
 
 end subroutine
 !-----------------------------------------------------------
@@ -116,7 +133,7 @@ end subroutine
 !Output parameter:
 ! This functions outputs a file called mh_rvfit.dat
 !-----------------------------------------------------------
-subroutine metropolis_hastings_tr_improved(xd,yd,errs,params,prec,maxi,thin_factor,ics,wtf,nconv,datas)
+subroutine metropolis_hastings_tr_improved(xd,yd,errs,params,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas)
 implicit none
 
 !In/Out variables
@@ -128,22 +145,33 @@ implicit none
   !t0,P,e,w,i,a,u1,u2,pz
   double precision, intent(inout), dimension(0:8) :: params
   !f2py intent(in,out)  :: params
-  logical, intent(in) :: ics
+  logical, intent(in) :: ics, flag(0:1)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8) :: params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
+  double precision :: ecos, esin
   integer :: j, nu, n
-  real, dimension(0:9) :: r
+  double precision, dimension(0:9) :: r
   logical :: get_out
 !external calls
   external :: init_random_seed, find_chi2_tr
- 
+
+  !Period
+  if ( flag(0) ) params(1) = log10(params(1))
+  !eccentricity and periastron
+  if ( flag(1) ) then
+    esin = sqrt(params(2)) * sin(params(3))
+    ecos = sqrt(params(2)) * cos(params(3))
+    params(2) = esin
+    params(3) = ecos
+  end if
+
   !Let us estimate our fist chi_2 value
   !call find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2_old,ics,datas)
-  call find_chi2_tr(xd,yd,errs,params,chi2_old,ics,datas)
+  call find_chi2_tr(xd,yd,errs,params,flag,chi2_old,ics,datas)
   !Calculate the degrees of freedom
   nu = datas - size(params)
   chi2_red = chi2_old / nu
@@ -162,17 +190,24 @@ implicit none
   n = 0
   get_out = .TRUE.
 
+    call init_random_seed()
+
+
   !The infinite cycle starts!
   do while ( get_out )
     !r will contain random numbers for each variable
     !Let us add a random shift to each parameter
     !Call a random seed 
-    call init_random_seed()
     call random_number(r)
     r(1:9) = ( r(1:9) - 0.5) * 2.
     params_new = params + r(1:9) * prec * wtf
+    !print *, ''
+    !print *, params
+    !print *, params_new
     !Let us calculate our new chi2
-    call find_chi2_tr(xd,yd,errs,params_new,chi2_new,ics,datas)
+    call find_chi2_tr(xd,yd,errs,params_new,flag,chi2_new,ics,datas)
+    !print *, prec, wtf
+    !print *, chi2_old, chi2_new
     !Ratio between the models
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
     !If the new model is better, let us save it
@@ -182,6 +217,7 @@ implicit none
     end if
     !Calculate the reduced chi square
     chi2_red = chi2_old / nu
+    !stop
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 ) then
       print *, 'iter ',j,', Chi2_red =', chi2_red
@@ -236,7 +272,7 @@ implicit none
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
   integer :: j, nu, n
-  real, dimension(0:10+ntl) :: r
+  double precision, dimension(0:10+ntl) :: r
   logical :: get_out
 !external calls
   external :: init_random_seed, find_chi2_tr
@@ -268,10 +304,11 @@ implicit none
   n = 0
   get_out = .TRUE.
 
+  !Call a random seed 
+  call init_random_seed()
+
   !The infinite cycle starts!
   do while ( get_out )
-    !Call a random seed 
-    call init_random_seed()
     !r will contain random numbers for each variable
     !Let us add a random shift to each parameter
     call random_number(r)
