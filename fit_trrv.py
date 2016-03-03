@@ -9,21 +9,10 @@ import pyaneti as pti
 #Read the file with all the python functions
 execfile('todo-py.py')
 
+#Read the file wit the default values
+execfile('defaults.py')
+o
 #PREPATARION RV DATA
-
-ylab = 'RV (km/s)'
-units_ms = False
-ktom = 1.0
-Porb = 1.0
-T0   = 0.0
-mstar= 1.0
-imcmc = 5000000
-is_circular = False
-chi_toler = 0.099
-prec = 5e-6
-tfactor = 10000
-e0 = 0.3
-w0 = np.pi
 
 fname_rv = "corot1.dat"
 
@@ -106,21 +95,6 @@ nbin = 16
 hdate, err_hdate = bin_data(nobin_hdate,nbin)
 wflux, errs = bin_data(nobin_wflux,nbin)
 
-#print errs[0], np.sqrt(wflux[0])
-
-#THIS HAS TO BE DONE AUTOMATICALLY
-
-#plt.xlim(3217,3218)
-#plt.errorbar(hdate,wflux,errs)
-#plt.show()
-
-ntr = 2
-
-tls = [None]*ntr 
-
-tls[0] = [3217.,3218.]
-tls[1] = [3232.1,3233.1] 
-
 #
 
 #crash if you do not have more than one transit
@@ -162,38 +136,8 @@ v0 = np.zeros(nt)
 for i in range(0,nt):
 	v0[i] = ( k0vecmin[i] + k0vecmax[i] ) / 2.0
 
-
 T0 = min(xt[0]) + 0.5*(max(xt[0])-min(xt[0]))
-#T0 = min(mega_time)
-print T0
-P = 15.
-e = 0.1
-w = np.pi / 2.0
-i = np.pi/2
-a = 13.0
-u1 = 0.42
-u2 = 0.25
-pz = 0.5
-prec = 5.e-6
-maxi = int(1e8)
-thin_factor = int(5e3)
-ics = False
-nconv = 100
 
-fit_t0 	= True
-fit_P 	= True
-fit_e 	= True
-fit_w 	= True
-fit_i 	= True
-fit_a 	= True
-fit_u1 	= False
-fit_u2 	= False
-fit_pz 	= True
-fit_k	= True
-fit_v0	= True
-
-fit_rv = False
-fit_tr = True
 
 if (fit_rv and fit_tr ):
 
