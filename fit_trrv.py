@@ -18,50 +18,7 @@ execfile('default.py')
 execfile('input_fit.py')
 
 #Print intial configuration
-print	''
-print	'------------------------------'
-print "INITIAL CONFIGURATION"
-print	'------------------------------'
-print 'is_circular = ', is_circular
-print 'iter max = ', maxi
-print 'step precision= ', prec
-print 'thin factor =', thin_factor
-print	'nconv =',nconv
-print 'fit RV =', fit_rv
-print 'fit Transit =', fit_tr
-print	'------------------------------'
-print 'Priors'
-print	'------------------------------'
-print 'T_0 = ', T0
-print 'Period = ', P
-print 'eccentriciy =', e
-print 'periastron =', w
-if (fit_tr):
-	print 'sin(i) = ', np.sin(ii)
-	print 'a/r*	  = ', a
-	print 'u1     = ', u1
-	print 'u2     = ', u2
-	print 'rp/r*  = ', pz
-print	'------------------------------'
-print 'What am I fitting?'
-print	'------------------------------'
-print 'fit T0= ', fit_t0
-print 'fit P = ', fit_P
-print 'fit e = ', fit_e
-print 'fit w = ', fit_w
-if (fit_tr):
-	print 'fit i = ', fit_i
-	print 'fit a = ', fit_a
-	print 'fit u1= ', fit_u1
-	print 'fit u2= ', fit_u2
-	print 'fit pz= ', fit_pz
-if (fit_rv):
-	print 'fit k = ', fit_k
-	print 'fit v0= ', fit_v0
-print	'------------------------------'
-print ''
-print	'------------------------------'
-
+print_init()
 
 #PREPATARION RV DATA
 if (fit_rv):
