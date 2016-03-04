@@ -190,8 +190,7 @@ implicit none
   n = 0
   get_out = .TRUE.
 
-    call init_random_seed()
-
+  call init_random_seed()
 
   !The infinite cycle starts!
   do while ( get_out )

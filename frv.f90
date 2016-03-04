@@ -149,7 +149,8 @@ implicit none
   if ( flag(0) ) P = 10**params(1)
   if ( flag(1) ) then
     e = params(2) * params(2) + params(3) * params(3)
-    w = atan2( params(2),params(3) ) 
+    w = params(2) / params(3)
+    w = asin(w / sqrt(1 + w*w)) 
   end if
   if ( flag(2) ) k = 10**params(4)
   if ( flag(3) ) rv0(:) = 10**params(5:4+nt)
@@ -301,7 +302,7 @@ implicit none
         get_out = .FALSE.
       end if
 
-      if ( j > imax ) then
+      if ( j > maxi ) then
         print *, 'Maximum number of iteration reached!'
         get_out = .FALSE.
       end if

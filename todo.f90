@@ -74,41 +74,46 @@ end subroutine init_random_seed
 !The output parameters are:
 ! ta -> True anomaly (vector with the same dimension that man)
 !------------------------------------------------------------
-subroutine find_anomaly(man,ta,ec,delta,imax,dman)
+subroutine find_anomaly(ma,ta,e,delta,imax,dma)
 implicit none
 !In/Out variables
-  integer, intent(in) :: dman
-  double precision, intent(in) , dimension(0:dman-1) :: man
-  double precision, intent(out), dimension(0:dman-1) :: ta
-  double precision, intent(in) :: ec, delta
+  integer, intent(in) :: dma
+  double precision, intent(in) , dimension(0:dma-1) :: ma
+  double precision, intent(out), dimension(0:dma-1) :: ta
+  double precision, intent(in) :: e, delta
   integer, intent(in) :: imax
 !Local variables
   integer :: i,n
-  double precision, dimension(0:dman-1) :: f, df
+  double precision, dimension(0:dma-1) :: f, df, esin, ecos
+  double precision :: uno
 !
-  ta(:)  = 0.0
-  f(:)   = ta(:) - ec * sin(ta(:)) - man(:)
-  df(:)  =   1.0 - ec * cos(ta(:))
+  ta(:) = ma(:)
+  f(:) = delta * 10
   n = 0
 
-  do i = 0, dman-1
+  do i = 0, dma-1
     do while ( abs(f(i)) >= delta .and. n <= imax )
-      !This can be improved, do it!
+      f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
+      df(i)  =   1.0 - e * cos(ta(i))
       ta(i)  = ta(i) - f(i) / df(i)
-      f(i)   = ta(i) - ec * sin(ta(i)) - man(i)
-      df(i)  =   1.0 - ec * cos(ta(i))
       n = n + 1
     end do
   end do
 
   if ( n > imax ) then
     print *, 'I am tired, too much Newton-Raphson for me!'
-    print *, f
     stop
   end if 
 
-  ta(:) = sqrt(1. + ec)  * tan(ta(:)*0.5)
-  ta(:) = 2. * atan2(ta(:), sqrt( 1. - ec))
+  !ta(:) = sqrt(1. + e )  * sin(ta(:)*0.5) / sqrt(1. - e )
+  !ta(:) = 2. * atan2( ta(:), cos(ta(:)*0.5) )
+
+  uno = dble(1.)
+  esin = ( sqrt(uno-e*e) * sin(ta) ) / (uno-e*cos(ta))
+  ecos = ( cos (ta) - e ) / (uno-e*cos(ta))
+  ta = atan2(esin,ecos)
+  !ta(:) = sqrt ( ( uno + e ) / ( uno - e ) ) * tan(ta(:)*0.5) 
+  !ta(:) = 2.0 * asin( ta(:) / (sqrt( uno + ta(:)*ta(:) ) ) )
 
 end subroutine
 
