@@ -60,7 +60,7 @@ def bin_data(x,nbin):
 		dx[int(i%nbin)] = x[i]
 		if ( (i+1)%nbin == 0 ):
 			nx.append(np.mean(dx))
-			sd.append(np.std(dx))
+			sd.append(np.std(dx),ddof=1)
 			dx = [None]*nbin
 	
 	return nx,sd
