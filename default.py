@@ -41,3 +41,9 @@ fit_v0  = True
 fit_rv = False
 fit_tr = False
 
+#flags
+is_log_P	= True
+is_ew			= True
+is_sini		= True
+is_log_k	= True
+is_log_rv0= True

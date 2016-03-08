@@ -85,8 +85,10 @@ implicit none
 !Local variables
   integer :: i,n
   double precision, dimension(0:dma-1) :: f, df, esin, ecos
+  double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: uno
 !
+  uno = dble(1.)
   ta(:) = ma(:)
   f(:) = delta * 10
   n = 0
@@ -94,7 +96,7 @@ implicit none
   do i = 0, dma-1
     do while ( abs(f(i)) >= delta .and. n <= imax )
       f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
-      df(i)  =   1.0 - e * cos(ta(i))
+      df(i)  =   uno - e * cos(ta(i))
       ta(i)  = ta(i) - f(i) / df(i)
       n = n + 1
     end do
@@ -108,11 +110,13 @@ implicit none
   !ta(:) = sqrt(1. + e )  * sin(ta(:)*0.5) / sqrt(1. - e )
   !ta(:) = 2. * atan2( ta(:), cos(ta(:)*0.5) )
 
-  uno = dble(1.)
   esin = ( sqrt(uno-e*e) * sin(ta) ) / (uno-e*cos(ta))
   ecos = ( cos (ta) - e ) / (uno-e*cos(ta))
   ta = atan2(esin,ecos)
-  !ta(:) = sqrt ( ( uno + e ) / ( uno - e ) ) * tan(ta(:)*0.5) 
+  do i = 0, dma-1
+    if ( ta(i) < dble(0.0) ) ta(i) = ta(i) + 2. * pi 
+  end do
+  !ta(:) = sqrt( ( uno + e ) / ( uno - e ) ) * tan(ta(:)*0.5) 
   !ta(:) = 2.0 * asin( ta(:) / (sqrt( uno + ta(:)*ta(:) ) ) )
 
 end subroutine

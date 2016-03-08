@@ -149,8 +149,7 @@ implicit none
   if ( flag(0) ) P = 10**params(1)
   if ( flag(1) ) then
     e = params(2) * params(2) + params(3) * params(3)
-    w = params(2) / params(3)
-    w = asin(w / sqrt(1 + w*w)) 
+    w = atan2( params(2),params(3) ) 
   end if
   if ( flag(2) ) k = 10**params(4)
   if ( flag(3) ) rv0(:) = 10**params(5:4+nt)
@@ -219,18 +218,20 @@ implicit none
   double precision, dimension(0:4+nt) :: params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: esin, ecos
+  double precision  :: prec_init, esin, ecos
   integer :: j, nu, n
   logical :: get_out
-  double precision, dimension(0:5+nt) :: r
+  !double precision, dimension(0:5+nt) :: r
+  !Let us add a plus random generator
+  double precision, dimension(0:6+nt) :: r
 !external calls
   external :: init_random_seed, find_chi2_rv
 
 
   if ( flag(0) ) params(1) = log10(params(1))
   if ( flag(1) ) then
-    esin = sqrt(params(2)) * sin(params(3))
-    ecos = sqrt(params(2)) * cos(params(3))
+    esin = sqrt(params(2)) * dsin(params(3))
+    ecos = sqrt(params(2)) * dcos(params(3))
     params(2) = esin
     params(3) = ecos
   end if
@@ -262,15 +263,20 @@ implicit none
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
 
+
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
   do while ( get_out )
     !r will contain random numbers for each variable
     !Let us add a random shift to each parameter
     call random_number(r)
+    prec_init = prec * sqrt(chi2_red) 
+    if ( chi2_red < 10.0 ) prec_init = prec
+    !prec_init = prec * chi2_red * r(6+nt)
+    !prec_init = prec
     r(1:5+nt) = ( r(1:5+nt) - 0.5 ) * 2.0
-    params_new(0:4)    = params(0:4)    + r(1:5)    * prec * wtf(0:4)
-    params_new(5:4+nt) = params(5:4+nt) + r(6:5+nt) * prec * wtf(5)
+    params_new(0:4)    = params(0:4)    + r(1:5)    * prec_init * wtf(0:4)
+    params_new(5:4+nt) = params(5:4+nt) + r(6:5+nt) * prec_init * wtf(5)
     !Let us calculate our new chi2
     call find_chi2_rv(xd,yd,errs,tlab,params_new,flag,chi2_new,ics,datas,nt)
     !Ratio between the models
@@ -295,8 +301,8 @@ implicit none
       call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
       n = 0
       !If chi2_red has not changed the last nconv iterations
-      print *, abs(chi2_slope), toler_slope
-      if ( abs(chi2_slope) < toler_slope ) then
+      print *, abs(chi2_slope), toler_slope / (chi2_y)
+      if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
         print *, 'I did my best to converge, chi2_red =', &
                   chi2_y
         get_out = .FALSE.

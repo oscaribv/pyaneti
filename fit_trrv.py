@@ -94,7 +94,7 @@ if (fit_tr):
 			nobin_hdate.append(dummyd[i])
 
 	nbin = 16
-	nbin = 8
+	#nbin = 8
 
 	#bin the data to do fastest test
 	hdate, err_hdate = bin_data(nobin_hdate,nbin)
@@ -156,6 +156,8 @@ if (fit_tr):
 #FIT TRANSIT AND RV CURVES
 if (fit_rv and fit_tr ):
 
+	flag = [is_log_P,is_ew,is_sini,is_log_k,is_log_rv0]
+
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
               int(fit_i),int(fit_a),int(fit_u1),int(fit_u2),\
               int(fit_pz), int(fit_k), int(fit_v0)]
@@ -165,7 +167,7 @@ if (fit_rv and fit_tr ):
 	#Call the fit routine
 	pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab \
 	,megax, megay, megae, params, prec, maxi, thin_factor, \
-	is_circular, what_fit, nconv)
+	is_circular, what_fit, flag, nconv)
 
 	#Read the data
 	vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko =  \
@@ -180,7 +182,7 @@ if (fit_rv and fit_tr ):
 #FIT TRANSIT CURVE ONLY
 elif ( not fit_rv and fit_tr ):
 
-	flag = [True, True]
+	flag = [is_log_P, is_ew, is_sini]
 
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
               int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),\
@@ -198,9 +200,7 @@ elif ( not fit_rv and fit_tr ):
 #FIT RV CURVE ONLY
 elif ( fit_rv and not fit_tr ):
 
-	#flag = [True, True, True, True]
-	#flag = [False, False, False, False]
-	flag = [True, False, False, True]
+	flag = [is_log_P,is_ew,is_log_k,is_log_rv0]
 
 	if ( is_circular ):
 		fit_e = False
@@ -238,18 +238,22 @@ else:
 
 #Find the values and errors
 t0_val,t0_err = find_vals_gauss(t0o,nconv)
-if (flag[0]):
+if (is_log_P):
 	Po = np.power(10.,Po)
 P_val, P_err  = find_vals_gauss(Po,nconv)
-if (flag[1]):
+if (is_ew):
 	dummy_e = eo
 	eo = eo * eo + wo * wo
 	wo = np.arctan2(dummy_e,wo)
 e_val,e_err 	= find_vals_gauss(eo,nconv)
 w_val,w_err 	= find_vals_gauss(wo,nconv)
+if (w_val < 0.0 ):
+	w_val = w_val + 2 * np.pi	
 w_deg 		= w_val * 180. / np.pi
 w_deg_err = w_err * 180. / np.pi
 if ( fit_tr ):
+	if (is_sini):
+		io = np.arcsin(io)
 	i_val,i_err 	= find_vals_gauss(io,nconv)
 	a_val,a_err 	= find_vals_gauss(ao,nconv)
 	u1_val,u1_err = find_vals_gauss(u1o,nconv)
@@ -258,13 +262,13 @@ if ( fit_tr ):
 	i_deg 		= i_val * 180. / np.pi
 	i_deg_err = i_err * 180. / np.pi
 if ( fit_rv ):
-	if ( flag[2] ):
+	if ( is_log_k ):
 		ko = np.power(10.,ko)
 	k_val, k_err  = find_vals_gauss(ko,nconv)
 	v_val = [None]*nt
 	v_err = [None]*nt
 	for j in range(0,nt):
-		if ( flag[3] ):
+		if ( is_log_rv0 ):
 			vo[j] = np.power(10.,vo[j])
 		v_val[j], v_err[j] = find_vals_gauss(vo[j],nconv)
 

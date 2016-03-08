@@ -22,19 +22,18 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:ts-1) :: ma, ta, swt
-  double precision :: si, delta = 1e-7
-  integer :: imax
+  double precision :: si, delta = 1.e-7
+  integer :: imax = int(1e7)
 !External function
   external :: find_anomaly
 !
 
   si = sin(i)
-  imax = int(1e7)
   ma = mod(2.*pi*(t-t0) / P, 2.*pi)
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(ma,ta,e,delta,imax,ts)
   swt = sin(w+ta)
-  z = a * ( 1. - e * e ) / (1. + e * cos(ta) ) * &
+  z = a * ( 1. - e * e ) / ( 1. + e * cos(ta) ) * &
       sqrt( 1. - swt * swt * si * si ) 
   !z has been calculated
   
@@ -70,7 +69,7 @@ implicit none
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:datas-1) :: z, res, muld, mu
   double precision :: t0, P, e, w, i, a, u1, u2, pz
-  logical :: flag(0:1)
+  logical :: flag(0:2)
 !External function
   external :: occultquad, find_z
 
@@ -89,8 +88,13 @@ implicit none
     e = params(2) * params(2) + params(3) * params(3)
     w = atan2(params(2),params(3))
   end if
+  if (flag(2)) i = asin(params(4))
 
   !print *, params
+  if ( isc ) then !The orbit is circular
+    e = dble(0.0)
+    w = pi / 2.0
+  end if
 
   !Let us find the projected distance z
   call find_z(xd,t0,P,e,w,i,a,z,datas)
@@ -145,14 +149,14 @@ implicit none
   !t0,P,e,w,i,a,u1,u2,pz
   double precision, intent(inout), dimension(0:8) :: params
   !f2py intent(in,out)  :: params
-  logical, intent(in) :: ics, flag(0:1)
+  logical, intent(in) :: ics, flag(0:2)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8) :: params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision :: ecos, esin
+  double precision :: ecos, esin, prec_init
   integer :: j, nu, n
   double precision, dimension(0:9) :: r
   logical :: get_out
@@ -168,6 +172,7 @@ implicit none
     params(2) = esin
     params(3) = ecos
   end if
+  if (flag(2) ) params(4) = sin(params(4))
 
   !Let us estimate our fist chi_2 value
   !call find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2_old,ics,datas)
@@ -198,8 +203,10 @@ implicit none
     !Let us add a random shift to each parameter
     !Call a random seed 
     call random_number(r)
+    prec_init = prec * sqrt(chi2_red)
+    if ( chi2_red < 5.0 ) prec_init = prec
     r(1:9) = ( r(1:9) - 0.5) * 2.
-    params_new = params + r(1:9) * prec * wtf
+    params_new = params + r(1:9) * prec_init * wtf
     !print *, ''
     !print *, params
     !print *, params_new
@@ -246,7 +253,8 @@ implicit none
 end subroutine
 !
 
-subroutine metropolis_hastings(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params,prec,maxi,thin_factor,ics,wtf,nconv,drv,dtr,ntl)
+subroutine metropolis_hastings(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params,prec,maxi,thin_factor, &
+           ics,wtf,flag,nconv,drv,dtr,ntl)
 implicit none
 
 !In/Out variables
@@ -260,7 +268,7 @@ implicit none
   !t0,P,e,w,i,a,u1,u2,pz
   double precision, intent(inout), dimension(0:9+ntl) :: params
   !f2py intent(in,out)  :: params
-  logical, intent(in) :: ics
+  logical, intent(in) :: ics, flag(0:4)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_rv_old, chi2_tr_old, chi2_rv_new, chi2_tr_new, chi2_red
@@ -270,19 +278,36 @@ implicit none
   double precision, dimension(0:9+ntl) :: params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
+  double precision  :: esin, ecos
   integer :: j, nu, n
   double precision, dimension(0:10+ntl) :: r
-  logical :: get_out
+  logical :: get_out, flag_rv(0:3), flag_tr(0:2)
 !external calls
   external :: init_random_seed, find_chi2_tr
+
+
+  if ( flag(0) ) params(1) = log10(params(1))
+  if ( flag(1) ) then
+    esin = sqrt(params(2)) * sin(params(3))
+    ecos = sqrt(params(2)) * cos(params(3))
+    params(2) = esin
+    params(3) = ecos
+  end if
+  if ( flag(2) ) params(4) = sin(params(4))
+  if ( flag(3) ) params(9) = log10(params(9))
+  if ( flag(4) ) params(10:9+ntl) = log10(params(10:9+ntl))
+
+  flag_tr = flag(0:2)
+  flag_rv(0:1) = flag(0:1)
+  flag_rv(2:3) = flag(3:4)
 
   params_tr = params(0:8)
   params_rv(0:3) = params(0:3)
   params_rv(4:4+ntl) = params(9:9+ntl)
 
   !Let us estimate our fist chi_2 value
-  call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,chi2_tr_old,ics,dtr)
-  call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,chi2_rv_old,ics,drv,ntl)
+  call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_tr_old,ics,dtr)
+  call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_rv_old,ics,drv,ntl)
   print *, chi2_rv_old, chi2_tr_old
   chi2_old_total = chi2_tr_old + chi2_rv_old
   !Calculate the degrees of freedom
@@ -316,10 +341,11 @@ implicit none
     params_new(10:9+ntl) = params(10:9+ntl) + r(11:10+ntl) * prec * wtf(10)
     !Let us calculate our new chi2
     params_tr_new = params_new(0:8)
+    params_tr_new(2:3) = params(2:3) !transit does not fit e and w
     params_rv_new(0:3) = params_new(0:3)
     params_rv_new(4:4+ntl) = params_new(9:9+ntl)
-    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr_new,chi2_tr_new,ics,dtr)
-    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv_new,chi2_rv_new,ics,drv,ntl)
+    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr_new,flag_tr,chi2_tr_new,ics,dtr)
+    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv_new,flag_rv,chi2_rv_new,ics,drv,ntl)
     chi2_new_total = chi2_tr_new + chi2_rv_new
     !Ratio between the models
     q = exp( ( chi2_old_total - chi2_new_total ) * 0.5  )
