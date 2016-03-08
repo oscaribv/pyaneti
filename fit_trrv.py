@@ -17,9 +17,6 @@ execfile('default.py')
 #Read input file
 execfile('input_fit.py')
 
-#Print intial configuration
-print_init()
-
 #PREPATARION RV DATA
 if (fit_rv):
 
@@ -152,11 +149,23 @@ if (fit_rv):
 if (fit_tr):
 	T0 = min(xt[0]) + 0.5*(max(xt[0])-min(xt[0]))
 
+if ( is_circular ):
+	fit_e = False
+	fit_w = False
+	e = 0.0
+	w = np.pi / 2.0
+
+#Print intial configuration
+print_init()
+
+#-------------------------------------------------------------
+#			FITTING ROUTINES
+#-------------------------------------------------------------
 
 #FIT TRANSIT AND RV CURVES
 if (fit_rv and fit_tr ):
 
-	flag = [is_log_P,is_ew,is_sini,is_log_k,is_log_rv0]
+	flag = [is_log_P,is_ew,is_sini,is_log_a,is_log_k,is_log_rv0]
 
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
               int(fit_i),int(fit_a),int(fit_u1),int(fit_u2),\
@@ -174,15 +183,16 @@ if (fit_rv and fit_tr ):
 	np.loadtxt('mh_fit.dat', comments='#',unpack=True, \
 	usecols=range(0,13))
 	vo = [None]*nt
-	for i in range(0,nt):
-		n = [13+i]
-  	vo[i] = np.loadtxt('mh_fit.dat', comments='#', \
+	for j in range(0,nt):
+		n = [13+j]
+		a = np.loadtxt('mh_fit.dat', comments='#', \
 		unpack=True, usecols=(n))
+		vo[j] = a
 
 #FIT TRANSIT CURVE ONLY
 elif ( not fit_rv and fit_tr ):
 
-	flag = [is_log_P, is_ew, is_sini]
+	flag = [is_log_P, is_ew, is_sini, is_log_a]
 
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
               int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),\
@@ -190,7 +200,7 @@ elif ( not fit_rv and fit_tr ):
 	params = [T0,P,e,w,ii,a,u1,u2,pz]
 
 	#Call fit routine
-	pti.metropolis_hastings_tr_improved(megax, megay, megae,  \
+	pti.metropolis_hastings_tr(megax, megay, megae,  \
 	params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
 	#Read the data
@@ -210,11 +220,6 @@ elif ( fit_rv and not fit_tr ):
 					    int(fit_k), int(fit_v0)]
 	dummy = [T0,P,e,w,k0]
 	params = np.concatenate((dummy,v0))
-
-	#print flag
-	#print params
-	#print what_fit
-	#sys.exit('')
 	
 	#Call fit routine
 	pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
@@ -230,11 +235,13 @@ elif ( fit_rv and not fit_tr ):
 		a = np.loadtxt('mh_rvfit.dat', comments='#',unpack=True, usecols=(n))
 		vo[j] = a
 
-
 #Nothing to fit!
 else:
 	sys.exit("Nothing to fit!")
 
+#-------------------------------------------------------------
+#			END FITTING ROUTINES
+#-------------------------------------------------------------
 
 #Find the values and errors
 t0_val,t0_err = find_vals_gauss(t0o,nconv)
@@ -255,6 +262,8 @@ if ( fit_tr ):
 	if (is_sini):
 		io = np.arcsin(io)
 	i_val,i_err 	= find_vals_gauss(io,nconv)
+	if (is_log_a):
+		ao = np.power(10.,ao)
 	a_val,a_err 	= find_vals_gauss(ao,nconv)
 	u1_val,u1_err = find_vals_gauss(u1o,nconv)
 	u2_val,u2_err = find_vals_gauss(u2o,nconv)
@@ -280,7 +289,7 @@ print ('P     = %4.4e +/- %4.4e' 		%(P_val,P_err))
 print ('e     = %4.4e +/- %4.4e'			%(e_val,e_err))
 print ('w     = %4.4e +/- %4.4e deg'	%(w_deg,w_deg_err))
 if (fit_tr):
-	print ('i     = %4.4e +/- %4.4e deg' %(i_val,i_err))
+	print ('i     = %4.4e +/- %4.4e deg' %(i_def,i_deg_err))
 	print ('a/r*  = %4.4e +/- %4.4e' 		%(a_val,a_err))
 	print ('u1    = %4.4e +/- %4.4e' 		%(u1_val,u1_err))
 	print ('u2    = %4.4e +/- %4.4e' 		%(u2_val,u2_err))

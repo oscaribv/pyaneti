@@ -45,5 +45,6 @@ fit_tr = False
 is_log_P	= True
 is_ew			= True
 is_sini		= True
+is_log_a	= True
 is_log_k	= True
 is_log_rv0= True

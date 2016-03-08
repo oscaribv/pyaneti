@@ -48,16 +48,14 @@ implicit none
   double precision, intent(out), dimension(0:ts-1) :: rv
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
-  double precision, dimension(0:ts-1) :: ma, ta
+  double precision, dimension(0:ts-1) :: ta
   double precision :: delta = 1.e-7
   integer :: imax = int(1e5)
 !External function
   external :: find_anomaly
 !
-  !Calculate the mean anomaly from the input values
-  ma(:) = mod(2.* pi * ( t(:) - t0 ) / P, 2. * pi)
   !Obtain the eccentric anomaly by using find_anomaly
-  call find_anomaly(ma,ta,e,delta,imax,ts)
+  call find_anomaly(t,t0,e,w,P,ta,delta,imax,ts)
 
   rv(:) = rv0 + k * ( cos( ta(:) + w ) + e * cos(w) )
   

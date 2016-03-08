@@ -21,20 +21,26 @@ implicit none
   double precision, intent(out), dimension(0:ts-1) :: z
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
-  double precision, dimension(0:ts-1) :: ma, ta, swt
+  double precision, dimension(0:ts-1) :: ta, swt
   double precision :: si, delta = 1.e-7
   integer :: imax = int(1e7)
 !External function
   external :: find_anomaly
 !
 
-  si = sin(i)
-  ma = mod(2.*pi*(t-t0) / P, 2.*pi)
   !Obtain the eccentric anomaly by using find_anomaly
-  call find_anomaly(ma,ta,e,delta,imax,ts)
+  call find_anomaly(t,t0,e,w,P,ta,delta,imax,ts)
   swt = sin(w+ta)
-  z = a * ( 1. - e * e ) / ( 1. + e * cos(ta) ) * &
-      sqrt( 1. - swt * swt * si * si ) 
+
+  !do imax = 0, ts-1
+  !  print *, t(imax), ta(imax), swt(imax)
+  !end do
+
+  !stop
+
+  si = sin(i)
+  z = a * ( 1. - e * e ) * sqrt( 1. - swt * swt * si * si ) &
+      / ( 1. + e * cos(ta) ) 
   !z has been calculated
   
 end subroutine
@@ -69,7 +75,8 @@ implicit none
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:datas-1) :: z, res, muld, mu
   double precision :: t0, P, e, w, i, a, u1, u2, pz
-  logical :: flag(0:2)
+  logical :: flag(0:3)
+!  integer :: n
 !External function
   external :: occultquad, find_z
 
@@ -89,6 +96,7 @@ implicit none
     w = atan2(params(2),params(3))
   end if
   if (flag(2)) i = asin(params(4))
+  if (flag(3)) a = 10**params(5)
 
   !print *, params
   if ( isc ) then !The orbit is circular
@@ -96,15 +104,24 @@ implicit none
     w = pi / 2.0
   end if
 
+!  do n = 0, datas-1
+!    print *, xd(n)
+!  end do
+!  stop
+
   !Let us find the projected distance z
   call find_z(xd,t0,P,e,w,i,a,z,datas)
 
   !print *, z(0), z(10), z(100)
+  !print *, z
+  !print *, minval(z)
 
   !Now we have z, let us use Agol's routines
   call occultquad(z,u1,u2,pz,muld,mu,datas)
 
-  !print *,yd
+  !print *,muld
+
+  !stop
 
   !print *, muld
   !Let us calculate the residuals
@@ -137,7 +154,7 @@ end subroutine
 !Output parameter:
 ! This functions outputs a file called mh_rvfit.dat
 !-----------------------------------------------------------
-subroutine metropolis_hastings_tr_improved(xd,yd,errs,params,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas)
+subroutine metropolis_hastings_tr(xd,yd,errs,params,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas)
 implicit none
 
 !In/Out variables
@@ -149,7 +166,7 @@ implicit none
   !t0,P,e,w,i,a,u1,u2,pz
   double precision, intent(inout), dimension(0:8) :: params
   !f2py intent(in,out)  :: params
-  logical, intent(in) :: ics, flag(0:2)
+  logical, intent(in) :: ics, flag(0:3)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_old, chi2_new, chi2_red
@@ -173,6 +190,7 @@ implicit none
     params(3) = ecos
   end if
   if (flag(2) ) params(4) = sin(params(4))
+  if (flag(3) ) params(5) = log10(params(5))
 
   !Let us estimate our fist chi_2 value
   !call find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2_old,ics,datas)
@@ -203,8 +221,8 @@ implicit none
     !Let us add a random shift to each parameter
     !Call a random seed 
     call random_number(r)
-    prec_init = prec * sqrt(chi2_red)
-    if ( chi2_red < 5.0 ) prec_init = prec
+    !prec_init = prec * sqrt(chi2_red)
+    prec_init = prec
     r(1:9) = ( r(1:9) - 0.5) * 2.
     params_new = params + r(1:9) * prec_init * wtf
     !print *, ''
@@ -232,6 +250,7 @@ implicit none
       chi2_vec(n) = chi2_red
       x_vec(n) = n
       n = n + 1
+
       if ( n == size(chi2_vec) ) then
         call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)        
         n = 0
@@ -243,8 +262,13 @@ implicit none
           get_out = .FALSE.
         end if
       end if
-      !I checked covergence
+      if ( j > maxi ) then
+        print *, 'Maximum number of iteration reached!'
+        get_out = .FALSE.
+      end if
     end if
+    !I checked covergence
+
     j = j + 1
   end do
 
@@ -268,7 +292,7 @@ implicit none
   !t0,P,e,w,i,a,u1,u2,pz
   double precision, intent(inout), dimension(0:9+ntl) :: params
   !f2py intent(in,out)  :: params
-  logical, intent(in) :: ics, flag(0:4)
+  logical, intent(in) :: ics, flag(0:5)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_rv_old, chi2_tr_old, chi2_rv_new, chi2_tr_new, chi2_red
@@ -278,10 +302,10 @@ implicit none
   double precision, dimension(0:9+ntl) :: params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: esin, ecos
+  double precision  :: esin, ecos, prec_init
   integer :: j, nu, n
   double precision, dimension(0:10+ntl) :: r
-  logical :: get_out, flag_rv(0:3), flag_tr(0:2)
+  logical :: get_out, flag_rv(0:3), flag_tr(0:3)
 !external calls
   external :: init_random_seed, find_chi2_tr
 
@@ -294,12 +318,13 @@ implicit none
     params(3) = ecos
   end if
   if ( flag(2) ) params(4) = sin(params(4))
-  if ( flag(3) ) params(9) = log10(params(9))
-  if ( flag(4) ) params(10:9+ntl) = log10(params(10:9+ntl))
+  if ( flag(3) ) params(5) = log10(params(5))
+  if ( flag(4) ) params(9) = log10(params(9))
+  if ( flag(5) ) params(10:9+ntl) = log10(params(10:9+ntl))
 
-  flag_tr = flag(0:2)
+  flag_tr = flag(0:3)
   flag_rv(0:1) = flag(0:1)
-  flag_rv(2:3) = flag(3:4)
+  flag_rv(2:3) = flag(4:5)
 
   params_tr = params(0:8)
   params_rv(0:3) = params(0:3)
@@ -336,12 +361,13 @@ implicit none
     !r will contain random numbers for each variable
     !Let us add a random shift to each parameter
     call random_number(r)
+    prec_init = prec * sqrt(chi2_old_total) * r(10)
+    !prec_init = prec 
     r(1:10+ntl) = ( r(1:10+ntl) - 0.5) * 2.
-    params_new(0:9)      = params(0:9)      + r(1:10)     * prec * wtf(0:9)
-    params_new(10:9+ntl) = params(10:9+ntl) + r(11:10+ntl) * prec * wtf(10)
+    params_new(0:9)      = params(0:9)      + r(1:10)     * prec_init * wtf(0:9)
+    params_new(10:9+ntl) = params(10:9+ntl) + r(11:10+ntl) * prec_init * wtf(10)
     !Let us calculate our new chi2
     params_tr_new = params_new(0:8)
-    params_tr_new(2:3) = params(2:3) !transit does not fit e and w
     params_rv_new(0:3) = params_new(0:3)
     params_rv_new(4:4+ntl) = params_new(9:9+ntl)
     call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr_new,flag_tr,chi2_tr_new,ics,dtr)
@@ -358,6 +384,7 @@ implicit none
     chi2_red = chi2_old_total / nu
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 ) then
+      print *, 'c2 tr =', chi2_tr_new, 'c2 rv =', chi2_rv_new
       print *, 'iter ',j,', Chi2_red =', chi2_red
       write(101,*) j, chi2_old_total, chi2_red, params
       !Check convergence here
@@ -374,6 +401,12 @@ implicit none
                     chi2_y
           get_out = .FALSE.
         end if
+
+      if ( j > maxi ) then
+        print *, 'Maximum number of iteration reached!'
+        get_out = .FALSE.
+      end if
+
       end if
       !I checked covergence
     end if

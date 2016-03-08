@@ -66,6 +66,26 @@ end function lcg
 end subroutine init_random_seed
 
 !------------------------------------------------------------
+!This subrouotine finds the time of periastron passage
+!by knowing the transit time
+!------------------------------------------------------------
+subroutine find_tp(t0, e, w, P, tp)
+implicit none
+!In/Out variables
+  double precision, intent(in) :: t0, e, w, P
+  double precision, intent(out) :: tp
+!Local variables
+  double precision :: theta_p
+  double precision, parameter :: pi = 3.1415926535897932384626
+
+  theta_p = atan2( sqrt(1.-e*e) * sin( pi/2. - w ), e + cos( pi/2. - w) )
+  theta_p = theta_p - e * sin(theta_p)
+
+  tp = t0 - theta_p * p / 2. / pi
+
+end subroutine
+
+!------------------------------------------------------------
 !This subroutine finds the true anomaly of an eccentric orbit
 !by using the Newton-Raphson (NR)  algorithm 
 !The input parameters are:
@@ -74,26 +94,33 @@ end subroutine init_random_seed
 !The output parameters are:
 ! ta -> True anomaly (vector with the same dimension that man)
 !------------------------------------------------------------
-subroutine find_anomaly(ma,ta,e,delta,imax,dma)
+subroutine find_anomaly(t,t0,e,w,P,ta,delta,imax,dt)
 implicit none
 !In/Out variables
-  integer, intent(in) :: dma
-  double precision, intent(in) , dimension(0:dma-1) :: ma
-  double precision, intent(out), dimension(0:dma-1) :: ta
-  double precision, intent(in) :: e, delta
+  integer, intent(in) :: dt
+  double precision, intent(in) , dimension(0:dt-1) :: t
+  double precision, intent(out), dimension(0:dt-1) :: ta
+  double precision, intent(in) :: t0, e, w, P, delta
   integer, intent(in) :: imax
 !Local variables
   integer :: i,n
-  double precision, dimension(0:dma-1) :: f, df, esin, ecos
+  double precision, dimension(0:dt-1) :: ma, f, df, esin, ecos
   double precision, parameter :: pi = 3.1415926535897932384626
-  double precision :: uno
+  double precision :: uno, tp
 !
   uno = dble(1.)
+
+  call find_tp(t0,e,w,P,tp)
+
+  !Calculate the mean anomaly
+  ma = 2. * pi * ( t - tp ) / P
+
+  !calculate the eccentric anomaly
   ta(:) = ma(:)
   f(:) = delta * 10
   n = 0
 
-  do i = 0, dma-1
+  do i = 0, dt-1
     do while ( abs(f(i)) >= delta .and. n <= imax )
       f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
       df(i)  =   uno - e * cos(ta(i))
@@ -110,12 +137,13 @@ implicit none
   !ta(:) = sqrt(1. + e )  * sin(ta(:)*0.5) / sqrt(1. - e )
   !ta(:) = 2. * atan2( ta(:), cos(ta(:)*0.5) )
 
+  !calculate the true anomaly
   esin = ( sqrt(uno-e*e) * sin(ta) ) / (uno-e*cos(ta))
   ecos = ( cos (ta) - e ) / (uno-e*cos(ta))
   ta = atan2(esin,ecos)
-  do i = 0, dma-1
-    if ( ta(i) < dble(0.0) ) ta(i) = ta(i) + 2. * pi 
-  end do
+  !do i = 0, dma-1
+  !  if ( ta(i) < dble(0.0) ) ta(i) = ta(i) + 2. * pi 
+  !end do
   !ta(:) = sqrt( ( uno + e ) / ( uno - e ) ) * tan(ta(:)*0.5) 
   !ta(:) = 2.0 * asin( ta(:) / (sqrt( uno + ta(:)*ta(:) ) ) )
 
