@@ -444,7 +444,8 @@ implicit none
 
       !Start to burning 
       if ( is_burn .and. mod(j,new_thin_factor) == 0 ) then
-          write(101,*) nk*n_burn, chi2_old, chi2_red, params_old(:,nk)
+          write(*,*) nk*n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
+          write(101,*) nk*n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
       end if
       !End burning
 
@@ -457,7 +458,7 @@ implicit none
 
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 .and. .not. is_burn ) then
-      print *, 'iter ',j,', Chi2_red =', chi2_red
+      print *, 'iter ',j,', Chi2_red =', chi2_red_min
       !Check convergence here
       chi2_vec(n) = chi2_red_min
       x_vec(n) = n
