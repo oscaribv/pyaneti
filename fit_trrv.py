@@ -174,9 +174,9 @@ if (fit_rv and fit_tr ):
 	params = np.concatenate((dummy,v0))
 
 	#Call the fit routine
-	pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab \
-	,megax, megay, megae, params, prec, maxi, thin_factor, \
-	is_circular, what_fit, flag, nconv)
+	#pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab \
+	#,megax, megay, megae, params, prec, maxi, thin_factor, \
+	#is_circular, what_fit, flag, nconv)
 
 	#Read the data
 	vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko =  \
@@ -222,9 +222,13 @@ elif ( fit_rv and not fit_tr ):
 	params = np.concatenate((dummy,v0))
 	
 	#Call fit routine
-	pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
-  params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+	#pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
+  #params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
+	nwalkers = 10 * len(params)
+
+	pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
+  params, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 	#Read the data
 	vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
 	np.loadtxt('mh_rvfit.dat', comments='#', unpack=True,\
@@ -244,6 +248,9 @@ else:
 #-------------------------------------------------------------
 
 #Find the values and errors
+
+chi2_val, chi2_errs = find_vals_gauss(chi2red,nconv)
+
 t0_val,t0_err = find_vals_gauss(t0o,nconv)
 if (is_log_P):
 	Po = np.power(10.,Po)
@@ -282,14 +289,16 @@ if ( fit_rv ):
 		v_val[j], v_err[j] = find_vals_gauss(vo[j],nconv)
 
 
+
 #Print the best fit values values
+print ('chi2_red = %1.4e +/- %1.4e' %(chi2_val,chi2_errs))
 print ('The best fit planet parameters are:')
 print ('T0    = %4.4e +/- %4.4e days'%(t0_val,t0_err))
 print ('P     = %4.4e +/- %4.4e' 		%(P_val,P_err))
 print ('e     = %4.4e +/- %4.4e'			%(e_val,e_err))
 print ('w     = %4.4e +/- %4.4e deg'	%(w_deg,w_deg_err))
 if (fit_tr):
-	print ('i     = %4.4e +/- %4.4e deg' %(i_def,i_deg_err))
+	print ('i     = %4.4e +/- %4.4e deg' %(i_deg,i_deg_err))
 	print ('a/r*  = %4.4e +/- %4.4e' 		%(a_val,a_err))
 	print ('u1    = %4.4e +/- %4.4e' 		%(u1_val,u1_err))
 	print ('u2    = %4.4e +/- %4.4e' 		%(u2_val,u2_err))

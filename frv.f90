@@ -268,10 +268,10 @@ implicit none
     !r will contain random numbers for each variable
     !Let us add a random shift to each parameter
     call random_number(r)
-    prec_init = prec * sqrt(chi2_red) 
-    if ( chi2_red < 10.0 ) prec_init = prec
+    !prec_init = prec * sqrt(chi2_red) 
+    !if ( chi2_red < 10.0 ) prec_init = prec
     !prec_init = prec * chi2_red * r(6+nt)
-    !prec_init = prec
+    prec_init = prec
     r(1:5+nt) = ( r(1:5+nt) - 0.5 ) * 2.0
     params_new(0:4)    = params(0:4)    + r(1:5)    * prec_init * wtf(0:4)
     params_new(5:4+nt) = params(5:4+nt) + r(6:5+nt) * prec_init * wtf(5)
@@ -322,4 +322,179 @@ end do
 end subroutine
 
 !-------------------------------------------------------
+
+!-----------------------------------------------------------
+subroutine stretch_move_rv(xd,yd,errs,tlab,params,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv
+  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  integer, intent(in), dimension(0:datas-1)  :: tlab
+  double precision, intent(inout), dimension(0:4+nt) :: params
+  !f2py intent(in,out)  :: params
+  double precision, intent(in), dimension(0:5) :: wtf
+  double precision, intent(in)  :: prec
+  logical, intent(in) :: ics, flag(0:3)
+!Local variables
+  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
+  double precision, dimension(0:4+nt,0:nwalks-1) :: params_old, params_new
+  double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
+  double precision  :: q, chi2_y, chi2_slope, toler_slope
+  double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
+  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor
+  logical :: get_out, is_burn
+  !Let us add a plus random generator
+  double precision, dimension(0:nwalks-1) :: r_rand, z_rand, r_real
+  integer, dimension(0:nwalks-1) :: r_int
+!external calls
+  external :: init_random_seed, find_chi2_rv
+
+  spar = size(params)
+
+  if ( flag(0) ) params(1) = log10(params(1))
+  if ( flag(1) ) then
+    esin = sqrt(params(2)) * dsin(params(3))
+    ecos = sqrt(params(2)) * dcos(params(3))
+    params(2) = esin
+    params(3) = ecos
+  end if
+  if ( flag(2) ) params(4) = log10(params(4))
+  if ( flag(3) ) params(5:4+nt) = log10(params(5:4+nt))
+
+  !Call a random seed 
+  print *, 'CREATING RANDOM SEED'
+  call init_random_seed()
+
+  call random_number(r_real)
+  !Let us initinate all the walkers with the priors
+  !I am not sure it this works, it is just a test
+  r_real = ( r_real - 0.5 ) * 2.0
+  do j = 0, nwalks - 1
+    params_old(:,j) = params * ( 1 + r_real(j)*0.01 ) 
+    !Let us estimate our first chi_2 value
+    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,j),flag,chi2_old(j),ics,datas,nt)
+  end do
+  
+
+  !Calculate the degrees of freedom
+  nu = dble(datas - spar)
+  !If we are fixing a circular orbit, ec and w are not used 
+  if ( ics ) nu = nu + 2 
+  chi2_red = chi2_old / nu
+  !Print the initial cofiguration
+  print *, ''
+  print *, 'Starting stretch move MCMC calculation'
+  print *, 'Initial Chi2_red= ', chi2_red(0),'nu =', nu
+
+  !Let us start the otput file
+  open(unit=101,file='mh_rvfit.dat',status='unknown')
+  !Initialize the values
+
+  toler_slope = prec
+  j = 1
+  n = 0
+  get_out = .TRUE.
+  is_burn = .FALSE.
+
+  aa = 2.0
+  n_burn = 1
+
+  !The infinite cycle starts!
+  print *, 'STARTING INFINITE LOOP!'
+
+  do while ( get_out )
+
+    !Do the work for all the walkers
+
+    !--------------------------------------------
+    !AVOID THAT r_int(nk) is equal to nk
+    !--------------------------------------------
+
+    call random_number(z_rand)
+    call random_number(r_rand)
+    call random_number(r_real)
+    r_int = int( r_real * nwalks )
+
+    do nk = 0, nwalks - 1
+      !Draw the random walker nk, from the complemetary walkers
+      params_new(:,nk) = params_old(:,r_int(nk))
+      !Take care with this magic step
+      z_rand(nk) = z_rand(nk) * aa ! a = 2 as suggested by emcee paper
+      call find_gz(z_rand(nk),aa) 
+    
+      !Take care with this magic step
+      params_new(:,nk) = params_new(:,nk) + z_rand(nk) * &
+                       ( params_old(:,nk) - params_new(:,nk) )
+
+      !Obtain the new reduced chi square 
+      call find_chi2_rv(xd,yd,errs,tlab,params_new(:,nk),flag,chi2_new(nk),ics,datas,nt)
+      !Continue here, evaluate chi2     
+ 
+      q = z_rand(nk)**( spar - 1.) * &
+          exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
+
+      if ( q >= r_rand(nk) ) then
+        chi2_old(nk) = chi2_new(nk)
+        params_old(:,nk) = params_new(:,nk)
+      end if
+
+      chi2_red(nk) = chi2_old(nk) / nu
+
+      !Start to burning 
+      if ( is_burn .and. mod(j,new_thin_factor) == 0 ) then
+          write(101,*) nk*n_burn, chi2_old, chi2_red, params_old(:,nk)
+      end if
+      !End burning
+
+    end do
+
+     if ( is_burn ) n_burn = n_burn + 1
+     if ( n_burn > 500 ) get_out = .false.
+
+    chi2_red_min = minval(chi2_red)   
+
+    !Save the data each thin_factor iteration
+    if ( mod(j,thin_factor) == 0 .and. .not. is_burn ) then
+      print *, 'iter ',j,', Chi2_red =', chi2_red
+      !Check convergence here
+      chi2_vec(n) = chi2_red_min
+      x_vec(n) = n
+      n = n + 1
+
+      if ( n == size(chi2_vec) ) then
+
+        call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
+        n = 0
+        !If chi2_red has not changed the last nconv iterations
+        print *, abs(chi2_slope), toler_slope / (chi2_y)
+        if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
+          print *, 'THE CHAIN HAS CONVERGED'
+          print *, 'Starting burning-in phase'
+          is_burn = .True.
+          new_thin_factor = 10
+        end if
+
+        if ( j > maxi ) then
+          print *, 'Maximum number of iteration reached!'
+          get_out = .FALSE.
+        end if
+
+      end if
+    !I checked covergence
+
+    end if
+  !if ( mod(j,thin_factor) == 0 ) then
+  !  print *,'iter',j,'min red_chi2 =', minval(chi2_red), minloc(chi2_red)
+  !end if
+  j = j + 1
+
+ !stop
+
+end do
+
+  close(101)
+
+end subroutine
 

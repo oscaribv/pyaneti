@@ -175,3 +175,30 @@ implicit none
   a = meany - b * meanx
 
 end subroutine
+
+
+!Subroutine to get g(z), equation(10)
+!emcee paper -> http://arxiv.org/abs/1202.3665
+subroutine find_gz(z,a)
+implicit none
+
+!In/Out variables
+  double precision, intent(inout) :: z
+  !f2py itent(in,out) :: z
+  double precision, intent(in) :: a
+
+  !print *, z, a
+
+  !print *, ( z >= (1/a) )
+
+  if ( z >= 1./ a .and. z <= a ) then
+    z = 1. / sqrt(z)
+    !print *, 1/a, a
+  else
+    z = 0.0
+  end if
+
+  !print *, z
+  !print *, ''
+
+end subroutine
