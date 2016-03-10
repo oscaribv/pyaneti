@@ -343,7 +343,7 @@ implicit none
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
   double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
-  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor
+  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain(0:nwalks-1)
   logical :: get_out, is_burn
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand, r_real
@@ -415,23 +415,27 @@ implicit none
     call random_number(z_rand)
     call random_number(r_rand)
     call random_number(r_real)
-    r_int = int( r_real * nwalks )
+    !We have to add one and then extract one
+    !In this way r_int can be also zero
+    r_int = int( r_real * (nwalks + 1 ) )
+    r_int = r_int - 1
 
     do nk = 0, nwalks - 1
-      !Draw the random walker nk, from the complemetary walkers
+    !Draw the random walker nk, from the complemetary walkers
+    !This definition does not avoid to copy the same k walker
       params_new(:,nk) = params_old(:,r_int(nk))
-      !Take care with this magic step
+      !Let us generate a random step
       z_rand(nk) = z_rand(nk) * aa ! a = 2 as suggested by emcee paper
       call find_gz(z_rand(nk),aa) 
     
-      !Take care with this magic step
+      !Now we can have the evolved walker
       params_new(:,nk) = params_new(:,nk) + z_rand(nk) * &
                        ( params_old(:,nk) - params_new(:,nk) )
 
-      !Obtain the new reduced chi square 
+      !Obtain the new chi square 
       call find_chi2_rv(xd,yd,errs,tlab,params_new(:,nk),flag,chi2_new(nk),ics,datas,nt)
-      !Continue here, evaluate chi2     
- 
+
+      !Is the new model better? 
       q = z_rand(nk)**( spar - 1.) * &
           exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
@@ -442,19 +446,20 @@ implicit none
 
       chi2_red(nk) = chi2_old(nk) / nu
 
-      !Start to burning 
-      if ( is_burn .and. mod(j,new_thin_factor) == 0 ) then
-          write(*,*) nk*n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
-          write(101,*) nk*n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
+      !Start to burn-in 
+      if ( is_burn .and. mod(j,new_thin_factor) == 0 .and. nk == good_chain(0) ) then
+          write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
+          print *, n_burn, chi2_red(nk)
       end if
-      !End burning
+      !End burn-in
 
     end do
 
      if ( is_burn ) n_burn = n_burn + 1
-     if ( n_burn > 500 ) get_out = .false.
+     if ( n_burn > nconv ) get_out = .false.
 
-    chi2_red_min = minval(chi2_red)   
+    !chi2_red_min = minval(chi2_red)   
+    chi2_red_min = minval(chi2_red)
 
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 .and. .not. is_burn ) then
@@ -475,6 +480,9 @@ implicit none
           print *, 'Starting burning-in phase'
           is_burn = .True.
           new_thin_factor = 10
+          good_chain = minloc(chi2_red)
+          print *, 'The best chain is', good_chain(0), &
+          'with chi2_red =', chi2_red(good_chain(0))
         end if
 
         if ( j > maxi ) then
@@ -486,12 +494,8 @@ implicit none
     !I checked covergence
 
     end if
-  !if ( mod(j,thin_factor) == 0 ) then
-  !  print *,'iter',j,'min red_chi2 =', minval(chi2_red), minloc(chi2_red)
-  !end if
-  j = j + 1
 
- !stop
+  j = j + 1
 
 end do
 

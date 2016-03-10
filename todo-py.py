@@ -20,10 +20,10 @@ import sys
 #				P  -> planet orbital period (days)
 #output: x -> vector with the scaled values (days)
 #-----------------------------------------------------------
-def scale_period(jd,T0,P):
+def scale_period(jd,Tp,P):
   x = [None]*len(jd)
   for i in range(len(jd)):
-    x[i] = ( ( jd[i] - T0 ) % P ) /  P
+    x[i] = ( ( jd[i] - Tp ) % P ) /  P
   return x
 
 #-----------------------------------------------------------
@@ -212,6 +212,7 @@ def plot_rv():
 
   p_rv = scale_period(rvx,t0_val,P_val)
   p_all = [None]*nt
+  #tp_val = pti.find_tp(t0_val,e_val,w_val,P_val)
   for i in range(0,nt):
     p_all[i] = scale_period(time_all[i],t0_val,P_val)
 
