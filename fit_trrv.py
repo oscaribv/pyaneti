@@ -103,7 +103,7 @@ if (fit_tr):
 
 	tls = [None]*ntr
 
-	tls[0] = [3217.,3218.]
+	tls[0] = [3217,3218]
 	tls[1] = [3232.1,3233.1]
 
 	#crash if you do not have more than one transit
@@ -200,8 +200,12 @@ elif ( not fit_rv and fit_tr ):
 	params = [T0,P,e,w,ii,a,u1,u2,pz]
 
 	#Call fit routine
-	pti.metropolis_hastings_tr(megax, megay, megae,  \
-	params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+	#pti.metropolis_hastings_tr(megax, megay, megae,  \
+	#params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+
+	nwalkers = 2 * len(params)
+	pti.stretch_move_tr(megax, megay, megae,  \
+	params, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
 	#Read the data
 	vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
