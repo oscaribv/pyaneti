@@ -333,7 +333,7 @@ implicit none
   integer, intent(in), dimension(0:datas-1)  :: tlab
   double precision, intent(inout), dimension(0:4+nt) :: params
   !f2py intent(in,out)  :: params
-  double precision, intent(in), dimension(0:5) :: wtf
+  integer, intent(in), dimension(0:5) :: wtf
   double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
 !Local variables
@@ -342,8 +342,9 @@ implicit none
   double precision, dimension(0:4+nt,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: esin, ecos, nu, aa, chi2_red_min
-  integer :: j, n, nk, n_burn, spar, new_thin_factor,good_chain(0:nwalks-1)
+  double precision, dimension(0:4+nt) :: wtf_all
+  double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
+  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain(0:nwalks-1)
   logical :: get_out, is_burn
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand, r_real
@@ -363,6 +364,9 @@ implicit none
   if ( flag(2) ) params(4) = log10(params(4))
   if ( flag(3) ) params(5:4+nt) = log10(params(5:4+nt))
 
+  wtf_all(0:4) = wtf(0:4)
+  wtf_all(5:4+nt) = wtf(5)
+
   !Call a random seed 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -372,7 +376,7 @@ implicit none
   !I am not sure it this works, it is just a test
   r_real = ( r_real - 0.5 ) * 2.0
   do j = 0, nwalks - 1
-    params_old(:,j) = params * ( 1 + wtf * r_real(j) / nwalks ) 
+    params_old(:,j) = params * ( 1 + wtf_all*r_real(j)*0.01 ) 
     !Let us estimate our first chi_2 value
     call find_chi2_rv(xd,yd,errs,tlab,params_old(:,j),flag,chi2_old(j),ics,datas,nt)
   end do
@@ -429,7 +433,7 @@ implicit none
       call find_gz(z_rand(nk),aa) 
     
       !Now we can have the evolved walker
-      params_new(:,nk) = params_new(:,nk) + wtf(:) * z_rand(nk) * &
+      params_new(:,nk) = params_new(:,nk) + wtf_all * z_rand(nk) * &
                        ( params_old(:,nk) - params_new(:,nk) )
 
       !Obtain the new chi square 
@@ -455,15 +459,17 @@ implicit none
 
     end do
 
-     if ( is_burn ) n_burn = n_burn + 1
+     if ( is_burn .and. mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
      if ( n_burn > nconv ) get_out = .false.
 
     !chi2_red_min = minval(chi2_red)   
-    chi2_red_min = minval(chi2_red)
 
     !Save the data each thin_factor iteration
     if ( mod(j,thin_factor) == 0 .and. .not. is_burn ) then
-      print *, 'iter ',j,', Chi2_red =', chi2_red_min
+
+      good_chain = minloc(chi2_red)
+      chi2_red_min = minval(chi2_red)
+      print *, 'iter ',j,', Chi2_red =', chi2_red_min, good_chain(0)
       !Check convergence here
       chi2_vec(n) = chi2_red_min
       x_vec(n) = n
@@ -480,7 +486,6 @@ implicit none
           print *, 'Starting burning-in phase'
           is_burn = .True.
           new_thin_factor = 10
-          good_chain = minloc(chi2_red)
           print *, 'The best chain is', good_chain(0), &
           'with chi2_red =', chi2_red(good_chain(0))
         end if
