@@ -343,7 +343,7 @@ implicit none
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
   double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
-  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain(0:nwalks-1)
+  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain
   logical :: get_out, is_burn
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand, r_real
@@ -447,57 +447,61 @@ implicit none
       chi2_red(nk) = chi2_old(nk) / nu
 
       !Start to burn-in 
-      if ( is_burn .and. mod(j,new_thin_factor) == 0 .and. nk == good_chain(0) ) then
-          write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
-          print *, n_burn, chi2_red(nk)
+      if ( is_burn ) then
+        if ( mod(j,new_thin_factor) == 0 ) then
+          if ( nk == good_chain ) write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
+        end if
       end if
       !End burn-in
 
     end do
 
-     if ( is_burn ) n_burn = n_burn + 1
-     if ( n_burn > nconv ) get_out = .false.
+     if ( is_burn ) then
+        if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
+        if ( n_burn > nconv ) get_out = .false.
+     end if
 
-    !chi2_red_min = minval(chi2_red)   
     chi2_red_min = minval(chi2_red)
 
     !Save the data each thin_factor iteration
-    if ( mod(j,thin_factor) == 0 .and. .not. is_burn ) then
-      print *, 'iter ',j,', Chi2_red =', chi2_red_min
-      !Check convergence here
-      chi2_vec(n) = chi2_red_min
-      x_vec(n) = n
-      n = n + 1
+    if ( .not. is_burn ) then
+      if ( mod(j,thin_factor) == 0 ) then
 
-      if ( n == size(chi2_vec) ) then
+        print *, 'iter ',j,', Chi2_red =', chi2_red_min
+        !Check convergence here
+        chi2_vec(n) = chi2_red_min
+        x_vec(n) = n
+        n = n + 1
 
-        call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
-        n = 0
-        !If chi2_red has not changed the last nconv iterations
-        print *, abs(chi2_slope), toler_slope / (chi2_y)
-        if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
-          print *, 'THE CHAIN HAS CONVERGED'
-          print *, 'Starting burning-in phase'
-          is_burn = .True.
-          new_thin_factor = 10
-          good_chain = minloc(chi2_red)
-          print *, 'The best chain is', good_chain(0), &
-          'with chi2_red =', chi2_red(good_chain(0))
+        if ( n == size(chi2_vec) ) then
+
+          call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
+          n = 0
+          !If chi2_red has not changed the last nconv iterations
+          print *, abs(chi2_slope), toler_slope / (chi2_y)
+          if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
+            print *, 'THE CHAIN HAS CONVERGED'
+            print *, 'Starting burning-in phase'
+            is_burn = .True.
+            new_thin_factor = 10
+            good_chain = minloc(chi2_red,dim=1) - 1
+            print *, 'The best chain is', good_chain, &
+            'with chi2_red =', chi2_red(good_chain)
+          end if
+
+          if ( j > maxi ) then
+            print *, 'Maximum number of iteration reached!'
+            get_out = .FALSE.
+          end if
+
         end if
-
-        if ( j > maxi ) then
-          print *, 'Maximum number of iteration reached!'
-          get_out = .FALSE.
-        end if
-
+      !I checked covergence
       end if
-    !I checked covergence
-
     end if
 
   j = j + 1
 
-end do
+  end do
 
   close(101)
 
