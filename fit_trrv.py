@@ -177,6 +177,10 @@ if (fit_rv and fit_tr ):
 	#pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab \
 	#,megax, megay, megae, params, prec, maxi, thin_factor, \
 	#is_circular, what_fit, flag, nconv)
+	nwalkers = int(10*len(params))
+	pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
+	,megax, megay, megae, params,nwalkers, prec, maxi, thin_factor, \
+	is_circular, what_fit, flag, nconv)
 
 	#Read the data
 	vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko =  \
@@ -203,7 +207,7 @@ elif ( not fit_rv and fit_tr ):
 	#pti.metropolis_hastings_tr(megax, megay, megae,  \
 	#params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
-	nwalkers = 2 * len(params)
+	nwalkers = 10 * len(params)
 	pti.stretch_move_tr(megax, megay, megae,  \
 	params, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 

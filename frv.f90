@@ -342,8 +342,8 @@ implicit none
   double precision, dimension(0:4+nt,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
-  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain(0:nwalks-1)
+  double precision  :: esin, ecos, nu, aa, chi2_red_min
+  integer :: j, n, nk, n_burn, spar, new_thin_factor,good_chain(0:nwalks-1)
   logical :: get_out, is_burn
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand, r_real
@@ -372,7 +372,7 @@ implicit none
   !I am not sure it this works, it is just a test
   r_real = ( r_real - 0.5 ) * 2.0
   do j = 0, nwalks - 1
-    params_old(:,j) = params * ( 1 + r_real(j)*0.01 ) 
+    params_old(:,j) = params * ( 1 + wtf * r_real(j) / nwalks ) 
     !Let us estimate our first chi_2 value
     call find_chi2_rv(xd,yd,errs,tlab,params_old(:,j),flag,chi2_old(j),ics,datas,nt)
   end do
@@ -429,7 +429,7 @@ implicit none
       call find_gz(z_rand(nk),aa) 
     
       !Now we can have the evolved walker
-      params_new(:,nk) = params_new(:,nk) + z_rand(nk) * &
+      params_new(:,nk) = params_new(:,nk) + wtf(:) * z_rand(nk) * &
                        ( params_old(:,nk) - params_new(:,nk) )
 
       !Obtain the new chi square 
