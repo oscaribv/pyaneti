@@ -346,7 +346,7 @@ implicit none
   integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain
   logical :: get_out, is_burn
   !Let us add a plus random generator
-  double precision, dimension(0:nwalks-1) :: r_rand, z_rand, r_real
+  double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   integer, dimension(0:nwalks-1) :: r_int
 !external calls
   external :: init_random_seed, find_chi2_rv
@@ -367,12 +367,12 @@ implicit none
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
 
-  call random_number(r_real)
+  call random_number(r_rand)
   !Let us initinate all the walkers with the priors
   !I am not sure it this works, it is just a test
-  r_real = ( r_real - 0.5 ) * 2.0
+  r_rand = ( r_rand - 0.5 ) * 2.0
   do j = 0, nwalks - 1
-    params_old(:,j) = params * ( 1 + r_real(j)*0.01 ) 
+    params_old(:,j) = params * ( 1. + (real(j)/nwalks) * r_rand(j)*0.01 ) 
     !Let us estimate our first chi_2 value
     call find_chi2_rv(xd,yd,errs,tlab,params_old(:,j),flag,chi2_old(j),ics,datas,nt)
   end do
@@ -414,11 +414,7 @@ implicit none
 
     call random_number(z_rand)
     call random_number(r_rand)
-    call random_number(r_real)
-    !We have to add one and then extract one
-    !In this way r_int can be also zero
-    r_int = int( r_real * (nwalks + 1 ) )
-    r_int = r_int - 1
+    call random_int(r_int,nwalks)
 
     do nk = 0, nwalks - 1
     !Draw the random walker nk, from the complemetary walkers

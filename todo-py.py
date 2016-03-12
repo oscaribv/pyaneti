@@ -216,10 +216,11 @@ def plot_rv():
   for i in range(0,nt):
     p_all[i] = scale_period(time_all[i],t0_val,P_val)
 
-  plt.figure(3,figsize=(10,10))
+  plt.figure(3,figsize=(10,20))
   plt.subplot(311)
   plt.xlabel("Phase")
   plt.ylabel(ylab)
+  plt.ylim(-1.4*k_val,1.4*k_val)
   plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k_val ))
   mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
   for i in range(0,nt):

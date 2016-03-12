@@ -187,18 +187,33 @@ implicit none
   !f2py itent(in,out) :: z
   double precision, intent(in) :: a
 
-  !print *, z, a
-
-  !print *, ( z >= (1/a) )
-
   if ( z >= 1./ a .and. z <= a ) then
     z = 1. / sqrt(z)
-    !print *, 1/a, a
   else
     z = 0.0
   end if
 
-  !print *, z
-  !print *, ''
+
+end subroutine
+
+
+!Subroutine to create random integers between 0 and n
+subroutine random_int(r_int,n)
+implicit none
+
+  !In/Out variables
+  integer, intent(in) :: n
+  integer, intent(out), dimension(0:n-1) :: r_int
+  !Local variables
+  real :: r_real
+  integer :: i
+
+  do i = 0, n - 1
+    r_int(i) = i
+    do while ( r_int(i) == i )
+    call random_number(r_real)
+    r_int = int( r_real * ( n + 1 ) ) - 1
+    end do
+  end do
 
 end subroutine
