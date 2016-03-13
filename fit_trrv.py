@@ -220,15 +220,39 @@ elif ( fit_rv and not fit_tr ):
 					    int(fit_k), int(fit_v0)]
 	dummy = [T0,P,e,w,k0]
 	params = np.concatenate((dummy,v0))
+
+	min_t0	= T0-50
+	max_t0 	= T0+50
+	min_P	 	= 13
+	max_P	 	= 16
+	min_e		= 1.e-8		
+	max_e		= 0.5
+	min_w		= 0.0
+	max_w		= 2*np.pi
+	min_k		= 5
+	max_k		= 20
+	min_rv0	= 30
+	max_rv0 = 70
+
+	vec_rv0_limits = []
+	for m in range(0,nt):
+		vec_rv0_limits.append(min_rv0) 
+		vec_rv0_limits.append(max_rv0) 
+
+	dummy_lims = \
+	[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
+		, min_k, max_k]
+
+	limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
 	
 	#Call fit routine
 	#pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
   #params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
-	nwalkers = 10 * len(params)
+	nwalkers = 20 * len(params)
 
 	pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-  params, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+  params, limits, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 	#Read the data
 	vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
 	np.loadtxt('mh_rvfit.dat', comments='#', unpack=True,\

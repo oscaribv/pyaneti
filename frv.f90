@@ -324,15 +324,17 @@ end subroutine
 !-------------------------------------------------------
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,params,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt)
+subroutine stretch_move_rv(xd,yd,errs,tlab,params,limits,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1)  :: tlab
-  double precision, intent(inout), dimension(0:4+nt) :: params
+  double precision, intent(inout), dimension(0:5+nt-1) :: params
   !f2py intent(in,out)  :: params
+  double precision, intent(inout), dimension(0:2*(5+nt)-1) :: limits
+  !f2py intent(in,out)  :: limits
   double precision, intent(in), dimension(0:5) :: wtf
   double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
@@ -344,24 +346,43 @@ implicit none
   double precision  :: q, chi2_y, chi2_slope, toler_slope
   double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
   integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain
-  logical :: get_out, is_burn
+  logical :: get_out, is_burn, is_limit_good
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   integer, dimension(0:nwalks-1) :: r_int
+  real :: r_real
 !external calls
   external :: init_random_seed, find_chi2_rv
 
   spar = size(params)
 
-  if ( flag(0) ) params(1) = log10(params(1))
+  !Period
+  if ( flag(0) )  then
+    params(1) = log10(params(1))
+    limits(2) = log10(limits(2))
+    limits(3) = log10(limits(3))
+  end if
+  ! e and w
   if ( flag(1) ) then
     esin = sqrt(params(2)) * dsin(params(3))
     ecos = sqrt(params(2)) * dcos(params(3))
     params(2) = esin
     params(3) = ecos
+    limits(4) = -1.0
+    limits(5) = 1.0
+    limits(6) = -1.0
+    limits(7) = 1.0
   end if
-  if ( flag(2) ) params(4) = log10(params(4))
-  if ( flag(3) ) params(5:4+nt) = log10(params(5:4+nt))
+  !k
+  if ( flag(2) ) then
+    params(4) = log10(params(4))
+    limits(8:9) = log10(limits(8:9))
+  end if
+  !rv0's
+  if ( flag(3) ) then
+    params(5:4+nt) = log10(params(5:4+nt))
+    limits(10:2*(5+nt)-1) = log10(limits(10:2*(5+nt)-1))
+  end if
 
   !Call a random seed 
   print *, 'CREATING RANDOM SEED'
@@ -371,10 +392,24 @@ implicit none
   !Let us initinate all the walkers with the priors
   !I am not sure it this works, it is just a test
   r_rand = ( r_rand - 0.5 ) * 2.0
-  do j = 0, nwalks - 1
-    params_old(:,j) = params * ( 1. + (real(j)/nwalks) * r_rand(j)*0.01 ) 
+
+  !Let us create uniformative random priors
+
+  print *, 'CREATING RANDOM UNIFORMATIVE PRIORS'
+  do nk = 0, nwalks - 1
+    !params_old(:,j) = params * ( 1. + (real(j)/nwalks) * r_rand(j)*0.01 ) 
+
+    j = 0
+    do n = 0, 4 + nt
+      call random_number(r_real)
+      params_old(n,nk) = limits(j+1) - limits(j)
+      params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
+      print *, params_old(n,nk), limits(j), limits(j+1)
+      j = j + 2
+    end do
+
     !Let us estimate our first chi_2 value
-    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,j),flag,chi2_old(j),ics,datas,nt)
+    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,nk),flag,chi2_old(nk),ics,datas,nt)
   end do
   
 
@@ -386,7 +421,7 @@ implicit none
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', chi2_red(0),'nu =', nu
+  print *, 'Initial Chi2_red= ', minval(chi2_red),'nu =', nu
 
   !Let us start the otput file
   open(unit=101,file='mh_rvfit.dat',status='unknown')
@@ -407,11 +442,6 @@ implicit none
   do while ( get_out )
 
     !Do the work for all the walkers
-
-    !--------------------------------------------
-    !AVOID THAT r_int(nk) is equal to nk
-    !--------------------------------------------
-
     call random_number(z_rand)
     call random_number(r_rand)
     call random_int(r_int,nwalks)
@@ -428,8 +458,16 @@ implicit none
       params_new(:,nk) = params_new(:,nk) + z_rand(nk) * &
                        ( params_old(:,nk) - params_new(:,nk) )
 
-      !Obtain the new chi square 
-      call find_chi2_rv(xd,yd,errs,tlab,params_new(:,nk),flag,chi2_new(nk),ics,datas,nt)
+      !Let us check the limits
+      call check_limits(params_new(:,nk),limits, &
+      is_limit_good,4+nt)
+      if ( is_limit_good ) then !evaluate chi2
+        !Obtain the new chi square 
+        call find_chi2_rv(xd,yd,errs,tlab,params_new(:,nk),flag,chi2_new(nk),ics,datas,nt)
+      else !we do not have a good model
+        chi2_new(nk) = huge(dble(0.0))
+        !print *, 'I almost collapse!'
+      end if
 
       !Is the new model better? 
       q = z_rand(nk)**( spar - 1.) * &
@@ -493,6 +531,7 @@ implicit none
         end if
       !I checked covergence
       end if
+
     end if
 
   j = j + 1
