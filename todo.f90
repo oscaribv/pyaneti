@@ -217,3 +217,29 @@ implicit none
   end do
 
 end subroutine
+
+
+!Subroutine to check the limits of the parameters
+subroutine check_limits(params,limits,is_true,npar)
+implicit none
+
+  !In/Out variables
+  integer, intent(in) :: npar
+  double precision, intent(in) :: params(0:npar-1), &
+                                  limits(0:2*npar-1)
+  logical, intent(out) :: is_true
+  !Local variables
+  integer :: i, j
+
+  is_true = .true.
+  j = 0
+  do i = 0, npar - 1
+    if ( params(i) < limits(j) .or. &
+         params(i) > limits(j+1) ) then
+      is_true = .false.
+      exit
+    end if
+    j = j + 2
+  end do
+
+end subroutine
