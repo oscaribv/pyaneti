@@ -335,7 +335,7 @@ implicit none
   !f2py intent(in,out)  :: params
   double precision, intent(inout), dimension(0:2*(5+nt)-1) :: limits
   !f2py intent(in,out)  :: limits
-  double precision, intent(in), dimension(0:5) :: wtf
+  integer, intent(in), dimension(0:5) :: wtf
   double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
 !Local variables
@@ -350,9 +350,14 @@ implicit none
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   integer, dimension(0:nwalks-1) :: r_int
+  integer, dimension(0:5+nt-1) :: wtf_all 
   real :: r_real
 !external calls
   external :: init_random_seed, find_chi2_rv
+
+  !What are we going to fit?
+  wtf_all(0:4) = wtf(0:4)
+  wtf_all(5:5+nt-1) = wtf(5)
 
   spar = size(params)
 
@@ -401,9 +406,13 @@ implicit none
 
     j = 0
     do n = 0, 4 + nt
-      call random_number(r_real)
-      params_old(n,nk) = limits(j+1) - limits(j)
-      params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
+      if ( wtf_all(n) == 0 ) then
+        params_old(n,nk) = params(n)
+      else
+        call random_number(r_real)
+        params_old(n,nk) = limits(j+1) - limits(j)
+        params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
+      end if
       print *, params_old(n,nk), limits(j), limits(j+1)
       j = j + 2
     end do
@@ -455,7 +464,7 @@ implicit none
       call find_gz(z_rand(nk),aa) 
     
       !Now we can have the evolved walker
-      params_new(:,nk) = params_new(:,nk) + z_rand(nk) * &
+      params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
                        ( params_old(:,nk) - params_new(:,nk) )
 
       !Let us check the limits
