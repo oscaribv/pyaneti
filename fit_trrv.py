@@ -197,11 +197,41 @@ elif ( not fit_rv and fit_tr ):
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
               int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),\
             int(fit_pz)]
+
 	params = [T0,P,e,w,ii,a,u1,u2,pz]
 
 	#Call fit routine
-	pti.metropolis_hastings_tr(megax, megay, megae,  \
-	params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+	#pti.metropolis_hastings_tr(megax, megay, megae,  \
+	#params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+
+	min_t0	= min(xt[0])
+	max_t0 	= max(xt[0])
+	min_P	 	= 13.
+	max_P	 	= 16.
+	min_e		= 1.e-8		
+	max_e		= 0.5
+	min_w		= 0.0
+	max_w		= 2*np.pi
+	min_i		= 0.
+	max_i		= 1*np.pi
+	min_a		= 5.0
+	max_a		= 20.0
+	min_u1	= 0.0
+	max_u1	= 0.5
+	min_u2	= 0.0
+	max_u2	= 0.5
+	min_pz	= 1e-3
+	max_pz	= 0.5
+
+	limits = \
+	[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
+		, min_i, max_i, min_a, max_a, min_u1, max_u1, \
+		min_u2, max_u2, min_pz, max_pz]
+
+	nwalks = 20*len(params)
+	
+	pti.stretch_move_tr(megax, megay, megae,  \
+	params,limits, nwalks, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
 	#Read the data
 	vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
