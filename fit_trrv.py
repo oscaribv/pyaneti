@@ -178,6 +178,47 @@ if (fit_rv and fit_tr ):
 	#,megax, megay, megae, params, prec, maxi, thin_factor, \
 	#is_circular, what_fit, flag, nconv)
 
+	min_t0	= min(xt[0])
+	max_t0 	= max(xt[0])
+	min_P	 	= 13.
+	max_P	 	= 16.
+	min_e		= 1.e-8		
+	max_e		= 0.5
+	min_w		= 0.0
+	max_w		= 2*np.pi
+	min_i		= 0.
+	max_i		= np.pi / 2.0
+	min_a		= 5.0
+	max_a		= 20.0
+	min_u1	= 0.0
+	max_u1	= 0.5
+	min_u2	= 0.0
+	max_u2	= 0.5
+	min_pz	= 1e-3
+	max_pz	= 0.5
+	min_k		= 5
+	max_k		= 20
+	min_rv0	= 30
+	max_rv0 = 70
+
+	vec_rv0_limits = []
+	for m in range(0,nt):
+		vec_rv0_limits.append(min_rv0) 
+		vec_rv0_limits.append(max_rv0) 
+
+	dummy_lims = \
+	[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
+		, min_i, max_i, min_a, max_a, min_u1, max_u1, min_u2, \
+		max_u2, min_pz, max_pz, min_k, max_k]
+
+	limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
+	
+	nwalks = 20*len(params)
+
+	pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
+	,megax, megay, megae, params,limits, nwalks, prec, maxi, thin_factor, \
+	is_circular, what_fit, flag, nconv)
+
 	#Read the data
 	vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko =  \
 	np.loadtxt('mh_fit.dat', comments='#',unpack=True, \
@@ -251,18 +292,18 @@ elif ( fit_rv and not fit_tr ):
 	dummy = [T0,P,e,w,k0]
 	params = np.concatenate((dummy,v0))
 
-	min_t0	= T0-50
-	max_t0 	= T0+50
-	min_P	 	= 13
-	max_P	 	= 16
-	min_e		= 1.e-8		
-	max_e		= 0.5
+	min_t0	= 6812.
+	max_t0 	= 6820.
+	min_P	 	= 7.5
+	max_P	 	= 8.5
+	min_e		= 1.e-10		
+	max_e		= 0.999
 	min_w		= 0.0
 	max_w		= 2*np.pi
-	min_k		= 5
-	max_k		= 20
-	min_rv0	= 30
-	max_rv0 = 70
+	min_k		= 0.00001
+	max_k		= 2.0
+	min_rv0	= 1.
+	max_rv0 = 10.
 
 	vec_rv0_limits = []
 	for m in range(0,nt):

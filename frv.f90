@@ -551,3 +551,264 @@ implicit none
 
 end subroutine
 
+
+!-----------------------------------------------------------
+subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params, &
+limits,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,drv,dtr,nt)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: nwalks, maxi, thin_factor, drv, dtr, nt, nconv
+  double precision, intent(in), dimension(0:drv-1)  :: xd_rv, yd_rv, errs_rv
+  double precision, intent(in), dimension(0:dtr-1)  :: xd_tr, yd_tr, errs_tr
+  integer, intent(in), dimension(0:drv-1)  :: tlab
+  double precision, intent(inout), dimension(0:10+nt-1) :: params
+  !f2py intent(in,out)  :: params
+  double precision, intent(inout), dimension(0:2*(10+nt)-1) :: limits
+  !f2py intent(in,out)  :: limits
+  integer, intent(in), dimension(0:10) :: wtf
+  double precision, intent(in)  :: prec
+  logical, intent(in) :: ics, flag(0:5)
+!Local variables
+  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, dimension(0:nwalks-1) :: chi2_old_rv, &
+  chi2_new_rv, chi2_old_tr, chi2_new_tr, &
+  chi2_old_total, chi2_new_total, chi2_red
+  double precision, dimension(0:4+nt) :: params_rv
+  double precision, dimension(0:8) :: params_tr
+  double precision, dimension(0:10+nt-1,0:nwalks-1) :: params_old, params_new
+  double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
+  double precision  :: q, chi2_y, chi2_slope, toler_slope
+  double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
+  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain
+  logical :: get_out, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3)
+  !Let us add a plus random generator
+  double precision, dimension(0:nwalks-1) :: r_rand, z_rand
+  integer, dimension(0:nwalks-1) :: r_int
+  integer, dimension(0:10+nt-1) :: wtf_all 
+  real :: r_real
+!external calls
+  external :: init_random_seed, find_chi2_rv
+
+  !What are we going to fit?
+  wtf_all(0:9) = wtf(0:9)
+  wtf_all(10:10+nt-1) = wtf(10)
+
+  flag_tr(:) = flag(0:3)
+  flag_rv(0:1) = flag(0:1)
+  flag_rv(2:3) = flag(4:5)
+
+  spar = size(params)
+
+  !Period
+  if ( flag(0) )  then
+    params(1) = log10(params(1))
+    limits(2) = log10(limits(2))
+    limits(3) = log10(limits(3))
+  end if
+  ! e and w
+  if ( flag(1) ) then
+    esin = sqrt(params(2)) * dsin(params(3))
+    ecos = sqrt(params(2)) * dcos(params(3))
+    params(2) = esin
+    params(3) = ecos
+    limits(4) = -1.0
+    limits(5) = 1.0
+    limits(6) = -1.0
+    limits(7) = 1.0
+  end if
+ !i
+  if ( flag(2) ) then
+    params(4) = sin(params(4))
+    limits(8:9) = sin(limits(8:9))
+  end if
+  !a = rp/r*
+  if ( flag(3) ) then
+    params(5) = log10(params(5))
+    limits(10:11) = log10(limits(10:11))
+  end if
+  !k
+  if ( flag(4) ) then
+    params(9) = log10(params(9))
+    limits(18:19) = log10(limits(18:19))
+  end if
+  !rv0's
+  if ( flag(5) ) then
+    params(10:10+nt-1) = log10(params(10:10+nt-1))
+    limits(20:2*(10+nt)-1) = log10(limits(20:2*(10+nt)-1))
+  end if
+
+  !Call a random seed 
+  print *, 'CREATING RANDOM SEED'
+  call init_random_seed()
+
+  call random_number(r_rand)
+  !Let us initinate all the walkers with the priors
+  !I am not sure it this works, it is just a test
+  r_rand = ( r_rand - 0.5 ) * 2.0
+
+  !Let us create uniformative random priors
+
+  print *, 'CREATING RANDOM UNIFORMATIVE PRIORS'
+  do nk = 0, nwalks - 1
+    !params_old(:,j) = params * ( 1. + (real(j)/nwalks) * r_rand(j)*0.01 ) 
+
+    j = 0
+    do n = 0, 10 + nt - 1
+      if ( wtf_all(n) == 0 ) then
+        params_old(n,nk) = params(n)
+      else
+        call random_number(r_real)
+        params_old(n,nk) = limits(j+1) - limits(j)
+        params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
+      end if
+      print *, params_old(n,nk), limits(j), limits(j+1)
+      j = j + 2
+    end do
+
+    params_tr = params_old(0:8,nk)
+    params_rv(0:3) = params_old(0:3,nk)
+    params_rv(4:4+nt) = params_old(9:9+nt,nk)
+    !Find the chi2 for each case
+    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_old_tr(nk),ics,dtr)
+    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),ics,drv,nt)
+
+  end do
+
+  chi2_old_total(:) = chi2_old_tr(:) + chi2_old_rv(:)
+
+  !Calculate the degrees of freedom
+  nu = dble( drv + dtr - spar)
+  !If we are fixing a circular orbit, ec and w are not used 
+  if ( ics ) nu = nu + 2 
+  chi2_red(:) = chi2_old_total(:) / nu
+  !Print the initial cofiguration
+  print *, ''
+  print *, 'Starting stretch move MCMC calculation'
+  print *, 'Initial Chi2_red= ', minval(chi2_red),'nu =', nu
+
+  !Let us start the otput file
+  open(unit=101,file='mh_fit.dat',status='unknown')
+  !Initialize the values
+
+  toler_slope = prec
+  j = 1
+  n = 0
+  get_out = .TRUE.
+  is_burn = .FALSE.
+
+  aa = 2.0
+  n_burn = 1
+
+  !The infinite cycle starts!
+  print *, 'STARTING INFINITE LOOP!'
+
+  do while ( get_out )
+
+    !Do the work for all the walkers
+    call random_number(z_rand)
+    call random_number(r_rand)
+    call random_int(r_int,nwalks)
+
+    do nk = 0, nwalks - 1
+    !Draw the random walker nk, from the complemetary walkers
+    !This definition does not avoid to copy the same k walker
+      params_new(:,nk) = params_old(:,r_int(nk))
+      !Let us generate a random step
+      z_rand(nk) = z_rand(nk) * aa ! a = 2 as suggested by emcee paper
+      call find_gz(z_rand(nk),aa) 
+    
+      !Now we can have the evolved walker
+      params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
+                       ( params_old(:,nk) - params_new(:,nk) )
+
+      !Let us check the limits
+      call check_limits(params_new(:,nk),limits, &
+      is_limit_good,4+nt)
+      if ( is_limit_good ) then !evaluate chi2
+        !Obtain the new chi square 
+ 	params_tr = params_new(0:8,nk)
+    	params_rv(0:3) = params_new(0:3,nk)
+        params_rv(4:4+nt) = params_new(9:9+nt,nk)
+        !Find the chi2 for each case
+        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_new_tr(nk),ics,dtr)
+        call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),ics,drv,nt)
+	chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
+      else !we do not have a good model
+        chi2_new_total(nk) = huge(dble(0.0))
+        !print *, 'I almost collapse!'
+      end if
+
+      !Is the new model better? 
+      q = z_rand(nk)**( spar - 1.) * &
+          exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
+
+      if ( q >= r_rand(nk) ) then
+        chi2_old_total(nk) = chi2_new_total(nk)
+        params_old(:,nk) = params_new(:,nk)
+      end if
+
+      chi2_red(nk) = chi2_old_total(nk) / nu
+
+      !Start to burn-in 
+      if ( is_burn ) then
+        if ( mod(j,new_thin_factor) == 0 ) then
+          if ( nk == good_chain ) write(101,*) n_burn, chi2_old_total(nk), chi2_red(nk), params_old(:,nk)
+        end if
+      end if
+      !End burn-in
+
+    end do
+
+     if ( is_burn ) then
+        if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
+        if ( n_burn > nconv ) get_out = .false.
+     end if
+
+    chi2_red_min = minval(chi2_red)
+
+    !Save the data each thin_factor iteration
+    if ( .not. is_burn ) then
+      if ( mod(j,thin_factor) == 0 ) then
+
+        print *, 'iter ',j,', Chi2_red =', chi2_red_min
+        !Check convergence here
+        chi2_vec(n) = chi2_red_min
+        x_vec(n) = n
+        n = n + 1
+
+        if ( n == size(chi2_vec) ) then
+
+          call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
+          n = 0
+          !If chi2_red has not changed the last nconv iterations
+          print *, abs(chi2_slope), toler_slope / (chi2_y)
+          if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
+            print *, 'THE CHAIN HAS CONVERGED'
+            print *, 'Starting burning-in phase'
+            is_burn = .True.
+            new_thin_factor = 10
+            good_chain = minloc(chi2_red,dim=1) - 1
+            print *, 'The best chain is', good_chain, &
+            'with chi2_red =', chi2_red(good_chain)
+          end if
+
+          if ( j > maxi ) then
+            print *, 'Maximum number of iteration reached!'
+            get_out = .FALSE.
+          end if
+
+        end if
+      !I checked covergence
+      end if
+
+    end if
+
+  j = j + 1
+
+  end do
+
+  close(101)
+
+end subroutine
+

@@ -1,5 +1,5 @@
 FP=f2py
-fc=gfortran
+fc=gnu95
 cc=unix 
 
 FLAGS= -c -m
