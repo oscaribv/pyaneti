@@ -437,8 +437,8 @@ implicit none
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
-  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain
+  double precision  :: esin, ecos, nu, aa, chi2_red_min
+  integer :: j, n, nk, n_burn, spar, new_thin_factor,good_chain
   logical :: get_out, is_burn, is_limit_good
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand

@@ -325,6 +325,7 @@ elif ( fit_rv and not fit_tr ):
 	pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
   params, limits, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 	#Read the data
+	nconv = nconv * (nwalkers-1)
 	vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
 	np.loadtxt('mh_rvfit.dat', comments='#', unpack=True,\
 	usecols=range(0,8))

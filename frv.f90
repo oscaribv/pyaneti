@@ -344,8 +344,8 @@ implicit none
   double precision, dimension(0:4+nt,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
-  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain
+  double precision  :: esin, ecos, nu, aa, chi2_red_min
+  integer :: j, n, nk, n_burn, spar, new_thin_factor,good_chain
   logical :: get_out, is_burn, is_limit_good
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
@@ -492,7 +492,9 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
-          if ( nk == good_chain ) write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
+        !if ( nk == good_chain ) 
+        write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
+        write(*,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
         end if
       end if
       !End burn-in
@@ -504,7 +506,8 @@ implicit none
         if ( n_burn > nconv ) get_out = .false.
      end if
 
-    chi2_red_min = minval(chi2_red)
+    !chi2_red_min = minval(chi2_red)
+    chi2_red_min = sum(chi2_red) / nwalks
 
     !Save the data each thin_factor iteration
     if ( .not. is_burn ) then
@@ -526,7 +529,7 @@ implicit none
             print *, 'THE CHAIN HAS CONVERGED'
             print *, 'Starting burning-in phase'
             is_burn = .True.
-            new_thin_factor = 10
+            new_thin_factor = 50
             good_chain = minloc(chi2_red,dim=1) - 1
             print *, 'The best chain is', good_chain, &
             'with chi2_red =', chi2_red(good_chain)
@@ -579,8 +582,8 @@ implicit none
   double precision, dimension(0:10+nt-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: prec_init, esin, ecos, nu, aa, chi2_red_min
-  integer :: j, n, nk, n_burn, spar, chi2_walker, new_thin_factor,good_chain
+  double precision  :: esin, ecos, nu, aa, chi2_red_min
+  integer :: j, n, nk, n_burn, spar, new_thin_factor,good_chain
   logical :: get_out, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3)
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
@@ -727,13 +730,13 @@ implicit none
       is_limit_good,4+nt)
       if ( is_limit_good ) then !evaluate chi2
         !Obtain the new chi square 
- 	params_tr = params_new(0:8,nk)
-    	params_rv(0:3) = params_new(0:3,nk)
+        params_tr = params_new(0:8,nk)
+        params_rv(0:3) = params_new(0:3,nk)
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
         !Find the chi2 for each case
         call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_new_tr(nk),ics,dtr)
         call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),ics,drv,nt)
-	chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
+        chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
       else !we do not have a good model
         chi2_new_total(nk) = huge(dble(0.0))
         !print *, 'I almost collapse!'
@@ -765,7 +768,8 @@ implicit none
         if ( n_burn > nconv ) get_out = .false.
      end if
 
-    chi2_red_min = minval(chi2_red)
+    !chi2_red_min = minval(chi2_red)
+    chi2_red_min = sum(chi2_red) / nwalks
 
     !Save the data each thin_factor iteration
     if ( .not. is_burn ) then
