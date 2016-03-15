@@ -325,21 +325,21 @@ end subroutine
 !-------------------------------------------------------
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,params,limits,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
+subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv, npl
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1)  :: tlab
-  double precision, intent(inout), dimension(0:5+nt-1,0:npl-1) :: params
-  !f2py intent(in,out)  :: params
-  double precision, intent(inout), dimension(0:2*(5+nt)-1,0:npl-1) :: limits
-  !f2py intent(in,out)  :: limits
-  integer, intent(in), dimension(0:5,0:npl-1) :: wtf
+  double precision, intent(in), dimension(0:npl*(5+nt)-1) :: pars
+  double precision, intent(in), dimension(0:2*npl*(5+nt)-1) :: lims
+  integer, intent(in), dimension(0:5*npl) :: wtf
   double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
 !Local variables
+  double precision, dimension(0:5+nt-1,0:npl-1) :: params
+  double precision, dimension(0:2*(5+nt)-1,0:npl-1) :: limits
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1) :: params_old, params_new
@@ -356,13 +356,17 @@ implicit none
 !external calls
   external :: init_random_seed, find_chi2_rv
 
-  !What are we going to fit?
+
+  !Let us convert all the big arrays to 
+  !matrix form 
   do m = 0, npl - 1
-    wtf_all(0:4,m) = wtf(0:4,m)
-    wtf_all(5:5+nt-1,m) = wtf(5,m)
+    params(:,m) = pars(m*(5+nt):(m+1)*(5+nt)-1)
+    limits(:,m) = lims(m*2*(5+nt):(m+1)*2*(5+nt)-1)
+    wtf_all(0:4,m) = wtf(m*4:(m+1)*4-1)
+    wtf_all(5:5+nt-1,m) = wtf(5*(m+1))
   end do
 
-  spar = size(params)
+  spar = sum(wtf_all)
 
   !Period
   if ( flag(0) )  then
