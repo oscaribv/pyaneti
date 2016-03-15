@@ -325,7 +325,8 @@ elif ( fit_rv and not fit_tr ):
 	nwalkers = 20 * len(params)
 
 	pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-  params, limits, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv, nplanets)
+  params, limits, nwalkers, prec, maxi, thin_factor, is_circular,\
+	 what_fit,flag,nconv,datas=len(mega_time),nt=nt,npl=nplanets)
 	#Read the data
 	#nconv = nconv * (nwalkers-1)
 	vari,chi2,chi2red,t0o,Po,eo,wo,ko = \

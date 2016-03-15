@@ -71,14 +71,14 @@ end subroutine
 !             + e * cos ( \omega ) ] $
 !  Where the parameters are the typical for a RV curve
 !------------------------------------------------------------
-subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,rv,ts,np)
+subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,rv,ts,npl)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: ts, np
+  integer, intent(in) :: ts, npl
   double precision, intent(in), dimension(0:ts-1)  :: t
   double precision, intent(out), dimension(0:ts-1) :: rv
-  double precision, intent(in), dimension(0:np-1) :: k, t0, P, e, w
+  double precision, intent(in), dimension(0:npl-1) :: k, t0, P, e, w
   !Here rv0 depends on the telescope systemic not the planets
   double precision :: rv0
 !Local variables
@@ -90,7 +90,7 @@ implicit none
 !
   !Calculate the mean anomaly from the input values
   rv(:) = rv0
-  do i = 0, np-1
+  do i = 0, npl-1
    !Obtain the eccentric anomaly by using find_anomaly
    call find_anomaly(t,t0,e(i),w(i),P(i),ta,delta,imax,ts)
    rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
@@ -114,18 +114,18 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2,isc,datas,nt,np)
+subroutine find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2,isc,datas,nt,npl)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, nt, np
+  integer, intent(in) :: datas, nt, npl
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1) :: tlab
-  double precision, intent(in), dimension(0:4+nt,0:np-1) :: params
+  double precision, intent(in), dimension(0:4+nt,0:npl-1) :: params
   logical, intent(in)  :: isc, flag(0:3)
   double precision, intent(out) :: chi2
 !Local variables
-  double precision, dimension(0:np-1) :: t0, P, e, w, k
+  double precision, dimension(0:npl-1) :: t0, P, e, w, k
   double precision, dimension(0:nt-1)  :: rv0
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:datas-1) :: model, res
@@ -149,7 +149,7 @@ implicit none
   if ( flag(3) ) rv0(:) = 10**params(5:4+nt,0)
 
   tel = 0
-  if ( np == 1 ) then
+  if ( npl == 1 ) then
 
     !If we want a circular fit, let us do it!
     if ( isc ) then
@@ -170,7 +170,7 @@ implicit none
 
     do i = 0, datas-1
       if ( tel .ne. tlab(i)  ) tel = tel + 1 
-      call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,np)
+      call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,npl)
     end do
 
   end if
@@ -325,69 +325,71 @@ end subroutine
 !-------------------------------------------------------
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,params,limits,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,np)
+subroutine stretch_move_rv(xd,yd,errs,tlab,params,limits,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv, np
+  integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv, npl
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1)  :: tlab
-  double precision, intent(inout), dimension(0:5+nt-1) :: params
+  double precision, intent(inout), dimension(0:5+nt-1,0:npl-1) :: params
   !f2py intent(in,out)  :: params
-  double precision, intent(inout), dimension(0:2*(5+nt)-1) :: limits
+  double precision, intent(inout), dimension(0:2*(5+nt)-1,0:npl-1) :: limits
   !f2py intent(in,out)  :: limits
-  integer, intent(in), dimension(0:5) :: wtf
+  integer, intent(in), dimension(0:5,0:npl-1) :: wtf
   double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
-  double precision, dimension(0:4+nt,0:nwalks-1) :: params_old, params_new
+  double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: esin, ecos, nu, aa, chi2_red_min
-  integer :: j, n, nk, n_burn, spar, new_thin_factor,good_chain
+  double precision  :: esin(0:npl-1), ecos(0:npl-1), nu, aa, chi2_red_min
+  integer :: m, j, n, nk, n_burn, spar, new_thin_factor,good_chain
   logical :: get_out, is_burn, is_limit_good
   !Let us add a plus random generator
-  double precision, dimension(0:nwalks-1) :: r_rand, z_rand
+  double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
-  integer, dimension(0:5+nt-1) :: wtf_all 
+  integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
   real :: r_real
 !external calls
   external :: init_random_seed, find_chi2_rv
 
   !What are we going to fit?
-  wtf_all(0:4) = wtf(0:4)
-  wtf_all(5:5+nt-1) = wtf(5)
+  do m = 0, npl - 1
+    wtf_all(0:4,m) = wtf(0:4,m)
+    wtf_all(5:5+nt-1,m) = wtf(5,m)
+  end do
 
   spar = size(params)
 
   !Period
   if ( flag(0) )  then
-    params(1) = log10(params(1))
-    limits(2) = log10(limits(2))
-    limits(3) = log10(limits(3))
+    params(1,:) = log10(params(1,:))
+    limits(2,:) = log10(limits(2,:))
+    limits(3,:) = log10(limits(3,:))
   end if
   ! e and w
   if ( flag(1) ) then
-    esin = sqrt(params(2)) * dsin(params(3))
-    ecos = sqrt(params(2)) * dcos(params(3))
-    params(2) = esin
-    params(3) = ecos
-    limits(4) = -1.0
-    limits(5) = 1.0
-    limits(6) = -1.0
-    limits(7) = 1.0
+    esin(:) = sqrt(params(2,:)) * dsin(params(3,:))
+    ecos(:) = sqrt(params(2,:)) * dcos(params(3,:))
+    params(2,:) = esin
+    params(3,:) = ecos
+    limits(4,:) = -1.0
+    limits(5,:) = 1.0
+    limits(6,:) = -1.0
+    limits(7,:) = 1.0
   end if
   !k
   if ( flag(2) ) then
-    params(4) = log10(params(4))
-    limits(8:9) = log10(limits(8:9))
+    params(4,:) = log10(params(4,:))
+    limits(8:9,:) = log10(limits(8:9,:))
   end if
   !rv0's
   if ( flag(3) ) then
-    params(5:4+nt) = log10(params(5:4+nt))
-    limits(10:2*(5+nt)-1) = log10(limits(10:2*(5+nt)-1))
+    params(5:4+nt,:) = log10(params(5:4+nt,:))
+    limits(10:2*(5+nt)-1,:) = log10(limits(10:2*(5+nt)-1,:))
   end if
 
   !Call a random seed 
@@ -405,21 +407,32 @@ implicit none
   do nk = 0, nwalks - 1
     !params_old(:,j) = params * ( 1. + (real(j)/nwalks) * r_rand(j)*0.01 ) 
 
-    j = 0
-    do n = 0, 4 + nt
-      if ( wtf_all(n) == 0 ) then
-        params_old(n,nk) = params(n)
-      else
-        call random_number(r_real)
-        params_old(n,nk) = limits(j+1) - limits(j)
-        params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
-      end if
-      print *, params_old(n,nk), limits(j), limits(j+1)
-      j = j + 2
+    do m = 0, npl - 1
+
+      j = 0
+
+      do n = 0, 4 + nt
+
+        if ( wtf_all(n,m) == 0 ) then
+          params_old(n,m,nk) = params(n,m)
+        else
+          call random_number(r_real)
+          params_old(n,m,nk) = limits(j+1,m) - limits(j,m)
+          params_old(n,m,nk) = limits(j,m) + r_real*params_old(n,m,nk) 
+        end if
+        print *, params_old(n,m,nk), limits(j,m), limits(j+1,m)
+        j = j + 2
+
+      end do
+  
     end do
 
-    !Let us estimate our first chi_2 value
-    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,nk),flag,chi2_old(nk),ics,datas,nt,np)
+    !Each walker is a point in a parameter space
+    !Each point contains the information of all the planets
+
+    !Let us estimate our first chi_2 value for each walker
+    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,:,nk),flag,chi2_old(nk),ics,datas,nt,npl)
+
   end do
   
 
@@ -459,21 +472,29 @@ implicit none
     do nk = 0, nwalks - 1
     !Draw the random walker nk, from the complemetary walkers
     !This definition does not avoid to copy the same k walker
-      params_new(:,nk) = params_old(:,r_int(nk))
-      !Let us generate a random step
-      z_rand(nk) = z_rand(nk) * aa ! a = 2 as suggested by emcee paper
-      call find_gz(z_rand(nk),aa) 
+      do m = 0, npl - 1
+
+        params_new(:,m,nk) = params_old(:,m,r_int(nk))
+        !Let us generate a random step
+        z_rand(nk) = z_rand(nk) * aa ! a = 2 as suggested by emcee paper
+        call find_gz(z_rand(nk),aa) 
     
-      !Now we can have the evolved walker
-      params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
-                       ( params_old(:,nk) - params_new(:,nk) )
+        !Now we can have the evolved walker
+        params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
+                       ( params_old(:,m,nk) - params_new(:,m,nk) )
+
+      end do
 
       !Let us check the limits
-      call check_limits(params_new(:,nk),limits, &
-      is_limit_good,4+nt)
+      do m = 0, npl - 1
+        call check_limits(params_new(:,m,nk),limits(:,m), &
+        is_limit_good,4+nt)
+        if ( .not. is_limit_good ) exit
+      end do
+
       if ( is_limit_good ) then !evaluate chi2
         !Obtain the new chi square 
-        call find_chi2_rv(xd,yd,errs,tlab,params_new(:,nk),flag,chi2_new(nk),ics,datas,nt,np)
+        call find_chi2_rv(xd,yd,errs,tlab,params_new(:,:,nk),flag,chi2_new(nk),ics,datas,nt,npl)
       else !we do not have a good model
         chi2_new(nk) = huge(dble(0.0))
         !print *, 'I almost collapse!'
@@ -485,7 +506,7 @@ implicit none
 
       if ( q >= r_rand(nk) ) then
         chi2_old(nk) = chi2_new(nk)
-        params_old(:,nk) = params_new(:,nk)
+        params_old(:,:,nk) = params_new(:,:,nk)
       end if
 
       chi2_red(nk) = chi2_old(nk) / nu
@@ -493,9 +514,10 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
-        !if ( nk == good_chain ) 
-        write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
-        write(*,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
+        if ( nk == good_chain ) then 
+          write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,0,nk)
+          write(*,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,0,nk)
+        end if
         end if
       end if
       !End burn-in
@@ -507,8 +529,8 @@ implicit none
         if ( n_burn > nconv ) get_out = .false.
      end if
 
-    !chi2_red_min = minval(chi2_red)
-    chi2_red_min = sum(chi2_red) / nwalks
+    chi2_red_min = minval(chi2_red)
+    !chi2_red_min = sum(chi2_red) / nwalks
 
     !Save the data each thin_factor iteration
     if ( .not. is_burn ) then
