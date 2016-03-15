@@ -334,7 +334,7 @@ implicit none
   integer, intent(in), dimension(0:datas-1)  :: tlab
   double precision, intent(in), dimension(0:npl*(5+nt)-1) :: pars
   double precision, intent(in), dimension(0:2*npl*(5+nt)-1) :: lims
-  integer, intent(in), dimension(0:5*npl) :: wtf
+  integer, intent(in), dimension(0:6*npl-1) :: wtf
   double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
 !Local variables
@@ -362,7 +362,7 @@ implicit none
   do m = 0, npl - 1
     params(:,m) = pars(m*(5+nt):(m+1)*(5+nt)-1)
     limits(:,m) = lims(m*2*(5+nt):(m+1)*2*(5+nt)-1)
-    wtf_all(0:4,m) = wtf(m*4:(m+1)*4-1)
+    wtf_all(0:4,m) = wtf(m*6:(m+1)*4-1)
     wtf_all(5:5+nt-1,m) = wtf(5*(m+1))
   end do
 
