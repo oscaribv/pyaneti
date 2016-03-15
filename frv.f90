@@ -114,19 +114,18 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-!subroutine find_chi2_rv(xd,yd,errs,tlab,rv0,k,ec,w,t0,P,chi2,isc,datas,nt,np)
-subroutine find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2,isc,datas,nt)
+subroutine find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2,isc,datas,nt,np)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, nt
+  integer, intent(in) :: datas, nt, np
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1) :: tlab
-  double precision, intent(in), dimension(0:4+nt) :: params
+  double precision, intent(in), dimension(0:4+nt,0:np-1) :: params
   logical, intent(in)  :: isc, flag(0:3)
   double precision, intent(out) :: chi2
 !Local variables
-  double precision :: t0, P, e, w, k
+  double precision, dimension(0:np-1) :: t0, P, e, w, k
   double precision, dimension(0:nt-1)  :: rv0
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:datas-1) :: model, res
@@ -134,40 +133,45 @@ implicit none
 !External function
   external :: rv_circular, rv_curve
 
-  t0  = params(0)
-  P   = params(1)
-  e   = params(2)
-  w   = params(3)
-  k   = params(4)
-  rv0 = params(5:4+nt) 
+  t0(:)  = params(0,:)
+  P(:)   = params(1,:)
+  e(:)   = params(2,:)
+  w(:)   = params(3,:)
+  k(:)   = params(4,:)
+  rv0(:) = params(5:4+nt,0) 
 
-  if ( flag(0) ) P = 10**params(1)
+  if ( flag(0) ) P = 10**params(1,:)
   if ( flag(1) ) then
-    e = params(2) * params(2) + params(3) * params(3)
-    w = atan2( params(2),params(3) ) 
+    e(:) = params(2,:) * params(2,:) + params(3,:) * params(3,:)
+    w(:) = atan2( params(2,:),params(3,:) ) 
   end if
-  if ( flag(2) ) k = 10**params(4)
-  if ( flag(3) ) rv0(:) = 10**params(5:4+nt)
+  if ( flag(2) ) k(:) = 10**params(4,:)
+  if ( flag(3) ) rv0(:) = 10**params(5:4+nt,0)
 
   tel = 0
-  !If we want a circular fit, let us do it!
-  if ( isc ) then
-    do i = 0, datas-1
-      if ( tel .ne. tlab(i) ) tel = tel + 1 
-      call rv_circular(xd(i),rv0(tel),t0,k,P,model(i),1)
-    end do
-  !If we want an eccentric fit, let us do it!
-  else !if (np == 1) then
+  if ( np == 1 ) then
+
+    !If we want a circular fit, let us do it!
+    if ( isc ) then
+      do i = 0, datas-1
+        if ( tel .ne. tlab(i) ) tel = tel + 1 
+        call rv_circular(xd(i),rv0(tel),t0(0),k(0),P(0),model(i),1)
+      end do
+    !If we want an eccentric fit, let us do it!
+    else 
+      do i = 0, datas-1
+        if ( tel .ne. tlab(i)  ) tel = tel + 1 
+        call rv_curve(xd(i),rv0(tel),t0(0),k(0),P(0),e(0),w(0),model(i),1)
+      end do
+    end if
+
+  !Multiplanet fit
+  else
+
     do i = 0, datas-1
       if ( tel .ne. tlab(i)  ) tel = tel + 1 
-      call rv_curve(xd(i),rv0(tel),t0,k,P,e,w,model(i),1)
+      call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,np)
     end do
-  !Multiplanet fit
-!  else
-!    do i = 0, datas-1
-!      if ( tel .ne. tlab(i)  ) tel = tel + 1 
-!      call rv_curve_mp(xd(i),rv0(tel),t0,k,P,ec,w,model(i),1,np)
-!    end do
 
   end if
 
@@ -234,7 +238,7 @@ implicit none
   if ( flag(3) ) params(5:4+nt) = log10(params(5:4+nt))
 
   !Let us estimate our fist chi_2 value
-  call find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2_old,ics,datas,nt)
+  call find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2_old,ics,datas,nt,1)
   !Calculate the degrees of freedom
   nu = datas - size(params)
   !If we are fixing a circular orbit, ec and w are not used 
@@ -273,7 +277,7 @@ implicit none
     params_new(0:4)    = params(0:4)    + r(1:5)    * prec_init * wtf(0:4)
     params_new(5:4+nt) = params(5:4+nt) + r(6:5+nt) * prec_init * wtf(5)
     !Let us calculate our new chi2
-    call find_chi2_rv(xd,yd,errs,tlab,params_new,flag,chi2_new,ics,datas,nt)
+    call find_chi2_rv(xd,yd,errs,tlab,params_new,flag,chi2_new,ics,datas,nt,1)
     !Ratio between the models
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
     !If the new model is better, let us save it
@@ -321,11 +325,11 @@ end subroutine
 !-------------------------------------------------------
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,params,limits,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt)
+subroutine stretch_move_rv(xd,yd,errs,tlab,params,limits,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,np)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv
+  integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv, np
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1)  :: tlab
   double precision, intent(inout), dimension(0:5+nt-1) :: params
@@ -415,7 +419,7 @@ implicit none
     end do
 
     !Let us estimate our first chi_2 value
-    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,nk),flag,chi2_old(nk),ics,datas,nt)
+    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,nk),flag,chi2_old(nk),ics,datas,nt,np)
   end do
   
 
@@ -469,7 +473,7 @@ implicit none
       is_limit_good,4+nt)
       if ( is_limit_good ) then !evaluate chi2
         !Obtain the new chi square 
-        call find_chi2_rv(xd,yd,errs,tlab,params_new(:,nk),flag,chi2_new(nk),ics,datas,nt)
+        call find_chi2_rv(xd,yd,errs,tlab,params_new(:,nk),flag,chi2_new(nk),ics,datas,nt,np)
       else !we do not have a good model
         chi2_new(nk) = huge(dble(0.0))
         !print *, 'I almost collapse!'
@@ -671,7 +675,7 @@ implicit none
     params_rv(4:4+nt) = params_old(9:9+nt,nk)
     !Find the chi2 for each case
     call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_old_tr(nk),ics,dtr)
-    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),ics,drv,nt)
+    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),ics,drv,nt,1)
 
   end do
 
@@ -732,7 +736,7 @@ implicit none
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
         !Find the chi2 for each case
         call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_new_tr(nk),ics,dtr)
-        call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),ics,drv,nt)
+        call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),ics,drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
       else !we do not have a good model
         chi2_new_total(nk) = huge(dble(0.0))

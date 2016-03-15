@@ -315,6 +315,8 @@ elif ( fit_rv and not fit_tr ):
 		, min_k, max_k]
 
 	limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
+
+	nplanets = 1
 	
 	#Call fit routine
 	#pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
@@ -323,9 +325,9 @@ elif ( fit_rv and not fit_tr ):
 	nwalkers = 20 * len(params)
 
 	pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-  params, limits, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+  params, limits, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv, nplanets)
 	#Read the data
-	nconv = nconv * (nwalkers-1)
+	#nconv = nconv * (nwalkers-1)
 	vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
 	np.loadtxt('mh_rvfit.dat', comments='#', unpack=True,\
 	usecols=range(0,8))

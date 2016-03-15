@@ -332,7 +332,7 @@ implicit none
 
   !Let us estimate our fist chi_2 value
   call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_tr_old,ics,dtr)
-  call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_rv_old,ics,drv,ntl)
+  call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_rv_old,ics,drv,ntl,1)
   print *, chi2_rv_old, chi2_tr_old
   chi2_old_total = chi2_tr_old + chi2_rv_old
   !Calculate the degrees of freedom
@@ -371,7 +371,7 @@ implicit none
     params_rv_new(0:3) = params_new(0:3)
     params_rv_new(4:4+ntl) = params_new(9:9+ntl)
     call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr_new,flag_tr,chi2_tr_new,ics,dtr)
-    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv_new,flag_rv,chi2_rv_new,ics,drv,ntl)
+    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv_new,flag_rv,chi2_rv_new,ics,drv,ntl,1)
     chi2_new_total = chi2_tr_new + chi2_rv_new
     !Ratio between the models
     q = exp( ( chi2_old_total - chi2_new_total ) * 0.5  )
