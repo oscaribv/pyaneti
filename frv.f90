@@ -71,37 +71,34 @@ end subroutine
 !             + e * cos ( \omega ) ] $
 !  Where the parameters are the typical for a RV curve
 !------------------------------------------------------------
-!subroutine rv_curve_mp(t,rv0,t0,k,P,ec,w,rv,ts,np)
-!implicit none
+subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,rv,ts,np)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: ts, np
+  double precision, intent(in), dimension(0:ts-1)  :: t
+  double precision, intent(out), dimension(0:ts-1) :: rv
+  double precision, intent(in), dimension(0:np-1) :: k, t0, P, e, w
+  !Here rv0 depends on the telescope systemic not the planets
+  double precision :: rv0
+!Local variables
+  double precision, dimension(0:ts-1) :: ta
+  double precision :: delta = 1.e-7
+  integer :: imax = int(1e5), i
+!External function
+  external :: find_anomaly
 !
-!!In/Out variables
-!  integer, intent(in) :: ts, np
-!  double precision, intent(in), dimension(0:ts-1)  :: t
-!  double precision, intent(out), dimension(0:ts-1) :: rv
-!  double precision, intent(in), dimension(0:np-1) :: k, t0, P, ec, w
-!  !Here rv0 depends on the telescope systemic not the planets
-!  double precision :: rv0
-!!Local variables
-!!  double precision, parameter :: pi = 3.1415926535897932384626
-!  double precision, dimension(0:ts-1) :: ma, ta
-!  double precision :: delta = 1e-5
-!  integer :: imax, i
-!!External function
-!  external :: find_anomaly
-!!
-!  imax = int(1e5)
-!  !Calculate the mean anomaly from the input values
-!  rv(:) = rv0
-!  do i = 0, np-1
-!    ma(:) = mod(2.*pi*(t(:)-t0(i))/P(i),2.*pi)
-!!   !Obtain the eccentric anomaly by using find_anomaly
-!   call find_anomaly(ma(:),ta(:),ec(i),delta,imax,ts)
-!   rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + ec(i) * cos(w(i)) )
-!  end do
-!  
-!end subroutine
-!
-!!-----------------------------------------------------------
+  !Calculate the mean anomaly from the input values
+  rv(:) = rv0
+  do i = 0, np-1
+   !Obtain the eccentric anomaly by using find_anomaly
+   call find_anomaly(t,t0,e(i),w(i),P(i),ta,delta,imax,ts)
+   rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
+  end do
+  
+end subroutine
+
+!-----------------------------------------------------------
 ! This routine calculates the chi square for a RV curve
 ! given a set of xd-yd data points
 ! It takes into acount the possible difference in systematic
