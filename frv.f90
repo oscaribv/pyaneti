@@ -89,13 +89,25 @@ implicit none
   external :: find_anomaly
 !
   !Calculate the mean anomaly from the input values
+  !print *, ''
+  !print *, t0
+  !print *, P
+  !print *, e
+  !print *, w
+  !print *, k
+  !print *, rv0  
+
   rv(:) = rv0
   do i = 0, npl-1
+   ! print *, rv(:)
    !Obtain the eccentric anomaly by using find_anomaly
    call find_anomaly(t,t0,e(i),w(i),P(i),ta,delta,imax,ts)
    rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
   end do
-  
+
+  !print *, rv(:) 
+  !stop
+ 
 end subroutine
 
 !-----------------------------------------------------------
@@ -140,6 +152,7 @@ implicit none
   k(:)   = params(4,:)
   rv0(:) = params(5:4+nt,0) 
 
+
   if ( flag(0) ) P = 10**params(1,:)
   if ( flag(1) ) then
     e(:) = params(2,:) * params(2,:) + params(3,:) * params(3,:)
@@ -147,6 +160,16 @@ implicit none
   end if
   if ( flag(2) ) k(:) = 10**params(4,:)
   if ( flag(3) ) rv0(:) = 10**params(5:4+nt,0)
+
+
+  !print *, t0
+  !print *, P
+  !print *, e
+  !print *, w
+  !print *, k
+  !print *, rv0  
+
+  !stop
 
   tel = 0
   if ( npl == 1 ) then
@@ -171,6 +194,8 @@ implicit none
     do i = 0, datas-1
       if ( tel .ne. tlab(i)  ) tel = tel + 1 
       call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,npl)
+    !print *, 'I am here'
+    !stop
     end do
 
   end if
@@ -349,7 +374,7 @@ implicit none
   integer :: m, j, n, nk, n_burn, spar, new_thin_factor,good_chain
   logical :: get_out, is_burn, is_limit_good
   !Let us add a plus random generator
-  double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
+  double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1,0:npl-1)
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
   real :: r_real
@@ -367,6 +392,13 @@ implicit none
   end do
 
   spar = sum(wtf_all)
+
+  !print *, npl, nt
+
+  !print *, limits(:,0)
+  !print *, ''
+  !print *, limits(:,1)
+
 
   !Period
   if ( flag(0) )  then
@@ -430,6 +462,7 @@ implicit none
       end do
   
     end do
+    !stop
 
     !Each walker is a point in a parameter space
     !Each point contains the information of all the planets
@@ -452,6 +485,7 @@ implicit none
 
   !Let us start the otput file
   open(unit=101,file='mh_rvfit.dat',status='unknown')
+  open(unit=102,file='mh_rvfit2.dat',status='unknown')
   !Initialize the values
 
   toler_slope = prec
@@ -480,11 +514,11 @@ implicit none
 
         params_new(:,m,nk) = params_old(:,m,r_int(nk))
         !Let us generate a random step
-        z_rand(nk) = z_rand(nk) * aa ! a = 2 as suggested by emcee paper
-        call find_gz(z_rand(nk),aa) 
+        z_rand(nk,m) = z_rand(nk,m) * aa ! a = 2 as suggested by emcee paper
+        call find_gz(z_rand(nk,m),aa) 
     
         !Now we can have the evolved walker
-        params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
+        params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk,m) * &
                        ( params_old(:,m,nk) - params_new(:,m,nk) )
 
       end do
@@ -492,7 +526,7 @@ implicit none
       !Let us check the limits
       do m = 0, npl - 1
         call check_limits(params_new(:,m,nk),limits(:,m), &
-        is_limit_good,4+nt)
+        is_limit_good,5+nt)
         if ( .not. is_limit_good ) exit
       end do
 
@@ -505,7 +539,7 @@ implicit none
       end if
 
       !Is the new model better? 
-      q = z_rand(nk)**( spar - 1.) * &
+      q = z_rand(nk,0)**( spar - 1.) * &
           exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then
@@ -515,11 +549,14 @@ implicit none
 
       chi2_red(nk) = chi2_old(nk) / nu
 
+      good_chain = minloc(chi2_red,dim=1) - 1
+
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
         if ( nk == good_chain ) then 
           write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,0,nk)
+          write(102,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,1,nk)
           write(*,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,0,nk)
         end if
         end if

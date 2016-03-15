@@ -287,7 +287,9 @@ elif ( fit_rv and not fit_tr ):
 		fit_e = False
 		fit_w = False
 
-	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
+	what_fit_p1 = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
+					    int(fit_k), int(fit_v0)]
+	what_fit_p2 = [ 1, 1,int(fit_e),int(fit_w), \
 					    int(fit_k), int(fit_v0)]
 	dummy = [T0,P,e,w,k0]
 	params = np.concatenate((dummy,v0))
@@ -310,11 +312,16 @@ elif ( fit_rv and not fit_tr ):
 		vec_rv0_limits.append(min_rv0) 
 		vec_rv0_limits.append(max_rv0) 
 
-	dummy_lims = \
+	dummy_lims_p2 = \
+	[	6800., 6830., min_P, 3*max_P, min_e, max_e, min_w, max_w \
+		, min_k, max_k]
+
+	dummy_lims_p1 = \
 	[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
 		, min_k, max_k]
 
-	limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
+	limits_p1 = np.concatenate((dummy_lims_p1,vec_rv0_limits)) 
+	limits_p2 = np.concatenate((dummy_lims_p2,vec_rv0_limits)) 
 
 	nplanets = 2
 	
@@ -323,8 +330,8 @@ elif ( fit_rv and not fit_tr ):
   #params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
 	list_pars = np.concatenate((params,params))
-	list_lims = np.concatenate((limits,limits))
-	list_wtfs = np.concatenate((what_fit,what_fit))
+	list_lims = np.concatenate((limits_p1,limits_p2))
+	list_wtfs = np.concatenate((what_fit_p1,what_fit_p2))
 
 	print list_pars
 
@@ -336,14 +343,14 @@ elif ( fit_rv and not fit_tr ):
 
 	nwalkers = 20 * len(params)
 
-	pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-  list_pars, list_lims, nwalkers, prec, maxi, thin_factor, \
-	is_circular, list_wtfs,flag,nconv,datas=len(mega_time), \
-	nt=nt,npl=nplanets)
+	#pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
+  #list_pars, list_lims, nwalkers, prec, maxi, thin_factor, \
+	#is_circular, list_wtfs,flag,nconv,datas=len(mega_time), \
+	#nt=nt,npl=nplanets)
 	#Read the data
 	#nconv = nconv * (nwalkers-1)
 	vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
-	np.loadtxt('mh_rvfit.dat', comments='#', unpack=True,\
+	np.loadtxt('mh_rvfit2.dat', comments='#', unpack=True,\
 	usecols=range(0,8))
 	vo = [None]*nt
 	for j in range(0,nt):
