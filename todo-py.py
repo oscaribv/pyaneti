@@ -234,7 +234,7 @@ def plot_rv():
   for i in range(0,nt):
     p_all[i] = scale_period(time_all[i],t0_val,P_val)
 
-  plt.figure(3,figsize=(10,20))
+  plt.figure(3,figsize=(10,10))
   plt.subplot(311)
   plt.xlabel("Phase")
   plt.ylabel(ylab)

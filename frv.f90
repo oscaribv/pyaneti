@@ -350,7 +350,7 @@ end subroutine
 !-------------------------------------------------------
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
+subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,prec,maxi,thin_factor,ics,wtf,flag,output_files,nconv,datas,nt,npl)
 implicit none
 
 !In/Out variables
@@ -362,6 +362,7 @@ implicit none
   integer, intent(in), dimension(0:6*npl-1) :: wtf
   double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
+  character(len=15), intent(in), dimension(0:npl-1) :: output_files
 !Local variables
   double precision, dimension(0:5+nt-1,0:npl-1) :: params
   double precision, dimension(0:2*(5+nt)-1,0:npl-1) :: limits
@@ -484,8 +485,9 @@ implicit none
   print *, 'Initial Chi2_red= ', minval(chi2_red),'nu =', nu
 
   !Let us start the otput file
-  open(unit=101,file='mh_rvfit.dat',status='unknown')
-  open(unit=102,file='mh_rvfit2.dat',status='unknown')
+  do m = 0, npl - 1 
+    open(unit=m,file=output_files(m),status='unknown')
+  end do
   !Initialize the values
 
   toler_slope = prec
@@ -555,9 +557,10 @@ implicit none
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
         if ( nk == good_chain ) then 
-          write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,0,nk)
-          write(102,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,1,nk)
-          write(*,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,0,nk)
+          do m = 0, npl - 1 !Print a file with data of each planet 
+            write(m,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
+            write(*,*) n_burn, chi2_red(nk)
+          end do
         end if
         end if
       end if
@@ -614,7 +617,9 @@ implicit none
 
   end do
 
-  close(101)
+  do m = 0, npl - 1 
+    close(m)
+  end do
 
 end subroutine
 
