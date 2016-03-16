@@ -350,7 +350,7 @@ end subroutine
 !-------------------------------------------------------
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,prec,maxi,thin_factor,ics,wtf,flag,output_files,nconv,datas,nt,npl)
+subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
 implicit none
 
 !In/Out variables
@@ -362,7 +362,6 @@ implicit none
   integer, intent(in), dimension(0:6*npl-1) :: wtf
   double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
-  character(len=15), intent(in), dimension(0:npl-1) :: output_files
 !Local variables
   double precision, dimension(0:5+nt-1,0:npl-1) :: params
   double precision, dimension(0:2*(5+nt)-1,0:npl-1) :: limits
@@ -379,8 +378,11 @@ implicit none
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
   real :: r_real
+  character(len=11), dimension(0:npl-1) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
+
+  output_files(0) = 'planet1.dat'
 
 
   !Let us convert all the big arrays to 
@@ -600,6 +602,9 @@ implicit none
             good_chain = minloc(chi2_red,dim=1) - 1
             print *, 'The best chain is', good_chain, &
             'with chi2_red =', chi2_red(good_chain)
+            do m = 0, npl - 1
+              print *, 'Creating ', output_files(m)
+            end do
           end if
 
           if ( j > maxi ) then
