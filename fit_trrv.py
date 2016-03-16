@@ -347,6 +347,8 @@ elif ( fit_rv and not fit_tr ):
 
 	nwalkers = 20 * len(params)
 
+	out_file = 'planet1.dat'
+
 	#pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
   #list_pars, list_lims, nwalkers, prec, maxi, thin_factor, \
 	#is_circular, list_wtfs,flag,nconv,datas=len(mega_time), \
@@ -354,12 +356,12 @@ elif ( fit_rv and not fit_tr ):
 	#Read the data
 	nconv = nconv * (nwalkers-1)
 	vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
-	np.loadtxt('mh_rvfit.dat', comments='#', unpack=True,\
+	np.loadtxt(out_file, comments='#', unpack=True,\
 	usecols=range(0,8))
 	vo = [None]*nt
 	for j in range(0,nt):
 		n = [8+j]
-		a = np.loadtxt('mh_rvfit.dat', comments='#',unpack=True, usecols=(n))
+		a = np.loadtxt(out_file, comments='#',unpack=True, usecols=(n))
 		vo[j] = a
 
 #Nothing to fit!
@@ -372,6 +374,29 @@ else:
 
 #Find the values and errors
 
+#If some parameters are transformed let us go back 
+
+if (is_log_P):
+	Po = np.power(10.,Po)
+
+if (is_ew):
+	dummy_e = eo
+	eo = eo * eo + wo * wo
+	wo = np.arctan2(dummy_e,wo)
+
+if ( fit_tr ):
+	if (is_sini):
+		io = np.arcsin(io)
+	if (is_log_a):
+		ao = np.power(10.,ao)
+
+if ( fit_rv ):
+	if ( is_log_k ):
+		ko = np.power(10.,ko)
+	for j in range(0,nt):
+		if ( is_log_rv0 ):
+			vo[j] = np.power(10.,vo[j])
+	
 #Gaussian errors
 
 errores = 'perc'
@@ -379,15 +404,8 @@ errores = 'perc'
 if ( errores == 'gauss' ):
 
 	chi2_val, chi2_errs = find_vals_gauss(chi2red,nconv)
-
 	t0_val,t0_err = find_vals_gauss(t0o,nconv)
-	if (is_log_P):
-		Po = np.power(10.,Po)
 	P_val, P_err  = find_vals_gauss(Po,nconv)
-	if (is_ew):
-		dummy_e = eo
-		eo = eo * eo + wo * wo
-		wo = np.arctan2(dummy_e,wo)
 	e_val,e_err 	= find_vals_gauss(eo,nconv)
 	w_val,w_err 	= find_vals_gauss(wo,nconv)
 	if (w_val < 0.0 ):
@@ -395,11 +413,7 @@ if ( errores == 'gauss' ):
 	w_deg 		= w_val * 180. / np.pi
 	w_deg_err = w_err * 180. / np.pi
 	if ( fit_tr ):
-		if (is_sini):
-			io = np.arcsin(io)
 		i_val,i_err 	= find_vals_gauss(io,nconv)
-		if (is_log_a):
-			ao = np.power(10.,ao)
 		a_val,a_err 	= find_vals_gauss(ao,nconv)
 		u1_val,u1_err = find_vals_gauss(u1o,nconv)
 		u2_val,u2_err = find_vals_gauss(u2o,nconv)
@@ -407,14 +421,10 @@ if ( errores == 'gauss' ):
 		i_deg 		= i_val * 180. / np.pi
 		i_deg_err = i_err * 180. / np.pi
 	if ( fit_rv ):
-		if ( is_log_k ):
-			ko = np.power(10.,ko)
 		k_val, k_err  = find_vals_gauss(ko,nconv)
 		v_val = [None]*nt
 		v_err = [None]*nt
 		for j in range(0,nt):
-			if ( is_log_rv0 ):
-				vo[j] = np.power(10.,vo[j])
 			v_val[j], v_err[j] = find_vals_gauss(vo[j],nconv)
 
 	#Print the best fit values values
@@ -443,13 +453,7 @@ if ( errores == 'perc' ):
 	chi2_val, chi2_errl, chi2_errr = find_vals_perc(chi2red,nconv)
 
 	t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv)
-	if (is_log_P):
-		Po = np.power(10.,Po)
 	P_val, P_errl, P_errr  = find_vals_perc(Po,nconv)
-	if (is_ew):
-		dummy_e = eo
-		eo = eo * eo + wo * wo
-		wo = np.arctan2(dummy_e,wo)
 	e_val,e_errl, e_errr 	= find_vals_perc(eo,nconv)
 	w_val,w_errl, w_errr 	= find_vals_perc(wo,nconv)
 	if (w_val < 0.0 ):
@@ -458,11 +462,7 @@ if ( errores == 'perc' ):
 	w_deg_errl = w_errl * 180. / np.pi
 	w_deg_errr = w_errr * 180. / np.pi
 	if ( fit_tr ):
-		if (is_sini):
-			io = np.arcsin(io)
 		i_val,i_errl, i_errr 	= find_vals_perc(io,nconv)
-		if (is_log_a):
-			ao = np.power(10.,ao)
 		a_val,a_errl, a_errr 	= find_vals_perc(ao,nconv)
 		u1_val,u1_errl, u1_errr = find_vals_perc(u1o,nconv)
 		u2_val,u2_errl, u2_errr = find_vals_perc(u2o,nconv)
@@ -471,15 +471,11 @@ if ( errores == 'perc' ):
 		i_deg_errl = i_errl * 180. / np.pi
 		i_deg_errr = i_errr * 180. / np.pi
 	if ( fit_rv ):
-		if ( is_log_k ):
-			ko = np.power(10.,ko)
 		k_val, k_errl, k_errr  = find_vals_perc(ko,nconv)
 		v_val = [None]*nt
 		v_errl = [None]*nt
 		v_errr = [None]*nt
 		for j in range(0,nt):
-			if ( is_log_rv0 ):
-				vo[j] = np.power(10.,vo[j])
 			v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv)
 	
 
