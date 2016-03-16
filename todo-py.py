@@ -300,4 +300,90 @@ def print_init():
 	  print 'fit v0= ', fit_v0
 	print '------------------------------'
 	print ''
+
+#This function works for more than one planet
+def print_errors_planets():
+
+	for j in range(0,nt):
+		if ( is_log_rv0 ):
+			vo[j] = np.power(10.,vo[j])
+
+	for l in range(0,nplanets):
+
+		if (is_log_P):
+			Po[l] = np.power(10.,Po[l])
+
+		if (is_ew):
+			dummy_e = eo[l]
+			eo[l] = eo[l] * eo[l] + wo[l] * wo[l]
+			wo[l] = np.arctan2(dummy_e,wo[l])
 	
+		if ( fit_rv ):
+			if ( is_log_k ):
+				ko[l] = np.power(10.,ko[l])
+	
+		if ( errores == 'gauss' ):
+	
+			chi2_val[l], chi2_errs[l] = find_vals_gauss(chi2red[l],nconv)
+			t0_val[l],t0_err[l] = find_vals_gauss(t0o[l],nconv)
+			P_val[l], P_err[l]  = find_vals_gauss(Po[l],nconv)
+			e_val[l],e_err[l] 	= find_vals_gauss(eo[l],nconv)
+			w_val[l],w_err[l] 	= find_vals_gauss(wo[l],nconv)
+			if (w_val[l] < 0.0 ):
+				w_val[l] = w_val[l] + 2 * np.pi	
+			w_deg[l] 		= w_val[l] * 180. / np.pi
+			w_deg_err[l] = w_err[l] * 180. / np.pi
+			if ( fit_rv ):
+				k_val[l], k_err[l]  = find_vals_gauss(ko[l],nconv)
+				v_val[l] = [None]*nt
+				v_err[l] = [None]*nt
+				for j in range(0,nt):
+					v_val[j], v_err[j] = find_vals_gauss(vo[j],nconv)
+		
+			#Print the best fit values values
+			print ('chi2_red = %1.4e +/- %1.4e' %(chi2_val[l],chi2_errs[l]))
+			print ('The best fit planet parameters are:')
+			print ('T0    = %4.4e +/- %4.4e days'%(t0_val[l],t0_err[l]))
+			print ('P     = %4.4e +/- %4.4e' 		%(P_val[l],P_err[l]))
+			print ('e     = %4.4e +/- %4.4e'			%(e_val[l],e_err[l]))
+			print ('w     = %4.4e +/- %4.4e deg'	%(w_deg[l],w_deg_err[l]))
+			if (fit_rv):
+				print ('K    = %4.4e +/- %4.4e' 		%(k_val[l],k_err[l]))
+				for i in range(0,nt):
+					print ('%s v0 = %4.4e +/- %4.4e' 	%(telescopes[i], \
+					v_val[i],v_err[i]))
+			
+		#Percentile errors
+		
+		if ( errores == 'perc' ):	
+	
+			chi2_val[l], chi2_errl[l], chi2_errr[l] = find_vals_perc(chi2red[l],nconv)
+		
+			t0_val[l], t0_errl[l], t0_errr[l] = find_vals_perc(t0o[l],nconv)
+			P_val[l], P_errl[l], P_errr[l]  = find_vals_perc(Po[l],nconv)
+			e_val[l],e_errl[l], e_errr[l] 	= find_vals_perc(eo[l],nconv)
+			w_val[l],w_errl[l], w_errr[l] 	= find_vals_perc(wo[l],nconv)
+			if (w_val[l] < 0.0 ):
+				w_val[l] = w_val[l] + 2 * np.pi	
+			w_deg[l] 		= w_val[l] * 180. / np.pi
+			w_deg_errl[l] = w_errl[l] * 180. / np.pi
+			w_deg_errr[l] = w_errr[l] * 180. / np.pi
+			if ( fit_rv ):
+				k_val[l], k_errl[l], k_errr[l]  = find_vals_perc(ko[l],nconv)
+				for j in range(0,nt):
+					v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv)
+			
+		
+			#Print the best fit values values
+			print ('chi2_red = %1.4e + %1.4e - %1.4e' %(chi2_val[l],chi2_errr[l]-chi2_val[l], chi2_val[l] - chi2_errl[l]))
+			print ('The best fit planet parameters are:')
+			print ('T0    = %4.4e + %4.4e - %4.4e days'%(t0_val[l],t0_errr[l]-t0_val[l], t0_val[l]-t0_errl[l]))
+			print ('P     = %4.4e + %4.4e - %4.4e' 		%(P_val[l], P_errr[l] - P_val[l], P_val[l] - P_errl[l]))
+			print ('e     = %4.4e + %4.4e - %4.4e'			%(e_val[l], e_errr[l] - e_val[l], e_val[l] - e_errl[l]))
+			print ('w     = %4.4e + %4.4e - %4.4e deg'	%(w_deg[l],w_deg_errr[l] - w_deg[l], w_deg[l] - w_deg_errl[l]))
+			if (fit_rv):
+				print ('K     = %4.4e + %4.4e - %4.4e' 		%(k_val[l],k_errr[l] - k_val[l], k_val[l] - k_errl[l]))
+				for i in range(0,nt):
+					print ('%s v0  = %4.4e + %4.4e - %4.4e' 	%(telescopes[i], \
+						v_val[i],v_errr[i] - v_val[i], v_val[i] - v_errl[i]))
+		

@@ -212,9 +212,12 @@ implicit none
     r_int(i) = i
     do while ( r_int(i) == i )
     call random_number(r_real)
-    r_int = int( r_real * ( n + 1 ) ) - 1
+    !print *, 'r_real', r_real * (n + 1)
+    r_int(i) = int( r_real * ( n + 1 ) ) 
     end do
   end do
+
+  !print *, r_int
 
 end subroutine
 
@@ -243,3 +246,38 @@ implicit none
   end do
 
 end subroutine
+
+
+!Create filenames
+
+subroutine createfieldbinaryfilename(i,fieldname,filename)
+implicit none
+!input variables
+     integer           :: i
+!    output variables
+        !Field name can be gasdens, gasvx, gasvy, etc
+     character(len=15) :: fieldname
+     character(len=30) :: filename
+!    subroutine variables
+     character(len=4)  :: ix
+
+        if (i.lt.10) then
+              write(ix,'(I1)') i
+        filename=trim(fieldname)//trim(ix)//'.dat'
+        endif
+        if ((i.ge.10).and.(i.lt.100)) then
+              write(ix,'(I2)') i
+        filename=trim(fieldname)//trim(ix)//'.dat'
+        endif
+        if ((i.ge.100).and.(i.lt.1000)) then
+              write(ix,'(I3)') i
+        filename=trim(fieldname)//trim(ix)//'.dat'
+        endif
+        if ((i.ge.1000)) then
+              write(ix,'(I4)') i
+        filename=trim(fieldname)//trim(ix)//'.dat'
+        endif
+
+     end subroutine
+
+  

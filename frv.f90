@@ -374,7 +374,7 @@ implicit none
   integer :: m, j, n, nk, n_burn, spar, new_thin_factor,good_chain
   logical :: get_out, is_burn, is_limit_good
   !Let us add a plus random generator
-  double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1,0:npl-1)
+  double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
   real :: r_real
@@ -383,6 +383,7 @@ implicit none
   external :: init_random_seed, find_chi2_rv
 
   output_files(0) = 'planet1.dat'
+  output_files(1) = 'planet2.dat'
 
 
   !Let us convert all the big arrays to 
@@ -394,7 +395,10 @@ implicit none
     wtf_all(5:5+nt-1,m) = wtf(5*(m+1))
   end do
 
-  spar = sum(wtf_all)
+  spar = 0
+  do m = 0, npl-1
+    spar = sum(wtf_all(:,m))
+  end do
 
   !print *, npl, nt
 
@@ -504,6 +508,12 @@ implicit none
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
 
+  !print *, wtf_all(:,0)
+  !print *, wtf_all(:,1)
+  !print *, npl
+  !stop
+  
+
   do while ( get_out )
 
     !Do the work for all the walkers
@@ -512,25 +522,37 @@ implicit none
     call random_int(r_int,nwalks)
 
     do nk = 0, nwalks - 1
+    !print *, nk, r_int(nk)
     !Draw the random walker nk, from the complemetary walkers
+         z_rand(nk) = z_rand(nk) * aa ! a = 2 as suggested by emcee paper
+        call find_gz(z_rand(nk),aa) 
+        !print *, z_rand(nk)
+
     !This definition does not avoid to copy the same k walker
       do m = 0, npl - 1
 
         params_new(:,m,nk) = params_old(:,m,r_int(nk))
         !Let us generate a random step
-        z_rand(nk,m) = z_rand(nk,m) * aa ! a = 2 as suggested by emcee paper
-        call find_gz(z_rand(nk,m),aa) 
-    
         !Now we can have the evolved walker
-        params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk,m) * &
+        params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
                        ( params_old(:,m,nk) - params_new(:,m,nk) )
 
+
+      !print *,m
+      !print *,nk
+      !print *,params_old(2,m,nk)
+      !print *,params_new(2,m,nk)
+      !print *, ''
+
       end do
+
+      !if ( j > 2000 ) stop 
 
       !Let us check the limits
       do m = 0, npl - 1
         call check_limits(params_new(:,m,nk),limits(:,m), &
         is_limit_good,5+nt)
+        !print*, m, limits(:,m), is_limit_good
         if ( .not. is_limit_good ) exit
       end do
 
@@ -543,8 +565,8 @@ implicit none
       end if
 
       !Is the new model better? 
-      q = z_rand(nk,0)**( spar - 1.) * &
-          exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
+      q = z_rand(nk)**( spar - 1.) * &
+        exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then
         chi2_old(nk) = chi2_new(nk)
@@ -556,27 +578,31 @@ implicit none
       good_chain = minloc(chi2_red,dim=1) - 1
 
       !Start to burn-in 
-      if ( is_burn ) then
-        if ( mod(j,new_thin_factor) == 0 ) then
-        if ( nk == good_chain ) then 
+!      if ( is_burn ) then
+!        if ( mod(j,new_thin_factor) == 0 ) then
+        !if ( nk == good_chain ) then 
+        if ( nk == 2 ) then 
           do m = 0, npl - 1 !Print a file with data of each planet 
             write(m,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
-            write(*,*) n_burn, chi2_red(nk)
+            write(m,*) j, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
+!            write(*,*) j, chi2_red(nk)
+            !print *, wtf_all(:,m)
           end do
         end if
-        end if
-      end if
+!        end if
+!      end if
       !End burn-in
 
     end do
+      !stop
 
      if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
         if ( n_burn > nconv ) get_out = .false.
      end if
 
-    chi2_red_min = minval(chi2_red)
-    !chi2_red_min = sum(chi2_red) / nwalks
+    !chi2_red_min = minval(chi2_red)
+    chi2_red_min = sum(chi2_red) / nwalks
 
     !Save the data each thin_factor iteration
     if ( .not. is_burn ) then

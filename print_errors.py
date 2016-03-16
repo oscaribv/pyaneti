@@ -1,3 +1,28 @@
+
+#If some parameters are transformed let us go back
+
+if (is_log_P):
+  Po = np.power(10.,Po)
+
+if (is_ew):
+  dummy_e = eo
+  eo = eo * eo + wo * wo
+  wo = np.arctan2(dummy_e,wo)
+
+if ( fit_tr ):
+  if (is_sini):
+    io = np.arcsin(io)
+  if (is_log_a):
+    ao = np.power(10.,ao)
+
+if ( fit_rv ):
+  if ( is_log_k ):
+    ko = np.power(10.,ko)
+  for j in range(0,nt):
+    if ( is_log_rv0 ):
+      vo[j] = np.power(10.,vo[j])
+
+
 if ( errores == 'gauss' ):
 
 	chi2_val, chi2_errs = find_vals_gauss(chi2red,nconv)

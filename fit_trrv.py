@@ -289,17 +289,19 @@ elif ( fit_rv and not fit_tr ):
 
 	what_fit_p1 = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
 					    int(fit_k), int(fit_v0)]
-	what_fit_p2 = [ 1, 1,int(fit_e),int(fit_w), \
+	what_fit_p2 = [ 0, 0,int(fit_e),int(fit_w), \
 					    int(fit_k), int(fit_v0)]
-	dummy = [T0,P,e,w,k0]
-	params = np.concatenate((dummy,v0))
+	dummy_p1 = [6813.38345,7.919454,e,w,k0]
+	dummy_p2 = [6817.2759,11.90701,e,w,k0]
+	params_p1 = np.concatenate((dummy_p1,v0))
+	params_p2 = np.concatenate((dummy_p2,v0))
 
 	min_t0	= 6812.
 	max_t0 	= 6820.
 	min_P	 	= 7.5
 	max_P	 	= 8.5
 	min_e		= 1.e-10		
-	max_e		= 0.999
+	max_e		= 0.8
 	min_w		= 0.0
 	max_w		= 2*np.pi
 	min_k		= 0.00001
@@ -323,19 +325,19 @@ elif ( fit_rv and not fit_tr ):
 	limits_p1 = np.concatenate((dummy_lims_p1,vec_rv0_limits)) 
 	limits_p2 = np.concatenate((dummy_lims_p2,vec_rv0_limits)) 
 
-	nplanets = 1
+	nplanets = 2
 	
 	#Call fit routine
 	#pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
   #params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
-	#list_pars = np.concatenate((params,params))
-	#list_lims = np.concatenate((limits_p1,limits_p2))
-	#list_wtfs = np.concatenate((what_fit_p1,what_fit_p2))
+	list_pars = np.concatenate((params_p1,params_p2))
+	list_lims = np.concatenate((limits_p1,limits_p2))
+	list_wtfs = np.concatenate((what_fit_p1,what_fit_p2))
 
-	list_pars = (params)
-	list_lims = (limits_p1)
-	list_wtfs = (what_fit_p1)
+	#list_pars = (params)
+	#list_lims = (limits_p1)
+	#list_wtfs = (what_fit_p1)
 
 	print list_pars
 
@@ -345,14 +347,15 @@ elif ( fit_rv and not fit_tr ):
 
 	#sys.exit('O')
 
-	nwalkers = 20 * len(params)
+	nwalkers = 20 * len(params_p1)
 
-	out_file = 'planet1.dat'
+	#out_file = 'planet1.dat'
+	out_file = ['planet1.dat','planet2.dat']
 
-	#pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-  #list_pars, list_lims, nwalkers, prec, maxi, thin_factor, \
-	#is_circular, list_wtfs,flag,nconv,datas=len(mega_time), \
-	#nt=nt,npl=nplanets)
+	pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
+  list_pars, list_lims, nwalkers, prec, maxi, thin_factor, \
+	is_circular, list_wtfs,flag,nconv,datas=len(mega_time), \
+	nt=nt,npl=nplanets)
 	#Read the data
 	nconv = nconv * (nwalkers-1)
 
@@ -366,6 +369,7 @@ elif ( fit_rv and not fit_tr ):
 			a = np.loadtxt(out_file, comments='#',unpack=True, usecols=(n))
 			vo[j] = a
 	else:
+		#Create all the variables, list of lists
 		vari = [[]]*nplanets
 		chi2 = [[]]*nplanets
 		chi2red = [[]]*nplanets
@@ -374,6 +378,43 @@ elif ( fit_rv and not fit_tr ):
 		eo = [[]]*nplanets
 		wo = [[]]*nplanets
 		ko = [[]]*nplanets
+		#Define global variables
+		chi2_val = [None]*nplanets
+		chi2_errr = [None]*nplanets
+		chi2_errl = [None]*nplanets
+		t0_val = [None]*nplanets
+		t0_errr = [None]*nplanets
+		t0_errl = [None]*nplanets
+		P_val = [None]*nplanets
+		P_errr = [None]*nplanets
+		P_errl = [None]*nplanets
+		e_val = [None]*nplanets
+		e_errr = [None]*nplanets
+		e_errl = [None]*nplanets
+		w_val = [None]*nplanets
+		w_errr = [None]*nplanets
+		w_errl = [None]*nplanets
+		w_deg = [None]*nplanets
+		w_deg_errr = [None]*nplanets
+		w_deg_errl = [None]*nplanets
+		k_val = [None]*nplanets
+		k_errr = [None]*nplanets
+		k_errl = [None]*nplanets
+		v_val = [None]*nt
+		v_errr = [None]*nt
+		v_errl = [None]*nt
+		#end global variables
+		for l in range(0,nplanets):
+			vari[l],chi2[l],chi2red[l],t0o[l],Po[l],eo[l],wo[l],ko[l] = \
+			np.loadtxt(out_file[l], comments='#', unpack=True,\
+			usecols=range(0,8))
+		#The  systemic velocities are the same for all the planets
+		vo = [None]*nt
+		for j in range(0,nt):
+			n = [8+j]
+			a = np.loadtxt(out_file[0], comments='#',unpack=True, usecols=(n))
+			vo[j] = a
+		
 
 #Nothing to fit!
 else:
@@ -382,41 +423,18 @@ else:
 #-------------------------------------------------------------
 #			END FITTING ROUTINES
 #-------------------------------------------------------------
-
-#Find the values and errors
-
-#If some parameters are transformed let us go back 
-
-if (is_log_P):
-	Po = np.power(10.,Po)
-
-if (is_ew):
-	dummy_e = eo
-	eo = eo * eo + wo * wo
-	wo = np.arctan2(dummy_e,wo)
-
-if ( fit_tr ):
-	if (is_sini):
-		io = np.arcsin(io)
-	if (is_log_a):
-		ao = np.power(10.,ao)
-
-if ( fit_rv ):
-	if ( is_log_k ):
-		ko = np.power(10.,ko)
-	for j in range(0,nt):
-		if ( is_log_rv0 ):
-			vo[j] = np.power(10.,vo[j])
 	
-#Gaussian errors
 if ( nplanets == 1 ):
 	errores = 'perc'
 	execfile('print_errors.py')
+else:
+	errores = 'perc'
+	print_errors_planets()	
 
 #PLOT TRANSIT
-if ( fit_tr ):
-	plot_transit()
+#if ( fit_tr ):
+#	plot_transit()
 
 #PLOT RV CURVE
-if ( fit_rv ):
-	plot_rv()
+#if ( fit_rv ):
+#	plot_rv()
