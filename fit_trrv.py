@@ -323,15 +323,19 @@ elif ( fit_rv and not fit_tr ):
 	limits_p1 = np.concatenate((dummy_lims_p1,vec_rv0_limits)) 
 	limits_p2 = np.concatenate((dummy_lims_p2,vec_rv0_limits)) 
 
-	nplanets = 2
+	nplanets = 1
 	
 	#Call fit routine
 	#pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
   #params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
-	list_pars = np.concatenate((params,params))
-	list_lims = np.concatenate((limits_p1,limits_p2))
-	list_wtfs = np.concatenate((what_fit_p1,what_fit_p2))
+	#list_pars = np.concatenate((params,params))
+	#list_lims = np.concatenate((limits_p1,limits_p2))
+	#list_wtfs = np.concatenate((what_fit_p1,what_fit_p2))
+
+	list_pars = (params)
+	list_lims = (limits_p1)
+	list_wtfs = (what_fit_p1)
 
 	print list_pars
 
@@ -480,23 +484,23 @@ if ( errores == 'perc' ):
 	
 
 	#Print the best fit values values
-	print ('chi2_red = %1.4e + %1.4e - %1.4e' %(chi2_val,chi2_errr, chi2_errl))
+	print ('chi2_red = %1.4e + %1.4e - %1.4e' %(chi2_val,chi2_errr-chi2_val, chi2_val - chi2_errl))
 	print ('The best fit planet parameters are:')
-	print ('T0    = %4.4e + %4.4e - %4.4e days'%(t0_val,t0_errr, t0_errl))
-	print ('P     = %4.4e + %4.4e - %4.4e' 		%(P_val,P_errr, P_errl))
-	print ('e     = %4.4e + %4.4e - %4.4e'			%(e_val,e_errr, e_errl))
-	print ('w     = %4.4e + %4.4e - %4.4e deg'	%(w_deg,w_deg_errr,w_deg_errl))
+	print ('T0    = %4.4e + %4.4e - %4.4e days'%(t0_val,t0_errr-t0_val, t0_val-t0_errl))
+	print ('P     = %4.4e + %4.4e - %4.4e' 		%(P_val, P_errr - P_val, P_val - P_errl))
+	print ('e     = %4.4e + %4.4e - %4.4e'			%(e_val, e_errr - e_val, e_val - e_errl))
+	print ('w     = %4.4e + %4.4e - %4.4e deg'	%(w_deg,w_deg_errr - w_deg, w_deg - w_deg_errl))
 	if (fit_tr):
-		print ('i     = %4.4e + %4.4e - %4.4e deg' %(i_deg,i_deg_err))
-		print ('a/r*  = %4.4e + %4.4e - %4.4e' 		%(a_val,a_errr,a_errl))
-		print ('u1    = %4.4e + %4.4e - %4.4e' 		%(u1_val,u1_errr,u1_errl))
-		print ('u2    = %4.4e + %4.4e - %4.4e' 		%(u2_val,u2_errr,u2_errl))
-		print ('rp/r* = %4.4e + %4.4e - %4.4e' 		%(pz_val,pz_errr,pz_errl))
+		print ('i     = %4.4e + %4.4e - %4.4e deg' %(i_deg,i_deg_errr-i_deg, i_deg - i_deg_errl))
+		print ('a/r*  = %4.4e + %4.4e - %4.4e' 		%(a_val, a_errr - a_val ,a_val - a_errl))
+		print ('u1    = %4.4e + %4.4e - %4.4e' 		%(u1_val,u1_errr - u1_val, u1_val - u1_errl))
+		print ('u2    = %4.4e + %4.4e - %4.4e' 		%(u2_val,u2_errr - u2_val, u2_val - u2_errl))
+		print ('rp/r* = %4.4e + %4.4e - %4.4e' 		%(pz_val,pz_errr - pz_val, pz_val - pz_errl))
 if (fit_rv):
-		print ('K    = %4.4e + %4.4e - %4.4e' 		%(k_val,k_errr,k_errl))
+		print ('K     = %4.4e + %4.4e - %4.4e' 		%(k_val,k_errr - k_val, k_val - k_errl))
 		for i in range(0,nt):
-			print ('%s v0 = %4.4e + %4.4e - %4.4e' 	%(telescopes[i], \
-			v_val[i],v_errr[i],v_errl[i]))
+			print ('%s v0  = %4.4e + %4.4e - %4.4e' 	%(telescopes[i], \
+			v_val[i],v_errr[i] - v_val[i], v_val[i] - v_errl[i]))
 
 
 #PLOT TRANSIT

@@ -155,7 +155,7 @@ def find_vals_perc(x,nconv):
   iout = len(x) - nconv
   xnew = x[iout:]
 	#With a 68% confidence interval
-  med, mine,maxe = np.percentile(xnew,[16,50,84])
+  mine, med, maxe = np.percentile(xnew,[16,50,84])
   return med, mine, maxe
 
 
