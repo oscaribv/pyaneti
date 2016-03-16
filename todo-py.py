@@ -126,7 +126,7 @@ def normalize_transit(x,y,err,limits):
   return dummyx, dummyy, dummyerr
 
 #-----------------------------------------------------------
-# find_vals_gauss -> Find the mean and standard deviation
+# find_vals_gauss -> find the mean and standard deviation
 #							  of the last nconv points of a given array
 #input: x 		-> vector with a minimum size nconv
 #				nconv -> the last nconv points to be taken account
@@ -135,11 +135,29 @@ def normalize_transit(x,y,err,limits):
 #				 std-> standard deviation of the gaussian fit
 #-----------------------------------------------------------
 def find_vals_gauss(x,nconv):
-  #Let us take only the converging part
+  #let us take only the converging part
   iout = len(x) - nconv
   xnew = x[iout:]
   mu,std = norm.fit(xnew)
   return mu, std
+
+#-----------------------------------------------------------
+# find_vals_perc -> find the mean and standard deviation
+#							  of the last nconv points of a given array
+#input: x 		-> vector with a minimum size nconv
+#				nconv -> the last nconv points to be taken account
+#								 in the gaussian fit
+#output: mu -> peak position of the gaussian fit
+#				 std-> standard deviation of the gaussian fit
+#-----------------------------------------------------------
+def find_vals_perc(x,nconv):
+  #let us take only the converging part
+  iout = len(x) - nconv
+  xnew = x[iout:]
+	#With a 68% confidence interval
+  med, mine,maxe = np.percentile(xnew,[16,50,84])
+  return med, mine, maxe
+
 
 #Let us do the plots here
 
