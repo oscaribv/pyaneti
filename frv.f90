@@ -569,8 +569,10 @@ implicit none
         exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then
-        chi2_old(nk) = chi2_new(nk)
-        params_old(:,:,nk) = params_new(:,:,nk)
+        if ( chi2_new(nk) / nu > 0.9999 ) then
+          chi2_old(nk) = chi2_new(nk)
+          params_old(:,:,nk) = params_new(:,:,nk)
+        end if
       end if
 
       chi2_red(nk) = chi2_old(nk) / nu
@@ -578,19 +580,19 @@ implicit none
       good_chain = minloc(chi2_red,dim=1) - 1
 
       !Start to burn-in 
-!      if ( is_burn ) then
-!        if ( mod(j,new_thin_factor) == 0 ) then
+      if ( is_burn ) then
+        if ( mod(j,new_thin_factor) == 0 ) then
         !if ( nk == good_chain ) then 
-        if ( nk == 2 ) then 
+!        if ( nk == 2 ) then 
           do m = 0, npl - 1 !Print a file with data of each planet 
             write(m,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
             write(m,*) j, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
 !            write(*,*) j, chi2_red(nk)
             !print *, wtf_all(:,m)
           end do
-        end if
 !        end if
-!      end if
+        end if
+      end if
       !End burn-in
 
     end do
