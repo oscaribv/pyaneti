@@ -426,6 +426,11 @@ implicit none
 
   !Calculate the degrees of freedom
   nu = dble(datas - spar)
+  if ( nu < 0.0 ) then
+    print *, 'Your number of parameters is larger than your datapoints!'
+    print *, 'I cannot fit that!'
+    stop
+  end do
   !If we are fixing a circular orbit, ec and w are not used 
   if ( ics ) nu = nu + 2 
   chi2_red = chi2_old / nu
