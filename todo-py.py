@@ -156,6 +156,8 @@ def find_vals_perc(x,nconv):
   xnew = x[iout:]
 	#With a 68% confidence interval
   mine, med, maxe = np.percentile(xnew,[16,50,84])
+	#maxe = maxe - med
+	#mine = med - mine
   return med, mine, maxe
 
 
@@ -341,16 +343,16 @@ def print_errors_planets():
 					v_val[j], v_err[j] = find_vals_gauss(vo[j],nconv)
 		
 			#Print the best fit values values
-			print ('chi2_red = %1.4e +/- %1.4e' %(chi2_val[l],chi2_errs[l]))
+			print ('chi2_red = %1.4f +/- %1.4f' %(chi2_val[l],chi2_errs[l]))
 			print ('The best fit planet parameters are:')
-			print ('T0    = %4.4e +/- %4.4e days'%(t0_val[l],t0_err[l]))
-			print ('P     = %4.4e +/- %4.4e' 		%(P_val[l],P_err[l]))
-			print ('e     = %4.4e +/- %4.4e'			%(e_val[l],e_err[l]))
-			print ('w     = %4.4e +/- %4.4e deg'	%(w_deg[l],w_deg_err[l]))
+			print ('T0    = %4.4f +/- %4.4f days'%(t0_val[l],t0_err[l]))
+			print ('P     = %4.4f +/- %4.4f days' 		%(P_val[l],P_err[l]))
+			print ('e     = %4.4f +/- %4.4f     '			%(e_val[l],e_err[l]))
+			print ('w     = %4.4f +/- %4.4f deg '	%(w_deg[l],w_deg_err[l]))
 			if (fit_rv):
-				print ('K    = %4.4e +/- %4.4e' 		%(k_val[l],k_err[l]))
+				print ('K    = %4.4f +/- %4.4f m/s' 		%(k_val[l]/1e-3,k_err[l]/1e-3))
 				for i in range(0,nt):
-					print ('%s v0 = %4.4e +/- %4.4e' 	%(telescopes[i], \
+					print ('%s v0 = %4.4f +/- %4.4f km/s' 	%(telescopes[i], \
 					v_val[i],v_err[i]))
 			
 		#Percentile errors
@@ -375,15 +377,15 @@ def print_errors_planets():
 			
 		
 			#Print the best fit values values
-			print ('chi2_red = %1.4e + %1.4e - %1.4e' %(chi2_val[l],chi2_errr[l]-chi2_val[l], chi2_val[l] - chi2_errl[l]))
+			print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val[l],chi2_errr[l]-chi2_val[l], chi2_val[l] - chi2_errl[l]))
 			print ('The best fit planet parameters are:')
-			print ('T0    = %4.4e + %4.4e - %4.4e days'%(t0_val[l],t0_errr[l]-t0_val[l], t0_val[l]-t0_errl[l]))
-			print ('P     = %4.4e + %4.4e - %4.4e' 		%(P_val[l], P_errr[l] - P_val[l], P_val[l] - P_errl[l]))
-			print ('e     = %4.4e + %4.4e - %4.4e'			%(e_val[l], e_errr[l] - e_val[l], e_val[l] - e_errl[l]))
-			print ('w     = %4.4e + %4.4e - %4.4e deg'	%(w_deg[l],w_deg_errr[l] - w_deg[l], w_deg[l] - w_deg_errl[l]))
+			print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val[l],t0_errr[l]-t0_val[l], t0_val[l]-t0_errl[l]))
+			print ('P     = %4.4f + %4.4f - %4.4f days' 		%(P_val[l], P_errr[l] - P_val[l], P_val[l] - P_errl[l]))
+			print ('e     = %4.4f + %4.4f - %4.4f     '			%(e_val[l], e_errr[l] - e_val[l], e_val[l] - e_errl[l]))
+			print ('w     = %4.4f + %4.4f - %4.4f deg '	%(w_deg[l],w_deg_errr[l] - w_deg[l], w_deg[l] - w_deg_errl[l]))
 			if (fit_rv):
-				print ('K     = %4.4e + %4.4e - %4.4e' 		%(k_val[l],k_errr[l] - k_val[l], k_val[l] - k_errl[l]))
+				print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val[l]/1.e-3,(k_errr[l] - k_val[l])/1.e-3, (k_val[l] - k_errl[l])/1e-3))
 				for i in range(0,nt):
-					print ('%s v0  = %4.4e + %4.4e - %4.4e' 	%(telescopes[i], \
+					print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
 						v_val[i],v_errr[i] - v_val[i], v_val[i] - v_errl[i]))
 		

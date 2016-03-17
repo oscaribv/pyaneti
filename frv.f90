@@ -88,25 +88,13 @@ implicit none
 !External function
   external :: find_anomaly
 !
-  !Calculate the mean anomaly from the input values
-  !print *, ''
-  !print *, t0
-  !print *, P
-  !print *, e
-  !print *, w
-  !print *, k
-  !print *, rv0  
 
   rv(:) = rv0
   do i = 0, npl-1
-   ! print *, rv(:)
    !Obtain the eccentric anomaly by using find_anomaly
    call find_anomaly(t,t0,e(i),w(i),P(i),ta,delta,imax,ts)
    rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
   end do
-
-  !print *, rv(:) 
-  !stop
  
 end subroutine
 
@@ -152,52 +140,32 @@ implicit none
   k(:)   = params(4,:)
   rv0(:) = params(5:4+nt,0) 
 
-
-  if ( flag(0) ) P = 10**params(1,:)
+  if ( flag(0) ) P(:) = 10**P(:)
   if ( flag(1) ) then
     e(:) = params(2,:) * params(2,:) + params(3,:) * params(3,:)
     w(:) = atan2( params(2,:),params(3,:) ) 
   end if
-  if ( flag(2) ) k(:) = 10**params(4,:)
-  if ( flag(3) ) rv0(:) = 10**params(5:4+nt,0)
-
-
-  !print *, t0
-  !print *, P
-  !print *, e
-  !print *, w
-  !print *, k
-  !print *, rv0  
-
-  !stop
+  if ( flag(2) ) k(:) = 10**k(:)
+  if ( flag(3) ) rv0(:) = 10**rv0(:)
 
   tel = 0
-  if ( npl == 1 ) then
 
+  if ( isc ) then
     !If we want a circular fit, let us do it!
-    if ( isc ) then
-      do i = 0, datas-1
-        if ( tel .ne. tlab(i) ) tel = tel + 1 
-        call rv_circular(xd(i),rv0(tel),t0(0),k(0),P(0),model(i),1)
-      end do
-    !If we want an eccentric fit, let us do it!
-    else 
-      do i = 0, datas-1
-        if ( tel .ne. tlab(i)  ) tel = tel + 1 
-        call rv_curve(xd(i),rv0(tel),t0(0),k(0),P(0),e(0),w(0),model(i),1)
-      end do
+    if ( npl > 1 ) then
+      print *, 'You cannot fit a circular orbit for more than one planet!'
+      stop
     end if
-
-  !Multiplanet fit
-  else
-
+    do i = 0, datas-1
+      if ( tel .ne. tlab(i) ) tel = tel + 1 
+      call rv_circular(xd(i),rv0(tel),t0(0),k(0),P(0),model(i),1)
+    end do
+  else 
+    !If we want an eccentric fit, let us do it!
     do i = 0, datas-1
       if ( tel .ne. tlab(i)  ) tel = tel + 1 
-      call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,npl)
-    !print *, 'I am here'
-    !stop
+        call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,npl)
     end do
-
   end if
 
   res(:) = ( model(:) - yd(:) ) / errs(:) 
@@ -385,7 +353,6 @@ implicit none
   output_files(0) = 'planet1.dat'
   output_files(1) = 'planet2.dat'
 
-
   !Let us convert all the big arrays to 
   !matrix form 
   do m = 0, npl - 1
@@ -395,17 +362,11 @@ implicit none
     wtf_all(5:5+nt-1,m) = wtf(5*(m+1))
   end do
 
+  !size of parameters (only parameters to fit!)
   spar = 0
   do m = 0, npl-1
-    spar = sum(wtf_all(:,m))
+    spar = spar + sum(wtf_all(:,m))
   end do
-
-  !print *, npl, nt
-
-  !print *, limits(:,0)
-  !print *, ''
-  !print *, limits(:,1)
-
 
   !Period
   if ( flag(0) )  then
@@ -439,24 +400,14 @@ implicit none
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
 
-  call random_number(r_rand)
-  !Let us initinate all the walkers with the priors
-  !I am not sure it this works, it is just a test
-  r_rand = ( r_rand - 0.5 ) * 2.0
-
-  !Let us create uniformative random priors
-
   print *, 'CREATING RANDOM UNIFORMATIVE PRIORS'
+  !Let us create uniformative random priors
   do nk = 0, nwalks - 1
-    !params_old(:,j) = params * ( 1. + (real(j)/nwalks) * r_rand(j)*0.01 ) 
-
     do m = 0, npl - 1
-
       j = 0
-
       do n = 0, 4 + nt
-
         if ( wtf_all(n,m) == 0 ) then
+          !this parameter does not change for the planet m
           params_old(n,m,nk) = params(n,m)
         else
           call random_number(r_real)
@@ -465,20 +416,13 @@ implicit none
         end if
         print *, params_old(n,m,nk), limits(j,m), limits(j+1,m)
         j = j + 2
-
       end do
-  
     end do
-    !stop
-
     !Each walker is a point in a parameter space
     !Each point contains the information of all the planets
-
     !Let us estimate our first chi_2 value for each walker
     call find_chi2_rv(xd,yd,errs,tlab,params_old(:,:,nk),flag,chi2_old(nk),ics,datas,nt,npl)
-
   end do
-  
 
   !Calculate the degrees of freedom
   nu = dble(datas - spar)
@@ -488,32 +432,24 @@ implicit none
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', minval(chi2_red),'nu =', nu
+  print *, 'Initial Chi2_red= ', sum(chi2_red)/nwalks,'nu =', nu
 
   !Let us start the otput file
   do m = 0, npl - 1 
     open(unit=m,file=output_files(m),status='unknown')
   end do
-  !Initialize the values
 
+  !Initialize the values
   toler_slope = prec
   j = 1
   n = 0
   get_out = .TRUE.
   is_burn = .FALSE.
-
-  aa = 2.0
+  aa = 2.0 !this is suggested by the original paper
   n_burn = 1
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
-
-  !print *, wtf_all(:,0)
-  !print *, wtf_all(:,1)
-  !print *, npl
-  !stop
-  
-
   do while ( get_out )
 
     !Do the work for all the walkers
@@ -522,54 +458,34 @@ implicit none
     call random_int(r_int,nwalks)
 
     do nk = 0, nwalks - 1
-    !print *, nk, r_int(nk)
-    !Draw the random walker nk, from the complemetary walkers
-         z_rand(nk) = z_rand(nk) * aa ! a = 2 as suggested by emcee paper
-        call find_gz(z_rand(nk),aa) 
-        !print *, z_rand(nk)
+      !Draw the random walker nk, from the complemetary walkers
+      !The same z_rand for all the planets
+      z_rand(nk) = z_rand(nk) * aa 
+      call find_gz(z_rand(nk),aa) 
 
-    !This definition does not avoid to copy the same k walker
       do m = 0, npl - 1
-
         params_new(:,m,nk) = params_old(:,m,r_int(nk))
-        !Let us generate a random step
-        !Now we can have the evolved walker
         params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
                        ( params_old(:,m,nk) - params_new(:,m,nk) )
-
-
-      !print *,m
-      !print *,nk
-      !print *,params_old(2,m,nk)
-      !print *,params_new(2,m,nk)
-      !print *, ''
-
-      end do
-
-      !if ( j > 2000 ) stop 
-
-      !Let us check the limits
-      do m = 0, npl - 1
+        !Let us check the limits
         call check_limits(params_new(:,m,nk),limits(:,m), &
         is_limit_good,5+nt)
-        !print*, m, limits(:,m), is_limit_good
+         !If we are out of limits this chain is bad
         if ( .not. is_limit_good ) exit
       end do
 
       if ( is_limit_good ) then !evaluate chi2
-        !Obtain the new chi square 
         call find_chi2_rv(xd,yd,errs,tlab,params_new(:,:,nk),flag,chi2_new(nk),ics,datas,nt,npl)
       else !we do not have a good model
         chi2_new(nk) = huge(dble(0.0))
-        !print *, 'I almost collapse!'
       end if
 
-      !Is the new model better? 
+      !Compare the models 
       q = z_rand(nk)**( spar - 1.) * &
         exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
-      if ( q >= r_rand(nk) ) then
-        if ( chi2_new(nk) / nu > 0.9999 ) then
+      if ( q >= r_rand(nk) ) then !is the new model better?
+        if ( chi2_new(nk) / nu > 0.9999 ) then !Are we overfitting?
           chi2_old(nk) = chi2_new(nk)
           params_old(:,:,nk) = params_new(:,:,nk)
         end if
@@ -577,47 +493,37 @@ implicit none
 
       chi2_red(nk) = chi2_old(nk) / nu
 
-      good_chain = minloc(chi2_red,dim=1) - 1
-
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
-        !if ( nk == good_chain ) then 
-!        if ( nk == 2 ) then 
+          write(*,*) j
           do m = 0, npl - 1 !Print a file with data of each planet 
-            write(m,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
             write(m,*) j, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
-!            write(*,*) j, chi2_red(nk)
-            !print *, wtf_all(:,m)
           end do
-!        end if
         end if
       end if
       !End burn-in
 
     end do
-      !stop
 
      if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
         if ( n_burn > nconv ) get_out = .false.
      end if
 
-    !chi2_red_min = minval(chi2_red)
+    !Obtain the chi2 mean off all the variables
     chi2_red_min = sum(chi2_red) / nwalks
-
-    !Save the data each thin_factor iteration
+  
+    !Print chain evolution
     if ( .not. is_burn ) then
       if ( mod(j,thin_factor) == 0 ) then
-
         print *, 'iter ',j,', Chi2_red =', chi2_red_min
+
         !Check convergence here
         chi2_vec(n) = chi2_red_min
         x_vec(n) = n
         n = n + 1
-
         if ( n == size(chi2_vec) ) then
-
           call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
           n = 0
           !If chi2_red has not changed the last nconv iterations
@@ -634,14 +540,13 @@ implicit none
               print *, 'Creating ', output_files(m)
             end do
           end if
-
           if ( j > maxi ) then
             print *, 'Maximum number of iteration reached!'
             get_out = .FALSE.
           end if
-
         end if
       !I checked covergence
+
       end if
 
     end if
@@ -650,6 +555,7 @@ implicit none
 
   end do
 
+  !Close all the files
   do m = 0, npl - 1 
     close(m)
   end do

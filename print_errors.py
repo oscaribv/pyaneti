@@ -50,22 +50,22 @@ if ( errores == 'gauss' ):
 			v_val[j], v_err[j] = find_vals_gauss(vo[j],nconv)
 
 	#Print the best fit values values
-	print ('chi2_red = %1.4e +/- %1.4e' %(chi2_val,chi2_errs))
+	print ('chi2_red = %1.4f +/- %1.4f' %(chi2_val,chi2_errs))
 	print ('The best fit planet parameters are:')
-	print ('T0    = %4.4e +/- %4.4e days'%(t0_val,t0_err))
-	print ('P     = %4.4e +/- %4.4e' 		%(P_val,P_err))
-	print ('e     = %4.4e +/- %4.4e'			%(e_val,e_err))
-	print ('w     = %4.4e +/- %4.4e deg'	%(w_deg,w_deg_err))
+	print ('T0    = %4.4f +/- %4.4f days'%(t0_val,t0_err))
+	print ('P     = %4.4f +/- %4.4f days' 		%(P_val,P_err))
+	print ('e     = %4.4f +/- %4.4f     '			%(e_val,e_err))
+	print ('w     = %4.4f +/- %4.4f deg '	%(w_deg,w_deg_err))
 	if (fit_tr):
-		print ('i     = %4.4e +/- %4.4e deg' %(i_deg,i_deg_err))
-		print ('a/r*  = %4.4e +/- %4.4e' 		%(a_val,a_err))
-		print ('u1    = %4.4e +/- %4.4e' 		%(u1_val,u1_err))
-		print ('u2    = %4.4e +/- %4.4e' 		%(u2_val,u2_err))
-		print ('rp/r* = %4.4e +/- %4.4e' 		%(pz_val,pz_err))
+		print ('i     = %4.4f +/- %4.4f deg' %(i_deg,i_deg_err))
+		print ('a/r*  = %4.4f +/- %4.4f    ' 		%(a_val,a_err))
+		print ('u1    = %4.4f +/- %4.4f    ' 		%(u1_val,u1_err))
+		print ('u2    = %4.4f +/- %4.4f    ' 		%(u2_val,u2_err))
+		print ('rp/r* = %4.4f +/- %4.4f    ' 		%(pz_val,pz_err))
 	if (fit_rv):
-		print ('K    = %4.4e +/- %4.4e' 		%(k_val,k_err))
+		print ('K    = %4.4f +/- %4.4f m/s ' 		%(k_val/1.e-3,k_err/1e-3))
 		for i in range(0,nt):
-			print ('%s v0 = %4.4e +/- %4.4e' 	%(telescopes[i], \
+			print ('%s v0 = %4.4f +/- %4.4f km/s' 	%(telescopes[i], \
 			v_val[i],v_err[i]))
 	
 #Percentile errors
@@ -102,21 +102,21 @@ if ( errores == 'perc' ):
 	
 
 	#Print the best fit values values
-	print ('chi2_red = %1.4e + %1.4e - %1.4e' %(chi2_val,chi2_errr-chi2_val, chi2_val - chi2_errl))
+	print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val,chi2_errr-chi2_val, chi2_val - chi2_errl))
 	print ('The best fit planet parameters are:')
-	print ('T0    = %4.4e + %4.4e - %4.4e days'%(t0_val,t0_errr-t0_val, t0_val-t0_errl))
-	print ('P     = %4.4e + %4.4e - %4.4e' 		%(P_val, P_errr - P_val, P_val - P_errl))
-	print ('e     = %4.4e + %4.4e - %4.4e'			%(e_val, e_errr - e_val, e_val - e_errl))
-	print ('w     = %4.4e + %4.4e - %4.4e deg'	%(w_deg,w_deg_errr - w_deg, w_deg - w_deg_errl))
+	print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val,t0_errr-t0_val, t0_val-t0_errl))
+	print ('P     = %4.4f + %4.4f - %4.4f days'%(P_val, P_errr - P_val, P_val - P_errl))
+	print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr - e_val, e_val - e_errl))
+	print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr - w_deg, w_deg - w_deg_errl))
 	if (fit_tr):
-		print ('i     = %4.4e + %4.4e - %4.4e deg' %(i_deg,i_deg_errr-i_deg, i_deg - i_deg_errl))
-		print ('a/r*  = %4.4e + %4.4e - %4.4e' 		%(a_val, a_errr - a_val ,a_val - a_errl))
-		print ('u1    = %4.4e + %4.4e - %4.4e' 		%(u1_val,u1_errr - u1_val, u1_val - u1_errl))
-		print ('u2    = %4.4e + %4.4e - %4.4e' 		%(u2_val,u2_errr - u2_val, u2_val - u2_errl))
-		print ('rp/r* = %4.4e + %4.4e - %4.4e' 		%(pz_val,pz_errr - pz_val, pz_val - pz_errl))
+		print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr-i_deg, i_deg - i_deg_errl))
+		print ('a/r*  = %4.4f + %4.4f - %4.4f    ' 		%(a_val, a_errr - a_val ,a_val - a_errl))
+		print ('u1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr - u1_val, u1_val - u1_errl))
+		print ('u2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr - u2_val, u2_val - u2_errl))
+		print ('rp/r* = %4.4f + %4.4f - %4.4f    ' 		%(pz_val,pz_errr - pz_val, pz_val - pz_errl))
 if (fit_rv):
-		print ('K     = %4.4e + %4.4e - %4.4e' 		%(k_val,k_errr - k_val, k_val - k_errl))
+		print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr - k_val)/1.e-3, (k_val - k_errl)/1.e-3))
 		for i in range(0,nt):
-			print ('%s v0  = %4.4e + %4.4e - %4.4e' 	%(telescopes[i], \
+			print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
 			v_val[i],v_errr[i] - v_val[i], v_val[i] - v_errl[i]))
 
