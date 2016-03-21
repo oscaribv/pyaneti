@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python2.7
 
 #Load libraries
 import numpy as np
@@ -380,32 +380,6 @@ elif ( fit_rv and not fit_tr ):
 		eo = [[]]*nplanets
 		wo = [[]]*nplanets
 		ko = [[]]*nplanets
-		#Define global variables
-		chi2_val = [None]*nplanets
-		chi2_errr = [None]*nplanets
-		chi2_errl = [None]*nplanets
-		t0_val = [None]*nplanets
-		t0_errr = [None]*nplanets
-		t0_errl = [None]*nplanets
-		P_val = [None]*nplanets
-		P_errr = [None]*nplanets
-		P_errl = [None]*nplanets
-		e_val = [None]*nplanets
-		e_errr = [None]*nplanets
-		e_errl = [None]*nplanets
-		w_val = [None]*nplanets
-		w_errr = [None]*nplanets
-		w_errl = [None]*nplanets
-		w_deg = [None]*nplanets
-		w_deg_errr = [None]*nplanets
-		w_deg_errl = [None]*nplanets
-		k_val = [None]*nplanets
-		k_errr = [None]*nplanets
-		k_errl = [None]*nplanets
-		v_val = [None]*nt
-		v_errr = [None]*nt
-		v_errl = [None]*nt
-		#end global variables
 		for l in range(0,nplanets):
 			vari[l],chi2[l],chi2red[l],t0o[l],Po[l],eo[l],wo[l],ko[l] = \
 			np.loadtxt(out_file[l], comments='#', unpack=True,\
