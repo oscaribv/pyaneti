@@ -80,7 +80,7 @@ implicit none
   double precision, intent(out), dimension(0:ts-1) :: rv
   double precision, intent(in), dimension(0:npl-1) :: k, t0, P, e, w
   !Here rv0 depends on the telescope systemic not the planets
-  double precision :: rv0
+  double precision, intent(in) :: rv0
 !Local variables
   double precision, dimension(0:ts-1) :: ta
   double precision :: delta = 1.e-7
@@ -140,17 +140,18 @@ implicit none
   k(:)   = params(4,:)
   rv0(:) = params(5:4+nt,0) 
 
-  if ( flag(0) ) P(:) = 10**P(:)
+  if ( flag(0) ) P(:) = 10.**P(:)
   if ( flag(1) ) then
     e(:) = params(2,:) * params(2,:) + params(3,:) * params(3,:)
     w(:) = atan2( params(2,:),params(3,:) ) 
   end if
-  if ( flag(2) ) k(:) = 10**k(:)
-  if ( flag(3) ) rv0(:) = 10**rv0(:)
+  if ( flag(2) ) k(:) = 10.**k(:)
+  if ( flag(3) ) rv0(:) = 10.**rv0(:)
 
   tel = 0
 
   if ( isc ) then
+
     !If we want a circular fit, let us do it!
     if ( npl > 1 ) then
       print *, 'You cannot fit a circular orbit for more than one planet!'
@@ -160,12 +161,15 @@ implicit none
       if ( tel .ne. tlab(i) ) tel = tel + 1 
       call rv_circular(xd(i),rv0(tel),t0(0),k(0),P(0),model(i),1)
     end do
+
   else 
+
     !If we want an eccentric fit, let us do it!
     do i = 0, datas-1
       if ( tel .ne. tlab(i)  ) tel = tel + 1 
         call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,npl)
     end do
+
   end if
 
   res(:) = ( model(:) - yd(:) ) / errs(:) 
@@ -338,14 +342,14 @@ implicit none
   double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: esin(0:npl-1), ecos(0:npl-1), nu, aa, chi2_red_min
-  integer :: m, j, n, nk, n_burn, spar, new_thin_factor,good_chain
+  double precision  :: esin(0:npl-1), ecos(0:npl-1), aa, chi2_red_min
+  integer :: m, j, n, nu, nk, n_burn, spar, new_thin_factor,good_chain
   logical :: get_out, is_burn, is_limit_good
   !Let us add a plus random generator
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
-  real :: r_real
+  double precision :: r_real
   character(len=11), dimension(0:npl-1) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
@@ -363,37 +367,39 @@ implicit none
   end do
 
   !size of parameters (only parameters to fit!)
-  spar = 0
+  !The telescopes are the same for all the planets
+  spar = nt
   do m = 0, npl-1
-    spar = spar + sum(wtf_all(:,m))
+    !what parameters are we fitting?
+    spar = spar + sum(wtf_all(0:4,m))
   end do
 
   !Period
   if ( flag(0) )  then
-    params(1,:) = log10(params(1,:))
-    limits(2,:) = log10(limits(2,:))
-    limits(3,:) = log10(limits(3,:))
+    params(1,:) = dlog10(params(1,:))
+    limits(2,:) = dlog10(limits(2,:))
+    limits(3,:) = dlog10(limits(3,:))
   end if
   ! e and w
   if ( flag(1) ) then
-    esin(:) = sqrt(params(2,:)) * dsin(params(3,:))
-    ecos(:) = sqrt(params(2,:)) * dcos(params(3,:))
+    esin(:) = dsqrt(params(2,:)) * dsin(params(3,:))
+    ecos(:) = dsqrt(params(2,:)) * dcos(params(3,:))
     params(2,:) = esin
     params(3,:) = ecos
     limits(4,:) = -1.0
-    limits(5,:) = 1.0
+    limits(5,:) =  1.0
     limits(6,:) = -1.0
-    limits(7,:) = 1.0
+    limits(7,:) =  1.0
   end if
   !k
   if ( flag(2) ) then
-    params(4,:) = log10(params(4,:))
-    limits(8:9,:) = log10(limits(8:9,:))
+    params(4,:) = dlog10(params(4,:))
+    limits(8:9,:) = dlog10(limits(8:9,:))
   end if
   !rv0's
   if ( flag(3) ) then
-    params(5:4+nt,:) = log10(params(5:4+nt,:))
-    limits(10:2*(5+nt)-1,:) = log10(limits(10:2*(5+nt)-1,:))
+    params(5:4+nt,:) = dlog10(params(5:4+nt,:))
+    limits(10:2*(5+nt)-1,:) = dlog10(limits(10:2*(5+nt)-1,:))
   end if
 
   !Call a random seed 
@@ -425,19 +431,19 @@ implicit none
   end do
 
   !Calculate the degrees of freedom
-  nu = dble(datas - spar)
-  if ( nu < 0.0 ) then
+  nu = datas - spar
+  if ( nu <= 0.0 ) then
     print *, 'Your number of parameters is larger than your datapoints!'
     print *, 'I cannot fit that!'
     stop
-  end do
+  end if
   !If we are fixing a circular orbit, ec and w are not used 
   if ( ics ) nu = nu + 2 
   chi2_red = chi2_old / nu
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', sum(chi2_red)/nwalks,'nu =', nu
+  print *, 'Initial Chi2_red= ', sum(chi2_red) / nu ,'nu =', nu
 
   !Let us start the otput file
   do m = 0, npl - 1 
@@ -471,10 +477,10 @@ implicit none
       do m = 0, npl - 1
         params_new(:,m,nk) = params_old(:,m,r_int(nk))
         params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
-                       ( params_old(:,m,nk) - params_new(:,m,nk) )
+                           ( params_old(:,m,nk) - params_new(:,m,nk) )
         !Let us check the limits
         call check_limits(params_new(:,m,nk),limits(:,m), &
-        is_limit_good,5+nt)
+                          is_limit_good,5+nt)
          !If we are out of limits this chain is bad
         if ( .not. is_limit_good ) exit
       end do
@@ -486,11 +492,11 @@ implicit none
       end if
 
       !Compare the models 
-      q = z_rand(nk)**( spar - 1.) * &
+      q = z_rand(nk)**(spar - 1) * &
         exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
-        if ( chi2_new(nk) / nu > 0.9999 ) then !Are we overfitting?
+        if ( chi2_new(nk) / nu > 0.99 ) then !Are we overfitting?
           chi2_old(nk) = chi2_new(nk)
           params_old(:,:,nk) = params_new(:,:,nk)
         end if
@@ -501,7 +507,7 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
-          write(*,*) j
+          !write(*,*) j
           do m = 0, npl - 1 !Print a file with data of each planet 
             write(m,*) j, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
           end do
@@ -509,19 +515,20 @@ implicit none
       end if
       !End burn-in
 
-    end do
+    end do !walkers
 
      if ( is_burn ) then
+
         if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
         if ( n_burn > nconv ) get_out = .false.
-     end if
 
-    !Obtain the chi2 mean off all the variables
-    chi2_red_min = sum(chi2_red) / nwalks
-  
-    !Print chain evolution
-    if ( .not. is_burn ) then
+     else
+
       if ( mod(j,thin_factor) == 0 ) then
+
+        !Obtain the chi2 mean off all the variables
+        chi2_red_min = sum(chi2_red) / nwalks
+
         print *, 'iter ',j,', Chi2_red =', chi2_red_min
 
         !Check convergence here
