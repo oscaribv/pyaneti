@@ -302,7 +302,7 @@ elif ( fit_rv and not fit_tr ):
 	min_P	 	= 7.5
 	max_P	 	= 8.5
 	min_e		= 1.e-10		
-	max_e		= 0.999
+	max_e		= 0.8
 	min_w		= 0.0
 	max_w		= 2*np.pi
 	min_k		= 0.00001
@@ -326,19 +326,19 @@ elif ( fit_rv and not fit_tr ):
 	limits_p1 = np.concatenate((dummy_lims_p1,vec_rv0_limits)) 
 	limits_p2 = np.concatenate((dummy_lims_p2,vec_rv0_limits)) 
 
-	nplanets = 1
+	nplanets = 2
 	
 	#Call fit routine
 	#pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
   #params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
-	#list_pars = np.concatenate((params_p1,params_p2))
-	#list_lims = np.concatenate((limits_p1,limits_p2))
-	#list_wtfs = np.concatenate((what_fit_p1,what_fit_p2))
+	list_pars = np.concatenate((params_p1,params_p2))
+	list_lims = np.concatenate((limits_p1,limits_p2))
+	list_wtfs = np.concatenate((what_fit_p1,what_fit_p2))
 
-	list_pars = (params_p1)
-	list_lims = (limits_p1)
-	list_wtfs = (what_fit_p1)
+	#list_pars = (params_p1)
+	#list_lims = (limits_p1)
+	#list_wtfs = (what_fit_p1)
 
 	#print list_pars
 
@@ -349,15 +349,15 @@ elif ( fit_rv and not fit_tr ):
 	#sys.exit('O')
 
 	nwalkers = 20 * len(params_p1)
-	nwalkers = 20
+	nwalkers = 1000
 
-	out_file = 'planet1.dat'
-	#out_file = ['planet1.dat','planet2.dat']
+	#out_file = 'planet1.dat'
+	out_file = ['planet1.dat','planet2.dat']
 
-	pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-  list_pars, list_lims, nwalkers, prec, maxi, thin_factor, \
-	is_circular, list_wtfs,flag,nconv,datas=len(mega_time), \
-	nt=nt,npl=nplanets)
+	#pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
+  #list_pars, list_lims, nwalkers, prec, maxi, thin_factor, \
+	#is_circular, list_wtfs,flag,nconv,datas=len(mega_time), \
+	#nt=nt,npl=nplanets)
 	#Read the data
 	nconv = nconv * (nwalkers-1)
 
@@ -426,21 +426,8 @@ else:
 #			END FITTING ROUTINES
 #-------------------------------------------------------------
 	
-if ( nplanets == 1 ):
+errores = 'perc'
+execfile('print_values.py')
 
-	errores = 'perc'
-	execfile('print_errors.py')
-
-	#PLOT TRANSIT
-	if ( fit_tr ):
-		plot_transit()
-
-	#PLOT RV CURVE
-	if ( fit_rv ):
-		plot_rv()
-
-else:
-	errores = 'perc'
-	print_errors_planets()	
-
+execfile('plot_data.py')
 
