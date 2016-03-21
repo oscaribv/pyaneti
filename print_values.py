@@ -104,23 +104,23 @@ if ( nplanets == 1 ):
 	
 
 		#Print the best fit values values
-		print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val,chi2_errr-chi2_val, chi2_val - chi2_errl))
+		print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val,chi2_errr,chi2_errl))
 		print ('The best fit planet parameters are:')
-		print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val,t0_errr-t0_val, t0_val-t0_errl))
-		print ('P     = %4.4f + %4.4f - %4.4f days'%(P_val, P_errr - P_val, P_val - P_errl))
-		print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr - e_val, e_val - e_errl))
-		print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr - w_deg, w_deg - w_deg_errl))
+		print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val,t0_errr,t0_errl))
+		print ('P     = %4.4f + %4.4f - %4.4f days'%(P_val, P_errr , P_errl))
+		print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
+		print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
 		if (fit_tr):
-			print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr-i_deg, i_deg - i_deg_errl))
-			print ('a/r*  = %4.4f + %4.4f - %4.4f    ' 		%(a_val, a_errr - a_val ,a_val - a_errl))
-			print ('u1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr - u1_val, u1_val - u1_errl))
-			print ('u2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr - u2_val, u2_val - u2_errl))
-			print ('rp/r* = %4.4f + %4.4f - %4.4f    ' 		%(pz_val,pz_errr - pz_val, pz_val - pz_errl))
+			print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))
+			print ('a/r*  = %4.4f + %4.4f - %4.4f    ' 		%(a_val, a_errr , a_errl))
+			print ('u1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr, u1_errl))
+			print ('u2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr, u2_errl))
+			print ('rp/r* = %4.4f + %4.4f - %4.4f    ' 		%(pz_val,pz_errr, pz_errl))
 	if (fit_rv):
-			print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr - k_val)/1.e-3, (k_val - k_errl)/1.e-3))
+			print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
 			for i in range(0,nt):
 				print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
-				v_val[i],v_errr[i] - v_val[i], v_val[i] - v_errl[i]))
+				v_val[i],v_errr[i],v_errl[i]))
 
 #Multiplanet fit
 else:
@@ -227,17 +227,17 @@ else:
 			
 		
 				#Print the best fit values values
-				print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val[l],chi2_errr[l]-chi2_val[l], chi2_val[l] - chi2_errl[l]))
+				print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val[l],chi2_errr[l],chi2_errl[l]))
 				print ('The best fit planet parameters are:')
-				print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val[l],t0_errr[l]-t0_val[l], t0_val[l]-t0_errl[l]))
-				print ('P     = %4.4f + %4.4f - %4.4f days' 		%(P_val[l], P_errr[l] - P_val[l], P_val[l] - P_errl[l]))
-				print ('e     = %4.4f + %4.4f - %4.4f     '			%(e_val[l], e_errr[l] - e_val[l], e_val[l] - e_errl[l]))
-				print ('w     = %4.4f + %4.4f - %4.4f deg '	%(w_deg[l],w_deg_errr[l] - w_deg[l], w_deg[l] - w_deg_errl[l]))
+				print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val[l],t0_errr[l],t0_errl[l]))
+				print ('P     = %4.4f + %4.4f - %4.4f days' 		%(P_val[l], P_errr[l], P_errl[l]))
+				print ('e     = %4.4f + %4.4f - %4.4f     '			%(e_val[l], e_errr[l],e_errl[l]))
+				print ('w     = %4.4f + %4.4f - %4.4f deg '	%(w_deg[l],w_deg_errr[l], w_deg_errl[l]))
 				if (fit_rv):
-					print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val[l]/1.e-3,(k_errr[l] - k_val[l])/1.e-3, (k_val[l] - k_errl[l])/1e-3))
+					print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val[l]/1.e-3,(k_errr[l])/1.e-3, (k_errl[l])/1e-3))
 					for i in range(0,nt):
 						print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
-							v_val[i],v_errr[i] - v_val[i], v_val[i] - v_errl[i]))
+							v_val[i],v_errr[i],v_errl[i]))
 
 	#Run the previous function
 	print_errors_planets()	

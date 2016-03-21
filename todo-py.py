@@ -167,13 +167,13 @@ def find_vals_gauss(x,nconv):
 #-----------------------------------------------------------
 def find_vals_perc(x,nconv):
   #let us take only the converging part
-  iout = len(x) - nconv
-  xnew = x[iout:]
+	iout = len(x) - nconv
+	xnew = x[iout:]
 	#With a 68% confidence interval
-  mine, med, maxe = np.percentile(xnew,[16,50,84])
-	#maxe = maxe - med
-	#mine = med - mine
-  return med, mine, maxe
+	mine, med, maxe = np.percentile(xnew,[16,50,84])
+	maxe = maxe - med
+	mine = med - mine
+	return med, mine, maxe
 
 
 
