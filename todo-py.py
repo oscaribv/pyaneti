@@ -34,14 +34,29 @@ def scale_period(jd,Tp,P):
 #				ecc   -> orbit eccentricity (no unit)
 #output:mpsin -> planet mass (stellar masses) times sin(i)
 #-----------------------------------------------------------
-def planet_mass(mstar,k,P,ecc):
+def planet_mass(mstar,sdm,k,sdk,P,sdP,ecc,sdecc):
   #Gravitational costant
-  Gc = 6.67408e-11 #m^3 / (kgs^2)
-  Gc = Gc * 1.989e30 # m^3 / (Msun s^2)
-  P = P * 24. * 3600 # s
-  mpsin = k * ( 2. * np.pi * Gc / P)**(-1./3.)  * \
-  mstar**(2./3.)
-  return mpsin
+	Gc = 6.67408e-11 #m^3 / (kgs^2)
+	Gc = Gc * 1.989e30 # m^3 / (Msun s^2)
+	P = P * 24. * 3600 # s
+
+	mstar3 = mstar**(1./3.)
+	const  = (2*np.pi*Gc)**( - 1./3.)
+	unoe	 = np.sqrt(1.-ecc*ecc) 
+	P3		 = P**(1./3.)
+
+	mpsin = k * ( 2. * np.pi * Gc / P)**(-1./3.)  * \
+	mstar**(2./3.) * unoe
+
+	#dmdP = k/3.0 * P**(-2./3.) * const * mstar3**2 * unoe
+
+	#dmdk = mpsin / k
+
+	#dmdm = k * P3 * const * 2./3. * mstar(-1./3.) * unoe
+
+	#dmde = - mpsin / unoe**2 * ecc
+
+	return mpsin#, sdmpsin
 
 #-----------------------------------------------------------
 #bin_data - bin a vector x each nbin points
@@ -257,6 +272,94 @@ def plot_rv():
     label=telescopes[i],fmt=mark[i],alpha=0.6)
   plt.show()
 
+#Plot RV for multiplanet
+def plot_rv_mp():
+	rvy = [None]*nplanets
+	p_rv = [None]*nplanets
+	k_dum = [None]*nplanets
+	for i in range(0,nplanets):
+		k_dum[i] = 1e3*k_val[i]
+	for i in range(0,nt):
+		v_val[i] = 1e3*v_val[i]
+		for j in range(0,len(rv_all[i])):
+			rv_all[i][j] = 1e3*rv_all[i][j]
+			errs_all[i][j] = 1e3*errs_all[i][j]
+
+
+	for i in range(0,nplanets):
+		rv_dum = []
+		for j in range(0,nt):
+			rv_dum.append(rv_all[j])
+		#Create the RV fitted model for the planet i
+		n = 5000
+		xmin = t0_val[i]
+		xmax = t0_val[i] + P_val[i]
+		dn = (xmax - xmin) /  n
+		rvx = np.empty([n])
+		rvx[0] = xmin
+		for j in range(1,n):
+			rvx[j] = rvx[j-1] + dn
+		rvy[i] = pti.rv_curve_mp(rvx,0.0,t0_val[i],\
+					k_dum[i],P_val[i],e_val[i],w_val[i])
+
+		dt0_val = []
+		dk_dum = []
+		dP_val = []
+		de_val = []
+		dw_val = []
+
+		j = 0
+		while ( j < nplanets ):
+			if ( j != i ):
+				dt0_val.append(t0_val[j])
+				dk_dum.append(k_dum[j])
+				dP_val.append(P_val[j])
+				de_val.append(e_val[j])
+				dw_val.append(w_val[j])
+			j = j + 1
+
+
+		res = [None]*nt
+		drvy = [None]*nt
+		for j in range(0,nt):
+			#This is the model of the actual planet
+			res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val[i],k_dum[i],\
+      	         P_val[i],e_val[i],w_val[i])
+			#This variable has all the others planets 
+			drvy[j] = pti.rv_curve_mp(time_all[j],0.0,dt0_val,dk_dum \
+								,dP_val,de_val,dw_val)
+			#the actual value, minus the systemic velocity, minus the other planets
+			print i,j,drvy[j]
+			rv_dum[j] = rv_dum[j] - v_val[j] - drvy[j]
+			res[j] = rv_dum[j] - res[j]
+
+		p_rv[i] = scale_period(rvx,t0_val[i],P_val[i])
+		p_all = [None]*nt
+		for j in range(0,nt):
+			p_all[j] = scale_period(time_all[j],t0_val[i],P_val[i])
+
+		plt.figure(3,figsize=(10,10))
+		plt.subplot(311)
+		plt.xlabel("Phase")
+		plt.ylabel(ylab)
+		#plt.ylim(-1.4*k_dum[i],1.4*k_dum[i])
+		plt.plot(p_rv[i],rvy[i],'k',label=('k=%2.2f m/s'%k_dum[i] ))
+		mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
+		for j in range(0,nt):
+			plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
+			label=telescopes[j],fmt=mark[j],alpha=0.6)
+			plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
+             ncol=4, mode="expand", borderaxespad=0.)
+		plt.subplot(312)
+		plt.xlabel("Phase")
+		plt.ylabel('Residuals (m/s)')
+		plt.plot([0.,1.],[0.,0.],'k--')
+		for j in range(0,nt):
+			plt.errorbar(p_all[j],res[j],errs_all[j],\
+			label=telescopes[j],fmt=mark[j],alpha=0.6)
+		fname = 'planet' + str(i+1) + '.pdf'
+		plt.savefig(fname)
+		plt.show()
 
 #PRINT INITIAL CONFIGURATION
 def print_init():
