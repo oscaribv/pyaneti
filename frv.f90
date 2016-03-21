@@ -541,13 +541,16 @@ implicit none
           !If chi2_red has not changed the last nconv iterations
           print *, abs(chi2_slope), toler_slope / (chi2_y)
           if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
+            print *, '======================='
             print *, 'THE CHAIN HAS CONVERGED'
-            print *, 'Starting burning-in phase'
+            print *, '======================='
+            print *, 'STARTING BURNING-IN PHASE'
+            print *, '======================='
             is_burn = .True.
             new_thin_factor = 50
             good_chain = minloc(chi2_red,dim=1) - 1
-            print *, 'The best chain is', good_chain, &
-            'with chi2_red =', chi2_red(good_chain)
+            !print *, 'The best chain is', good_chain, &
+            !'with chi2_red =', chi2_red(good_chain)
             do m = 0, npl - 1
               print *, 'Creating ', output_files(m)
             end do

@@ -11,6 +11,7 @@ prec = 1.e-4
 maxi = int(1e8)
 thin_factor = int(5e3)
 nconv = 100
+errores='perc'
 
 #Default priors
 P = 15.
@@ -21,6 +22,12 @@ a = 13.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.5
+
+#Transit fit
+nbin = 16
+
+#RV fit
+nplanets = 1
 
 #Fit nothing
 fit_rv = False

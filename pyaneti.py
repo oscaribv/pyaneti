@@ -90,9 +90,6 @@ if (fit_tr):
 			nobin_wflux.append(dummyf[i])
 			nobin_hdate.append(dummyd[i])
 
-	nbin = 16
-	#nbin = 8
-
 	#bin the data to do fastest test
 	hdate, err_hdate = bin_data(nobin_hdate,nbin)
 	wflux, errs = bin_data(nobin_wflux,nbin)
@@ -325,8 +322,6 @@ elif ( fit_rv and not fit_tr ):
 
 	limits_p1 = np.concatenate((dummy_lims_p1,vec_rv0_limits)) 
 	limits_p2 = np.concatenate((dummy_lims_p2,vec_rv0_limits)) 
-
-	nplanets = 2
 	
 	#Call fit routine
 	#pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
@@ -399,9 +394,10 @@ else:
 #-------------------------------------------------------------
 #			END FITTING ROUTINES
 #-------------------------------------------------------------
-	
-errores = 'perc'
+
+#Print the values
 execfile('print_values.py')
 
+#Create plots
 execfile('plot_data.py')
 
