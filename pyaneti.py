@@ -215,63 +215,78 @@ elif ( fit_rv and not fit_tr ):
 		fit_e = False
 		fit_w = False
 
-	what_fit_p1 = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
-					    int(fit_k), int(fit_v0)]
-	what_fit_p2 = [ 0, 0,int(fit_e),int(fit_w), \
-					    int(fit_k), int(fit_v0)]
-	dummy_p1 = [6813.38345,7.919454,e,w,k0]
-	dummy_p2 = [6817.2759,11.90701,e,w,k0]
-	params_p1 = np.concatenate((dummy_p1,v0))
-	params_p2 = np.concatenate((dummy_p2,v0))
+	#All this should be in the input file
+	fit_t0 = [fit_t0,0]
+	fit_P  = [fit_P, 0]
+	fit_e  = [fit_e,fit_e]
+	fit_w  = [fit_w,fit_w]
+	fit_k  = [fit_k,fit_k]  
+	fit_v0 = [fit_v0,fit_v0]
 
-	min_t0	= 6812.
-	max_t0 	= 6820.
-	min_P	 	= 7.5
-	max_P	 	= 8.5
-	min_e		= 1.e-10		
-	max_e		= 0.8
-	min_w		= 0.0
-	max_w		= 2*np.pi
-	min_k		= 0.00001
-	max_k		= 2.0
-	min_rv0	= 1.
-	max_rv0 = 10.
+	T0 = [6813.38345,6817.2759]
+	P  = [7.919454,11.90701]
+	e  = [e,e]
+	w  = [w,w]
+	k  = [k0,k0]
 
-	vec_rv0_limits = []
-	for m in range(0,nt):
-		vec_rv0_limits.append(min_rv0) 
-		vec_rv0_limits.append(max_rv0) 
+	min_t0	= [6812.,6800.]
+	max_t0 	= [6820.,6830.]
+	min_P	 	= [7.5,7.5]
+	max_P	 	= [8.5,15.0]
+	min_e		= [1.e-10,1e-10]
+	max_e		= [0.8,0.8]
+	min_w		= [0.0,0.0]
+	max_w		= [2*np.pi,2*np.pi]
+	min_k		= [0.00001,0.00001]
+	max_k		= [2.0,2.0]
+	min_v0	= 1.
+	max_v0  = 10.
+	#All this should be in the input file
 
-	dummy_lims_p2 = \
-	[	6800., 6830., min_P, 3*max_P, min_e, max_e, min_w, max_w \
-		, min_k, max_k]
 
-	dummy_lims_p1 = \
-	[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
-		, min_k, max_k]
+	what_fit = [None]*6*nplanets
+	params   = [None]*(5+nt)*nplanets	
+	limits   = [None]*(5+nt)*2*nplanets
+	#Let us fill the input variables for 
+	#all the number of planets
+	for m in range(0,nplanets):
+		#What to fit from the input lists	
+		what_fit[0+6*m] = int(fit_t0[m]) 
+		what_fit[1+6*m] = int(fit_P[m]) 
+		what_fit[2+6*m] = int(fit_e[m]) 
+		what_fit[3+6*m] = int(fit_w[m]) 
+		what_fit[4+6*m] = int(fit_k[m]) 
+		what_fit[5+6*m] = int(fit_v0[m]) 
+		#fill the parameters vector
+		params[0+(5+nt)*m] = T0[m]
+		params[1+(5+nt)*m] = P[m]
+		params[2+(5+nt)*m] = e[m]
+		params[3+(5+nt)*m] = w[m]
+		params[4+(5+nt)*m] = k[m]
+		#fill the systemic velocities
+		for j in range(0,nt):
+			params[(5+j)+(5+nt)*m] = v0[j]
+		#fill the limits
+		limits[0+(5+nt)*2*m] = min_t0[m]
+		limits[1+(5+nt)*2*m] = max_t0[m]
+		limits[2+(5+nt)*2*m] = min_P[m]
+		limits[3+(5+nt)*2*m] = max_P[m]
+		limits[4+(5+nt)*2*m] = min_e[m]
+		limits[5+(5+nt)*2*m] = max_e[m]
+		limits[6+(5+nt)*2*m] = min_w[m]
+		limits[7+(5+nt)*2*m] = max_w[m]
+		limits[8+(5+nt)*2*m] = min_k[m]
+		limits[9+(5+nt)*2*m] = max_k[m]
+		for j in range(0,nt):
+			limits[(10+j*2)+(5+nt)*2*m] = min_v0
+			limits[(11+j*2)+(5+nt)*2*m] = max_v0
 
-	limits_p1 = np.concatenate((dummy_lims_p1,vec_rv0_limits)) 
-	limits_p2 = np.concatenate((dummy_lims_p2,vec_rv0_limits)) 
-	
-	
-	params = np.concatenate((params_p1,params_p2))
-	limits = np.concatenate((limits_p1,limits_p2))
-	what_fit = np.concatenate((what_fit_p1,what_fit_p2))
 
-	#list_pars = (params_p1)
-	#list_lims = (limits_p1)
-	#list_wtfs = (what_fit_p1)
+#	print limits
+#	sys.exit('')
 
-	#print list_pars
-
-	#print list_lims
-	
-	#print list_wtfs	
-
-	#sys.exit('O')
-
-	nwalkers = 20 * len(params_p1)
-	nwalkers = 1000
+	nwalkers = 20 * len(params)
+#	nwalkers = 1000
 #	nwalkers = 500
 
 	#out_file = 'planet1.dat'
