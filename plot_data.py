@@ -176,7 +176,7 @@ else:
 			for j in range(0,nt):
 				p_all[j] = scale_period(time_all[j],t0_val[i],P_val[i])
 
-			plt.figure(3,figsize=(7,9))
+			plt.figure(3,figsize=(7,6))
 			gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[2, 1])
 			ax0 = plt.subplot(gs[0])
 			#plt.subplot(311)
@@ -199,7 +199,7 @@ else:
 				ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
 				label=telescopes[j],fmt=mark[j],alpha=0.6)
 			fname = 'planet' + str(i+1) + '.pdf'
-			plt.savefig(fname)
+			plt.savefig(fname,format='pdf',bbox_inches='tight')
 			plt.show()
 
 	#call the function
