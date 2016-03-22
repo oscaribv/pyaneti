@@ -1,3 +1,11 @@
+#-----------------------------------------------------------
+#                       default.py
+#  This file contains the defalut values to run pyaneti.
+#  You can change all the values here. You can also control
+#	 the values in input_file.py
+#						         O. Barragan, March 2016
+#-----------------------------------------------------------
+
 #Plot parameters
 units_ms = False
 ylab = 'RV (km/s)'
@@ -26,7 +34,7 @@ pz = 0.5
 #Transit fit
 nbin = 16
 
-#RV fit
+#The defaul number of planets is 1
 nplanets = 1
 
 #Fit nothing
@@ -39,11 +47,13 @@ fit_t0  = True
 fit_P   = True
 fit_e   = True
 fit_w   = True
+#transit fit
 fit_i   = True
 fit_a   = True
 fit_u1  = True
 fit_u2  = True
 fit_pz  = True
+#rv fit
 fit_k   = True
 fit_v0  = True
 
@@ -65,6 +75,7 @@ min_e   = 1.e-10			#zero
 max_e   = 0.999				#one
 min_w   = 0.0					#
 max_w   = 2*np.pi			#
+#transit fit
 min_i   = 1.22173 		# 70 degrees
 max_i   = np.pi / 2.0 # 90 degrees
 min_a   = 1.5					# The planet is outside the star
@@ -75,6 +86,7 @@ min_u2  = 0.0					#
 max_u2  = 0.5					#
 min_pz  = 1.e-2				# Earth size planet / sun
 max_pz  = 0.99				# a really big planet 
+#rv fit
 min_k   = 1.e-3				# m/s amplitudes
 max_k   = 30.					# a really big planet
 min_rv0 = 1.					#Systemic velocities
