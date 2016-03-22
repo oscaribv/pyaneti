@@ -1,5 +1,7 @@
 	#Let us do the plots here
 
+from matplotlib import gridspec
+
 #one planet case
 if ( nplanets == 1 ):
 
@@ -107,6 +109,9 @@ if ( nplanets == 1 ):
 
 else:
 	#Plot RV for multiplanet
+	#erase this
+	k_val[1] = 0.0
+	#erase this
 	def plot_rv_mp():
 		rvy = [None]*nplanets
 		p_rv = [None]*nplanets
@@ -171,24 +176,27 @@ else:
 			for j in range(0,nt):
 				p_all[j] = scale_period(time_all[j],t0_val[i],P_val[i])
 
-			plt.figure(3,figsize=(10,10))
-			plt.subplot(311)
-			plt.xlabel("")
-			plt.ylabel(ylab)
-			#plt.ylim(-1.4*k_dum[i],1.4*k_dum[i])
-			plt.plot(p_rv[i],rvy[i],'k',label=('k=%2.2f m/s'%k_dum[i] ))
+			plt.figure(3,figsize=(7,9))
+			gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[2, 1])
+			ax0 = plt.subplot(gs[0])
+			#plt.subplot(311)
+			ax0 = plt.xlabel("")
+			ax0 = plt.ylabel("RV (m/s)")
+			ax0 = plt.plot([0.,1.],[0.,0.],'k--')
+			ax0 = plt.plot(p_rv[i],rvy[i],'k')
 			mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
 			for j in range(0,nt):
-				plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
+				ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
 				label=telescopes[j],fmt=mark[j],alpha=0.6)
-				plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
-		     ncol=4, mode="expand", borderaxespad=0.)
-			plt.subplot(312)
-			plt.xlabel("Phase")
-			plt.ylabel('Residuals (m/s)')
-			plt.plot([0.,1.],[0.,0.],'k--')
+				ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
+		     ncol=nt, mode="expand", borderaxespad=0.)
+			#plt.subplot(312)
+			ax1 = plt.subplot(gs[1])
+			ax1 = plt.xlabel("Orbital phase")
+			ax1 = plt.ylabel('Residuals (m/s)')
+			ax1 = plt.plot([0.,1.],[0.,0.],'k--')
 			for j in range(0,nt):
-				plt.errorbar(p_all[j],res[j],errs_all[j],\
+				ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
 				label=telescopes[j],fmt=mark[j],alpha=0.6)
 			fname = 'planet' + str(i+1) + '.pdf'
 			plt.savefig(fname)
