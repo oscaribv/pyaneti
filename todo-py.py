@@ -32,31 +32,27 @@ def scale_period(jd,Tp,P):
 #				k			-> semi-amplitude of the RV (m/s)
 #				P  		-> planet orbital period (days)
 #				ecc   -> orbit eccentricity (no unit)
-#output:mpsin -> planet mass (stellar masses) times sin(i)
+#       i     -> orbit inclination (radians)
+#output:mp    -> planet mass (solar masses)
+# WARNING: the defalut value for i is pi/2 (90 degrees),
+# if you do not know the orbit inclination, this function
+# computes the planet mass times sin(i)
 #-----------------------------------------------------------
-def planet_mass(mstar,sdm,k,sdk,P,sdP,ecc,sdecc):
+def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
+
   #Gravitational costant
 	Gc = 6.67408e-11 #m^3 / (kgs^2)
 	Gc = Gc * 1.989e30 # m^3 / (Msun s^2)
 	P = P * 24. * 3600 # s
 
-	mstar3 = mstar**(1./3.)
-	const  = (2*np.pi*Gc)**( - 1./3.)
 	unoe	 = np.sqrt(1.-ecc*ecc) 
-	P3		 = P**(1./3.)
 
 	mpsin = k * ( 2. * np.pi * Gc / P)**(-1./3.)  * \
 	mstar**(2./3.) * unoe
 
-	#dmdP = k/3.0 * P**(-2./3.) * const * mstar3**2 * unoe
+	mp = mpsin / np.sin(i)
 
-	#dmdk = mpsin / k
-
-	#dmdm = k * P3 * const * 2./3. * mstar(-1./3.) * unoe
-
-	#dmde = - mpsin / unoe**2 * ecc
-
-	return mpsin#, sdmpsin
+	return mp
 
 #-----------------------------------------------------------
 #bin_data - bin a vector x each nbin points
@@ -157,16 +153,16 @@ def find_vals_gauss(x,nconv):
   return mu, std
 
 #-----------------------------------------------------------
-# find_vals_perc -> find the mean and standard deviation
-#							  of the last nconv points of a given array
+# find_vals_perc -> find the median and the errors within
+#									 a 68% confidence interval
 #input: x 		-> vector with a minimum size nconv
 #				nconv -> the last nconv points to be taken account
 #								 in the gaussian fit
-#output: mu -> peak position of the gaussian fit
-#				 std-> standard deviation of the gaussian fit
+#output: med 	-> median value
+#				 mine	-> left error (50% - 16%)
+#				 maxe	-> right error (84% - 50%)
 #-----------------------------------------------------------
 def find_vals_perc(x,nconv):
-  #let us take only the converging part
 	iout = len(x) - nconv
 	xnew = x[iout:]
 	#With a 68% confidence interval
@@ -176,12 +172,14 @@ def find_vals_perc(x,nconv):
 	return med, mine, maxe
 
 
-
-#PRINT INITIAL CONFIGURATION
+#-----------------------------------------------------------
+# PRINT INITIAL CONFIGURATION
+#-----------------------------------------------------------
 def print_init():
 	print ''
+	print '=============================='
 	print '------------------------------'
-	print "INITIAL CONFIGURATION"
+	print "    INITIAL CONFIGURATION     "
 	print '------------------------------'
 	print 'is_circular    = ', is_circular
 	print 'iter max       = ', maxi
@@ -191,7 +189,7 @@ def print_init():
 	print 'fit RV         =', fit_rv
 	print 'fit Transit    =', fit_tr
 	print '------------------------------'
-	print 'Priors'
+	print '          Priors              '
 	print '------------------------------'
 	print 'T_0         = ', T0
 	print 'Period      = ', P
@@ -204,7 +202,7 @@ def print_init():
 	  print 'u2        = ', u2
 	  print 'rp/r*     = ', pz
 	print '------------------------------'
-	print 'What am I fitting?'
+	print '     What am I fitting?       '
 	print '------------------------------'
 	print 'fit T0= ', fit_t0
 	print 'fit P = ', fit_P
@@ -220,6 +218,7 @@ def print_init():
 	  print 'fit k = ', fit_k
 	  print 'fit v0= ', fit_v0
 	print '------------------------------'
+	print '=============================='
 	print ''
 
 
