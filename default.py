@@ -12,6 +12,8 @@ ylab = 'RV (km/s)'
 ktom = 1.0
 mstar= 1.0
 
+telescopes = []
+
 #MCMC controls
 is_circular = False
 ics = False
