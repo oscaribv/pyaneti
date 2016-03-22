@@ -1,12 +1,18 @@
 #!/usr/bin/python2.7
 
+#-----------------------------------------------------------
+#                         pyaneti.py
+#                        DESCRIPTION
+#                   Barragan O, March 2016
+#-----------------------------------------------------------
+
 #Load libraries
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.stats import norm, sigmaclip
 import sys
-import pyaneti as pti
+import pyaneti as pti #FORTRAN module
 
 #Read the file with all the python functions
 execfile('todo-py.py')
@@ -51,7 +57,7 @@ if ( is_circular ):
 print_init()
 
 #-------------------------------------------------------------
-#			FITTING ROUTINES
+#			              FITTING ROUTINES
 #-------------------------------------------------------------
 
 #FIT TRANSIT AND RV CURVES
@@ -66,50 +72,65 @@ if (fit_rv and fit_tr ):
 	params = np.concatenate((dummy,v0))
 
 	#Call the fit routine
-	#pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab \
-	#,megax, megay, megae, params, prec, maxi, thin_factor, \
-	#is_circular, what_fit, flag, nconv)
+	if ( method == 'mh' ):
+		pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab \
+		,megax, megay, megae, params, prec, maxi, thin_factor, \
+		is_circular, what_fit, flag, nconv)
 
-	min_t0	= min(xt[0])
-	max_t0 	= max(xt[0])
-	min_P	 	= 13.
-	max_P	 	= 16.
-	min_e		= 1.e-8		
-	max_e		= 0.5
-	min_w		= 0.0
-	max_w		= 2*np.pi
-	min_i		= 0.
-	max_i		= np.pi / 2.0
-	min_a		= 5.0
-	max_a		= 20.0
-	min_u1	= 0.0
-	max_u1	= 0.5
-	min_u2	= 0.0
-	max_u2	= 0.5
-	min_pz	= 1e-3
-	max_pz	= 0.5
-	min_k		= 5
-	max_k		= 20
-	min_rv0	= 30
-	max_rv0 = 70
+	elif ( method == 'sm' ):
 
-	vec_rv0_limits = []
-	for m in range(0,nt):
-		vec_rv0_limits.append(min_rv0) 
-		vec_rv0_limits.append(max_rv0) 
+		min_t0	= min(xt[0])
+		max_t0 	= max(xt[0])
+		min_P	 	= 13.
+		max_P	 	= 16.
+		min_e		= 1.e-8		
+		max_e		= 0.5
+		min_w		= 0.0
+		max_w		= 2*np.pi
+		min_i		= 0.
+		max_i		= np.pi / 2.0
+		min_a		= 5.0
+		max_a		= 20.0
+		min_u1	= 0.0
+		max_u1	= 0.5
+		min_u2	= 0.0
+		max_u2	= 0.5
+		min_pz	= 1e-3
+		max_pz	= 0.5
+		min_k		= 5
+		max_k		= 20
+		min_rv0	= 30
+		max_rv0 = 70
 
-	dummy_lims = \
-	[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
-		, min_i, max_i, min_a, max_a, min_u1, max_u1, min_u2, \
-		max_u2, min_pz, max_pz, min_k, max_k]
+		vec_rv0_limits = []
+		for m in range(0,nt):
+			vec_rv0_limits.append(min_rv0) 
+			vec_rv0_limits.append(max_rv0) 
 
-	limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
+		dummy_lims = \
+		[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
+			, min_i, max_i, min_a, max_a, min_u1, max_u1, min_u2, \
+			max_u2, min_pz, max_pz, min_k, max_k]
+
+		limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
 	
-	nwalks = 20*len(params)
+		nwalks = 20*len(params)
 
-	pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
-	,megax, megay, megae, params,limits, nwalks, prec, maxi, thin_factor, \
-	is_circular, what_fit, flag, nconv)
+		pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
+		,megax, megay, megae, params,limits, nwalks, prec, maxi, thin_factor, \
+		is_circular, what_fit, flag, nconv)
+
+	elif ( method == 'plot' ):
+		print 'I will only print the values and generate the plot'
+
+	else:
+		print 'You did not choose a method!'
+		print 'method = mh   -> Metropolis-Hasting'
+		print 'method = sm   -> Stretch move'
+		print 'method = plot -> Plot of a previous run'
+		sys.exit('choose your favorite.')
+
+	print 'Reading the data file, wait a bit!'
 
 	#Read the data
 	vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko =  \
@@ -134,40 +155,54 @@ elif ( not fit_rv and fit_tr ):
 	params = [T0,P,e,w,ii,a,u1,u2,pz]
 
 	#Call fit routine
-	#pti.metropolis_hastings_tr(megax, megay, megae,  \
-	#params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+	if ( method == 'mh' ):
+		pti.metropolis_hastings_tr(megax, megay, megae,  \
+		params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
-	min_t0	= min(xt[0])
-	max_t0 	= max(xt[0])
-	min_P	 	= 13.
-	max_P	 	= 16.
-	min_e		= 1.e-8		
-	max_e		= 0.5
-	min_w		= 0.0
-	max_w		= 2*np.pi
-	min_i		= 0.
-	max_i		= 1*np.pi
-	min_a		= 5.0
-	max_a		= 20.0
-	min_u1	= 0.0
-	max_u1	= 0.5
-	min_u2	= 0.0
-	max_u2	= 0.5
-	min_pz	= 1e-3
-	max_pz	= 0.5
+	elif ( method == 'sm' ):
+		min_t0	= min(xt[0])
+		max_t0 	= max(xt[0])
+		min_P	 	= 13.
+		max_P	 	= 16.
+		min_e		= 1.e-8		
+		max_e		= 0.5
+		min_w		= 0.0
+		max_w		= 2*np.pi
+		min_i		= 0.
+		max_i		= 1*np.pi
+		min_a		= 5.0
+		max_a		= 20.0
+		min_u1	= 0.0
+		max_u1	= 0.5
+		min_u2	= 0.0
+		max_u2	= 0.5
+		min_pz	= 1e-3
+		max_pz	= 0.5
 
-	limits = \
-	[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
-		, min_i, max_i, min_a, max_a, min_u1, max_u1, \
-		min_u2, max_u2, min_pz, max_pz]
+		limits = \
+		[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
+			, min_i, max_i, min_a, max_a, min_u1, max_u1, \
+			min_u2, max_u2, min_pz, max_pz]
 
-	nwalks = 20*len(params)
-	nwalks = 50
+		nwalks = 20*len(params)
+		nwalks = 50
 	
-	pti.stretch_move_tr(megax, megay, megae,  \
-	params,limits, nwalks, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+		pti.stretch_move_tr(megax, megay, megae,  \
+		params,limits, nwalks, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
-	#Read the data
+	elif ( method == 'plot' ):
+		print 'I will only print the values and generate the plot'
+
+	else:
+		print 'You did not choose a method!'
+		print 'method = mh   -> Metropolis-Hasting'
+		print 'method = sm   -> Stretch move'
+		print 'method = plot -> Plot of a previous run'
+		sys.exit('choose your favorite.')
+
+	print 'Reading the data file, wait a bit!'
+
+		#Read the data
 	vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
        np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
 
@@ -218,13 +253,10 @@ elif ( fit_rv and not fit_tr ):
 	limits_p1 = np.concatenate((dummy_lims_p1,vec_rv0_limits)) 
 	limits_p2 = np.concatenate((dummy_lims_p2,vec_rv0_limits)) 
 	
-	#Call fit routine
-	#pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
-  #params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
-
-	list_pars = np.concatenate((params_p1,params_p2))
-	list_lims = np.concatenate((limits_p1,limits_p2))
-	list_wtfs = np.concatenate((what_fit_p1,what_fit_p2))
+	
+	params = np.concatenate((params_p1,params_p2))
+	limits = np.concatenate((limits_p1,limits_p2))
+	what_fit = np.concatenate((what_fit_p1,what_fit_p2))
 
 	#list_pars = (params_p1)
 	#list_lims = (limits_p1)
@@ -240,14 +272,35 @@ elif ( fit_rv and not fit_tr ):
 
 	nwalkers = 20 * len(params_p1)
 	nwalkers = 1000
+#	nwalkers = 500
 
 	#out_file = 'planet1.dat'
 	out_file = ['planet1.dat','planet2.dat']
 
-	#pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-  #list_pars, list_lims, nwalkers, prec, maxi, thin_factor, \
-	#is_circular, list_wtfs,flag,nconv,datas=len(mega_time), \
-	#nt=nt,npl=nplanets)
+
+	if ( method == 'mh' ):
+		pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
+  	params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+
+	elif ( method == 'sm' ):
+
+		pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
+  	params, limits, nwalkers, prec, maxi, thin_factor, \
+		is_circular, what_fit,flag,nconv,datas=len(mega_time), \
+		nt=nt,npl=nplanets)
+
+	elif ( method == 'plot' ):
+		print 'I will only print the values and generate the plot'
+
+	else:
+		print 'You did not choose a method!'
+		print 'method = mh   -> Metropolis-Hasting'
+		print 'method = sm   -> Stretch move'
+		print 'method = plot -> Plot of a previous run'
+		sys.exit('choose your favorite.')
+
+	print 'Reading the data file, wait a bit!'
+
 	#Read the data
 	nconv = nconv * (nwalkers-1)
 
