@@ -143,8 +143,10 @@ if (fit_rv and fit_tr ):
 		a = np.loadtxt('mh_fit.dat', comments='#', \
 		unpack=True, usecols=(n))
 		vo[j] = a
+#-----------------------------------------------------------
+#                   FIT TRANSIT CURVE ONLY
+#-----------------------------------------------------------
 
-#FIT TRANSIT CURVE ONLY
 elif ( not fit_rv and fit_tr ):
 
 	flag = [is_log_P, is_ew, is_sini, is_log_a]
@@ -215,10 +217,6 @@ elif ( fit_rv and not fit_tr ):
 
 	flag = [is_log_P,is_ew,is_log_k,is_log_rv0]
 
-	if ( is_circular ):
-		fit_e = False
-		fit_w = False
-
 	what_fit = [None]*6*nplanets
 	params   = [None]*(5+nt)*nplanets	
 	limits   = [None]*(5+nt)*2*nplanets
@@ -265,8 +263,9 @@ elif ( fit_rv and not fit_tr ):
 
 
 	if ( method == 'mh' ):
-		pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err,tlab,\
-  	params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+		pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err, \
+		tlab, params, prec, maxi, thin_factor, is_circular,i \
+		what_fit,flag,nconv)
 
 	elif ( method == 'sm' ):
 
@@ -298,7 +297,8 @@ elif ( fit_rv and not fit_tr ):
 		vo = [None]*nt
 		for j in range(0,nt):
 			n = [8+j]
-			a = np.loadtxt(out_file, comments='#',unpack=True, usecols=(n))
+			a = np.loadtxt(out_file, comments='#',unpack=True,\
+					usecols=(n))
 			vo[j] = a
 	else:
 		#Create all the variables, list of lists
@@ -312,14 +312,15 @@ elif ( fit_rv and not fit_tr ):
 		ko 			= [[]]*nplanets
 		#each l index is for a different planet
 		for l in range(0,nplanets):
-			vari[l],chi2[l],chi2red[l],t0o[l],Po[l],eo[l],wo[l],ko[l] = \
-			np.loadtxt(out_file[l], comments='#', unpack=True,\
-			usecols=range(0,8))
+			vari[l],chi2[l],chi2red[l],t0o[l],Po[l],eo[l], \
+			wo[l],ko[l] = np.loadtxt(out_file[l], comments='#',i \
+										unpack=True, usecols=range(0,8))
 		#The  systemic velocities are the same for all the planets
 		vo = [None]*nt
 		for j in range(0,nt):
 			n = [8+j]
-			a = np.loadtxt(out_file[0], comments='#',unpack=True, usecols=(n))
+			a = np.loadtxt(out_file[0], comments='#', \
+					unpack=True, usecols=(n))
 			vo[j] = a
 		
 #Nothing to fit!
