@@ -215,35 +215,6 @@ elif ( fit_rv and not fit_tr ):
 		fit_e = False
 		fit_w = False
 
-	#All this should be in the input file
-	fit_t0 = [fit_t0,0]
-	fit_P  = [fit_P, 0]
-	fit_e  = [fit_e,fit_e]
-	fit_w  = [fit_w,fit_w]
-	fit_k  = [fit_k,fit_k]  
-	fit_v0 = [fit_v0,fit_v0]
-
-	T0 = [6813.38345,6817.2759]
-	P  = [7.919454,11.90701]
-	e  = [e,e]
-	w  = [w,w]
-	k  = [k0,k0]
-
-	min_t0	= [6812.,6800.]
-	max_t0 	= [6820.,6830.]
-	min_P	 	= [7.5,7.5]
-	max_P	 	= [8.5,15.0]
-	min_e		= [1.e-10,1e-10]
-	max_e		= [0.8,0.8]
-	min_w		= [0.0,0.0]
-	max_w		= [2*np.pi,2*np.pi]
-	min_k		= [0.00001,0.00001]
-	max_k		= [2.0,2.0]
-	min_v0	= 1.
-	max_v0  = 10.
-	#All this should be in the input file
-
-
 	what_fit = [None]*6*nplanets
 	params   = [None]*(5+nt)*nplanets	
 	limits   = [None]*(5+nt)*2*nplanets
@@ -281,16 +252,16 @@ elif ( fit_rv and not fit_tr ):
 			limits[(10+j*2)+(5+nt)*2*m] = min_v0
 			limits[(11+j*2)+(5+nt)*2*m] = max_v0
 
-
-#	print limits
-#	sys.exit('')
-
 	nwalkers = 20 * len(params)
 #	nwalkers = 1000
 #	nwalkers = 500
 
-	#out_file = 'planet1.dat'
-	out_file = ['planet1.dat','planet2.dat']
+	if ( nplanets == 1):
+		out_file = 'planet1.dat'
+	elif ( nplanets > 1):
+		out_file = [None]*nplanets
+		for m in range(0,nplanets):
+			out_file[m] = 'planet' + str(m+1) + '.dat'
 
 
 	if ( method == 'mh' ):
