@@ -50,6 +50,7 @@ if (fit_tr):
 if ( is_circular ):
 	fit_e = False
 	fit_w = False
+	is_ew = False
 	e = 0.0
 	w = np.pi / 2.0
 
@@ -206,7 +207,10 @@ elif ( not fit_rv and fit_tr ):
 	vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
        np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
 
-#FIT RV CURVE ONLY
+#-------------------------------------------------------------
+#                   FIT RV CURVE ONLY
+#-------------------------------------------------------------
+
 elif ( fit_rv and not fit_tr ):
 
 	flag = [is_log_P,is_ew,is_log_k,is_log_rv0]
@@ -252,10 +256,6 @@ elif ( fit_rv and not fit_tr ):
 			limits[(10+j*2)+(5+nt)*2*m] = min_v0
 			limits[(11+j*2)+(5+nt)*2*m] = max_v0
 
-	nwalkers = 20 * len(params)
-#	nwalkers = 1000
-#	nwalkers = 500
-
 	if ( nplanets == 1):
 		out_file = 'planet1.dat'
 	elif ( nplanets > 1):
@@ -294,6 +294,7 @@ elif ( fit_rv and not fit_tr ):
 		vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
 		np.loadtxt(out_file, comments='#', unpack=True,\
 		usecols=range(0,8))
+		#Read the systemic velocities
 		vo = [None]*nt
 		for j in range(0,nt):
 			n = [8+j]
@@ -301,14 +302,15 @@ elif ( fit_rv and not fit_tr ):
 			vo[j] = a
 	else:
 		#Create all the variables, list of lists
-		vari = [[]]*nplanets
-		chi2 = [[]]*nplanets
+		vari 		= [[]]*nplanets
+		chi2 		= [[]]*nplanets
 		chi2red = [[]]*nplanets
-		t0o = [[]]*nplanets
-		Po = [[]]*nplanets
-		eo = [[]]*nplanets
-		wo = [[]]*nplanets
-		ko = [[]]*nplanets
+		t0o 		= [[]]*nplanets
+		Po 			= [[]]*nplanets
+		eo 			= [[]]*nplanets
+		wo 			= [[]]*nplanets
+		ko 			= [[]]*nplanets
+		#each l index is for a different planet
 		for l in range(0,nplanets):
 			vari[l],chi2[l],chi2red[l],t0o[l],Po[l],eo[l],wo[l],ko[l] = \
 			np.loadtxt(out_file[l], comments='#', unpack=True,\
@@ -320,13 +322,12 @@ elif ( fit_rv and not fit_tr ):
 			a = np.loadtxt(out_file[0], comments='#',unpack=True, usecols=(n))
 			vo[j] = a
 		
-
 #Nothing to fit!
 else:
 	sys.exit("Nothing to fit!")
 
 #-------------------------------------------------------------
-#			END FITTING ROUTINES
+#		             	END FITTING ROUTINES
 #-------------------------------------------------------------
 
 #Print the values

@@ -24,6 +24,7 @@ maxi = int(1e8)
 thin_factor = int(5e3)
 nconv = 100
 errores='perc'
+nwalkers = 100
 
 #Default priors
 P = 15.

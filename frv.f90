@@ -420,7 +420,6 @@ implicit none
           params_old(n,m,nk) = limits(j+1,m) - limits(j,m)
           params_old(n,m,nk) = limits(j,m) + r_real*params_old(n,m,nk) 
         end if
-        print *, params_old(n,m,nk), limits(j,m), limits(j+1,m)
         j = j + 2
       end do
     end do
