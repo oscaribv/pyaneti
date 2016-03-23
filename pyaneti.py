@@ -264,10 +264,15 @@ elif ( fit_rv and not fit_tr ):
 
 	if ( method == 'mh' ):
 		pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err, \
-		tlab, params, prec, maxi, thin_factor, is_circular,i \
+		tlab, params, prec, maxi, thin_factor, is_circular, \
 		what_fit,flag,nconv)
 
 	elif ( method == 'sm' ):
+
+		#print params
+		#print limits
+		#print what_fit
+		#sys.exit('')
 
 		pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
   	params, limits, nwalkers, prec, maxi, thin_factor, \
@@ -313,7 +318,7 @@ elif ( fit_rv and not fit_tr ):
 		#each l index is for a different planet
 		for l in range(0,nplanets):
 			vari[l],chi2[l],chi2red[l],t0o[l],Po[l],eo[l], \
-			wo[l],ko[l] = np.loadtxt(out_file[l], comments='#',i \
+			wo[l],ko[l] = np.loadtxt(out_file[l], comments='#', \
 										unpack=True, usecols=range(0,8))
 		#The  systemic velocities are the same for all the planets
 		vo = [None]*nt

@@ -92,7 +92,7 @@ implicit none
   rv(:) = rv0
   do i = 0, npl-1
    !Obtain the eccentric anomaly by using find_anomaly
-   call find_anomaly(t,t0,e(i),w(i),P(i),ta,delta,imax,ts)
+   call find_anomaly(t,t0(i),e(i),w(i),P(i),ta,delta,imax,ts)
    rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
   end do
  
@@ -406,6 +406,12 @@ implicit none
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
 
+  !print *, npl, nt
+  !stop
+
+  print *, wtf_all
+  !stop
+
   print *, 'CREATING RANDOM UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
   do nk = 0, nwalks - 1
@@ -417,17 +423,25 @@ implicit none
           params_old(n,m,nk) = params(n,m)
         else
           call random_number(r_real)
+          print *, 'limits', limits(j+1,m), limits(j,m)
           params_old(n,m,nk) = limits(j+1,m) - limits(j,m)
+          print *, params_old(n,m,nk)
           params_old(n,m,nk) = limits(j,m) + r_real*params_old(n,m,nk) 
+          print *, params_old(n,m,nk)
         end if
+          print *, ''
         j = j + 2
       end do
     end do
+    print *, params_old(:,:,nk)
     !Each walker is a point in a parameter space
     !Each point contains the information of all the planets
     !Let us estimate our first chi_2 value for each walker
-    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,:,nk),flag,chi2_old(nk),ics,datas,nt,npl)
+    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,:,nk), &
+                      flag,chi2_old(nk),ics,datas,nt,npl)
   end do
+
+  !stop
 
   !Calculate the degrees of freedom
   nu = datas - spar
@@ -540,14 +554,14 @@ implicit none
           !If chi2_red has not changed the last nconv iterations
           print *, abs(chi2_slope), toler_slope / (chi2_y)
           if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
-            print *, '======================='
+            print *, '==========================='
             print *, 'THE CHAIN HAS CONVERGED'
-            print *, '======================='
+            print *, '==========================='
             print *, 'STARTING BURNING-IN PHASE'
-            print *, '======================='
+            print *, '==========================='
             is_burn = .True.
             new_thin_factor = 50
-            good_chain = minloc(chi2_red,dim=1) - 1
+            !good_chain = minloc(chi2_red,dim=1) - 1
             !print *, 'The best chain is', good_chain, &
             !'with chi2_red =', chi2_red(good_chain)
             do m = 0, npl - 1

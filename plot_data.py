@@ -2,9 +2,15 @@
 
 from matplotlib import gridspec
 
-#one planet case
+#===========================================================
+#                   One planet plots
+#===========================================================
+
 if ( nplanets == 1 ):
 
+	#=========================#
+	#       Transit plot      #
+	#=========================#
 	def plot_transit():
 		  #Move all the points to T0
 	  for i in range(0,ntr):
@@ -45,67 +51,84 @@ if ( nplanets == 1 ):
 	  plt.show()
 
 
-	#Plot RV
-	def plot_rv():
-	  #Create the RV fitted curve
-	  n = 5000
-	  xmin = t0_val
-	  xmax = t0_val + P_val
-	  dn = (xmax - xmin) /  n
-	  rvx = np.empty([n])
-	  rvx[0] = xmin
-	  for i in range(1,n):
-	    rvx[i] = rvx[i-1] + dn
-	  if ( is_circular ):
-	    rvy = pti.rv_circular(rvx,0.0,t0_val,k_val,P_val)
-	  else:
-	    rvy = pti.rv_curve(rvx,0.0,t0_val,k_val,P_val,e_val,w_val)
+	#=========================#
+	#        RV plot          #
+	#=========================#
+  #Plot RV for one planet
+	def plot_rv_one():
+		k_dum = 1e3*k_val
+		for i in range(0,nt):
+			v_val[i] = 1e3*v_val[i]
+			for j in range(0,len(rv_all[i])):
+				rv_all[i][j] = 1e3*rv_all[i][j]
+				errs_all[i][j] = 1e3*errs_all[i][j]
 
-	  res = [None]*nt
-	  for i in range(0,nt):
-	   if (is_circular):
-	      res[i] = pti.rv_circular(time_all[i],0.0,t0_val,\
-		       k_val,P_val)
-	   else:
-	      res[i] = pti.rv_curve(time_all[i],0.0,t0_val,k_val,\
-		       P_val,e_val,w_val)
-	   rv_all[i] = rv_all[i] - v_val[i]
-	   res[i] = rv_all[i] - res[i]
+		rv_dum = []
+		for j in range(0,nt):
+			rv_dum.append(rv_all[j])
+		n = 5000
+		xmin = t0_val
+		xmax = t0_val + P_val
+		dn = (xmax - xmin) /  n
+		rvx = np.empty([n])
+		rvx[0] = xmin
+		for j in range(1,n):
+			rvx[j] = rvx[j-1] + dn
 
-	  p_rv = scale_period(rvx,t0_val,P_val)
-	  p_all = [None]*nt
-	  #tp_val = pti.find_tp(t0_val,e_val,w_val,P_val)
-	  for i in range(0,nt):
-	    p_all[i] = scale_period(time_all[i],t0_val,P_val)
+		rvy = pti.rv_curve_mp(rvx,0.0,t0_val,\
+						         k_dum,P_val,e_val,w_val)
 
-	  plt.figure(3,figsize=(10,10))
-	  plt.subplot(311)
-	  plt.xlabel("Phase")
-	  plt.ylabel(ylab)
-	  plt.ylim(-1.4*k_val,1.4*k_val)
-	  plt.plot(p_rv,rvy,'k',label=('k=%2.2f m/s'%k_val ))
-	  mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
-	  for i in range(0,nt):
-	    plt.errorbar(p_all[i],rv_all[i],errs_all[i],\
-	    label=telescopes[i],fmt=mark[i],alpha=0.6)
-	  plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
-		     ncol=4, mode="expand", borderaxespad=0.)
-	  plt.subplot(312)
-	  plt.xlabel("Phase")
-	  plt.ylabel(ylab)
-	  plt.plot([0.,1.],[0.,0.],'k--')
-	  for i in range(0,nt):
-	    plt.errorbar(p_all[i],res[i],errs_all[i],\
-	    label=telescopes[i],fmt=mark[i],alpha=0.6)
-	  plt.show()
+		res = [None]*nt
+		for j in range(0,nt):
+			#This is the model of the actual planet
+			res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val,k_dum,\
+	      	         P_val,e_val,w_val)
+			#the actual value, minus the systemic velocity
+			rv_dum[j] = rv_dum[j] - v_val[j] 
+			res[j] = rv_dum[j] - res[j]
+
+			p_rv = scale_period(rvx,t0_val,P_val)
+			p_all = [None]*nt
+			for j in range(0,nt):
+				p_all[j] = scale_period(time_all[j],t0_val,P_val)
+
+		plt.figure(3,figsize=(7,6))
+		gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[1.618, 1])
+		ax0 = plt.subplot(gs[0])
+		#plt.subplot(311)
+		ax0 = plt.xlabel("")
+		ax0 = plt.ylabel("RV (m/s)")
+		ax0 = plt.plot([0.,1.],[0.,0.],'k--')
+		ax0 = plt.plot(p_rv,rvy,'k')
+		mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
+		for j in range(0,nt):
+			ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
+			label=telescopes[j],fmt=mark[j],alpha=0.8)
+		ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4, ncol=nt, mode="expand", borderaxespad=0.)
+		#plt.subplot(312)
+		ax1 = plt.subplot(gs[1])
+		ax1 = plt.xlabel("Orbital phase")
+		ax1 = plt.ylabel('Residuals (m/s)')
+		ax1 = plt.plot([0.,1.],[0.,0.],'k--')
+		for j in range(0,nt):
+			ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
+			label=telescopes[j],fmt=mark[j],alpha=0.8)
+		fname = 'planet1.pdf'
+		plt.savefig(fname,format='pdf',bbox_inches='tight')
+		plt.show()
+
 
 	#PLOT TRANSIT
-	  if ( fit_tr ):
-	  	plot_transit()
+	if ( fit_tr ):
+		plot_transit()
 
-  #PLOT RV CURVE
-	  if ( fit_rv ):
-	  	plot_rv()
+	#PLOT RV CURVE
+	if ( fit_rv ):
+		plot_rv_one()
+
+#===========================================================
+#                   Multi-planet plots
+#===========================================================
 
 else:
 	#Plot RV for multiplanet

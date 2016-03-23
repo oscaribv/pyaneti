@@ -237,8 +237,8 @@ implicit none
   is_true = .true.
   j = 0
   do i = 0, npar - 1
-    if ( params(i) < limits(j) .or. &
-         params(i) > limits(j+1) ) then
+    if ( params(i) <= limits(j) .or. &
+         params(i) >= limits(j+1) ) then
       is_true = .false.
       exit
     end if
