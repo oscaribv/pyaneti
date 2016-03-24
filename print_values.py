@@ -1,3 +1,4 @@
+from matplotlib import gridspec
 
 
 if ( nplanets == 1 ):
@@ -52,6 +53,23 @@ if ( nplanets == 1 ):
 			for j in range(0,nt):
 				v_val[j], v_err[j] = find_vals_gauss(vo[j],nconv)
 
+		t0_errl = t0_err
+		t0_errr = t0_err
+		P_errl = P_err
+		P_errr = P_err
+		e_errl = e_err
+		e_errr = e_err 
+		w_errl = w_err
+		w_errr = w_err
+		k_errl = k_err
+		k_errr = k_err
+		v_errl = [None]*nt
+		v_errr = [None]*nt
+		for m in range(0,nt):
+			v_errl[m] = v_err[m]
+			v_errr[m] = v_err[m]
+
+
 		#Print the best fit values values
 		print ('chi2_red = %1.4f +/- %1.4f' %(chi2_val,chi2_errs))
 		print ('The best fit planet parameters are:')
@@ -103,6 +121,7 @@ if ( nplanets == 1 ):
 			for j in range(0,nt):
 				v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv)
 	
+
 
 		#Print the best fit values values
 		print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val,chi2_errr,chi2_errl))

@@ -118,14 +118,6 @@ if ( nplanets == 1 ):
 		plt.show()
 
 
-	#PLOT TRANSIT
-	if ( fit_tr ):
-		plot_transit()
-
-	#PLOT RV CURVE
-	if ( fit_rv ):
-		plot_rv_one()
-
 #===========================================================
 #                   Multi-planet plots
 #===========================================================
@@ -222,5 +214,47 @@ else:
 			plt.savefig(fname,format='pdf',bbox_inches='tight')
 			plt.show()
 
-	#call the function
-	plot_rv_mp()
+
+def hist_one_rv(cbars='red'):
+	plt.figure(1,figsize=(10,3*(5+nt)/2))
+	gs = gridspec.GridSpec(nrows=int((5+nt)/2.+0.5),ncols=2)
+	ax0 = plt.subplot(gs[0])
+	ax0 = plt.axvline(x=t0_val,c=cbars)
+	ax0 = plt.axvline(x=t0_val-t0_errl,c=cbars,ls='--')
+	ax0 = plt.axvline(x=t0_val+t0_errr,c=cbars,ls='--')
+	ax0 = plt.xlabel('T0')
+	ax0 = plt.axvline(x=t0_val)
+	ax0 = plt.hist(t0o,normed=True,bins=20)
+	ax1 = plt.subplot(gs[1])
+	ax1 = plt.axvline(x=P_val,c=cbars)
+	ax1 = plt.axvline(x=P_val-P_errl,c=cbars,ls='--')
+	ax1 = plt.axvline(x=P_val+P_errr,c=cbars,ls='--')
+	ax1 = plt.xlabel('P')
+	ax1 = plt.hist(Po,normed=True,bins=20)
+	ax2 = plt.subplot(gs[2])
+	ax2 = plt.axvline(x=e_val,c=cbars)
+	ax2 = plt.axvline(x=e_val-e_errl,c=cbars,ls='--')
+	ax2 = plt.axvline(x=e_val+e_errr,c=cbars,ls='--')
+	ax2 = plt.xlabel('$e$')
+	ax2 = plt.hist(eo,normed=True,bins=20)
+	ax3 = plt.subplot(gs[3])
+	ax3 = plt.axvline(x=w_val,c=cbars)
+	ax3 = plt.axvline(x=w_val-w_errl,c=cbars,ls='--')
+	ax3 = plt.axvline(x=w_val+w_errr,c=cbars,ls='--')
+	ax3 = plt.xlabel('$\omega$')
+	ax3 = plt.hist(wo,normed=True,bins=20)
+	ax4 = plt.subplot(gs[4])
+	ax4 = plt.axvline(x=k_val,c=cbars)
+	ax4 = plt.axvline(x=k_val-k_errl,c=cbars,ls='--')
+	ax4 = plt.axvline(x=k_val+k_errr,c=cbars,ls='--')
+	ax4 = plt.xlabel('k')
+	ax4 = plt.hist(ko,normed=True,bins=20)
+	for m in range(0,nt):
+		plt.subplot(gs[5+m])
+		plt.axvline(x=v_val[m],c=cbars)
+		plt.axvline(x=v_val[m]-v_errl[m],c=cbars,ls='--')
+		plt.axvline(x=v_val[m]+v_errr[m],c=cbars,ls='--')
+		plt.xlabel('%s rv0'%(telescopes[m]))
+		plt.hist(vo[m],normed=True,bins=20)
+	plt.savefig('hist_params.pdf',format='pdf',bbox_inches='tight')
+	plt.show()

@@ -342,3 +342,19 @@ execfile('print_values.py')
 #Create plots
 execfile('plot_data.py')
 
+if ( nplanets == 1):
+
+	hist_one_rv()
+
+	#PLOT TRANSIT
+	if ( fit_tr ):
+		plot_transit()
+
+	#PLOT RV CURVE
+	if ( fit_rv ):
+		plot_rv_one()
+
+	
+elif (nplanets > 1):
+	#call the function
+	plot_rv_mp()
