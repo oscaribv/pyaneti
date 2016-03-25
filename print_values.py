@@ -26,6 +26,29 @@ if ( nplanets == 1 ):
 	    if ( is_log_rv0 ):
 	      vo[j] = np.power(10.,vo[j])
 
+		#Get tp and mass from the the values
+	  tpo = [None]*len(t0o) 
+	  masso = [None]*len(t0o) 
+	  for m in range(0,len(t0o)):
+	  	tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m],Po[m])
+	  	masso[m] = planet_mass(mstar,ko[m]*1.e3,Po[m],eo[m])
+
+		if ( unit_mass == 'earth'):
+			masso[m] = 332946 * masso[m]
+		elif ( unit_mass == 'jupiter'):
+			masso[m] = 1047.56 * masso[m]
+		
+	#Calculate the BIC
+	if (fit_rv and fit_tr ):
+		ndata = len(megax) + len(mega_rv)
+		npars = sum(what_fit) + nt - 1
+	elif(fit_rv and not fit_tr):
+		ndata = len(mega_rv)
+		npars = sum(what_fit) + nt - 1
+	elif(not fit_rv and fit_tr):
+		ndata = len(mega_x)
+		npars = sum(what_fit)
+			
 
 	if ( errores == 'gauss' ):
 
@@ -47,6 +70,8 @@ if ( nplanets == 1 ):
 			i_deg 		= i_val * 180. / np.pi
 			i_deg_err = i_err * 180. / np.pi
 		if ( fit_rv ):
+			m_val, m_err	= find_vals_gauss(masso,nconv)
+			tp_val, tp_err= find_vals_gauss(tpo,nconv)
 			k_val, k_err  = find_vals_gauss(ko,nconv)
 			v_val = [None]*nt
 			v_err = [None]*nt
@@ -69,7 +94,6 @@ if ( nplanets == 1 ):
 			v_errl[m] = v_err[m]
 			v_errr[m] = v_err[m]
 
-
 		#Print the best fit values values
 		print ('chi2_red = %1.4f +/- %1.4f' %(chi2_val,chi2_errs))
 		print ('The best fit planet parameters are:')
@@ -85,6 +109,8 @@ if ( nplanets == 1 ):
 			print ('rp/r* = %4.4f +/- %4.4f    ' 		%(pz_val,pz_err))
 		if (fit_rv):
 			print ('K    = %4.4f +/- %4.4f m/s ' 		%(k_val/1.e-3,k_err/1e-3))
+			print ('Tp   = %4.4f +/- %4.4f m/s ' 		%(tp_val,tp_err))
+			print ('mpsin= %4.4f +/- %4.4f %s masses '%(m_val,m_err, unit_mass))
 			for i in range(0,nt):
 				print ('%s v0 = %4.4f +/- %4.4f km/s' 	%(telescopes[i], \
 				v_val[i],v_err[i]))
@@ -93,6 +119,7 @@ if ( nplanets == 1 ):
 
 	if ( errores == 'perc' ):
 
+		chi2tot_val, chi2tot_errl, chi2tot_errr = find_vals_perc(chi2,nconv)
 		chi2_val, chi2_errl, chi2_errr = find_vals_perc(chi2red,nconv)
 
 		t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv)
@@ -114,7 +141,9 @@ if ( nplanets == 1 ):
 			i_deg_errl = i_errl * 180. / np.pi
 			i_deg_errr = i_errr * 180. / np.pi
 		if ( fit_rv ):
-			k_val, k_errl, k_errr  = find_vals_perc(ko,nconv)
+			k_val, k_errl, k_errr  	= find_vals_perc(ko,nconv)
+			m_val, m_errl, m_errr  	= find_vals_perc(masso,nconv)
+			tp_val, tp_errl, tp_errr= find_vals_perc(tpo,nconv)
 			v_val = [None]*nt
 			v_errl = [None]*nt
 			v_errr = [None]*nt
@@ -122,9 +151,15 @@ if ( nplanets == 1 ):
 				v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv)
 	
 
+		npln = npars * np.log(ndata)	
 
 		#Print the best fit values values
-		print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val,chi2_errr,chi2_errl))
+		print 'N_data      = ', ndata
+		print 'N_pars      = ', npars
+		print 'DOF         = ', ndata - npars
+		print ('chi2       = %1.4f + %1.4f - %1.4f' %(chi2tot_val,chi2tot_errr,chi2tot_errl))
+		print ('chi2_red   = %1.4f + %1.4f - %1.4f' %(chi2_val,chi2_errr,chi2_errl))
+		print ('BIC        = %1.4f + %1.4f - %1.4f' %(chi2tot_val + npln,chi2tot_errr,chi2tot_errl))
 		print ('The best fit planet parameters are:')
 		print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val,t0_errr,t0_errl))
 		print ('P     = %4.4f + %4.4f - %4.4f days'%(P_val, P_errr , P_errl))
@@ -137,6 +172,9 @@ if ( nplanets == 1 ):
 			print ('u2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr, u2_errl))
 			print ('rp/r* = %4.4f + %4.4f - %4.4f    ' 		%(pz_val,pz_errr, pz_errl))
 	if (fit_rv):
+			print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
+			print ('Tp    = %4.4f + %4.4f - %4.4f days' 		%(tp_val,tp_errr, tp_errl))
+			print ('mpsin = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
 			print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
 			for i in range(0,nt):
 				print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
@@ -153,6 +191,9 @@ else:
 	chi2_val = [None]*nplanets
 	chi2_errr = [None]*nplanets
 	chi2_errl = [None]*nplanets
+	chi2tot_val = [None]*nplanets
+	chi2tot_errr = [None]*nplanets
+	chi2tot_errl = [None]*nplanets
 	t0_val = [None]*nplanets
 	t0_errr = [None]*nplanets
 	t0_errl = [None]*nplanets
@@ -182,6 +223,10 @@ else:
 	#This function works for more than one planet
 	def print_errors_planets():
 
+		ndata = len(mega_rv)
+		npars = sum(what_fit) + nt - nplanets
+		npln = npars * np.log(ndata)	
+	
 		for j in range(0,nt):
 			if ( is_log_rv0 ):
 				vo[j] = np.power(10.,vo[j])
@@ -206,7 +251,10 @@ else:
 			for m in range(0,len(t0o[l])):
 				tpo[m] = pti.find_tp(t0o[l][m],eo[l][m],wo[l][m],Po[l][m])
 				masso[m] = planet_mass(mstar,ko[l][m]*1.e3,Po[l][m],eo[l][m])
-				masso[m] = 332946 * masso[m]
+				if ( unit_mass == 'earth'):
+					masso[m] = 332946 * masso[m]
+				elif ( unit_mass == 'jupiter'):
+					masso[m] = 1047.56 * masso[m]
 				
 	
 			if ( errores == 'gauss' ):
@@ -248,6 +296,7 @@ else:
 		
 			if ( errores == 'perc' ):	
 	
+				chi2tot_val[l], chi2tot_errl[l], chi2tot_errr[l] = find_vals_perc(chi2[l],nconv)
 				chi2_val[l], chi2_errl[l], chi2_errr[l] = find_vals_perc(chi2red[l],nconv)
 		
 				t0_val[l], t0_errl[l], t0_errr[l] = find_vals_perc(t0o[l],nconv)
@@ -268,7 +317,12 @@ else:
 			
 		
 				#Print the best fit values values
+				print 'N_data      = ', ndata
+				print 'N_pars      = ', npars
+				print 'DOF         = ', ndata - npars
+				print ('chi2 = %1.4f + %1.4f - %1.4f' %(chi2tot_val[l],chi2tot_errr[l],chi2tot_errl[l]))
 				print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val[l],chi2_errr[l],chi2_errl[l]))
+				print ('BIC        = %1.4f + %1.4f - %1.4f' %(chi2tot_val[l] + npln,chi2tot_errr[l],chi2tot_errl[l]))
 				print ('The best fit planet parameters are:')
 				print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val[l],t0_errr[l],t0_errl[l]))
 				print ('Tp    = %4.4f + %4.4f - %4.4f days'%(tp_val[l],tp_errr[l],tp_errl[l]))
@@ -277,7 +331,7 @@ else:
 				print ('w     = %4.4f + %4.4f - %4.4f deg '	%(w_deg[l],w_deg_errr[l], w_deg_errl[l]))
 				if (fit_rv):
 					print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val[l]/1.e-3,(k_errr[l])/1.e-3, (k_errl[l])/1e-3))
-					print ('mpsin = %4.4f + %4.4f - %4.4f (Earth masses) '	%(mass_val[l],mass_errr[l], mass_errl[l]))
+					print ('mpsin = %4.4f + %4.4f - %4.4f (%s masses) '	%(mass_val[l],mass_errr[l], mass_errl[l], unit_mass))
 					for i in range(0,nt):
 						print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
 							v_val[i],v_errr[i],v_errl[i]))

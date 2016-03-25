@@ -509,10 +509,10 @@ implicit none
         exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
-        if ( chi2_new(nk) / nu > 0.99 ) then !Are we overfitting?
+  !      if ( chi2_new(nk) / nu > 0.99 ) then !Are we overfitting?
           chi2_old(nk) = chi2_new(nk)
           params_old(:,:,nk) = params_new(:,:,nk)
-        end if
+   !     end if
       end if
 
       chi2_red(nk) = chi2_old(nk) / nu

@@ -356,5 +356,8 @@ if ( nplanets == 1):
 
 	
 elif (nplanets > 1):
-	#call the function
+
+	hist_mp_rv()
+
+	#PLOT THE RV curves
 	plot_rv_mp()

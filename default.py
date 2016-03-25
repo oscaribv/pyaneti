@@ -25,6 +25,7 @@ thin_factor = int(5e3)
 nconv = 100
 errores='perc'
 nwalkers = 100
+unit_mass = 'solar'
 
 #Default priors
 P = 15.
