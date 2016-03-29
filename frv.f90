@@ -541,7 +541,7 @@ implicit none
       if ( mod(j,thin_factor) == 0 ) then
 
         !Obtain the chi2 mean off all the variables
-        !chi2_red_min = sum(chi2_red) / nwalks
+        chi2_red_min = sum(chi2_red) / nwalks
 
         print *, 'iter ',j,', Chi2_red =', chi2_red_min
 
@@ -557,6 +557,10 @@ implicit none
           n = 0
           !If chi2_red has not changed the last nconv iterations
 
+          print *, '==========================='
+          print *, '  PERFOMING GELMAN-RUBIN'
+          print *, '   TEST FOR CONVERGENCE'
+          print *, '==========================='
           !Let us check convergence for all the parameters
           do o = 0, 4 + nt 
             do l = 0, npl - 1
@@ -570,9 +574,11 @@ implicit none
           end do
 
           if ( .not. is_cvg  ) then
-            print *, 'The chains have not coverged yet!'
-            print *, 'is_cvg = ', is_cvg 
-            print *,  nconv,' iterations more!'
+            print *, '=================================='
+            print *, 'CHAINS HAVE NOT CONVERGED YET!'
+            !print *, 'is_cvg = ', is_cvg 
+            print *,  nconv,' ITERATIONS MORE!'
+            print *, '=================================='
           end if
 
 

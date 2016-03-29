@@ -161,7 +161,7 @@ implicit none
   double precision :: W, B, V, R
   double precision :: thetajj
   double precision, dimension(0:nchains-1):: sj2, thetaj
-  integer :: i, j 
+  integer :: i
 
   is_cvg = .false.
 
@@ -169,10 +169,8 @@ implicit none
   sj2(:) = dble(0.0)
   do i = 0, nchains - 1
     thetaj(i) = sum(par_chains(:,i)) / nconv
-    do j = 0, nconv - 1
-      sj2(i) = sj2(i) + ( ( par_chains(j,i) - thetaj(i) ) * &
-                          ( par_chains(j,i) - thetaj(i) ) )
-    end do
+      sj2(i) = dot_product(( par_chains(:,i) - thetaj(i) ), &
+                           ( par_chains(:,i) - thetaj(i) ) )
     sj2(i) = sj2(i) / ( nconv - 1. )
   end do
 
@@ -189,9 +187,12 @@ implicit none
   V = W - (W - B) / nconv
 
   !Potential scale reduction factor
-  R = sqrt ( V / W )
+  R = dsqrt ( V / W )
 
-  if ( R < 1.1 ) is_cvg = .true. 
+  if ( R < 1.1 ) then
+      is_cvg = .true. 
+    print *,  R, V, W
+  end if
 
 end subroutine
 
