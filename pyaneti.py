@@ -361,3 +361,5 @@ elif (nplanets > 1):
 
 	#PLOT THE RV curves
 	plot_rv_mp()
+
+plot_correlations()

@@ -306,4 +306,51 @@ def hist_mp_rv(cbars='red',nb=50):
 		plt.savefig('hist_params'+str(l)+'.pdf',format='pdf',bbox_inches='tight')
 		plt.show()
 
+#Print correlation plot
+def create_plot_correlation(params,plabs,col='red',mark='o'):
+	n = len(params)
+	plt.figure(1,figsize=(2*n,2*n))
+	gs = gridspec.GridSpec(nrows=n,ncols=n)
+	for i in range(0,n):
+		for j in range(0,i):
+			plt.subplot(gs[i*n+j])
+			if ( j == 0 ):
+				plt.ylabel(plabs[i])
+			if ( i == n-1):
+				plt.xlabel(plabs[j])
+			plt.plot(params[i],params[j],c=col,marker=mark,ls='',alpha=0.5)
+	plt.savefig('correlations.pdf',format='pdf',bbox_inches='tight')
+	plt.show()
+
+def plot_correlations():
+
+	#Now it works only for RV fit	
+	if ( fit_rv ):
+		if (nplanets == 1 ):
+			dparams = [t0o,Po,eo,wo,ko]
+			dplabs = ['T0','P','e','$\omega$','k']
+		else:
+			dparams = [None]*5*nplanets
+			dplabs = [None]*5*nplanets
+			for i in range(0,nplanets):
+				dparams[0+5*nplanets] = t0o[i]
+				dparams[1+5*nplanets] = Po[i]
+				dparams[2+5*nplanets] = eo[i]
+				dparams[3+5*nplanets] = wo[i]
+				dparams[4+5*nplanets] = ko[i]
+				dplabs[0+5*nplanets] = 'T0'
+				dplabs[1+5*nplanets] = 'P'
+				dplabs[2+5*nplanets] = 'e'
+				dplabs[3+5*nplanets] = '$\omega$'
+				dplabs[4+5*nplanets] = 'k'
+
+		vlabs = [None]*nt
+		for i in range(0,nt):
+			vlabs[i] = 'rv0 ' + telescopes[i]
+
+		params = np.concatenate([dparams,vo])
+		labs = np.concatenate([dplabs,vlabs])
+	
+		create_plot_correlation(params,labs,col='blue')
+
 
