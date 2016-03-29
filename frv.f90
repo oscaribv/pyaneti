@@ -340,11 +340,12 @@ implicit none
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1) :: params_old, params_new
+  double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1,0:nconv-1) :: params_chains
   double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
   double precision  :: q, chi2_y, chi2_slope, toler_slope
   double precision  :: esin(0:npl-1), ecos(0:npl-1), aa, chi2_red_min
-  integer :: m, j, n, nu, nk, n_burn, spar, new_thin_factor,good_chain
-  logical :: get_out, is_burn, is_limit_good
+  integer :: l,o,m, j, n, nu, nk, n_burn, spar, new_thin_factor,good_chain
+  logical :: get_out, is_burn, is_limit_good, is_cvg
   !Let us add a plus random generator
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
@@ -540,20 +541,44 @@ implicit none
       if ( mod(j,thin_factor) == 0 ) then
 
         !Obtain the chi2 mean off all the variables
-        chi2_red_min = sum(chi2_red) / nwalks
+        !chi2_red_min = sum(chi2_red) / nwalks
 
         print *, 'iter ',j,', Chi2_red =', chi2_red_min
 
+        params_chains(:,:,:,n) = params_old(:,:,:)
+
         !Check convergence here
-        chi2_vec(n) = chi2_red_min
-        x_vec(n) = n
+        !chi2_vec(n) = chi2_red_min
+        !x_vec(n) = n
         n = n + 1
-        if ( n == size(chi2_vec) ) then
-          call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
+
+        if ( n == nconv ) then
+          !call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
           n = 0
           !If chi2_red has not changed the last nconv iterations
-          print *, abs(chi2_slope), toler_slope / (chi2_y)
-          if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
+
+          !Let us check convergence for all the parameters
+          do o = 0, 4 + nt 
+            do l = 0, npl - 1
+              !do the Gelman and Rubin statistics
+              call gr_test(params_chains(o,l,:,:),nwalks,nconv,is_cvg)
+              !If only a chain for a given parameter does not
+              !converte is enoug to keep iterating
+              if ( .not. is_cvg ) exit
+            end do
+            if ( .not. is_cvg ) exit
+          end do
+
+          if ( .not. is_cvg  ) then
+            print *, 'The chains have not coverged yet!'
+            print *, 'is_cvg = ', is_cvg 
+            print *,  nconv,' iterations more!'
+          end if
+
+
+          !print *, abs(chi2_slope), toler_slope / (chi2_y)
+          !if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
+          if ( is_cvg ) then
             print *, '==========================='
             print *, 'THE CHAIN HAS CONVERGED'
             print *, '==========================='

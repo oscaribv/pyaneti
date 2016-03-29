@@ -31,11 +31,12 @@ unit_mass = 'solar'
 P = 15.
 e = 0.1
 w = 3.1415926 / 2.0
-ii = 3.1415026 / 2.0
+inclination = 3.1415026 / 2.0
 a = 13.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.5
+
 
 #Transit fit
 nbin = 16

@@ -149,6 +149,52 @@ implicit none
 
 end subroutine
 
+!Gelman and Rubin statistics
+subroutine gr_test(par_chains,nchains,nconv,is_cvg)
+implicit none
+  
+!In/Out variables
+  integer, intent(in) :: nchains, nconv
+  double precision, intent(in), dimension(0:nconv-1,0:nchains-1) :: par_chains
+  logical, intent(out) :: is_cvg
+!Local variables
+  double precision :: W, B, V, R
+  double precision :: thetajj
+  double precision, dimension(0:nchains-1):: sj2, thetaj
+  integer :: i, j 
+
+  is_cvg = .false.
+
+  !Let us calculate the mean of each chain
+  sj2(:) = dble(0.0)
+  do i = 0, nchains - 1
+    thetaj(i) = sum(par_chains(:,i)) / nconv
+    do j = 0, nconv - 1
+      sj2(i) = sj2(i) + ( ( par_chains(j,i) - thetaj(i) ) * &
+                          ( par_chains(j,i) - thetaj(i) ) )
+    end do
+    sj2(i) = sj2(i) / ( nconv - 1. )
+  end do
+
+  !Whithin chain variance
+  W = sum(sj2(:)) / nchains
+
+  thetajj = sum(thetaj(:)) / nchains
+
+  !Between chain variance
+  B = dot_product( ( thetaj(:) - thetajj),( thetaj(:) - thetajj) )
+  B = nconv * B / ( nchains - 1 )
+
+  !Estimated variance
+  V = W - (W - B) / nconv
+
+  !Potential scale reduction factor
+  R = sqrt ( V / W )
+
+  if ( R < 1.1 ) is_cvg = .true. 
+
+end subroutine
+
 !Subroutine to check if the chi2 minimization is working
 subroutine fit_a_line(x_vec,chi2_vec,a,b,svec)
 implicit none

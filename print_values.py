@@ -31,12 +31,14 @@ if ( nplanets == 1 ):
 	  masso = [None]*len(t0o) 
 	  for m in range(0,len(t0o)):
 	  	tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m],Po[m])
-	  	masso[m] = planet_mass(mstar,ko[m]*1.e3,Po[m],eo[m])
+	  	masso[m] = planet_mass(mstar,ko[m]*1.e3,Po[m],eo[m],inclination)
 
 		if ( unit_mass == 'earth'):
-			masso[m] = 332946 * masso[m]
+			#masso[m] = 332946 * masso[m]
+			masso[m] = 332967.750577677 * masso[m]
 		elif ( unit_mass == 'jupiter'):
-			masso[m] = 1047.56 * masso[m]
+			#masso[m] = 1047.56 * masso[m]
+			masso[m] = 1047.353299069 * masso[m]
 		
 	#Calculate the BIC
 	if (fit_rv and fit_tr ):
@@ -250,12 +252,13 @@ else:
 			masso = [None]*len(t0o[l]) 
 			for m in range(0,len(t0o[l])):
 				tpo[m] = pti.find_tp(t0o[l][m],eo[l][m],wo[l][m],Po[l][m])
-				masso[m] = planet_mass(mstar,ko[l][m]*1.e3,Po[l][m],eo[l][m])
+				masso[m] = planet_mass(mstar,ko[l][m]*1.e3,Po[l][m],eo[l][m],inclination)
 				if ( unit_mass == 'earth'):
-					masso[m] = 332946 * masso[m]
+					#masso[m] = 332946 * masso[m]
+					masso[m] = 332967.750577677 * masso[m]
 				elif ( unit_mass == 'jupiter'):
-					masso[m] = 1047.56 * masso[m]
-				
+					#masso[m] = 1047.56 * masso[m]
+					masso[m] = 1047.353299069 * masso[m]
 	
 			if ( errores == 'gauss' ):
 	

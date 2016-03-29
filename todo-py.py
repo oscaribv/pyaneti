@@ -41,8 +41,10 @@ def scale_period(jd,Tp,P):
 def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
 
   #Gravitational costant
-	Gc = 6.67408e-11 #m^3 / (kgs^2)
-	Gc = Gc * 1.989e30 # m^3 / (Msun s^2)
+	#Gc = 6.67408e-11 #m^3 / (kgs^2)
+	Gc = 6.67259e-11
+	#Gc = Gc * 1.989e30 # m^3 / (Msun s^2)
+	Gc = Gc * 1.98855e30 # m^3 / (Msun s^2)
 	P = P * 24. * 3600 # s
 
 	unoe	 = np.sqrt(1.-ecc*ecc) 
