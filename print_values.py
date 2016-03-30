@@ -254,13 +254,14 @@ else:
 			masso = [None]*len(t0o[l]) 
 			for m in range(0,len(t0o[l])):
 				tpo[m] = pti.find_tp(t0o[l][m],eo[l][m],wo[l][m],Po[l][m])
-				masso[m] = planet_mass(mstar,ko[l][m]*1.e3,Po[l][m],eo[l][m],inclination)
-				if ( unit_mass == 'earth'):
-					#masso[m] = 332946 * masso[m]
-					masso[m] = 332967.750577677 * masso[m]
-				elif ( unit_mass == 'jupiter'):
-					#masso[m] = 1047.56 * masso[m]
-					masso[m] = 1047.353299069 * masso[m]
+
+			masso = planet_mass(mstar,ko[l]*1.e3,Po[l],eo[l],inclination)
+			if ( unit_mass == 'earth'):
+				#masso[m] = 332946 * masso[m]
+				masso = 332967.750577677 * masso
+			elif ( unit_mass == 'jupiter'):
+				#masso[m] = 1047.56 * masso[m]
+				masso = 1047.353299069 * mass
 	
 			if ( errores == 'gauss' ):
 	

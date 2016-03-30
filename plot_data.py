@@ -307,7 +307,7 @@ def hist_mp_rv(cbars='red',nb=50):
 		plt.show()
 
 #Print correlation plot
-def create_plot_correlation(params,plabs,col='red',mark='o'):
+def create_plot_correlation(params,plabs,col='red',mark='.'):
 	n = len(params)
 	plt.figure(1,figsize=(2*n,2*n))
 	gs = gridspec.GridSpec(nrows=n,ncols=n)
@@ -316,9 +316,13 @@ def create_plot_correlation(params,plabs,col='red',mark='o'):
 			plt.subplot(gs[i*n+j])
 			if ( j == 0 ):
 				plt.ylabel(plabs[i])
+			else:
+				plt.tick_params( axis='y',which='both',labelleft='off') 
 			if ( i == n-1):
 				plt.xlabel(plabs[j])
-			plt.plot(params[i],params[j],c=col,marker=mark,ls='',alpha=0.5)
+			else:
+				plt.tick_params( axis='x',which='both',labelbottom='off') 
+			plt.plot(params[j],params[i],c=col,marker=mark,ls='',alpha=0.5)
 	plt.savefig('correlations.pdf',format='pdf',bbox_inches='tight')
 	plt.show()
 

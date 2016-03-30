@@ -159,11 +159,17 @@ implicit none
   logical, intent(out) :: is_cvg
 !Local variables
   double precision :: W, B, V, R
-  double precision :: thetajj
+  double precision :: thetajj, delta, r_rand
   double precision, dimension(0:nchains-1):: sj2, thetaj
   integer :: i
 
   is_cvg = .false.
+
+  !print *, par_chains
+  !print *, nchains
+  !print *, nconv
+  !stop
+
 
   !Let us calculate the mean of each chain
   sj2(:) = dble(0.0)
@@ -189,9 +195,14 @@ implicit none
   !Potential scale reduction factor
   R = dsqrt ( V / W )
 
-  if ( R < 1.1 ) then
+  call random_number(r_rand)
+
+  delta = 0.1 * r_rand
+
+  if ( R < 1. + delta ) then
       is_cvg = .true. 
-    print *,  R, V, W
+  else
+      print *,  R, 1. + delta
   end if
 
 end subroutine

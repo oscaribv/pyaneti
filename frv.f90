@@ -546,6 +546,10 @@ implicit none
         print *, 'iter ',j,', Chi2_red =', chi2_red_min
 
         params_chains(:,:,:,n) = params_old(:,:,:)
+        
+        !print *, n
+        !print *, params_old
+        !print *, params_chains(:,:,:,n)
 
         !Check convergence here
         !chi2_vec(n) = chi2_red_min
@@ -562,12 +566,15 @@ implicit none
           print *, '   TEST FOR CONVERGENCE'
           print *, '==========================='
           !Let us check convergence for all the parameters
+          is_cvg = .true.
           do o = 0, 4 + nt 
             do l = 0, npl - 1
-              !do the Gelman and Rubin statistics
-              call gr_test(params_chains(o,l,:,:),nwalks,nconv,is_cvg)
-              !If only a chain for a given parameter does not
-              !converte is enoug to keep iterating
+              if ( wtf_all(o,l) == 1 ) then
+                !do the Gelman and Rubin statistics
+                call gr_test(params_chains(o,l,:,:),nwalks,nconv,is_cvg)
+                !If only a chain for a given parameter does not
+                !converte is enoug to keep iterating
+              end if
               if ( .not. is_cvg ) exit
             end do
             if ( .not. is_cvg ) exit

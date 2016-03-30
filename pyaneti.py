@@ -346,6 +346,8 @@ if ( nplanets == 1):
 
 	hist_one_rv()
 
+	plot_correlations()
+
 	#PLOT TRANSIT
 	if ( fit_tr ):
 		plot_transit()
@@ -359,7 +361,8 @@ elif (nplanets > 1):
 
 	hist_mp_rv()
 
+	plot_correlations()
+
 	#PLOT THE RV curves
 	plot_rv_mp()
 
-plot_correlations()
