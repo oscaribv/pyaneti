@@ -322,7 +322,7 @@ end subroutine
 !-------------------------------------------------------
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
+subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
 implicit none
 
 !In/Out variables
@@ -332,7 +332,6 @@ implicit none
   double precision, intent(in), dimension(0:npl*(5+nt)-1) :: pars
   double precision, intent(in), dimension(0:2*npl*(5+nt)-1) :: lims
   integer, intent(in), dimension(0:6*npl-1) :: wtf
-  double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
 !Local variables
   double precision, dimension(0:5+nt-1,0:npl-1) :: params
@@ -341,10 +340,9 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1,0:nconv-1) :: params_chains
-  double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
-  double precision  :: q, chi2_y, chi2_slope, toler_slope
+  double precision  :: q
   double precision  :: esin(0:npl-1), ecos(0:npl-1), aa, chi2_red_min
-  integer :: l,o,m, j, n, nu, nk, n_burn, spar, new_thin_factor,good_chain
+  integer :: l,o,m, j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: get_out, is_burn, is_limit_good, is_cvg
   !Let us add a plus random generator
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
@@ -407,42 +405,31 @@ implicit none
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
 
-  !print *, npl, nt
-  !stop
-
-  print *, wtf_all
-  !stop
-
   print *, 'CREATING RANDOM UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
   do nk = 0, nwalks - 1
     do m = 0, npl - 1
       j = 0
+
       do n = 0, 4 + nt
         if ( wtf_all(n,m) == 0 ) then
           !this parameter does not change for the planet m
           params_old(n,m,nk) = params(n,m)
         else
           call random_number(r_real)
-          print *, 'limits', limits(j+1,m), limits(j,m)
           params_old(n,m,nk) = limits(j+1,m) - limits(j,m)
-          print *, params_old(n,m,nk)
           params_old(n,m,nk) = limits(j,m) + r_real*params_old(n,m,nk) 
-          print *, params_old(n,m,nk)
         end if
-          print *, ''
         j = j + 2
       end do
     end do
-    print *, params_old(:,:,nk)
+
     !Each walker is a point in a parameter space
     !Each point contains the information of all the planets
     !Let us estimate our first chi_2 value for each walker
     call find_chi2_rv(xd,yd,errs,tlab,params_old(:,:,nk), &
                       flag,chi2_old(nk),ics,datas,nt,npl)
   end do
-
-  !stop
 
   !Calculate the degrees of freedom
   nu = datas - spar
@@ -465,7 +452,6 @@ implicit none
   end do
 
   !Initialize the values
-  toler_slope = prec
   j = 1
   n = 0
   get_out = .TRUE.
@@ -482,9 +468,10 @@ implicit none
     call random_number(r_rand)
     call random_int(r_int,nwalks)
 
-    do nk = 0, nwalks - 1
-      !Draw the random walker nk, from the complemetary walkers
-      !The same z_rand for all the planets
+    do nk = 0, nwalks - 1 !walkers
+
+    !Draw the random walker nk, from the complemetary walkers
+    !The same z_rand for all the planets
       z_rand(nk) = z_rand(nk) * aa 
       call find_gz(z_rand(nk),aa) 
 
@@ -510,10 +497,8 @@ implicit none
         exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
-  !      if ( chi2_new(nk) / nu > 0.99 ) then !Are we overfitting?
           chi2_old(nk) = chi2_new(nk)
           params_old(:,:,nk) = params_new(:,:,nk)
-   !     end if
       end if
 
       chi2_red(nk) = chi2_old(nk) / nu
@@ -521,7 +506,6 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
-          !write(*,*) j
           do m = 0, npl - 1 !Print a file with data of each planet 
             write(m,*) j, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
           end do
@@ -545,35 +529,33 @@ implicit none
 
         print *, 'iter ',j,', Chi2_red =', chi2_red_min
 
+        !Create the 4D array to use the Gelman-Rubin test
+        !The first two elemets are the parameters for mp fit
+        !third is the information of all chains
+        !fourth is the chains each iteration
         params_chains(:,:,:,n) = params_old(:,:,:)
         
-        !print *, n
-        !print *, params_old
-        !print *, params_chains(:,:,:,n)
-
-        !Check convergence here
-        !chi2_vec(n) = chi2_red_min
-        !x_vec(n) = n
         n = n + 1
 
-        if ( n == nconv ) then
-          !call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
+        if ( n == nconv ) then !Permon GR test
+
           n = 0
-          !If chi2_red has not changed the last nconv iterations
 
           print *, '==========================='
           print *, '  PERFOMING GELMAN-RUBIN'
           print *, '   TEST FOR CONVERGENCE'
           print *, '==========================='
+
           !Let us check convergence for all the parameters
           is_cvg = .true.
-          do o = 0, 4 + nt 
-            do l = 0, npl - 1
+          do o = 0, 4 + nt !For all parameters 
+            do l = 0, npl - 1 !for all planets
+            !Do the test to the parameters that we are fitting
               if ( wtf_all(o,l) == 1 ) then
                 !do the Gelman and Rubin statistics
                 call gr_test(params_chains(o,l,:,:),nwalks,nconv,is_cvg)
-                !If only a chain for a given parameter does not
-                !converte is enoug to keep iterating
+                ! If only a chain for a given parameter does
+                ! not converge is enoug to keep iterating
               end if
               if ( .not. is_cvg ) exit
             end do
@@ -583,33 +565,26 @@ implicit none
           if ( .not. is_cvg  ) then
             print *, '=================================='
             print *, 'CHAINS HAVE NOT CONVERGED YET!'
-            !print *, 'is_cvg = ', is_cvg 
             print *,  nconv,' ITERATIONS MORE!'
             print *, '=================================='
-          end if
-
-
-          !print *, abs(chi2_slope), toler_slope / (chi2_y)
-          !if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
-          if ( is_cvg ) then
+          else
             print *, '==========================='
-            print *, 'THE CHAIN HAS CONVERGED'
+            print *, '  CHAINS HAVE CONVERGED'
             print *, '==========================='
             print *, 'STARTING BURNING-IN PHASE'
             print *, '==========================='
             is_burn = .True.
             new_thin_factor = 50
-            !good_chain = minloc(chi2_red,dim=1) - 1
-            !print *, 'The best chain is', good_chain, &
-            !'with chi2_red =', chi2_red(good_chain)
             do m = 0, npl - 1
               print *, 'Creating ', output_files(m)
             end do
           end if
+
           if ( j > maxi ) then
             print *, 'Maximum number of iteration reached!'
             get_out = .FALSE.
           end if
+
         end if
       !I checked covergence
 

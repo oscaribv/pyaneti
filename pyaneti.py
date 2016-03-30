@@ -269,13 +269,8 @@ elif ( fit_rv and not fit_tr ):
 
 	elif ( method == 'sm' ):
 
-		#print params
-		#print limits
-		#print what_fit
-		#sys.exit('')
-
 		pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-  	params, limits, nwalkers, prec, maxi, thin_factor, \
+  	params, limits, nwalkers, maxi, thin_factor, \
 		is_circular, what_fit,flag,nconv,datas=len(mega_time), \
 		nt=nt,npl=nplanets)
 
