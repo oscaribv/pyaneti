@@ -148,6 +148,7 @@ implicit none
   if ( flag(2) ) k(:) = 10.**k(:)
   if ( flag(3) ) rv0(:) = 10.**rv0(:)
 
+  !Telescope label counter
   tel = 0
 
   if ( isc ) then
@@ -373,6 +374,8 @@ implicit none
     spar = spar + sum(wtf_all(0:4,m))
   end do
 
+  !Check if there are flags to evolve modified parameters
+
   !Period
   if ( flag(0) )  then
     params(1,:) = dlog10(params(1,:))
@@ -385,10 +388,12 @@ implicit none
     ecos(:) = dsqrt(params(2,:)) * dcos(params(3,:))
     params(2,:) = esin
     params(3,:) = ecos
-    limits(4,:) = -1.0
-    limits(5,:) =  1.0
-    limits(6,:) = -1.0
-    limits(7,:) =  1.0
+    limits(4,:) = sqrt(limits(4,:)) 
+    limits(5,:) = sqrt(limits(5,:))
+    limits(6,:) = limits(4,:)
+    limits(7,:) = limits(5,:)
+    !print *, limits(4:7,:)
+    !stop
   end if
   !k
   if ( flag(2) ) then
@@ -401,14 +406,15 @@ implicit none
     limits(10:2*(5+nt)-1,:) = dlog10(limits(10:2*(5+nt)-1,:))
   end if
 
-  !Call a random seed 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
 
-  print *, 'CREATING RANDOM UNIFORMATIVE PRIORS'
+  print *, 'CREATING RANDOM (UNIFORM) UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
   do nk = 0, nwalks - 1
     do m = 0, npl - 1
+
+      !Counter for the limits
       j = 0
 
       do n = 0, 4 + nt
@@ -420,7 +426,7 @@ implicit none
           params_old(n,m,nk) = limits(j+1,m) - limits(j,m)
           params_old(n,m,nk) = limits(j,m) + r_real*params_old(n,m,nk) 
         end if
-        j = j + 2
+        j = j + 2 !two limits for each parameter
       end do
     end do
 
@@ -430,6 +436,7 @@ implicit none
     call find_chi2_rv(xd,yd,errs,tlab,params_old(:,:,nk), &
                       flag,chi2_old(nk),ics,datas,nt,npl)
   end do
+!  stop
 
   !Calculate the degrees of freedom
   nu = datas - spar
@@ -444,9 +451,12 @@ implicit none
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', sum(chi2_red) / nu ,'nu =', nu
+  print *, 'Initial Chi2_red= ', sum(chi2_red) / nwalks ,'DOF =', nu
 
-  !Let us start the otput file
+  !print *, chi2_red
+  !stop
+
+  !Let us start the otput files
   do m = 0, npl - 1 
     open(unit=m,file=output_files(m),status='unknown')
   end do
@@ -466,15 +476,19 @@ implicit none
     !Do the work for all the walkers
     call random_number(z_rand)
     call random_number(r_rand)
+    !Create random integers to be the index of the walks
+    !Note that r_ink(i) != i (avoind copy the same walker)
     call random_int(r_int,nwalks)
 
     do nk = 0, nwalks - 1 !walkers
 
     !Draw the random walker nk, from the complemetary walkers
-    !The same z_rand for all the planets
       z_rand(nk) = z_rand(nk) * aa 
+
+      !The gz function to mantain symmetry in the walks
       call find_gz(z_rand(nk),aa) 
 
+      !Evolve for all the planets for all the parameters
       do m = 0, npl - 1
         params_new(:,m,nk) = params_old(:,m,r_int(nk))
         params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
@@ -482,14 +496,14 @@ implicit none
         !Let us check the limits
         call check_limits(params_new(:,m,nk),limits(:,m), &
                           is_limit_good,5+nt)
-         !If we are out of limits this chain is bad
+        !If we are out of limits this chain is bad
         if ( .not. is_limit_good ) exit
       end do
 
       if ( is_limit_good ) then !evaluate chi2
         call find_chi2_rv(xd,yd,errs,tlab,params_new(:,:,nk),flag,chi2_new(nk),ics,datas,nt,npl)
       else !we do not have a good model
-        chi2_new(nk) = huge(dble(0.0))
+        chi2_new(nk) = huge(dble(0.0)) !a really big number
       end if
 
       !Compare the models 

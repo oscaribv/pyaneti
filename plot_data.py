@@ -326,22 +326,22 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 	plt.savefig('correlations.pdf',format='pdf',bbox_inches='tight')
 	plt.show()
 
-def plot_correlations():
+def plot_correlations(rf=19):
 
 	#Now it works only for RV fit	
 	if ( fit_rv ):
 		if (nplanets == 1 ):
-			dparams = [t0o,Po,eo,wo,ko]
+			dparams = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],ko[1::rf]]
 			dplabs = ['T0','P','e','$\omega$','k']
 		else:
 			dparams = [None]*5*nplanets
 			dplabs = [None]*5*nplanets
 			for i in range(0,nplanets):
-				dparams[0+5*nplanets] = t0o[i]
-				dparams[1+5*nplanets] = Po[i]
-				dparams[2+5*nplanets] = eo[i]
-				dparams[3+5*nplanets] = wo[i]
-				dparams[4+5*nplanets] = ko[i]
+				dparams[0+5*nplanets] = t0o[i][1::rf]
+				dparams[1+5*nplanets] = Po[i][1::rf]
+				dparams[2+5*nplanets] = eo[i][1::rf]
+				dparams[3+5*nplanets] = wo[i][1::rf]
+				dparams[4+5*nplanets] = ko[i][1::rf]
 				dplabs[0+5*nplanets] = 'T0'
 				dplabs[1+5*nplanets] = 'P'
 				dplabs[2+5*nplanets] = 'e'
@@ -349,10 +349,13 @@ def plot_correlations():
 				dplabs[4+5*nplanets] = 'k'
 
 		vlabs = [None]*nt
+		dvo = [None]*nt
 		for i in range(0,nt):
 			vlabs[i] = 'rv0 ' + telescopes[i]
+			dvo[i] = vo[i][1::rf]
 
-		params = np.concatenate([dparams,vo])
+
+		params = np.concatenate([dparams,dvo])
 		labs = np.concatenate([dplabs,vlabs])
 	
 		create_plot_correlation(params,labs,col='blue')

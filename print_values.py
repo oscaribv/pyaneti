@@ -178,8 +178,7 @@ if ( nplanets == 1 ):
 	if (fit_rv):
 			print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
 			print ('Tp    = %4.4f + %4.4f - %4.4f days' 		%(tp_val,tp_errr, tp_errl))
-			print ('mpsin = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
-			print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
+			print ('mp    = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
 			for i in range(0,nt):
 				print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
 				v_val[i],v_errr[i],v_errl[i]))
