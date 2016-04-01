@@ -254,6 +254,17 @@ implicit none
 
 end subroutine
 
+subroutine check_triangle(a,b,c,is_good)
+implicit none
+
+  double precision, intent(in) :: a, b, c
+  logical :: is_good
+
+  is_good = .true.
+
+  if ( a*a + b*b > c ) is_good = .false.
+
+end subroutine
 
 !Subroutine to create random integers between 0 and n
 subroutine random_int(r_int,n)
@@ -263,15 +274,14 @@ implicit none
   integer, intent(in) :: n
   integer, intent(out), dimension(0:n-1) :: r_int
   !Local variables
-  real :: r_real
+  double precision :: r_real
   integer :: i
 
   do i = 0, n - 1
     r_int(i) = i
     do while ( r_int(i) == i )
     call random_number(r_real)
-    !print *, 'r_real', r_real * (n + 1)
-    r_int(i) = int( r_real * ( n + 1 ) ) 
+    r_int(i) = int( r_real *  n ) 
     end do
   end do
 
