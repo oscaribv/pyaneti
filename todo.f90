@@ -246,7 +246,7 @@ implicit none
   double precision, intent(in) :: a
 
   if ( z >= 1./ a .and. z <= a ) then
-    z = 1. / sqrt(z)
+    z = 1. / dsqrt(z)
   else
     z = 0.0
   end if

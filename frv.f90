@@ -388,11 +388,10 @@ implicit none
     ecos(:) = dsqrt(params(2,:)) * dcos(params(3,:))
     params(2,:) = esin
     params(3,:) = ecos
-    limits(4,:) = sqrt(limits(4,:)) 
+    limits(4,:) = - sqrt(limits(5,:)) 
     limits(5,:) = sqrt(limits(5,:))
     limits(6,:) = limits(4,:)
     limits(7,:) = limits(5,:)
-    !print *, limits(4:7,:)
     !stop
   end if
   !k
@@ -425,11 +424,29 @@ implicit none
           call random_number(r_real)
           params_old(n,m,nk) = limits(j+1,m) - limits(j,m)
           params_old(n,m,nk) = limits(j,m) + r_real*params_old(n,m,nk) 
+          print *,n, params_old(n,m,nk), limits(j+1,m) - limits(j,m)
+          !print *, params_old(2,m,nk)
         end if
+          !print *, params_old(2,m,nk), limits(5,m) - limits(4,m)
         j = j + 2 !two limits for each parameter
-      end do
-    end do
 
+      end do
+
+      !Check that e < 1 for ew
+      if ( flag(1) ) then
+          is_limit_good = .false.
+          do while ( .not. is_limit_good )
+            print *, params_old(2,m,nk), params_old(3,m,nk)
+            call check_triangle(params_old(2,m,nk),params_old(3,m,nk),limits(5,m)**2,is_limit_good)
+            if ( .not. is_limit_good  ) then
+              params_old(2,m,nk) = params_old(2,m,nk) * params_old(2,m,nk)
+              params_old(3,m,nk) = params_old(3,m,nk) * params_old(3,m,nk)
+            end if
+        end do
+     end if          
+
+    end do
+        
     !Each walker is a point in a parameter space
     !Each point contains the information of all the planets
     !Let us estimate our first chi_2 value for each walker
@@ -451,7 +468,7 @@ implicit none
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', sum(chi2_red) / nwalks ,'DOF =', nu
+  print *, 'Initial Chi2_red= ', sum(chi2_red) / nu ,'DOF =', nu
 
   !print *, chi2_red
   !stop
@@ -481,6 +498,15 @@ implicit none
     call random_int(r_int,nwalks)
 
     do nk = 0, nwalks - 1 !walkers
+      do m = 0, npl - 1
+        params_new(:,m,nk) = params_old(:,m,r_int(nk))
+      end do
+    end do
+
+    call random_number(aa)
+    aa = 1.0 + 99.0 * aa 
+
+    do nk = 0, nwalks - 1 !walkers
 
     !Draw the random walker nk, from the complemetary walkers
       z_rand(nk) = z_rand(nk) * aa 
@@ -490,14 +516,21 @@ implicit none
 
       !Evolve for all the planets for all the parameters
       do m = 0, npl - 1
-        params_new(:,m,nk) = params_old(:,m,r_int(nk))
+!        params_new(:,m,nk) = params_old(:,m,r_int(nk))
         params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
                            ( params_old(:,m,nk) - params_new(:,m,nk) )
         !Let us check the limits
         call check_limits(params_new(:,m,nk),limits(:,m), &
                           is_limit_good,5+nt)
+
+        !Check that e < 1 for ew
+        if ( flag(1) ) then
+          call check_triangle(params_new(2,m,nk),params_new(3,m,nk),1.0, is_limit_good )
+        end if          
+
         !If we are out of limits this chain is bad
         if ( .not. is_limit_good ) exit
+
       end do
 
       if ( is_limit_good ) then !evaluate chi2
