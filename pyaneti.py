@@ -172,8 +172,11 @@ elif ( not fit_rv and fit_tr ):
 			, min_i, max_i, min_a, max_a, min_u1, max_u1, \
 			min_u2, max_u2, min_pz, max_pz]
 
-		pti.stretch_move_tr(megax, megay, megae,  \
-		params,limits, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+		#pti.stretch_move_tr(megax, megay, megae,  \
+		#params,limits, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+
+		pti.stretch_move_rv2(megax, megay, megae,  \
+		params,limits, nwalkers, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
 	elif ( method == 'plot' ):
 		print 'I will only print the values and generate the plot'
