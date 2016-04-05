@@ -39,7 +39,7 @@ if ( nplanets == 1 ):
 	  #Do the plot
 	  plt.figure(2,figsize=(7,6))
 	  #Plot the transit light curve
-		gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[1.618, 1])
+	  gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[1.618, 1])
 	  plt.subplot(gs[0])
 	  plt.xlim(min(xt[0]),max(xt[0]))
 	  plt.errorbar(megax,megay,megae,fmt='o',alpha=0.8)
