@@ -58,7 +58,7 @@ if ( is_circular ):
 print_init()
 
 #-------------------------------------------------------------
-#			              FITTING ROUTINES
+#                   FITTING ROUTINES
 #-------------------------------------------------------------
 
 #FIT TRANSIT AND RV CURVES
@@ -152,8 +152,8 @@ elif ( not fit_rv and fit_tr ):
 	flag = [is_log_P, is_ew, is_sini, is_log_a]
 
 	what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
-              int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),\
-            int(fit_pz)]
+                    int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),\
+                    int(fit_pz)]
 
 	params = [T0,P,e,w,ii,a,u1,u2,pz]
 
@@ -163,35 +163,17 @@ elif ( not fit_rv and fit_tr ):
 		params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
 	elif ( method == 'sm' ):
+                #The transit time should be in the first window
 		min_t0	= min(xt[0])
 		max_t0 	= max(xt[0])
-		min_P	 	= 13.
-		max_P	 	= 16.
-		min_e		= 1.e-8		
-		max_e		= 0.5
-		min_w		= 0.0
-		max_w		= 2*np.pi
-		min_i		= 0.
-		max_i		= 1*np.pi
-		min_a		= 5.0
-		max_a		= 20.0
-		min_u1	= 0.0
-		max_u1	= 0.5
-		min_u2	= 0.0
-		max_u2	= 0.5
-		min_pz	= 1e-3
-		max_pz	= 0.5
 
 		limits = \
-		[	min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
+		[ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
 			, min_i, max_i, min_a, max_a, min_u1, max_u1, \
 			min_u2, max_u2, min_pz, max_pz]
 
-		nwalks = 20*len(params)
-		nwalks = 50
-	
 		pti.stretch_move_tr(megax, megay, megae,  \
-		params,limits, nwalks, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+		params,limits, nwalkers, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
 
 	elif ( method == 'plot' ):
 		print 'I will only print the values and generate the plot'
@@ -207,7 +189,7 @@ elif ( not fit_rv and fit_tr ):
 
 		#Read the data
 	vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
-       np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
+        np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
 
 #-------------------------------------------------------------
 #                   FIT RV CURVE ONLY
@@ -339,7 +321,7 @@ execfile('plot_data.py')
 
 if ( nplanets == 1):
 
-	hist_one_rv()
+	#hist_one_rv()
 
 	#plot_correlations()
 

@@ -50,7 +50,7 @@ if ( nplanets == 1 ):
 		ndata = len(mega_rv)
 		npars = sum(what_fit) + nt - 1
 	elif(not fit_rv and fit_tr):
-		ndata = len(mega_x)
+		ndata = len(megax)
 		npars = sum(what_fit)
 			
 

@@ -3,7 +3,7 @@
 #  This file contains the defalut values to run pyaneti.
 #  You can change all the values here. You can also control
 #	 the values in input_file.py
-#						         O. Barragan, March 2016
+#                 O. Barragan, March 2016
 #-----------------------------------------------------------
 
 #Plot parameters
@@ -31,7 +31,7 @@ unit_mass = 'solar'
 P = 15.
 e = 0.1
 w = 3.1415926 / 2.0
-inclination = 3.1415026 / 2.0
+ii = 3.1415026 / 2.0
 a = 13.0
 u1 = 0.42
 u2 = 0.25
@@ -66,36 +66,36 @@ fit_v0  = True
 
 
 #flags
-is_log_P	= True
-is_ew			= True
-is_sini		= True
-is_log_a	= True
-is_log_k	= True
-is_log_rv0= True
+is_log_P     = True
+is_ew        = True
+is_sini      = True
+is_log_a     = True
+is_log_k     = True
+is_log_rv0   = True
 
 #Limits
-min_t0  = 0.0
-max_t0  = 1e6
-min_P   = 0.1 				#days
-max_P   = 1e4 				#days
-min_e   = 1.e-10			#zero				
-max_e   = 0.999				#one
-min_w   = 0.0					#
-max_w   = 2*np.pi			#
+min_t0  = 0.0          #days
+max_t0  = 1e6          #days
+min_P   = 0.1 	       #days
+max_P   = 1e4 	       #days
+min_e   = 1.e-10       #zero
+max_e   = 0.999	       #one
+min_w   = 0.0	       #rad
+max_w   = 2*np.pi      #rad
 #transit fit
-min_i   = 1.22173 		# 70 degrees
-max_i   = np.pi / 2.0 # 90 degrees
-min_a   = 1.5					# The planet is outside the star
-max_a   = 1.e4				#
-min_u1  = 0.0					#
-max_u1  = 0.5					#
-min_u2  = 0.0					#
-max_u2  = 0.5					#
-min_pz  = 1.e-2				# Earth size planet / sun
-max_pz  = 0.99				# a really big planet 
+min_i   = 1.22173      # 70 degrees
+max_i   = np.pi / 2.0  # 90 degrees
+min_a   = 1.5	       # The planet is outside the star
+max_a   = 1.e8	       # The planet is really far
+min_u1  = 0.0	       #
+max_u1  = 0.5          #
+min_u2  = 0.0	       #
+max_u2  = 0.5	       #
+min_pz  = 1.e-2	       # Earth size planet / sun
+max_pz  = 0.99	       # a really big planet
 #rv fit
-min_k   = 1.e-3				# m/s amplitudes
-max_k   = 30.					# a really big planet
-min_rv0 = 1.					#Systemic velocities
-max_rv0 = 100.				#systemic velocities				
+min_k   = 1.e-3	       # m/s amplitudes
+max_k   = 30.	       # a really big planet
+min_rv0 = 1.	       #Systemic velocities
+max_rv0 = 100.	       #systemic velocities
 
