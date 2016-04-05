@@ -418,168 +418,203 @@ implicit none
 end subroutine
 
 !-----------------------------------------------------------
-subroutine stretch_move_tr(xd,yd,errs,params,limits,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas)
+subroutine stretch_move_tr(xd,yd,errs,pars,lims, &
+nwalks,maxi,thin_factor,ics,wtf,flag,nconv,datas)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: nwalks, maxi, thin_factor, datas, nconv
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  double precision, intent(inout), dimension(0:8) :: params
-  !f2py intent(in,out)  :: params
-  double precision, intent(inout), dimension(0:2*(9)-1) :: limits
-  !f2py intent(in,out)  :: limits
+  double precision, intent(in), dimension(0:8) :: pars
+  double precision, intent(in), dimension(0:(2*9)-1) :: lims
   integer, intent(in), dimension(0:8) :: wtf
-  double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:3)
 !Local variables
+  double precision, dimension(0:8) :: params
+  double precision, dimension(0:2*(9)-1) :: limits
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
-  double precision, dimension(0:nconv-1) :: chi2_vec, x_vec
-  double precision  :: q, chi2_y, chi2_slope, toler_slope
-  double precision  :: esin, ecos, nu, aa, chi2_red_min
-  integer :: j, n, nk, n_burn, spar, new_thin_factor,good_chain
-  logical :: get_out, is_burn, is_limit_good
-  !Let us add a plus random generator
-  double precision, dimension(0:nwalks-1) :: r_rand, z_rand
+  double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains
+  double precision  :: q
+  double precision  :: esin, ecos, aa, chi2_red_min
+  integer :: o, j, n, nu, nk, n_burn, spar, new_thin_factor
+  logical :: get_out, is_burn, is_limit_good, is_cvg
+  double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:8) :: wtf_all 
-  real :: r_real
+  double precision :: r_real
+  character(len=15) :: output_files
 !external calls
-  external :: init_random_seed, find_chi2_rv
+  external :: init_random_seed, find_chi2_tr
 
-  !What are we going to fit?
-  wtf_all(0:8) = wtf(0:8)
+  output_files = 'mh_trfit.dat'
 
-  spar = size(params)
+  params(:) = pars(:)
+  limits(:) = lims(:)
+  wtf_all(:) = wtf(:)
 
-  print *, flag
+  !size of parameters (only parameters to fit!)
+  !what parameters are we fitting?
+  spar = sum(wtf_all(:))
+
+  !Check if there are flags to evolve modified parameters
 
   !Period
   if ( flag(0) )  then
-    params(1) = log10(params(1))
-    limits(2) = log10(limits(2))
-    limits(3) = log10(limits(3))
+    params(1)   = dlog10(params(1))
+    limits(2:3) = dlog10(limits(2:3))
   end if
   ! e and w
   if ( flag(1) ) then
-    esin = sqrt(params(2)) * dsin(params(3))
-    ecos = sqrt(params(2)) * dcos(params(3))
+    esin = dsqrt(params(2)) * dsin(params(3))
+    ecos = dsqrt(params(2)) * dcos(params(3))
     params(2) = esin
     params(3) = ecos
-    limits(4) = -1.0
-    limits(5) = 1.0
-    limits(6) = -1.0
-    limits(7) = 1.0
+    limits(4) = - dsqrt(limits(5))
+    limits(5) =   dsqrt(limits(5))
+    limits(6) = limits(4)
+    limits(7) = limits(5)
   end if
   !i
   if ( flag(2) ) then
-    params(4) = sin(params(4))
-    limits(8:9) = sin(limits(8:9))
+    params(4) = dsin(params(4))
+    limits(8:9) = dsin(limits(8:9))
   end if
   !a = rp/r*
   if ( flag(3) ) then
-    params(5) = log10(params(5))
-    limits(10:11) = log10(limits(10:11))
+    params(5) = dlog10(params(5))
+    limits(10:11) = dlog10(limits(10:11))
   end if
 
-  !Call a random seed 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
 
-  call random_number(r_rand)
-  !Let us initinate all the walkers with the priors
-  !I am not sure it this works, it is just a test
-  r_rand = ( r_rand - 0.5 ) * 2.0
-
+  print *, 'CREATING RANDOM (UNIFORM) UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
-
-  print *, 'CREATING RANDOM UNIFORMATIVE PRIORS'
   do nk = 0, nwalks - 1
-    !params_old(:,j) = params * ( 1. + (real(j)/nwalks) * r_rand(j)*0.01 ) 
 
-    j = 0
-    do n = 0, 8
-      if ( wtf_all(n) == 0 ) then
-        params_old(n,nk) = params(n)
-      else
-        call random_number(r_real)
-        params_old(n,nk) = limits(j+1) - limits(j)
-        params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
+      !Counter for the limits
+      j = 0
+
+      do n = 0, 8
+        if ( wtf_all(n) == 0 ) then
+          !this parameter does not change for the planet m
+          params_old(n,nk) = params(n)
+        else
+          call random_number(r_real)
+          params_old(n,nk) = limits(j+1) - limits(j)
+          params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
+          !print *,n, params_old(n,m,nk), limits(j+1,m) - limits(j,m)
+          !print *, params_old(2,m,nk)
+        end if
+          !print *, params_old(2,m,nk), limits(5,m) - limits(4,m)
+        j = j + 2 !two limits for each parameter
+
+      end do
+
+      !Check that e < 1 for ew
+      if ( flag(1) ) then
+          is_limit_good = .false.
+          do while ( .not. is_limit_good )
+            print *, params_old(2,nk), params_old(3,nk)
+            call check_triangle(params_old(2,nk),params_old(3,nk),limits(5)**2,is_limit_good)
+            if ( .not. is_limit_good  ) then
+              params_old(2,nk) = params_old(2,nk) * params_old(2,nk)
+              params_old(3,nk) = params_old(3,nk) * params_old(3,nk)
+            end if
+        end do
       end if
-      print *, params_old(n,nk), limits(j), limits(j+1)
-      j = j + 2
-    end do
-
-    !Let us estimate our first chi_2 value
-    call find_chi2_tr(xd,yd,errs,params_old(:,nk),flag,chi2_old(nk),ics,datas)
-
+        
+    !Each walker is a point in a parameter space
+    !Each point contains the information of all the planets
+    !Let us estimate our first chi_2 value for each walker
+    call find_chi2_tr(xd,yd,errs,params_old(:,nk), &
+                      flag,chi2_old(nk),ics,datas)
   end do
-  
+!  stop
 
   !Calculate the degrees of freedom
-  nu = dble(datas - spar)
-  !If we are fixing a circular orbit, ec and w are not used 
-  if ( ics ) nu = nu + 2 
+  nu = datas - spar
+  if ( nu <= 0 ) then
+    print *, 'Your number of parameters is larger than your datapoints!'
+    print *, 'I cannot fit that!'
+    stop
+  end if
   chi2_red = chi2_old / nu
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', minval(chi2_red),'nu =', nu
+  print *, 'Initial Chi2_red= ', sum(chi2_red) / nwalks ,'DOF =', nu
 
-  !Let us start the otput file
-  open(unit=101,file='mh_trfit.dat',status='unknown')
+  !Let us start the otput files
+  open(unit=123,file=output_files,status='unknown')
+
   !Initialize the values
-
-  toler_slope = prec
   j = 1
   n = 0
   get_out = .TRUE.
   is_burn = .FALSE.
-
-  aa = 2.0
+  aa = 2.0 !this is suggested by the original paper
   n_burn = 1
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
-
   do while ( get_out )
 
     !Do the work for all the walkers
     call random_number(z_rand)
     call random_number(r_rand)
+    !Create random integers to be the index of the walks
+    !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
 
-    do nk = 0, nwalks - 1
-    !Draw the random walker nk, from the complemetary walkers
-    !This definition does not avoid to copy the same k walker
-      params_new(:,nk) = params_old(:,r_int(nk))
-      !Let us generate a random step
-      z_rand(nk) = z_rand(nk) * aa ! a = 2 as suggested by emcee paper
-      call find_gz(z_rand(nk),aa) 
-    
-      !Now we can have the evolved walker
-      params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
-                       ( params_old(:,nk) - params_new(:,nk) )
+!    do nk = 0, nwalks - 1 !walkers
+!        params_new(:,nk) = params_old(:,r_int(nk))
+!    end do
 
-      !Let us check the limits
-      call check_limits(params_new(:,nk),limits, &
-      is_limit_good,9)
+    !Let us vary aa randomlly
+    call random_number(aa)
+    aa = 1.0 + 99.0 * aa 
+
+    do nk = 0, nwalks - 1 !walkers
+
+    !Draw the random walker nk, from the complemetary walkers
+      z_rand(nk) = z_rand(nk) * aa 
+
+      !The gz function to mantain the affine variance codition in the walks
+      call find_gz(z_rand(nk),aa) 
+
+      !Evolve for all the planets for all the parameters
+        params_new(:,nk) = params_old(:,r_int(nk))
+      params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
+                           ( params_old(:,nk) - params_new(:,nk) )
+
+        !Let us check the limits
+        call check_limits(params_new(:,nk),limits(:), &
+                          is_limit_good,9)
+
+        !Check that e < 1 for ew
+        if ( flag(1) ) then
+          call check_triangle(params_new(2,nk),params_new(3,nk),1.0, is_limit_good )
+       end if          
+
+      !If we are out of limits this chain is bad
+      if ( .not. is_limit_good ) exit
+
       if ( is_limit_good ) then !evaluate chi2
-        !Obtain the new chi square 
         call find_chi2_tr(xd,yd,errs,params_new(:,nk),flag,chi2_new(nk),ics,datas)
       else !we do not have a good model
-        chi2_new(nk) = huge(dble(0.0))
-        !print *, 'I almost collapse!'
+        chi2_new(nk) = huge(dble(0.0)) !a really big number
       end if
 
-      !Is the new model better? 
-      q = z_rand(nk)**( spar - 1.) * &
-          exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
+      !Compare the models 
+      q = z_rand(nk)**(spar - 1) * &
+          dexp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
-      if ( q >= r_rand(nk) ) then
-        chi2_old(nk) = chi2_new(nk)
-        params_old(:,nk) = params_new(:,nk)
+      if ( q >= r_rand(nk) ) then !is the new model better?
+          chi2_old(nk) = chi2_new(nk)
+          params_old(:,nk) = params_new(:,nk)
       end if
 
       chi2_red(nk) = chi2_old(nk) / nu
@@ -587,44 +622,71 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
-          if ( nk == good_chain ) write(101,*) n_burn, chi2_old(nk), chi2_red(nk), params_old(:,nk)
+            write(123,*) j, chi2_old(nk), chi2_red(nk), params_old(:,nk)
         end if
       end if
       !End burn-in
 
-    end do
+    end do !walkers
 
      if ( is_burn ) then
+
         if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
         if ( n_burn > nconv ) get_out = .false.
-     end if
 
-    chi2_red_min = minval(chi2_red)
+     else
 
-    !Save the data each thin_factor iteration
-    if ( .not. is_burn ) then
       if ( mod(j,thin_factor) == 0 ) then
 
-        print *, 'iter ',j,', Chi2_red =', chi2_red_min
-        !Check convergence here
-        chi2_vec(n) = chi2_red_min
-        x_vec(n) = n
+        !Obtain the chi2 mean of all the variables
+        chi2_red_min = sum(chi2_red) / nwalks
+
+        print *, 'Iter ',j,', Chi^2_red =', chi2_red_min
+
+        !Create the 4D array to use the Gelman-Rubin test
+        !The first two elemets are the parameters for mp fit
+        !third is the information of all chains
+        !fourth is the chains each iteration
+        params_chains(:,:,n) = params_old(:,:)
+        
         n = n + 1
 
-        if ( n == size(chi2_vec) ) then
+        if ( n == nconv ) then !Perform GR test
 
-          call fit_a_line(x_vec,chi2_vec,chi2_y,chi2_slope,nconv)
           n = 0
-          !If chi2_red has not changed the last nconv iterations
-          print *, abs(chi2_slope), toler_slope / (chi2_y)
-          if ( abs(chi2_slope) < ( toler_slope / (chi2_y) ) ) then
-            print *, 'THE CHAIN HAS CONVERGED'
-            print *, 'Starting burning-in phase'
+
+          print *, '==========================='
+          print *, '  PERFOMING GELMAN-RUBIN'
+          print *, '   TEST FOR CONVERGENCE'
+          print *, '==========================='
+
+          !Let us check convergence for all the parameters
+          is_cvg = .true.
+          do o = 0, 8 !For all parameters 
+            !Do the test to the parameters that we are fitting
+              if ( wtf_all(o) == 1 ) then
+                !do the Gelman and Rubin statistics
+                call gr_test(params_chains(o,:,:),nwalks,nconv,is_cvg)
+                ! If only a chain for a given parameter does
+                ! not converge is enoug to keep iterating
+              end if
+            if ( .not. is_cvg ) exit
+          end do
+
+          if ( .not. is_cvg  ) then
+            print *, '=================================='
+            print *, 'CHAINS HAVE NOT CONVERGED YET!'
+            print *,  nconv,' ITERATIONS MORE!'
+            print *, '=================================='
+          else
+            print *, '==========================='
+            print *, '  CHAINS HAVE CONVERGED'
+            print *, '==========================='
+            print *, 'STARTING BURNING-IN PHASE'
+            print *, '==========================='
             is_burn = .True.
-            new_thin_factor = 10
-            good_chain = minloc(chi2_red,dim=1) - 1
-            print *, 'The best chain is', good_chain, &
-            'with chi2_red =', chi2_red(good_chain)
+            new_thin_factor = 50
+            print *, 'Creating ', output_files
           end if
 
           if ( j > maxi ) then
@@ -634,6 +696,7 @@ implicit none
 
         end if
       !I checked covergence
+
       end if
 
     end if
@@ -642,8 +705,8 @@ implicit none
 
   end do
 
-  close(101)
+  !Close all the files
+  close(123)
 
 end subroutine
-
 

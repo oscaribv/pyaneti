@@ -37,16 +37,17 @@ if ( nplanets == 1 ):
 	  #Now we have data to plot a nice model
 
 	  #Do the plot
-	  plt.figure(2,figsize=(10,10))
+	  plt.figure(2,figsize=(7,6))
 	  #Plot the transit light curve
-	  plt.subplot(211)
+		gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[1.618, 1])
+	  plt.subplot(gs[0])
 	  plt.xlim(min(xt[0]),max(xt[0]))
-	  plt.errorbar(megax,megay,megae,fmt='o',alpha=0.3)
+	  plt.errorbar(megax,megay,megae,fmt='o',alpha=0.8)
 	  plt.plot(xvec,mud,'k',linewidth=2.0)
 	  #Plot the residuals
-	  plt.subplot(212)
+	  plt.subplot(gs[1])
 	  plt.xlim(min(xt[0]),max(xt[0]))
-	  plt.errorbar(megax,res,megae,fmt='o',alpha=0.3)
+	  plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)
 	  plt.plot(megax,np.zeros(len(megax)),'k--',linewidth=2.0)
 	  plt.show()
 
