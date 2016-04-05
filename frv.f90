@@ -11,7 +11,7 @@
 ! This subroutine computes the circular radial velocity 
 ! curve for a set of values t. The subroutine returns 
 ! a vector (rv of the same size that t) by solving:
-!  $ rv = rv0 - k [ sin ( 2*\pi ( t - t_0) / P ) ] $
+!  $ rv = rv0 - k [ sin ( 2* \pi ( t - t_0) / P ) ] $
 ! Where the parameters are the typical for a RV curve
 !------------------------------------------------------------
 subroutine rv_circular(t,rv0,t0,k,P,rv,ts)
@@ -25,7 +25,7 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
 !
-  rv(:) = rv0 - k * sin( 2.*pi*( t(:) - t0) / P )
+  rv(:) = rv0 - k * dsin( 2.*pi*( t(:) - t0) / P )
 
 end subroutine
 
@@ -57,7 +57,7 @@ implicit none
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,delta,imax,ts)
 
-  rv(:) = rv0 + k * ( cos( ta(:) + w ) + e * cos(w) )
+  rv(:) = rv0 + k * ( dcos( ta(:) + w ) + e * dcos(w) )
   
 end subroutine
 
@@ -91,9 +91,10 @@ implicit none
 
   rv(:) = rv0
   do i = 0, npl-1
-   !Obtain the eccentric anomaly by using find_anomaly
+   !Obtain the true anomaly by using find_anomaly
+   !each i is for a different planet
    call find_anomaly(t,t0(i),e(i),w(i),P(i),ta,delta,imax,ts)
-   rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
+   rv(:) = rv(:) + k(i) * ( dcos(ta(:) + w(i) ) + e(i) * dcos(w(i)) )
   end do
  
 end subroutine
@@ -131,7 +132,7 @@ implicit none
   double precision, dimension(0:datas-1) :: model, res
   integer :: i, tel
 !External function
-  external :: rv_circular, rv_curve
+  external :: rv_circular, rv_curve_mp
 
   t0(:)  = params(0,:)
   P(:)   = params(1,:)
@@ -173,6 +174,7 @@ implicit none
 
   end if
 
+  !Let us obtain chi^2
   res(:) = ( model(:) - yd(:) ) / errs(:) 
   chi2 = dot_product(res,res)
 
@@ -197,7 +199,8 @@ end subroutine
 !Output parameter:
 ! This functions outputs a file called mh_rvfit.dat
 !-----------------------------------------------------------
-subroutine metropolis_hastings_rv(xd,yd,errs,tlab,params,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt)
+subroutine metropolis_hastings_rv(xd,yd,errs,tlab,params,prec,maxi, &
+thin_factor,ics,wtf,flag,nconv,datas,nt)
 implicit none
 
 !In/Out variables
@@ -323,7 +326,8 @@ end subroutine
 !-------------------------------------------------------
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,maxi,thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
+subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,maxi, &
+thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
 implicit none
 
 !In/Out variables
@@ -345,7 +349,6 @@ implicit none
   double precision  :: esin(0:npl-1), ecos(0:npl-1), aa, chi2_red_min
   integer :: l,o,m, j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: get_out, is_burn, is_limit_good, is_cvg
-  !Let us add a plus random generator
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
@@ -354,6 +357,7 @@ implicit none
 !external calls
   external :: init_random_seed, find_chi2_rv
 
+!I have to do this automatically
   output_files(0) = 'planet1.dat'
   output_files(1) = 'planet2.dat'
 
@@ -369,7 +373,7 @@ implicit none
   !size of parameters (only parameters to fit!)
   !The telescopes are the same for all the planets
   spar = nt
-  do m = 0, npl-1
+  do m = 0, npl - 1
     !what parameters are we fitting?
     spar = spar + sum(wtf_all(0:4,m))
   end do
@@ -378,9 +382,8 @@ implicit none
 
   !Period
   if ( flag(0) )  then
-    params(1,:) = dlog10(params(1,:))
-    limits(2,:) = dlog10(limits(2,:))
-    limits(3,:) = dlog10(limits(3,:))
+    params(1,:)   = dlog10(params(1,:))
+    limits(2:3,:) = dlog10(limits(2:3,:))
   end if
   ! e and w
   if ( flag(1) ) then
@@ -388,11 +391,10 @@ implicit none
     ecos(:) = dsqrt(params(2,:)) * dcos(params(3,:))
     params(2,:) = esin
     params(3,:) = ecos
-    limits(4,:) = - sqrt(limits(5,:)) 
-    limits(5,:) = sqrt(limits(5,:))
+    limits(4,:) = - dsqrt(limits(5,:))
+    limits(5,:) =   dsqrt(limits(5,:))
     limits(6,:) = limits(4,:)
     limits(7,:) = limits(5,:)
-    !stop
   end if
   !k
   if ( flag(2) ) then
@@ -411,6 +413,7 @@ implicit none
   print *, 'CREATING RANDOM (UNIFORM) UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
   do nk = 0, nwalks - 1
+
     do m = 0, npl - 1
 
       !Counter for the limits
@@ -424,7 +427,7 @@ implicit none
           call random_number(r_real)
           params_old(n,m,nk) = limits(j+1,m) - limits(j,m)
           params_old(n,m,nk) = limits(j,m) + r_real*params_old(n,m,nk) 
-          print *,n, params_old(n,m,nk), limits(j+1,m) - limits(j,m)
+          !print *,n, params_old(n,m,nk), limits(j+1,m) - limits(j,m)
           !print *, params_old(2,m,nk)
         end if
           !print *, params_old(2,m,nk), limits(5,m) - limits(4,m)
@@ -443,7 +446,7 @@ implicit none
               params_old(3,m,nk) = params_old(3,m,nk) * params_old(3,m,nk)
             end if
         end do
-     end if          
+      end if
 
     end do
         
@@ -468,7 +471,7 @@ implicit none
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', sum(chi2_red) / nu ,'DOF =', nu
+  print *, 'Initial Chi2_red= ', sum(chi2_red) / nwalks ,'DOF =', nu
 
   !print *, chi2_red
   !stop
@@ -494,7 +497,7 @@ implicit none
     call random_number(z_rand)
     call random_number(r_rand)
     !Create random integers to be the index of the walks
-    !Note that r_ink(i) != i (avoind copy the same walker)
+    !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
 
     do nk = 0, nwalks - 1 !walkers
@@ -503,6 +506,7 @@ implicit none
       end do
     end do
 
+    !Let us vary aa randomlly
     call random_number(aa)
     aa = 1.0 + 99.0 * aa 
 
@@ -511,7 +515,7 @@ implicit none
     !Draw the random walker nk, from the complemetary walkers
       z_rand(nk) = z_rand(nk) * aa 
 
-      !The gz function to mantain symmetry in the walks
+      !The gz function to mantain the affine variance codition in the walks
       call find_gz(z_rand(nk),aa) 
 
       !Evolve for all the planets for all the parameters
@@ -519,6 +523,7 @@ implicit none
 !        params_new(:,m,nk) = params_old(:,m,r_int(nk))
         params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
                            ( params_old(:,m,nk) - params_new(:,m,nk) )
+
         !Let us check the limits
         call check_limits(params_new(:,m,nk),limits(:,m), &
                           is_limit_good,5+nt)
@@ -541,7 +546,7 @@ implicit none
 
       !Compare the models 
       q = z_rand(nk)**(spar - 1) * &
-        exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
+          dexp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
           chi2_old(nk) = chi2_new(nk)
@@ -571,10 +576,10 @@ implicit none
 
       if ( mod(j,thin_factor) == 0 ) then
 
-        !Obtain the chi2 mean off all the variables
+        !Obtain the chi2 mean of all the variables
         chi2_red_min = sum(chi2_red) / nwalks
 
-        print *, 'iter ',j,', Chi2_red =', chi2_red_min
+        print *, 'Iter ',j,', Chi^2_red =', chi2_red_min
 
         !Create the 4D array to use the Gelman-Rubin test
         !The first two elemets are the parameters for mp fit
@@ -584,7 +589,7 @@ implicit none
         
         n = n + 1
 
-        if ( n == nconv ) then !Permon GR test
+        if ( n == nconv ) then !Perform GR test
 
           n = 0
 
