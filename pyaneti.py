@@ -323,7 +323,7 @@ if ( nplanets == 1):
 
 	#hist_one_rv()
 
-	#plot_correlations()
+	plot_correlations()
 
 	#PLOT TRANSIT
 	if ( fit_tr ):

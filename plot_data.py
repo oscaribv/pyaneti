@@ -49,6 +49,7 @@ if ( nplanets == 1 ):
 	  plt.xlim(min(xt[0]),max(xt[0]))
 	  plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)
 	  plt.plot(megax,np.zeros(len(megax)),'k--',linewidth=2.0)
+	  plt.savefig('transit_fit.pdf',format='pdf',bbox_inches='tight')
 	  plt.show()
 
 
@@ -310,7 +311,7 @@ def hist_mp_rv(cbars='red',nb=50):
 #Print correlation plot
 def create_plot_correlation(params,plabs,col='red',mark='.'):
 	n = len(params)
-	plt.figure(1,figsize=(2*n,2*n))
+	plt.figure(1,figsize=(n,n))
 	gs = gridspec.GridSpec(nrows=n,ncols=n)
 	for i in range(0,n):
 		for j in range(0,i):
@@ -328,6 +329,14 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 	plt.show()
 
 def plot_correlations(rf=19):
+
+	if ( fit_tr ):
+
+		params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],io[1::rf],ao[1::rf],u1o[1::rf],u2o[1::rf],pzo[1::rf]]
+		labs = ['T0','P','e','$\omega$','i','a','u1','u2','pz']
+	
+		create_plot_correlation(params,labs,col='blue')
+
 
 	#Now it works only for RV fit	
 	if ( fit_rv ):
