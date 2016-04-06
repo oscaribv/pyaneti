@@ -322,6 +322,7 @@ execfile('plot_data.py')
 if ( nplanets == 1):
 
 	#hist_one_rv()
+	plot_histogram()
 
 	plot_correlations()
 

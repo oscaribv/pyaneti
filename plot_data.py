@@ -216,6 +216,8 @@ else:
 			plt.savefig(fname,format='pdf',bbox_inches='tight')
 			plt.show()
 
+#-------------------------------------------------------------------
+
 #Print histograms
 def hist_one_rv(cbars='red',nb=50):
 	plt.figure(1,figsize=(10,3*(5+nt)/2))
@@ -260,6 +262,62 @@ def hist_one_rv(cbars='red',nb=50):
 		plt.hist(vo[m],normed=True,bins=nb)
 	plt.savefig('hist_params.pdf',format='pdf',bbox_inches='tight')
 	plt.show()
+
+def create_plot_histogram(params,plabs,cbars='red',nb=50):
+	n = len(params)
+	plt.figure(1,figsize=(7,3*(n)/2))
+	gs = gridspec.GridSpec(nrows=(n+1)/2,ncols=2)
+	for i in range(0,n):
+		plt.subplot(gs[i])
+		vpar, lpar, rpar = find_vals_perc(params[i],nconv,1.0)
+		plt.axvline(x=vpar,c=cbars)
+		plt.axvline(x=vpar-lpar,c=cbars,ls='--')
+		plt.axvline(x=vpar+rpar,c=cbars,ls='--')
+		plt.xlabel(plabs[i])
+		plt.hist(params[i],normed=True,bins=nb)
+
+	plt.savefig('histogram.pdf',format='pdf',bbox_inches='tight')
+	plt.show()
+
+def plot_histogram(rf=1):
+
+	if ( fit_tr ):
+		params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],io[1::rf],ao[1::rf],u1o[1::rf],u2o[1::rf],pzo[1::rf]]
+		labs = ['T0','P','e','$\omega$','i','a','u1','u2','pz']
+	
+		create_plot_histogram(params,labs)
+
+	if ( fit_rv ):
+		if (nplanets == 1 ):
+			dparams = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],ko[1::rf]]
+			dplabs = ['T0','P','e','$\omega$','k']
+		else:
+			dparams = [None]*5*nplanets
+			dplabs = [None]*5*nplanets
+			for i in range(0,nplanets):
+				dparams[0+5*nplanets] = t0o[i][1::rf]
+				dparams[1+5*nplanets] = Po[i][1::rf]
+				dparams[2+5*nplanets] = eo[i][1::rf]
+				dparams[3+5*nplanets] = wo[i][1::rf]
+				dparams[4+5*nplanets] = ko[i][1::rf]
+				dplabs[0+5*nplanets] = 'T0'+str(i)
+				dplabs[1+5*nplanets] = 'P'+str(i)
+				dplabs[2+5*nplanets] = 'e'+str(i)
+				dplabs[3+5*nplanets] = '$\omega$'+str(i)
+				dplabs[4+5*nplanets] = 'k'+str(i)
+
+		vlabs = [None]*nt
+		dvo = [None]*nt
+		for i in range(0,nt):
+			vlabs[i] = 'rv0 ' + telescopes[i]
+			dvo[i] = vo[i][1::rf]
+
+
+		params = np.concatenate([dparams,dvo])
+		labs = np.concatenate([dplabs,vlabs])
+	
+		create_plot_histogram(params,labs)
+
 
 
 def hist_mp_rv(cbars='red',nb=50):
@@ -311,7 +369,7 @@ def hist_mp_rv(cbars='red',nb=50):
 #Print correlation plot
 def create_plot_correlation(params,plabs,col='red',mark='.'):
 	n = len(params)
-	plt.figure(1,figsize=(n,n))
+	plt.figure(1,figsize=(2*n,2*n))
 	gs = gridspec.GridSpec(nrows=n,ncols=n)
 	for i in range(0,n):
 		for j in range(0,i):
