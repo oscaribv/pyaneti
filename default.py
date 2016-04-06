@@ -26,6 +26,8 @@ nconv = 100
 errores='perc'
 nwalkers = 100
 unit_mass = 'solar'
+scale_error_bars = True
+s_factor = 1.0
 
 #Default priors
 P = 15.

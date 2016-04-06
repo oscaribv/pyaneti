@@ -164,13 +164,13 @@ def find_vals_gauss(x,nconv):
 #				 mine	-> left error (50% - 16%)
 #				 maxe	-> right error (84% - 50%)
 #-----------------------------------------------------------
-def find_vals_perc(x,nconv):
+def find_vals_perc(x,nconv,sf=1.0):
 	iout = len(x) - nconv
 	xnew = x[iout:]
 	#With a 68% confidence interval
 	mine, med, maxe = np.percentile(xnew,[16,50,84])
-	maxe = maxe - med
-	mine = med - mine
+	maxe = ( maxe - med ) / sf
+	mine = ( med - mine ) / sf
 	return med, mine, maxe
 
 

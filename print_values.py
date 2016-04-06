@@ -31,15 +31,12 @@ if ( nplanets == 1 ):
 	  masso = [None]*len(t0o) 
 	  for m in range(0,len(t0o)):
 	  	tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m],Po[m])
-	  	#masso[m] = planet_mass(mstar,ko[m]*1.e3,Po[m],eo[m],inclination)
 
 	  masso = planet_mass(mstar,ko*1.e3,Po,eo,inclination)
 
 	  if ( unit_mass == 'earth'):
-			#masso[m] = 332946 * masso[m]
 	  	masso = 332967.750577677 * masso
 	  elif ( unit_mass == 'jupiter'):
-			#masso[m] = 1047.56 * masso[m]
 	  	masso = 1047.353299069 * masso
 		
 	#Calculate the BIC
@@ -123,36 +120,44 @@ if ( nplanets == 1 ):
 
 	if ( errores == 'perc' ):
 
-		chi2tot_val, chi2tot_errl, chi2tot_errr = find_vals_perc(chi2,nconv)
-		chi2_val, chi2_errl, chi2_errr = find_vals_perc(chi2red,nconv)
+		s_factor = 1.0
 
-		t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv)
-		P_val, P_errl, P_errr  = find_vals_perc(Po,nconv)
-		e_val,e_errl, e_errr 	= find_vals_perc(eo,nconv)
-		w_val,w_errl, w_errr 	= find_vals_perc(wo,nconv)
+		chi2tot_val, chi2tot_errl, chi2tot_errr = find_vals_perc(chi2,nconv,s_factor)
+		chi2_val, chi2_errl, chi2_errr = find_vals_perc(chi2red,nconv,s_factor)
+
+		if ( scale_error_bars ):
+			s_factor = np.sqrt( chi2_val )
+		else:
+			s_factor = 1.0
+
+
+		t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv,s_factor)
+		P_val, P_errl, P_errr  = find_vals_perc(Po,nconv,s_factor)
+		e_val,e_errl, e_errr 	= find_vals_perc(eo,nconv,s_factor)
+		w_val,w_errl, w_errr 	= find_vals_perc(wo,nconv,s_factor)
 		if (w_val < 0.0 ):
 			w_val = w_val + 2 * np.pi	
 		w_deg 		= w_val * 180. / np.pi
 		w_deg_errl = w_errl * 180. / np.pi
 		w_deg_errr = w_errr * 180. / np.pi
 		if ( fit_tr ):
-			i_val,i_errl, i_errr 	= find_vals_perc(io,nconv)
-			a_val,a_errl, a_errr 	= find_vals_perc(ao,nconv)
-			u1_val,u1_errl, u1_errr = find_vals_perc(u1o,nconv)
-			u2_val,u2_errl, u2_errr = find_vals_perc(u2o,nconv)
-			pz_val,pz_errl, pz_errr = find_vals_perc(pzo,nconv)
+			i_val,i_errl, i_errr 	= find_vals_perc(io,nconv,s_factor)
+			a_val,a_errl, a_errr 	= find_vals_perc(ao,nconv,s_factor)
+			u1_val,u1_errl, u1_errr = find_vals_perc(u1o,nconv,s_factor)
+			u2_val,u2_errl, u2_errr = find_vals_perc(u2o,nconv,s_factor)
+			pz_val,pz_errl, pz_errr = find_vals_perc(pzo,nconv,s_factor)
 			i_deg 		= i_val * 180. / np.pi
 			i_deg_errl = i_errl * 180. / np.pi
 			i_deg_errr = i_errr * 180. / np.pi
 		if ( fit_rv ):
-			k_val, k_errl, k_errr  	= find_vals_perc(ko,nconv)
-			m_val, m_errl, m_errr  	= find_vals_perc(masso,nconv)
-			tp_val, tp_errl, tp_errr= find_vals_perc(tpo,nconv)
+			k_val, k_errl, k_errr  	= find_vals_perc(ko,nconv,s_factor)
+			m_val, m_errl, m_errr  	= find_vals_perc(masso,nconv,s_factor)
+			tp_val, tp_errl, tp_errr= find_vals_perc(tpo,nconv,s_factor)
 			v_val = [None]*nt
 			v_errl = [None]*nt
 			v_errr = [None]*nt
 			for j in range(0,nt):
-				v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv)
+				v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv,s_factor)
 	
 
 		npln = npars * np.log(ndata)	
@@ -161,6 +166,7 @@ if ( nplanets == 1 ):
 		print 'N_data      = ', ndata
 		print 'N_pars      = ', npars
 		print 'DOF         = ', ndata - npars
+		print 'scale factor= ', s_factor
 		print ('chi2       = %1.4f + %1.4f - %1.4f' %(chi2tot_val,chi2tot_errr,chi2tot_errl))
 		print ('chi2_red   = %1.4f + %1.4f - %1.4f' %(chi2_val,chi2_errr,chi2_errl))
 		print ('BIC        = %1.4f + %1.4f - %1.4f' %(chi2tot_val + npln,chi2tot_errr,chi2tot_errl))
@@ -300,31 +306,40 @@ else:
 			#Percentile errors
 		
 			if ( errores == 'perc' ):	
+
+				s_factor = 1.0
 	
-				chi2tot_val[l], chi2tot_errl[l], chi2tot_errr[l] = find_vals_perc(chi2[l],nconv)
-				chi2_val[l], chi2_errl[l], chi2_errr[l] = find_vals_perc(chi2red[l],nconv)
-		
-				t0_val[l], t0_errl[l], t0_errr[l] = find_vals_perc(t0o[l],nconv)
-				mass_val[l], mass_errl[l], mass_errr[l] = find_vals_perc(masso,nconv)
-				tp_val[l], tp_errl[l], tp_errr[l] = find_vals_perc(tpo,nconv)
-				P_val[l], P_errl[l], P_errr[l]  = find_vals_perc(Po[l],nconv)
-				e_val[l],e_errl[l], e_errr[l] 	= find_vals_perc(eo[l],nconv)
-				w_val[l],w_errl[l], w_errr[l] 	= find_vals_perc(wo[l],nconv)
+				chi2tot_val[l], chi2tot_errl[l], chi2tot_errr[l] = find_vals_perc(chi2[l],nconv,s_factor)
+				chi2_val[l], chi2_errl[l], chi2_errr[l] = find_vals_perc(chi2red[l],nconv,s_factor)
+
+				if ( scale_error_bars ):
+					s_factor = np.sqrt( chi2_val )
+				else:
+					s_factor = 1.0
+
+	
+				t0_val[l], t0_errl[l], t0_errr[l] = find_vals_perc(t0o[l],nconv,s_factor)
+				mass_val[l], mass_errl[l], mass_errr[l] = find_vals_perc(masso,nconv,s_factor)
+				tp_val[l], tp_errl[l], tp_errr[l] = find_vals_perc(tpo,nconv,s_factor)
+				P_val[l], P_errl[l], P_errr[l]  = find_vals_perc(Po[l],nconv,s_factor)
+				e_val[l],e_errl[l], e_errr[l] 	= find_vals_perc(eo[l],nconv,s_factor)
+				w_val[l],w_errl[l], w_errr[l] 	= find_vals_perc(wo[l],nconv,s_factor)
 				if (w_val[l] < 0.0 ):
 					w_val[l] = w_val[l] + 2 * np.pi	
 				w_deg[l] 		= w_val[l] * 180. / np.pi
 				w_deg_errl[l] = w_errl[l] * 180. / np.pi
 				w_deg_errr[l] = w_errr[l] * 180. / np.pi
 				if ( fit_rv ):
-					k_val[l], k_errl[l], k_errr[l]  = find_vals_perc(ko[l],nconv)
+					k_val[l], k_errl[l], k_errr[l]  = find_vals_perc(ko[l],nconv,s_factor)
 					for j in range(0,nt):
-						v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv)
+						v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv,s_factor)
 			
 		
 				#Print the best fit values values
 				print 'N_data      = ', ndata
 				print 'N_pars      = ', npars
 				print 'DOF         = ', ndata - npars
+				print 'scale factor= ', s_factor
 				print ('chi2 = %1.4f + %1.4f - %1.4f' %(chi2tot_val[l],chi2tot_errr[l],chi2tot_errl[l]))
 				print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val[l],chi2_errr[l],chi2_errl[l]))
 				print ('BIC        = %1.4f + %1.4f - %1.4f' %(chi2tot_val[l] + npln,chi2tot_errr[l],chi2tot_errl[l]))
