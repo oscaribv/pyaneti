@@ -216,56 +216,13 @@ else:
 			plt.savefig(fname,format='pdf',bbox_inches='tight')
 			plt.show()
 
-#-------------------------------------------------------------------
-
-#Print histograms
-def hist_one_rv(cbars='red',nb=50):
-	plt.figure(1,figsize=(10,3*(5+nt)/2))
-	gs = gridspec.GridSpec(nrows=int((5+nt)/2.+0.5),ncols=2)
-	ax0 = plt.subplot(gs[0])
-	ax0 = plt.axvline(x=t0_val,c=cbars)
-	ax0 = plt.axvline(x=t0_val-t0_errl,c=cbars,ls='--')
-	ax0 = plt.axvline(x=t0_val+t0_errr,c=cbars,ls='--')
-	ax0 = plt.xlabel('T0')
-	ax0 = plt.axvline(x=t0_val)
-	ax0 = plt.hist(t0o,normed=True,bins=nb)
-	ax1 = plt.subplot(gs[1])
-	ax1 = plt.axvline(x=P_val,c=cbars)
-	ax1 = plt.axvline(x=P_val-P_errl,c=cbars,ls='--')
-	ax1 = plt.axvline(x=P_val+P_errr,c=cbars,ls='--')
-	ax1 = plt.xlabel('P')
-	ax1 = plt.hist(Po,normed=True,bins=nb)
-	ax2 = plt.subplot(gs[2])
-	ax2 = plt.axvline(x=e_val,c=cbars)
-	ax2 = plt.axvline(x=e_val-e_errl,c=cbars,ls='--')
-	ax2 = plt.axvline(x=e_val+e_errr,c=cbars,ls='--')
-	ax2 = plt.xlabel('$e$')
-	ax2 = plt.hist(eo,normed=True,bins=nb)
-	ax3 = plt.subplot(gs[3])
-	ax3 = plt.axvline(x=w_val,c=cbars)
-	ax3 = plt.axvline(x=w_val-w_errl,c=cbars,ls='--')
-	ax3 = plt.axvline(x=w_val+w_errr,c=cbars,ls='--')
-	ax3 = plt.xlabel('$\omega$')
-	ax3 = plt.hist(wo,normed=True,bins=nb)
-	ax4 = plt.subplot(gs[4])
-	ax4 = plt.axvline(x=k_val,c=cbars)
-	ax4 = plt.axvline(x=k_val-k_errl,c=cbars,ls='--')
-	ax4 = plt.axvline(x=k_val+k_errr,c=cbars,ls='--')
-	ax4 = plt.xlabel('k')
-	ax4 = plt.hist(ko,normed=True,bins=nb)
-	for m in range(0,nt):
-		plt.subplot(gs[5+m])
-		plt.axvline(x=v_val[m],c=cbars)
-		plt.axvline(x=v_val[m]-v_errl[m],c=cbars,ls='--')
-		plt.axvline(x=v_val[m]+v_errr[m],c=cbars,ls='--')
-		plt.xlabel('%s rv0'%(telescopes[m]))
-		plt.hist(vo[m],normed=True,bins=nb)
-	plt.savefig('hist_params.pdf',format='pdf',bbox_inches='tight')
-	plt.show()
+#===========================================================
+#                   Histogram plots
+#===========================================================
 
 def create_plot_histogram(params,plabs,cbars='red',nb=50):
 	n = len(params)
-	plt.figure(1,figsize=(7,3*(n)/2))
+	plt.figure(1,figsize=(15,3*(n)/2))
 	gs = gridspec.GridSpec(nrows=(n+1)/2,ncols=2)
 	for i in range(0,n):
 		plt.subplot(gs[i])
@@ -319,7 +276,6 @@ def plot_histogram(rf=1):
 		create_plot_histogram(params,labs)
 
 
-
 def hist_mp_rv(cbars='red',nb=50):
 
 	for l in range(0,nplanets):
@@ -366,7 +322,10 @@ def hist_mp_rv(cbars='red',nb=50):
 		plt.savefig('hist_params'+str(l)+'.pdf',format='pdf',bbox_inches='tight')
 		plt.show()
 
-#Print correlation plot
+#===========================================================
+#                   Correlation plots
+#===========================================================
+
 def create_plot_correlation(params,plabs,col='red',mark='.'):
 	n = len(params)
 	plt.figure(1,figsize=(2*n,2*n))
@@ -394,7 +353,6 @@ def plot_correlations(rf=19):
 		labs = ['T0','P','e','$\omega$','i','a','u1','u2','pz']
 	
 		create_plot_correlation(params,labs,col='blue')
-
 
 	#Now it works only for RV fit	
 	if ( fit_rv ):
@@ -427,5 +385,4 @@ def plot_correlations(rf=19):
 		labs = np.concatenate([dplabs,vlabs])
 	
 		create_plot_correlation(params,labs,col='blue')
-
 
