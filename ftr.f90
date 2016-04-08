@@ -514,17 +514,20 @@ implicit none
       end do
 
       !Check that e < 1 for ew
-      if ( flag(1) ) then
+      !Check that u1 + u2 < 1 for ew
+      !if ( flag(1) ) then
           is_limit_good = .false.
           do while ( .not. is_limit_good )
-            print *, params_old(2,nk), params_old(3,nk)
-            call check_triangle(params_old(2,nk),params_old(3,nk),limits(5)**2,is_limit_good)
+            print *, params_old(6,nk), params_old(7,nk)
+            call check_triangle(dsqrt(params_old(6,nk)),dsqrt(params_old(7,nk)),dble(1.0),is_limit_good)
+            !print *, 'is good', is_limit_good
             if ( .not. is_limit_good  ) then
-              params_old(2,nk) = params_old(2,nk) * params_old(2,nk)
-              params_old(3,nk) = params_old(3,nk) * params_old(3,nk)
+              !print *, 'I am here'
+              params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
+              params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
             end if
         end do
-      end if
+      !end if
         
     !Each walker is a point in a parameter space
     !Each point contains the information of all the planets
@@ -569,9 +572,9 @@ implicit none
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
 
-!    do nk = 0, nwalks - 1 !walkers
-!        params_new(:,nk) = params_old(:,r_int(nk))
-!    end do
+    do nk = 0, nwalks - 1 !walkers
+        params_new(:,nk) = params_old(:,r_int(nk))
+    end do
 
     !Let us vary aa randomlly
     call random_number(aa)
@@ -586,21 +589,23 @@ implicit none
       call find_gz(z_rand(nk),aa) 
 
       !Evolve for all the planets for all the parameters
-        params_new(:,nk) = params_old(:,r_int(nk))
+        !params_new(:,nk) = params_old(:,r_int(nk))
       params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
                            ( params_old(:,nk) - params_new(:,nk) )
 
         !Let us check the limits
         call check_limits(params_new(:,nk),limits(:), &
                           is_limit_good,9)
-
-        !Check that e < 1 for ew
-        if ( flag(1) ) then
-          call check_triangle(params_new(2,nk),params_new(3,nk),1.0, is_limit_good )
-       end if          
-
-      !If we are out of limits this chain is bad
-      if ( .not. is_limit_good ) exit
+        if ( is_limit_good ) then
+          ! u1 + u2 < 1 limit
+          call check_triangle(dsqrt(params_new(6,nk)),dsqrt(params_new(7,nk)),dble(1.0),is_limit_good)
+          if (is_limit_good ) then
+            !Check that e < 1 for ew
+            if ( flag(1) ) then
+              call check_triangle(params_new(2,nk),params_new(3,nk),dble(1.0), is_limit_good )
+            end if          
+          end if
+        end if
 
       if ( is_limit_good ) then !evaluate chi2
         call find_chi2_tr(xd,yd,errs,params_new(:,nk),flag,chi2_new(nk),ics,datas)
