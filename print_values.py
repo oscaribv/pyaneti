@@ -127,6 +127,8 @@ if ( nplanets == 1 ):
 
 		if ( scale_error_bars ):
 			s_factor = np.sqrt( chi2_val )
+			if ( chi2_val > 1.0 ):
+				s_factor = 1.0 / s_factor
 		else:
 			s_factor = 1.0
 
@@ -313,7 +315,9 @@ else:
 				chi2_val[l], chi2_errl[l], chi2_errr[l] = find_vals_perc(chi2red[l],nconv,s_factor)
 
 				if ( scale_error_bars ):
-					s_factor = np.sqrt( chi2_val )
+					s_factor = np.sqrt( chi2_val[l] )
+					if ( chi2_val > 1.0 ):
+						s_factor = 1.0 / s_factor
 				else:
 					s_factor = 1.0
 

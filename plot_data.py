@@ -239,24 +239,24 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 def plot_histogram(rf=1):
 
 	if ( fit_tr ):
-		params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],io[1::rf],ao[1::rf],u1o[1::rf],u2o[1::rf],pzo[1::rf]]
+		params = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf]]
 		labs = ['T0','P','e','$\omega$','i','a','u1','u2','pz']
 	
 		create_plot_histogram(params,labs)
 
 	if ( fit_rv ):
 		if (nplanets == 1 ):
-			dparams = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],ko[1::rf]]
+			dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],ko[0::rf]]
 			dplabs = ['T0','P','e','$\omega$','k']
 		else:
 			dparams = [None]*5*nplanets
 			dplabs = [None]*5*nplanets
 			for i in range(0,nplanets):
-				dparams[0+5*nplanets] = t0o[i][1::rf]
-				dparams[1+5*nplanets] = Po[i][1::rf]
-				dparams[2+5*nplanets] = eo[i][1::rf]
-				dparams[3+5*nplanets] = wo[i][1::rf]
-				dparams[4+5*nplanets] = ko[i][1::rf]
+				dparams[0+5*nplanets] = t0o[i][0::rf]
+				dparams[1+5*nplanets] = Po[i][0::rf]
+				dparams[2+5*nplanets] = eo[i][0::rf]
+				dparams[3+5*nplanets] = wo[i][0::rf]
+				dparams[4+5*nplanets] = ko[i][0::rf]
 				dplabs[0+5*nplanets] = 'T0'+str(i)
 				dplabs[1+5*nplanets] = 'P'+str(i)
 				dplabs[2+5*nplanets] = 'e'+str(i)
@@ -267,7 +267,7 @@ def plot_histogram(rf=1):
 		dvo = [None]*nt
 		for i in range(0,nt):
 			vlabs[i] = 'rv0 ' + telescopes[i]
-			dvo[i] = vo[i][1::rf]
+			dvo[i] = vo[i][0::rf]
 
 
 		params = np.concatenate([dparams,dvo])
