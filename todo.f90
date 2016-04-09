@@ -122,8 +122,8 @@ implicit none
 
   do i = 0, dt-1
     do while ( abs(f(i)) >= delta .and. n <= imax )
-      f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
-      df(i)  =   uno - e * cos(ta(i))
+      f(i)   = ta(i) - e * dsin(ta(i)) - ma(i)
+      df(i)  =   uno - e * dcos(ta(i))
       ta(i)  = ta(i) - f(i) / df(i)
       n = n + 1
     end do
@@ -164,13 +164,7 @@ implicit none
   integer :: i
 
   is_cvg = .false.
-  delta = 0.05
-
-  !print *, par_chains
-  !print *, nchains
-  !print *, nconv
-  !stop
-
+  delta = dble(0.05)
 
   !Let us calculate the mean of each chain
   sj2(:) = dble(0.0)
@@ -252,17 +246,31 @@ implicit none
 
 end subroutine
 
-subroutine check_triangle(a,b,c,is_good)
+subroutine check_e(es,ec,el,is_good)
 implicit none
 
-  double precision, intent(in) :: a, b, c
-  logical :: is_good
+  double precision, intent(in) :: es, ec, el
+  logical, intent(out) :: is_good
 
   is_good = .true.
 
-  if ( a*a + b*b > c ) is_good = .false.
+  if ( es*es + ec*ec > el ) is_good = .false.
 
 end subroutine
+
+subroutine check_us(u1,u2,is_good)
+implicit none
+
+  double precision, intent(in) :: u1, u2
+  logical, intent(out) :: is_good
+
+  is_good = .true.
+
+  if ( u1 + u2 > dble(1.0) ) is_good = .false.
+
+end subroutine
+
+
 
 !Subroutine to create random integers between 0 and n
 subroutine random_int(r_int,n)

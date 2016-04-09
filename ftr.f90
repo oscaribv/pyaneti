@@ -491,7 +491,8 @@ implicit none
   call init_random_seed()
 
   print *, 'CREATING RANDOM (UNIFORM) UNIFORMATIVE PRIORS'
-  !Let us create uniformative random priors
+  !Let us create uniformative uniform random priors
+
   do nk = 0, nwalks - 1
 
       !Counter for the limits
@@ -499,7 +500,7 @@ implicit none
 
       do n = 0, 8
         if ( wtf_all(n) == 0 ) then
-          !this parameter does not change for the planet m
+          !this parameter does not change
           params_old(n,nk) = params(n)
         else
           call random_number(r_real)
@@ -518,8 +519,8 @@ implicit none
       !if ( flag(1) ) then
           is_limit_good = .false.
           do while ( .not. is_limit_good )
-            print *, params_old(6,nk), params_old(7,nk)
-            call check_triangle(dsqrt(params_old(6,nk)),dsqrt(params_old(7,nk)),dble(1.0),is_limit_good)
+            !print *, params_old(6,nk), params_old(7,nk)
+            call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
             !print *, 'is good', is_limit_good
             if ( .not. is_limit_good  ) then
               !print *, 'I am here'
@@ -530,12 +531,10 @@ implicit none
       !end if
         
     !Each walker is a point in a parameter space
-    !Each point contains the information of all the planets
     !Let us estimate our first chi_2 value for each walker
     call find_chi2_tr(xd,yd,errs,params_old(:,nk), &
                       flag,chi2_old(nk),ics,datas)
   end do
-!  stop
 
   !Calculate the degrees of freedom
   nu = datas - spar
@@ -598,11 +597,11 @@ implicit none
                           is_limit_good,9)
         if ( is_limit_good ) then
           ! u1 + u2 < 1 limit
-          call check_triangle(dsqrt(params_new(6,nk)),dsqrt(params_new(7,nk)),dble(1.0),is_limit_good)
+          call check_us(params_new(6,nk),params_new(7,nk),is_limit_good)
           if (is_limit_good ) then
             !Check that e < 1 for ew
             if ( flag(1) ) then
-              call check_triangle(params_new(2,nk),params_new(3,nk),dble(1.0), is_limit_good )
+              call check_e(params_new(2,nk),params_new(3,nk),dble(1.0), is_limit_good )
             end if          
           end if
         end if
@@ -648,10 +647,10 @@ implicit none
 
         print *, 'Iter ',j,', Chi^2_red =', chi2_red_min
 
-        !Create the 4D array to use the Gelman-Rubin test
-        !The first two elemets are the parameters for mp fit
-        !third is the information of all chains
-        !fourth is the chains each iteration
+        !Create the 3D array to use the Gelman-Rubin test
+        !The first elemets are the parameters for transit fit
+        !second is the information of all chains
+        !third is the chains each iteration
         params_chains(:,:,n) = params_old(:,:)
         
         n = n + 1
@@ -668,7 +667,7 @@ implicit none
           !Let us check convergence for all the parameters
           is_cvg = .true.
           do o = 0, 8 !For all parameters 
-            !Do the test to the parameters that we are fitting
+              !Do the test to the parameters that we are fitting
               if ( wtf_all(o) == 1 ) then
                 !do the Gelman and Rubin statistics
                 call gr_test(params_chains(o,:,:),nwalks,nconv,is_cvg)

@@ -440,7 +440,7 @@ implicit none
           is_limit_good = .false.
           do while ( .not. is_limit_good )
             print *, params_old(2,m,nk), params_old(3,m,nk)
-            call check_triangle(params_old(2,m,nk),params_old(3,m,nk),limits(5,m)**2,is_limit_good)
+            call check_e(params_old(2,m,nk),params_old(3,m,nk),limits(5,m)**2,is_limit_good)
             if ( .not. is_limit_good  ) then
               params_old(2,m,nk) = params_old(2,m,nk) * params_old(2,m,nk)
               params_old(3,m,nk) = params_old(3,m,nk) * params_old(3,m,nk)
@@ -530,7 +530,7 @@ implicit none
 
         !Check that e < 1 for ew
         if ( flag(1) ) then
-          call check_triangle(params_new(2,m,nk),params_new(3,m,nk),1.0, is_limit_good )
+          call check_e(params_new(2,m,nk),params_new(3,m,nk),dble(1.0), is_limit_good )
         end if          
 
         !If we are out of limits this chain is bad
