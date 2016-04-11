@@ -14,6 +14,7 @@ if ( nplanets == 1 ):
 	  wo = np.arctan2(dummy_e,wo)
 
 	if ( fit_tr ):
+	  inclination = io
 	  if (is_sini):
 	    io = np.arcsin(io)
 	  if (is_log_a):
@@ -63,6 +64,7 @@ if ( nplanets == 1 ):
 		w_deg 		= w_val * 180. / np.pi
 		w_deg_err = w_err * 180. / np.pi
 		if ( fit_tr ):
+			inclination  = io
 			i_val,i_err 	= find_vals_gauss(io,nconv)
 			a_val,a_err 	= find_vals_gauss(ao,nconv)
 			u1_val,u1_err = find_vals_gauss(u1o,nconv)

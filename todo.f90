@@ -191,10 +191,10 @@ implicit none
   R = dsqrt ( V / W )
 
 
-  if ( R < 1. + delta ) then
+  if ( R < dble(1.) + delta ) then
       is_cvg = .true. 
   else
-      print *,  R, 1. + delta
+      print *,  R, dble(1.) + delta
   end if
 
 end subroutine

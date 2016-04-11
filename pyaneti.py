@@ -114,11 +114,9 @@ if (fit_rv and fit_tr ):
 			max_u2, min_pz, max_pz, min_k, max_k]
 
 		limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
-	
-		nwalks = 20*len(params)
 
 		pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
-		,megax, megay, megae, params,limits, nwalks, prec, maxi, thin_factor, \
+		,megax, megay, megae, params,limits, nwalkers, prec, maxi, thin_factor, \
 		is_circular, what_fit, flag, nconv)
 
 	elif ( method == 'plot' ):
@@ -143,6 +141,7 @@ if (fit_rv and fit_tr ):
 		a = np.loadtxt('mh_fit.dat', comments='#', \
 		unpack=True, usecols=(n))
 		vo[j] = a
+
 #-----------------------------------------------------------
 #                   FIT TRANSIT CURVE ONLY
 #-----------------------------------------------------------
