@@ -658,7 +658,7 @@ end subroutine
 
 !-----------------------------------------------------------
 subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params, &
-limits,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,drv,dtr,nt)
+limits,limits_physical,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,drv,dtr,nt)
 implicit none
 
 !In/Out variables
@@ -670,6 +670,8 @@ implicit none
   !f2py intent(in,out)  :: params
   double precision, intent(inout), dimension(0:2*(10+nt)-1) :: limits
   !f2py intent(in,out)  :: limits
+  double precision, intent(inout), dimension(0:2*(10+nt)-1) :: limits_physical
+  !f2py intent(in,out)  :: limits_physical
   integer, intent(in), dimension(0:10) :: wtf
   double precision, intent(in)  :: prec
   logical, intent(in) :: ics, flag(0:5)
@@ -711,6 +713,7 @@ implicit none
   if ( flag(0) )  then
     params(1) = dlog10(params(1))
     limits(2:3) = dlog10(limits(2:3))
+    limits_physical(2:3) = dlog10(limits_physical(2:3))
   end if
   ! e and w
   if ( flag(1) ) then
@@ -722,26 +725,34 @@ implicit none
     limits(5) =  dsqrt(limits(5))
     limits(6) = limits(4)
     limits(7) = limits(5)
+    limits_physical(4) = -dsqrt(limits_physical(5))
+    limits_physical(5) =  dsqrt(limits_physical(5))
+    limits_physical(6) = limits_physical(4)
+    limits_physical(7) = limits_physical(5)
   end if
  !i
   if ( flag(2) ) then
     params(4) = dsin(params(4))
     limits(8:9) = dsin(limits(8:9))
+    limits_physical(8:9) = dsin(limits_physical(8:9))
   end if
   !a = rp/r*
   if ( flag(3) ) then
     params(5) = dlog10(params(5))
     limits(10:11) = dlog10(limits(10:11))
+    limits_physical(10:11) = dlog10(limits_physical(10:11))
   end if
   !k
   if ( flag(4) ) then
     params(9) = dlog10(params(9))
     limits(18:19) = dlog10(limits(18:19))
+    limits_physical(18:19) = dlog10(limits_physical(18:19))
   end if
   !rv0's
   if ( flag(5) ) then
     params(10:10+nt-1) = dlog10(params(10:10+nt-1))
     limits(20:2*(10+nt)-1) = dlog10(limits(20:2*(10+nt)-1))
+    limits_physical(20:2*(10+nt)-1) = dlog10(limits_physical(20:2*(10+nt)-1))
   end if
 
   !Call a random seed 
@@ -858,7 +869,7 @@ implicit none
       !is_limit_good,4+nt)
 
         !Let us check the limits
-        call check_limits(params_new(:,nk),limits(:), &
+        call check_limits(params_new(:,nk),limits_physical(:), &
                           is_limit_good,10+nt)
         if ( is_limit_good ) then
           ! u1 + u2 < 1 limit
@@ -887,7 +898,7 @@ implicit none
 
       !Is the new model better? 
       q = z_rand(nk)**( spar - 1 ) * &
-          exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
+          dexp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
         chi2_old_total(nk) = chi2_new_total(nk)

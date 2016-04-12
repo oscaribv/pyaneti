@@ -82,26 +82,6 @@ if (fit_rv and fit_tr ):
 
 		min_t0	= min(xt[0])
 		max_t0 	= max(xt[0])
-		min_P	 	= 13.
-		max_P	 	= 16.
-		min_e		= 1.e-8		
-		max_e		= 0.5
-		min_w		= 0.0
-		max_w		= 2*np.pi
-		min_i		= 0.
-		max_i		= np.pi / 2.0
-		min_a		= 5.0
-		max_a		= 20.0
-		min_u1	= 0.0
-		max_u1	= 0.5
-		min_u2	= 0.0
-		max_u2	= 0.5
-		min_pz	= 1e-3
-		max_pz	= 0.5
-		min_k		= 5
-		max_k		= 20
-		min_rv0	= 30
-		max_rv0 = 70
 
 		vec_rv0_limits = []
 		for m in range(0,nt):
@@ -113,10 +93,16 @@ if (fit_rv and fit_tr ):
 			, min_i, max_i, min_a, max_a, min_u1, max_u1, min_u2, \
 			max_u2, min_pz, max_pz, min_k, max_k]
 
+		dummy_lims_physical = \
+		[	min_t0, max_t0, 0.01, 2015., 1e-10, 0.99, 0.0, 2*np.pi \
+			, 0.0, np.pi/2.0, 1.0, 1e4, 0.0, 0.99, 0.0, \
+			  0.9, 0.001, 0.5, 1e-4, 1e6]
+
 		limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
+		limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
 
 		pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
-		,megax, megay, megae, params,limits, nwalkers, prec, maxi, thin_factor, \
+		,megax, megay, megae, params,limits, limits_p , nwalkers, prec, maxi, thin_factor, \
 		is_circular, what_fit, flag, nconv)
 
 	elif ( method == 'plot' ):
