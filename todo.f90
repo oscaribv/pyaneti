@@ -122,8 +122,8 @@ implicit none
 
   do i = 0, dt-1
     do while ( abs(f(i)) >= delta .and. n <= imax )
-      f(i)   = ta(i) - e * dsin(ta(i)) - ma(i)
-      df(i)  =   uno - e * dcos(ta(i))
+      f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
+      df(i)  =   uno - e * cos(ta(i))
       ta(i)  = ta(i) - f(i) / df(i)
       n = n + 1
     end do
@@ -188,7 +188,7 @@ implicit none
   V = W - (W - B) / nconv
 
   !Potential scale reduction factor
-  R = dsqrt ( V / W )
+  R = sqrt ( V / W )
 
 
   if ( R < dble(1.) + delta ) then
@@ -238,7 +238,7 @@ implicit none
   double precision, intent(in) :: a
 
   if ( z >= 1./ a .and. z <= a ) then
-    z = 1. / dsqrt(z)
+    z = 1. / sqrt(z)
   else
     z = 0.0
   end if

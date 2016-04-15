@@ -62,14 +62,13 @@ end subroutine
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
 !subroutine find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2,isc,datas)
-subroutine find_chi2_tr(xd,yd,errs,params,flag,chi2,isc,datas)
+subroutine find_chi2_tr(xd,yd,errs,params,flag,chi2,datas)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   double precision, intent(in), dimension (0:8) :: params
-  logical, intent(in)  :: isc
   double precision, intent(out) :: chi2
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
@@ -98,30 +97,12 @@ implicit none
   if (flag(2)) i = asin(params(4))
   if (flag(3)) a = 10**params(5)
 
-  !print *, params
-  if ( isc ) then !The orbit is circular
-    e = dble(0.0)
-    w = pi / 2.0
-  end if
-
-!  do n = 0, datas-1
-!    print *, xd(n)
-!  end do
-!  stop
 
   !Let us find the projected distance z
   call find_z(xd,t0,P,e,w,i,a,z,datas)
 
-  !print *, z(0), z(10), z(100)
-  !print *, z
-  !print *, minval(z)
-
   !Now we have z, let us use Agol's routines
   call occultquad(z,u1,u2,pz,muld,mu,datas)
-
-  !print *,muld
-
-  !stop
 
   !print *, muld
   !Let us calculate the residuals
@@ -154,7 +135,7 @@ end subroutine
 !Output parameter:
 ! This functions outputs a file called mh_rvfit.dat
 !-----------------------------------------------------------
-subroutine metropolis_hastings_tr(xd,yd,errs,params,prec,maxi,thin_factor,ics,wtf,flag,nconv,datas)
+subroutine metropolis_hastings_tr(xd,yd,errs,params,prec,maxi,thin_factor,wtf,flag,nconv,datas)
 implicit none
 
 !In/Out variables
@@ -166,7 +147,7 @@ implicit none
   !t0,P,e,w,i,a,u1,u2,pz
   double precision, intent(inout), dimension(0:8) :: params
   !f2py intent(in,out)  :: params
-  logical, intent(in) :: ics, flag(0:3)
+  logical, intent(in) :: flag(0:3)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_old, chi2_new, chi2_red
@@ -194,7 +175,7 @@ implicit none
 
   !Let us estimate our fist chi_2 value
   !call find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2_old,ics,datas)
-  call find_chi2_tr(xd,yd,errs,params,flag,chi2_old,ics,datas)
+  call find_chi2_tr(xd,yd,errs,params,flag,chi2_old,datas)
   !Calculate the degrees of freedom
   nu = datas - size(params)
   chi2_red = chi2_old / nu
@@ -229,7 +210,7 @@ implicit none
     !print *, params
     !print *, params_new
     !Let us calculate our new chi2
-    call find_chi2_tr(xd,yd,errs,params_new,flag,chi2_new,ics,datas)
+    call find_chi2_tr(xd,yd,errs,params_new,flag,chi2_new,datas)
     !print *, prec, wtf
     !print *, chi2_old, chi2_new
     !Ratio between the models
@@ -278,7 +259,7 @@ end subroutine
 !
 
 subroutine metropolis_hastings(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params,prec,maxi,thin_factor, &
-           ics,wtf,flag,nconv,drv,dtr,ntl)
+           wtf,flag,nconv,drv,dtr,ntl)
 implicit none
 
 !In/Out variables
@@ -292,7 +273,7 @@ implicit none
   !t0,P,e,w,i,a,u1,u2,pz
   double precision, intent(inout), dimension(0:9+ntl) :: params
   !f2py intent(in,out)  :: params
-  logical, intent(in) :: ics, flag(0:5)
+  logical, intent(in) :: flag(0:5)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_rv_old, chi2_tr_old, chi2_rv_new, chi2_tr_new, chi2_red
@@ -331,8 +312,8 @@ implicit none
   params_rv(4:4+ntl) = params(9:9+ntl)
 
   !Let us estimate our fist chi_2 value
-  call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_tr_old,ics,dtr)
-  call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_rv_old,ics,drv,ntl,1)
+  call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_tr_old,dtr)
+  call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_rv_old,drv,ntl,1)
   print *, chi2_rv_old, chi2_tr_old
   chi2_old_total = chi2_tr_old + chi2_rv_old
   !Calculate the degrees of freedom
@@ -370,8 +351,8 @@ implicit none
     params_tr_new = params_new(0:8)
     params_rv_new(0:3) = params_new(0:3)
     params_rv_new(4:4+ntl) = params_new(9:9+ntl)
-    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr_new,flag_tr,chi2_tr_new,ics,dtr)
-    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv_new,flag_rv,chi2_rv_new,ics,drv,ntl,1)
+    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr_new,flag_tr,chi2_tr_new,dtr)
+    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv_new,flag_rv,chi2_rv_new,drv,ntl,1)
     chi2_new_total = chi2_tr_new + chi2_rv_new
     !Ratio between the models
     q = exp( ( chi2_old_total - chi2_new_total ) * 0.5  )
@@ -419,7 +400,7 @@ end subroutine
 
 !-----------------------------------------------------------
 subroutine stretch_move_tr(xd,yd,errs,pars,lims, &
-nwalks,maxi,thin_factor,ics,wtf,flag,nconv,datas)
+nwalks,maxi,thin_factor,wtf,flag,nconv,datas)
 implicit none
 
 !In/Out variables
@@ -428,7 +409,7 @@ implicit none
   double precision, intent(in), dimension(0:8) :: pars
   double precision, intent(in), dimension(0:(2*9)-1) :: lims
   integer, intent(in), dimension(0:8) :: wtf
-  logical, intent(in) :: ics, flag(0:3)
+  logical, intent(in) :: flag(0:3)
 !Local variables
   double precision, dimension(0:8) :: params
   double precision, dimension(0:2*(9)-1) :: limits
@@ -462,29 +443,29 @@ implicit none
 
   !Period
   if ( flag(0) )  then
-    params(1)   = dlog10(params(1))
-    limits(2:3) = dlog10(limits(2:3))
+    params(1)   = log10(params(1))
+    limits(2:3) = log10(limits(2:3))
   end if
   ! e and w
   if ( flag(1) ) then
-    esin = dsqrt(params(2)) * dsin(params(3))
-    ecos = dsqrt(params(2)) * dcos(params(3))
+    esin = sqrt(params(2)) * sin(params(3))
+    ecos = sqrt(params(2)) * cos(params(3))
     params(2) = esin
     params(3) = ecos
-    limits(4) = - dsqrt(limits(5))
-    limits(5) =   dsqrt(limits(5))
+    limits(4) = - sqrt(limits(5))
+    limits(5) =   sqrt(limits(5))
     limits(6) = limits(4)
     limits(7) = limits(5)
   end if
   !i
   if ( flag(2) ) then
-    params(4) = dsin(params(4))
-    limits(8:9) = dsin(limits(8:9))
+    params(4) = sin(params(4))
+    limits(8:9) = sin(limits(8:9))
   end if
   !a = rp/r*
   if ( flag(3) ) then
-    params(5) = dlog10(params(5))
-    limits(10:11) = dlog10(limits(10:11))
+    params(5) = log10(params(5))
+    limits(10:11) = log10(limits(10:11))
   end if
 
   print *, 'CREATING RANDOM SEED'
@@ -514,26 +495,33 @@ implicit none
 
       end do
 
-      !Check that e < 1 for ew
       !Check that u1 + u2 < 1 for ew
-      !if ( flag(1) ) then
           is_limit_good = .false.
           do while ( .not. is_limit_good )
-            !print *, params_old(6,nk), params_old(7,nk)
             call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
-            !print *, 'is good', is_limit_good
             if ( .not. is_limit_good  ) then
-              !print *, 'I am here'
               params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
               params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
             end if
         end do
-      !end if
-        
+
+       !Check that e < 1 for ew
+   if ( flag(1) ) then
+     is_limit_good = .false.
+     do while ( .not. is_limit_good )
+      call check_e(params_old(2,nk),params_old(3,nk),limits(5)**2,is_limit_good)
+      if ( .not. is_limit_good  ) then
+        params_old(2,nk) = params_old(2,nk) * params_old(2,nk)
+        params_old(3,nk) = params_old(3,nk) * params_old(3,nk)
+       end if
+     end do
+   end if
+       
+ 
     !Each walker is a point in a parameter space
     !Let us estimate our first chi_2 value for each walker
     call find_chi2_tr(xd,yd,errs,params_old(:,nk), &
-                      flag,chi2_old(nk),ics,datas)
+                      flag,chi2_old(nk),datas)
   end do
 
   !Calculate the degrees of freedom
@@ -607,14 +595,14 @@ implicit none
         end if
 
       if ( is_limit_good ) then !evaluate chi2
-        call find_chi2_tr(xd,yd,errs,params_new(:,nk),flag,chi2_new(nk),ics,datas)
+        call find_chi2_tr(xd,yd,errs,params_new(:,nk),flag,chi2_new(nk),datas)
       else !we do not have a good model
         chi2_new(nk) = huge(dble(0.0)) !a really big number
       end if
 
       !Compare the models 
       q = z_rand(nk)**(spar - 1) * &
-          dexp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
+          exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
           chi2_old(nk) = chi2_new(nk)

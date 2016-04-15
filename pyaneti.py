@@ -76,7 +76,7 @@ if (fit_rv and fit_tr ):
 	if ( method == 'mh' ):
 		pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab \
 		,megax, megay, megae, params, prec, maxi, thin_factor, \
-		is_circular, what_fit, flag, nconv)
+		what_fit, flag, nconv)
 
 	elif ( method == 'sm' ):
 
@@ -103,7 +103,7 @@ if (fit_rv and fit_tr ):
 
 		pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
 		,megax, megay, megae, params,limits, limits_p , nwalkers, prec, maxi, thin_factor, \
-		is_circular, what_fit, flag, nconv)
+		what_fit, flag, nconv)
 
 	elif ( method == 'plot' ):
 		print 'I will only print the values and generate the plot'
@@ -145,7 +145,7 @@ elif ( not fit_rv and fit_tr ):
 	#Call fit routine
 	if ( method == 'mh' ):
 		pti.metropolis_hastings_tr(megax, megay, megae,  \
-		params, prec, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+		params, prec, maxi, thin_factor, what_fit,flag,nconv)
 
 	elif ( method == 'sm' ):
                 #The transit time should be in the first window
@@ -158,7 +158,7 @@ elif ( not fit_rv and fit_tr ):
 			min_u2, max_u2, min_pz, max_pz]
 
 		pti.stretch_move_tr(megax, megay, megae,  \
-		params,limits, nwalkers, maxi, thin_factor, is_circular, what_fit,flag,nconv)
+		params,limits, nwalkers, maxi, thin_factor, what_fit,flag,nconv)
 
 	elif ( method == 'plot' ):
 		print 'I will only print the values and generate the plot'
@@ -231,14 +231,14 @@ elif ( fit_rv and not fit_tr ):
 
 	if ( method == 'mh' ):
 		pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err, \
-		tlab, params, prec, maxi, thin_factor, is_circular, \
+		tlab, params, prec, maxi, thin_factor, \
 		what_fit,flag,nconv)
 
 	elif ( method == 'sm' ):
 
 		pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
   	params, limits, nwalkers, maxi, thin_factor, \
-		is_circular, what_fit,flag,nconv,datas=len(mega_time), \
+		what_fit,flag,nconv,datas=len(mega_time), \
 		nt=nt,npl=nplanets)
 
 	elif ( method == 'plot' ):

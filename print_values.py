@@ -124,8 +124,11 @@ if ( nplanets == 1 ):
 
 		s_factor = 1.0
 
-		chi2tot_val, chi2tot_errl, chi2tot_errr = find_vals_perc(chi2,nconv,s_factor)
-		chi2_val, chi2_errl, chi2_errr = find_vals_perc(chi2red,nconv,s_factor)
+#		chi2tot_val, chi2tot_errl, chi2tot_errr = find_vals_perc(chi2,nconv,s_factor)
+#		chi2_val, chi2_errl, chi2_errr = find_vals_perc(chi2red,nconv,s_factor)
+
+		chi2tot_val  = np.amin(chi2)
+		chi2_val  = np.amin(chi2red)
 
 		if ( scale_error_bars ):
 			s_factor = np.sqrt( chi2_val )
@@ -171,9 +174,9 @@ if ( nplanets == 1 ):
 		print 'N_pars      = ', npars
 		print 'DOF         = ', ndata - npars
 		print 'scale factor= ', s_factor
-		print ('chi2       = %1.4f + %1.4f - %1.4f' %(chi2tot_val,chi2tot_errr,chi2tot_errl))
-		print ('chi2_red   = %1.4f + %1.4f - %1.4f' %(chi2_val,chi2_errr,chi2_errl))
-		print ('BIC        = %1.4f + %1.4f - %1.4f' %(chi2tot_val + npln,chi2tot_errr,chi2tot_errl))
+		print ('chi2       = %1.4f' %(chi2tot_val))
+		print ('chi2_red   = %1.4f' %(chi2_val))
+		print ('BIC        = %1.4f' %(chi2tot_val + npln))
 		print ('The best fit planet parameters are:')
 		print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val,t0_errr,t0_errl))
 		print ('P     = %4.4f + %4.4f - %4.4f days'%(P_val, P_errr , P_errl))
@@ -313,8 +316,10 @@ else:
 
 				s_factor = 1.0
 	
-				chi2tot_val[l], chi2tot_errl[l], chi2tot_errr[l] = find_vals_perc(chi2[l],nconv,s_factor)
-				chi2_val[l], chi2_errl[l], chi2_errr[l] = find_vals_perc(chi2red[l],nconv,s_factor)
+				#chi2tot_val[l], chi2tot_errl[l], chi2tot_errr[l] = find_vals_perc(chi2[l],nconv,s_factor)
+				#chi2_val[l], chi2_errl[l], chi2_errr[l] = find_vals_perc(chi2red[l],nconv,s_factor)
+				chi2tot_val[l] = np.amin(chi2[l])
+				chi2_val[l]    = np.amin(chi2red[l])
 
 				if ( scale_error_bars ):
 					s_factor = np.sqrt( chi2_val[l] )
@@ -346,9 +351,9 @@ else:
 				print 'N_pars      = ', npars
 				print 'DOF         = ', ndata - npars
 				print 'scale factor= ', s_factor
-				print ('chi2 = %1.4f + %1.4f - %1.4f' %(chi2tot_val[l],chi2tot_errr[l],chi2tot_errl[l]))
-				print ('chi2_red = %1.4f + %1.4f - %1.4f' %(chi2_val[l],chi2_errr[l],chi2_errl[l]))
-				print ('BIC        = %1.4f + %1.4f - %1.4f' %(chi2tot_val[l] + npln,chi2tot_errr[l],chi2tot_errl[l]))
+				print ('chi2 = %1.4f' %(chi2tot_val[l]))
+				print ('chi2_red = %1.4f' %(chi2_val[l]))
+				print ('BIC        = %1.4f ' %(chi2tot_val[l] + npln))
 				print ('The best fit planet parameters are:')
 				print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val[l],t0_errr[l],t0_errl[l]))
 				print ('Tp    = %4.4f + %4.4f - %4.4f days'%(tp_val[l],tp_errr[l],tp_errl[l]))

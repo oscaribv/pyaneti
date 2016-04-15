@@ -25,7 +25,7 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
 !
-  rv(:) = rv0 - k * dsin( 2.*pi*( t(:) - t0) / P )
+  rv(:) = rv0 - k * sin( 2.*pi*( t(:) - t0) / P )
 
 end subroutine
 
@@ -57,7 +57,7 @@ implicit none
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,delta,imax,ts)
 
-  rv(:) = rv0 + k * ( dcos( ta(:) + w ) + e * dcos(w) )
+  rv(:) = rv0 + k * ( cos( ta(:) + w ) + e * cos(w) )
   
 end subroutine
 
@@ -94,7 +94,8 @@ implicit none
    !Obtain the true anomaly by using find_anomaly
    !each i is for a different planet
    call find_anomaly(t,t0(i),e(i),w(i),P(i),ta,delta,imax,ts)
-   rv(:) = rv(:) + k(i) * ( dcos(ta(:) + w(i) ) + e(i) * dcos(w(i)) )
+   rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
+   ta(:) = dble(0.0)
   end do
  
 end subroutine
@@ -110,12 +111,11 @@ end subroutine
 ! rv0  -> array for the different systemic velocities,
 !         its size is the number of telescopes
 ! k, ec, w, t0, P -> typical planet parameters
-! ics -> is circular flag, True or False.
 ! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)  
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2,isc,datas,nt,npl)
+subroutine find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2,datas,nt,npl)
 implicit none
 
 !In/Out variables
@@ -123,7 +123,7 @@ implicit none
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1) :: tlab
   double precision, intent(in), dimension(0:4+nt,0:npl-1) :: params
-  logical, intent(in)  :: isc, flag(0:3)
+  logical, intent(in)  :: flag(0:3)
   double precision, intent(out) :: chi2
 !Local variables
   double precision, dimension(0:npl-1) :: t0, P, e, w, k
@@ -141,38 +141,21 @@ implicit none
   k(:)   = params(4,:)
   rv0(:) = params(5:4+nt,0) 
 
-  if ( flag(0) ) P(:) = 10.**P(:)
+  if ( flag(0) ) P(:) = 10.**params(1,:)
   if ( flag(1) ) then
     e(:) = params(2,:) * params(2,:) + params(3,:) * params(3,:)
     w(:) = atan2( params(2,:),params(3,:) ) 
   end if
-  if ( flag(2) ) k(:) = 10.**k(:)
-  if ( flag(3) ) rv0(:) = 10.**rv0(:)
+  if ( flag(2) ) k(:) = 10.**params(4,:)
+  if ( flag(3) ) rv0(:) = 10.**params(5:4+nt,0)
 
   !Telescope label counter
   tel = 0
 
-  if ( isc ) then
-
-    !If we want a circular fit, let us do it!
-    if ( npl > 1 ) then
-      print *, 'You cannot fit a circular orbit for more than one planet!'
-      stop
-    end if
-    do i = 0, datas-1
-      if ( tel .ne. tlab(i) ) tel = tel + 1 
-      call rv_circular(xd(i),rv0(tel),t0(0),k(0),P(0),model(i),1)
-    end do
-
-  else 
-
-    !If we want an eccentric fit, let us do it!
-    do i = 0, datas-1
-      if ( tel .ne. tlab(i)  ) tel = tel + 1 
-        call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,npl)
-    end do
-
-  end if
+  do i = 0, datas-1
+   if ( tel .ne. tlab(i)  ) tel = tel + 1 
+    call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,npl)
+  end do
 
   !Let us obtain chi^2
   res(:) = ( model(:) - yd(:) ) / errs(:) 
@@ -194,13 +177,12 @@ end subroutine
 ! maxi -> maximum number of iterations
 ! thin factor -> number of steps between each output
 ! chi2_toler -> tolerance of the reduced chi^2 (1 + chi2_toler)
-! ics -> is circular flag, True or False.
 ! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)  
 !Output parameter:
 ! This functions outputs a file called mh_rvfit.dat
 !-----------------------------------------------------------
 subroutine metropolis_hastings_rv(xd,yd,errs,tlab,params,prec,maxi, &
-thin_factor,ics,wtf,flag,nconv,datas,nt)
+thin_factor,wtf,flag,nconv,datas,nt)
 implicit none
 
 !In/Out variables
@@ -211,7 +193,7 @@ implicit none
   !f2py intent(in,out)  :: params
   double precision, intent(in), dimension(0:5) :: wtf
   double precision, intent(in)  :: prec
-  logical, intent(in) :: ics, flag(0:3)
+  logical, intent(in) :: flag(0:3)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: chi2_old, chi2_new, chi2_red
@@ -230,8 +212,8 @@ implicit none
 
   if ( flag(0) ) params(1) = log10(params(1))
   if ( flag(1) ) then
-    esin = sqrt(params(2)) * dsin(params(3))
-    ecos = sqrt(params(2)) * dcos(params(3))
+    esin = sqrt(params(2)) * sin(params(3))
+    ecos = sqrt(params(2)) * cos(params(3))
     params(2) = esin
     params(3) = ecos
   end if
@@ -239,11 +221,10 @@ implicit none
   if ( flag(3) ) params(5:4+nt) = log10(params(5:4+nt))
 
   !Let us estimate our fist chi_2 value
-  call find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2_old,ics,datas,nt,1)
+  call find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2_old,datas,nt,1)
   !Calculate the degrees of freedom
   nu = datas - size(params)
   !If we are fixing a circular orbit, ec and w are not used 
-  if ( ics ) nu = nu + 2 
   chi2_red = chi2_old / nu
   !Print the initial cofiguration
   print *, ''
@@ -278,7 +259,7 @@ implicit none
     params_new(0:4)    = params(0:4)    + r(1:5)    * prec_init * wtf(0:4)
     params_new(5:4+nt) = params(5:4+nt) + r(6:5+nt) * prec_init * wtf(5)
     !Let us calculate our new chi2
-    call find_chi2_rv(xd,yd,errs,tlab,params_new,flag,chi2_new,ics,datas,nt,1)
+    call find_chi2_rv(xd,yd,errs,tlab,params_new,flag,chi2_new,datas,nt,1)
     !Ratio between the models
     q = exp( ( chi2_old - chi2_new ) * 0.5  )
     !If the new model is better, let us save it
@@ -327,7 +308,7 @@ end subroutine
 
 !-----------------------------------------------------------
 subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,maxi, &
-thin_factor,ics,wtf,flag,nconv,datas,nt,npl)
+thin_factor,wtf,flag,nconv,datas,nt,npl)
 implicit none
 
 !In/Out variables
@@ -337,7 +318,7 @@ implicit none
   double precision, intent(in), dimension(0:npl*(5+nt)-1) :: pars
   double precision, intent(in), dimension(0:2*npl*(5+nt)-1) :: lims
   integer, intent(in), dimension(0:6*npl-1) :: wtf
-  logical, intent(in) :: ics, flag(0:3)
+  logical, intent(in) ::  flag(0:3)
 !Local variables
   double precision, dimension(0:5+nt-1,0:npl-1) :: params
   double precision, dimension(0:2*(5+nt)-1,0:npl-1) :: limits
@@ -382,29 +363,29 @@ implicit none
 
   !Period
   if ( flag(0) )  then
-    params(1,:)   = dlog10(params(1,:))
-    limits(2:3,:) = dlog10(limits(2:3,:))
+    params(1,:)   = log10(params(1,:))
+    limits(2:3,:) = log10(limits(2:3,:))
   end if
   ! e and w
   if ( flag(1) ) then
-    esin(:) = dsqrt(params(2,:)) * dsin(params(3,:))
-    ecos(:) = dsqrt(params(2,:)) * dcos(params(3,:))
+    esin(:) = sqrt(params(2,:)) * sin(params(3,:))
+    ecos(:) = sqrt(params(2,:)) * cos(params(3,:))
     params(2,:) = esin
     params(3,:) = ecos
-    limits(4,:) = - dsqrt(limits(5,:))
-    limits(5,:) =   dsqrt(limits(5,:))
+    limits(4,:) = - sqrt(limits(5,:))
+    limits(5,:) =   sqrt(limits(5,:))
     limits(6,:) = limits(4,:)
     limits(7,:) = limits(5,:)
   end if
   !k
   if ( flag(2) ) then
-    params(4,:) = dlog10(params(4,:))
-    limits(8:9,:) = dlog10(limits(8:9,:))
+    params(4,:)  = log10(params(4,:))
+    limits(8:9,:) = log10(limits(8:9,:))
   end if
   !rv0's
   if ( flag(3) ) then
-    params(5:4+nt,:) = dlog10(params(5:4+nt,:))
-    limits(10:2*(5+nt)-1,:) = dlog10(limits(10:2*(5+nt)-1,:))
+    params(5:4+nt,:) = log10(params(5:4+nt,:))
+    limits(10:2*(5+nt)-1,:) = log10(limits(10:2*(5+nt)-1,:))
   end if
 
   print *, 'CREATING RANDOM SEED'
@@ -439,7 +420,7 @@ implicit none
       if ( flag(1) ) then
           is_limit_good = .false.
           do while ( .not. is_limit_good )
-            print *, params_old(2,m,nk), params_old(3,m,nk)
+            !print *, params_old(2,m,nk), params_old(3,m,nk)
             call check_e(params_old(2,m,nk),params_old(3,m,nk),limits(5,m)**2,is_limit_good)
             if ( .not. is_limit_good  ) then
               params_old(2,m,nk) = params_old(2,m,nk) * params_old(2,m,nk)
@@ -454,27 +435,22 @@ implicit none
     !Each point contains the information of all the planets
     !Let us estimate our first chi_2 value for each walker
     call find_chi2_rv(xd,yd,errs,tlab,params_old(:,:,nk), &
-                      flag,chi2_old(nk),ics,datas,nt,npl)
+                      flag,chi2_old(nk),datas,nt,npl)
   end do
-!  stop
 
   !Calculate the degrees of freedom
   nu = datas - spar
-  if ( nu <= 0.0 ) then
+  if ( nu <= 0 ) then
     print *, 'Your number of parameters is larger than your datapoints!'
     print *, 'I cannot fit that!'
     stop
   end if
   !If we are fixing a circular orbit, ec and w are not used 
-  if ( ics ) nu = nu + 2 
   chi2_red = chi2_old / nu
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
   print *, 'Initial Chi2_red= ', sum(chi2_red) / nwalks ,'DOF =', nu
-
-  !print *, chi2_red
-  !stop
 
   !Let us start the otput files
   do m = 0, npl - 1 
@@ -506,10 +482,6 @@ implicit none
       end do
     end do
 
-    !Let us vary aa randomlly
-    call random_number(aa)
-    aa = 1.0 + 99.0 * aa 
-
     do nk = 0, nwalks - 1 !walkers
 
     !Draw the random walker nk, from the complemetary walkers
@@ -536,17 +508,17 @@ implicit none
         !If we are out of limits this chain is bad
         if ( .not. is_limit_good ) exit
 
-      end do
+      end do !number of planets loop
 
       if ( is_limit_good ) then !evaluate chi2
-        call find_chi2_rv(xd,yd,errs,tlab,params_new(:,:,nk),flag,chi2_new(nk),ics,datas,nt,npl)
+        call find_chi2_rv(xd,yd,errs,tlab,params_new(:,:,nk),flag,chi2_new(nk),datas,nt,npl)
       else !we do not have a good model
         chi2_new(nk) = huge(dble(0.0)) !a really big number
       end if
 
       !Compare the models 
       q = z_rand(nk)**(spar - 1) * &
-          dexp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
+          exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
           chi2_old(nk) = chi2_new(nk)
@@ -569,7 +541,11 @@ implicit none
 
      if ( is_burn ) then
 
-        if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
+        if ( mod(j,new_thin_factor) == 0 ) then
+            print *, 'Iter ',j
+            n_burn = n_burn + 1
+        end if
+
         if ( n_burn > nconv ) get_out = .false.
 
      else
@@ -658,7 +634,7 @@ end subroutine
 
 !-----------------------------------------------------------
 subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params, &
-limits,limits_physical,nwalks,prec,maxi,thin_factor,ics,wtf,flag,nconv,drv,dtr,nt)
+limits,limits_physical,nwalks,prec,maxi,thin_factor,wtf,flag,nconv,drv,dtr,nt)
 implicit none
 
 !In/Out variables
@@ -674,7 +650,7 @@ implicit none
   !f2py intent(in,out)  :: limits_physical
   integer, intent(in), dimension(0:10) :: wtf
   double precision, intent(in)  :: prec
-  logical, intent(in) :: ics, flag(0:5)
+  logical, intent(in) :: flag(0:5)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, &
@@ -703,7 +679,7 @@ implicit none
   wtf_all(0:9) = wtf(0:9)
   wtf_all(10:10+nt-1) = wtf(10)
 
-  flag_tr(:) = flag(0:3)
+  flag_tr(:)   = flag(0:3)
   flag_rv(0:1) = flag(0:1)
   flag_rv(2:3) = flag(4:5)
 
@@ -711,48 +687,48 @@ implicit none
 
   !Period
   if ( flag(0) )  then
-    params(1) = dlog10(params(1))
-    limits(2:3) = dlog10(limits(2:3))
-    limits_physical(2:3) = dlog10(limits_physical(2:3))
+    params(1) = log10(params(1))
+    limits(2:3) = log10(limits(2:3))
+    limits_physical(2:3) = log10(limits_physical(2:3))
   end if
   ! e and w
   if ( flag(1) ) then
-    esin = dsqrt(params(2)) * dsin(params(3))
-    ecos = dsqrt(params(2)) * dcos(params(3))
+    esin = sqrt(params(2)) * sin(params(3))
+    ecos = sqrt(params(2)) * cos(params(3))
     params(2) = esin
     params(3) = ecos
-    limits(4) = -dsqrt(limits(5))
-    limits(5) =  dsqrt(limits(5))
+    limits(4) = -sqrt(limits(5))
+    limits(5) =  sqrt(limits(5))
     limits(6) = limits(4)
     limits(7) = limits(5)
-    limits_physical(4) = -dsqrt(limits_physical(5))
-    limits_physical(5) =  dsqrt(limits_physical(5))
+    limits_physical(4) = -sqrt(limits_physical(5))
+    limits_physical(5) =  sqrt(limits_physical(5))
     limits_physical(6) = limits_physical(4)
     limits_physical(7) = limits_physical(5)
   end if
  !i
   if ( flag(2) ) then
-    params(4) = dsin(params(4))
-    limits(8:9) = dsin(limits(8:9))
-    limits_physical(8:9) = dsin(limits_physical(8:9))
+    params(4) = sin(params(4))
+    limits(8:9) = sin(limits(8:9))
+    limits_physical(8:9) = sin(limits_physical(8:9))
   end if
   !a = rp/r*
   if ( flag(3) ) then
-    params(5) = dlog10(params(5))
-    limits(10:11) = dlog10(limits(10:11))
-    limits_physical(10:11) = dlog10(limits_physical(10:11))
+    params(5) = log10(params(5))
+    limits(10:11) = log10(limits(10:11))
+    limits_physical(10:11) = log10(limits_physical(10:11))
   end if
   !k
   if ( flag(4) ) then
-    params(9) = dlog10(params(9))
-    limits(18:19) = dlog10(limits(18:19))
-    limits_physical(18:19) = dlog10(limits_physical(18:19))
+    params(9) = log10(params(9))
+    limits(18:19) = log10(limits(18:19))
+    limits_physical(18:19) = log10(limits_physical(18:19))
   end if
   !rv0's
   if ( flag(5) ) then
-    params(10:10+nt-1) = dlog10(params(10:10+nt-1))
-    limits(20:2*(10+nt)-1) = dlog10(limits(20:2*(10+nt)-1))
-    limits_physical(20:2*(10+nt)-1) = dlog10(limits_physical(20:2*(10+nt)-1))
+    params(10:10+nt-1) = log10(params(10:10+nt-1))
+    limits(20:2*(10+nt)-1) = log10(limits(20:2*(10+nt)-1))
+    limits_physical(20:2*(10+nt)-1) = log10(limits_physical(20:2*(10+nt)-1))
   end if
 
   !Call a random seed 
@@ -779,30 +755,34 @@ implicit none
       j = j + 2
     end do
 
-
-   !Check that e < 1 for ew
    !Check that u1 + u2 < 1 for ew
-   !if ( flag(1) ) then
    is_limit_good = .false.
    do while ( .not. is_limit_good )
-     !print *, params_old(6,nk), params_old(7,nk)
      call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
-    !print *, 'is good', is_limit_good
      if ( .not. is_limit_good  ) then
-       !print *, 'I am here'
       params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
       params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
      end if
    end do
-      !end if
 
+   !Check that e < 1 for ew
+   if ( flag(1) ) then
+     is_limit_good = .false.
+     do while ( .not. is_limit_good )
+      call check_e(params_old(2,nk),params_old(3,nk),limits(5)**2,is_limit_good)
+      if ( .not. is_limit_good  ) then
+        params_old(2,nk) = params_old(2,nk) * params_old(2,nk)
+        params_old(3,nk) = params_old(3,nk) * params_old(3,nk)
+       end if
+     end do
+   end if
 
     params_tr = params_old(0:8,nk)
     params_rv(0:3) = params_old(0:3,nk)
     params_rv(4:4+nt) = params_old(9:9+nt,nk)
     !Find the chi2 for each case
-    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_old_tr(nk),ics,dtr)
-    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),ics,drv,nt,1)
+    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_old_tr(nk),dtr)
+    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
 
   end do
 
@@ -888,8 +868,8 @@ implicit none
         params_rv(0:3) = params_new(0:3,nk)
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
         !Find the chi2 for each case
-        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_new_tr(nk),ics,dtr)
-        call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),ics,drv,nt,1)
+        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_new_tr(nk),dtr)
+        call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
       else !we do not have a good model
         chi2_new_total(nk) = huge(dble(0.0))
