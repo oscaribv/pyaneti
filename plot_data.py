@@ -18,8 +18,9 @@ if ( nplanets == 1 ):
 
 	  #Redefine megax with the new xt values
 	  megax = np.concatenate(xt)
-	  z_val = pti.find_z(megax,t0_val,P_val,e_val,w_val\
-		  ,i_val,a_val)
+          flag = [is_log_P, is_ew, is_sini, is_log_a]
+	  z_val = pti.find_z(megax,[t0_val,P_val,e_val,w_val
+		  ,i_val,a_val],flag)
 	  mud_val, mu0_val = pti.occultquad(z_val,u1_val,u2_val\
 		  ,pz_val)
 	  #Residuals
@@ -32,7 +33,7 @@ if ( nplanets == 1 ):
 	  xvec[0] = min(megax)
 	  for i in range(1,nvec):
 	    xvec[i] = xvec[i-1] + dx
-	  zvec = pti.find_z(xvec,t0_val,P_val,e_val,w_val,i_val,a_val)
+	  zvec = pti.find_z(xvec,[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
 	  mud, mu0 = pti.occultquad(zvec,u1_val,u2_val,pz_val)
 	  #Now we have data to plot a nice model
 

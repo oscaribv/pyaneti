@@ -94,9 +94,9 @@ if (fit_rv and fit_tr ):
 			max_u2, min_pz, max_pz, min_k, max_k]
 
 		dummy_lims_physical = \
-		[	min_t0, max_t0, 0.01, 2015., 1e-10, 0.99, 0.0, 2*np.pi \
-			, 0.0, np.pi/2.0, 1.0, 1e4, 0.0, 0.99, 0.0, \
-			  0.9, 0.001, 0.5, 1e-4, 1e6]
+		[min(xt[0]), max(xt[0]), 0.1, 1000, 1e-10, 0.99, 0.0, 2*np.pi \
+			, 1.48, np.pi/2.0, 9.0, 1e4, 0.01, 0.99, 0.01, \
+			  0.9, 0.05, 0.2,1e-3,1e4]
 
 		limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
 		limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
@@ -149,16 +149,19 @@ elif ( not fit_rv and fit_tr ):
 
 	elif ( method == 'sm' ):
                 #The transit time should be in the first window
-		min_t0	= min(xt[0])
-		max_t0 	= max(xt[0])
-
 		limits = \
 		[ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
 			, min_i, max_i, min_a, max_a, min_u1, max_u1, \
 			min_u2, max_u2, min_pz, max_pz]
+               
+                limits_physical = \
+		[min(xt[0]), max(xt[0]), 0.1, 1000, 1e-10, 0.99, 0.0, 2*np.pi \
+			, 1.48, np.pi/2.0, 9.0, 1e4, 0.01, 0.99, 0.01, \
+			  0.9, 0.05, 0.2]
+
 
 		pti.stretch_move_tr(megax, megay, megae,  \
-		params,limits, nwalkers, maxi, thin_factor, what_fit,flag,nconv)
+		params,limits, limits_physical, nwalkers, maxi, thin_factor, what_fit,flag,nconv)
 
 	elif ( method == 'plot' ):
 		print 'I will only print the values and generate the plot'

@@ -69,12 +69,14 @@ implicit none
 
   is_good = .false.
   !At least we have to have one eclipse condition
-  do i = 0, sizez - 1
+  do i = 1, sizez - 2
     if ( z(i) < 1.d0 + pz ) then
       is_good = .true.
       exit
     end if
   end do
+
+  if ( z(0) < 1.d0 + pz .and. z(sizez-1) < 1.d0 + pz ) is_good = .false.
 
 end subroutine
 
@@ -432,7 +434,7 @@ implicit none
   double precision  :: q
   double precision  :: esin, ecos, aa, chi2_red_min
   integer :: o, j, n, nu, nk, n_burn, spar, new_thin_factor
-  logical :: get_out, is_burn, is_limit_good, is_cvg
+  logical :: get_out, is_burn, is_limit_good, is_cvg, is_eclipse
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:8) :: wtf_all 
@@ -494,8 +496,10 @@ implicit none
   print *, 'CREATING RANDOM (UNIFORM) UNIFORMATIVE PRIORS'
   !Let us create uniformative uniform random priors
 
-  do nk = 0, nwalks - 1
+  nk = 0
+  do while (nk < nwalks )
 
+      print *, 'creating walker ', nk + 1
       !Counter for the limits
       j = 0
 
@@ -540,11 +544,23 @@ implicit none
 
     !Let us find z
     call find_z(xd,params_old(0:5,nk),flag,zr,datas) 
+
+    !Let us check if there is an eclipse
+    call check_eclipse(zr,params_old(8,nk),is_eclipse,datas)
+    !if we do not have an eclipse, let us recalculate this wlaker
+    if ( .not. is_eclipse ) then 
+      nk = nk
+    else
     !Each walker is a point in a parameter space
     !Let us estimate our first chi_2 value for each walker
     call find_chi2_tr(xd,yd,errs,zr,params_old(6:8,nk), &
                       chi2_old(nk),datas)
+      nk = nk + 1
+    end if
+
   end do
+!  stop
+  
 
   !Calculate the degrees of freedom
   nu = datas - spar
@@ -625,20 +641,23 @@ implicit none
         !Let us find z
         call find_z(xd,params_new(0:5,nk),flag,zr,datas) 
         !HERE I HAVE TO WRITE THE CHECK ECLIPSE ROUTINE
+        call check_eclipse(zr,params_new(8,nk),is_eclipse,datas)
         !find chi2
+        if ( is_eclipse ) then
         call find_chi2_tr(xd,yd,errs,zr,params_new(6:8,nk),chi2_new(nk),datas)
+        else
+          chi2_new(nk) = huge(0.0d0)
+        end if
       else !we do not have a good model
         chi2_new(nk) = huge(dble(0.0)) !a really big number
       end if
 
       if (  mod(j,thin_factor) == 0  ) then
         if (nk == bc ) then
-          print *, 'here'
-          write(24,*) j, bc, chi2_old(bc), chi2_new(bc)
-          write(*,*) j, bc, chi2_old(bc), chi2_new(bc)
+          write(24,*) j,bc,chi2_old(bc),chi2_new(bc),params_new(:,nk), minval(zr) / (1+params_new(8,bc))
         end if
         if (nk == wc ) then
-          write(23,*) j, wc, chi2_old(wc), chi2_new(wc)
+          write(23,*) j,wc,chi2_old(wc),chi2_new(wc),params_new(:,nk), minval(zr) / (1+params_new(8,wc))
         end if
       end if
 

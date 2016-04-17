@@ -101,6 +101,7 @@ if (fit_tr):
 	hdate, err_hdate = bin_data(nobin_hdate,nbin)
 	wflux, errs = bin_data(nobin_wflux,nbin)
 
+
 	#THIS HAS TO BE DONE AUTOMATICALLY!	
 	#Find the transits
 

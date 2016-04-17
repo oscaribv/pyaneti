@@ -834,6 +834,7 @@ implicit none
   get_out = .TRUE.
   is_burn = .FALSE.
   aa = 2.0
+  aa = 50.0
   n_burn = 1
 
   !The infinite cycle starts!
@@ -841,7 +842,6 @@ implicit none
   do while ( get_out )
 
     !Do the work for all the walkers
-    z_rand = 0.0d0
     call random_number(z_rand)
     call random_number(r_rand)
     !Create random integers to be the index of the walks
@@ -897,7 +897,7 @@ implicit none
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
         !Find the chi2 for each case
         call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
-        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(6:8),chi2_new_tr(nk),dtr)
+        call find_chi2_tr(xd_tr,yd_tr,errs_tr,zr,params_tr(6:8),chi2_new_tr(nk),dtr)
         call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
       else !we do not have a good model
@@ -917,11 +917,11 @@ implicit none
       chi2_red(nk) = chi2_old_total(nk) / nu
 
       !Start to burn-in 
-!      if ( is_burn ) then
+      if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
          write(101,*) j, chi2_old_total(nk), chi2_red(nk), params_old(:,nk)
         end if
-!      end if
+      end if
       !End burn-in
 
     end do !walkers

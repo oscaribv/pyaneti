@@ -197,6 +197,7 @@ integer :: i
       fac,pt,rcx,rho,sqrtx,sqrty,sqrtz,sum,tau,xt,yt,zt
       if(min(x,y,z).lt.0..or.min(x+y,x+z,y+z,abs(p)).lt.TINY.or.max(x,y, &
       z,abs(p)).gt.BIG) then
+          print *, x, y, z, p
           print *, 'invalid argumets in rj'
          stop!pause 'invalid arguments in rj'
       end if
