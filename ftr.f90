@@ -62,13 +62,14 @@ implicit none
 !In/Out variables
   integer, intent(in) :: sizez
   double precision, intent(in), dimension(0:sizez) :: z
-  double precision :: pz
+  double precision, intent(in) :: pz
+  logical, intent(out) :: is_good
 !Local variables
   integer :: i
 
   is_good = .false.
   !At least we have to have one eclipse condition
-  do i = 0. sizez - 1
+  do i = 0, sizez - 1
     if ( z(i) < 1.d0 + pz ) then
       is_good = .true.
       exit
