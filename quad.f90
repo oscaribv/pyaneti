@@ -8,19 +8,20 @@
 !              Date --> Feb  2016, Oscar Barragán
 !------------------------------------------------------------
 
-subroutine occultquad(z0,u1,u2,p,muo1,mu0,nz)
+subroutine occultquad(z0,u1,u2,k,muo1,mu0,nz)
 !  This routine computes the lightcurve for occultation
 !  of a quadratically limb-darkened source without microlensing.
 !  Please cite Mandel & Agol (2002) if you make use of this routine
 !  in your research.  Please report errors or bugs to agol@tapir.caltech.edu
 implicit none
 integer, intent(in) :: nz
-double precision, intent(in) :: z0(nz),u1,u2,p
+double precision, intent(in) :: z0(nz),u1,u2,k
 double precision, intent(out) :: muo1(nz),mu0(nz)
-double precision lambdad(nz),etad(nz),lambdae(nz),lam
-double precision pi,x1,x2,x3,z,omega,kap0,kap1,q,Kk,Ek,Pk,n,ellec,ellk,rj
+double precision :: lambdad(nz),etad(nz),lambdae(nz),lam
+double precision :: p,pi,x1,x2,x3,z,omega,kap0,kap1,q,Kk,Ek,Pk,n,ellec,ellk,rj
 integer :: i
-!  if(abs(p-0.5d0).lt.1.d-3) p=0.5d0
+  p = k
+  if(abs(p-0.5d0).lt.1.d-3) p=0.5d0
 !
 ! Input:
 !
@@ -160,7 +161,10 @@ integer :: i
       THIRD=1.d0/3.d0,C1=.3d0,C2=1.d0/7.d0,C3=.375d0,C4=9.d0/22.d0)
       REAL*8 alamb,ave,s,w,xt,yt
       if(x.lt.0..or.y.eq.0..or.(x+abs(y)).lt.TINY.or.(x+ &
-      abs(y)).gt.BIG.or.(y.lt.-COMP1.and.x.gt.0..and.x.lt.COMP2)) stop  !pause 'invalid arguments in rc'
+      abs(y)).gt.BIG.or.(y.lt.-COMP1.and.x.gt.0..and.x.lt.COMP2)) then
+        print *, 'quad.f90: invalid argumets in rc'
+        stop
+       end if 
       if(y.gt.0.d0)then
         xt=x
         yt=y
@@ -192,7 +196,10 @@ integer :: i
       REAL*8 a,alamb,alpha,ave,b,beta,delp,delx,dely,delz,ea,eb,ec,ed,ee, &
       fac,pt,rcx,rho,sqrtx,sqrty,sqrtz,sum,tau,xt,yt,zt
       if(min(x,y,z).lt.0..or.min(x+y,x+z,y+z,abs(p)).lt.TINY.or.max(x,y, &
-      z,abs(p)).gt.BIG) stop!pause 'invalid arguments in rj'
+      z,abs(p)).gt.BIG) then
+          print *, 'invalid argumets in rj'
+         stop!pause 'invalid arguments in rj'
+      end if
       sum=0.d0
       fac=1.d0
       if(p.gt.0.d0)then
@@ -290,7 +297,10 @@ integer :: i
       C1=1.d0/24.d0,C2=.1d0,C3=3.d0/44.d0,C4=1.d0/14.d0)
       REAL*8 alamb,ave,delx,dely,delz,e2,e3,sqrtx,sqrty,sqrtz,xt,yt,zt
       if(min(x,y,z).lt.0.d0.or.min(x+y,x+z,y+z).lt.TINY.or.max(x,y, &
-      z).gt.BIG) stop!pause 'invalid arguments in rf'
+      z).gt.BIG) then
+            print *, 'invalid arguments in rf'
+           stop!pause 'invalid arguments in rf'
+      end if
       xt=x
       yt=y
       zt=z
