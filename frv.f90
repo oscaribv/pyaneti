@@ -656,6 +656,7 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, &
   chi2_new_rv, chi2_old_tr, chi2_new_tr, &
   chi2_old_total, chi2_new_total, chi2_red
+  double precision, dimension(0:dtr-1)  :: zr
   double precision, dimension(0:4+nt) :: params_rv
   double precision, dimension(0:8) :: params_tr
   double precision, dimension(0:10+nt-1,0:nwalks-1,0:nconv-1) :: params_chains
@@ -738,12 +739,22 @@ implicit none
 
   print *, 'CREATING RANDOM UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
+  chi2_old_total(:) = huge(1.d4)
+  aa = huge(1.e4)
+
+  do o = 1, 1
+
   do nk = 0, nwalks - 1
 
+    print *, 'creating walker ', nk + 1
+
+    do while ( chi2_old_total(nk) > aa )
 
     j = 0
 
     do n = 0, 10 + nt - 1
+
+
       if ( wtf_all(n) == 0 ) then
         params_old(n,nk) = params(n)
       else
@@ -781,12 +792,22 @@ implicit none
     params_rv(0:3) = params_old(0:3,nk)
     params_rv(4:4+nt) = params_old(9:9+nt,nk)
     !Find the chi2 for each case
-    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_old_tr(nk),dtr)
+    call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
+    call find_chi2_tr(xd_tr,yd_tr,errs_tr,zr,params_tr(6:8),chi2_old_tr(nk),dtr)
     call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
+    chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
+    !print *, chi2_old_total(nk)
 
   end do
 
-  chi2_old_total(:) = chi2_old_tr(:) + chi2_old_rv(:)
+  end do
+  
+  aa = sum(chi2_old_total)/nwalks
+  print *, 'mean chi2 =', aa
+
+  end do
+
+  !stop
 
   !Calculate the degrees of freedom
   nu = drv + dtr - spar
@@ -820,6 +841,7 @@ implicit none
   do while ( get_out )
 
     !Do the work for all the walkers
+    z_rand = 0.0d0
     call random_number(z_rand)
     call random_number(r_rand)
     !Create random integers to be the index of the walks
@@ -831,8 +853,8 @@ implicit none
     end do
 
     !Let us vary aa randomlly
-    call random_number(aa)
-    aa = 1.0 + 99.0 * aa 
+    !call random_number(aa)
+    !aa = 1.0 + 99.0 * aa 
 
     do nk = 0, nwalks - 1
 
@@ -841,8 +863,14 @@ implicit none
       call find_gz(z_rand(nk),aa) 
     
       !Now we can have the evolved walker
-      params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
-                       ( params_old(:,nk) - params_new(:,nk) )
+      do o = 0, 9 + nt
+      !params_new(o,nk) = params_new(o,nk) + wtf_all(o) * z_rand(nk) * &
+      !                 ( params_old(o,nk) - params_new(o,nk) )
+      params_new(o,nk) = params_new(o,nk) + z_rand(nk) * &
+                       ( params_old(o,nk) - params_new(o,nk) )
+      !params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
+      !                 ( params_old(:,nk) - params_new(:,nk) )
+      end do
 
       !Let us check the limits
       !call check_limits(params_new(:,nk),limits, &
@@ -868,7 +896,8 @@ implicit none
         params_rv(0:3) = params_new(0:3,nk)
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
         !Find the chi2 for each case
-        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr,flag_tr,chi2_new_tr(nk),dtr)
+        call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
+        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(6:8),chi2_new_tr(nk),dtr)
         call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
       else !we do not have a good model
@@ -888,18 +917,22 @@ implicit none
       chi2_red(nk) = chi2_old_total(nk) / nu
 
       !Start to burn-in 
-      if ( is_burn ) then
+!      if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
          write(101,*) j, chi2_old_total(nk), chi2_red(nk), params_old(:,nk)
         end if
-      end if
+!      end if
       !End burn-in
 
     end do !walkers
 
+
      if ( is_burn ) then
 
-        if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
+        if ( mod(j,new_thin_factor) == 0 ) then
+          print *, 'Iter ', j
+           n_burn = n_burn + 1
+        end if
         if ( n_burn > nconv ) get_out = .false.
 
      else
@@ -964,6 +997,12 @@ implicit none
 
         end if
       !I checked covergence
+
+      o = minloc(chi2_old_total,dim=1) - 1
+      nk= maxloc(chi2_old_total,dim=1) - 1
+      params_old(:,nk) = params_old(:,o)
+      chi2_old_total(nk) = chi2_old_total(o)
+      chi2_red(nk) = chi2_red(o)
 
       end if
 

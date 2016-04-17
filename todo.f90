@@ -107,6 +107,8 @@ implicit none
   double precision, dimension(0:dt-1) :: ma, f, df, esin, ecos
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: uno, tp
+  double precision, parameter :: fmin=1.d-7
+  integer, parameter :: iimax = int(1e8)
 !
   uno = dble(1.)
 
@@ -117,11 +119,11 @@ implicit none
 
   !calculate the eccentric anomaly
   ta(:) = ma(:)
-  f(:) = delta * 10
+  f(:) = fmin * 10
   n = 0
 
   do i = 0, dt-1
-    do while ( abs(f(i)) >= delta .and. n <= imax )
+    do while ( abs(f(i)) >= fmin .and. n <= iimax )
       f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
       df(i)  =   uno - e * cos(ta(i))
       ta(i)  = ta(i) - f(i) / df(i)
@@ -164,7 +166,7 @@ implicit none
   integer :: i
 
   is_cvg = .false.
-  delta = dble(0.05)
+  delta = dble(0.05d0)
 
   !Let us calculate the mean of each chain
   sj2(:) = dble(0.0)
@@ -191,10 +193,10 @@ implicit none
   R = sqrt ( V / W )
 
 
-  if ( R < dble(1.) + delta ) then
+  if ( R < 1.d0 + delta ) then
       is_cvg = .true. 
   else
-      print *,  R, dble(1.) + delta
+      print *,  R, 1.d0 + delta
   end if
 
 end subroutine
@@ -254,7 +256,7 @@ implicit none
 
   is_good = .true.
 
-  if ( es*es + ec*ec > el ) is_good = .false.
+  if ( es*es + ec*ec >= el ) is_good = .false.
 
 end subroutine
 
@@ -291,7 +293,6 @@ implicit none
     end do
   end do
 
-  !print *, r_int
 
 end subroutine
 
