@@ -473,6 +473,9 @@ implicit none
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
 
+    call random_number(aa)
+    aa = 1.d0 + 9.9d1 * aa
+
     do nk = 0, nwalks - 1 !walkers
       do m = 0, npl - 1
         params_new(:,m,nk) = params_old(:,m,r_int(nk))
@@ -631,7 +634,7 @@ end subroutine
 
 !-----------------------------------------------------------
 subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params, &
-limits,limits_physical,nwalks,prec,maxi,thin_factor,wtf,flag,nconv,drv,dtr,nt)
+limits,limits_physical,nwalks,a_factor,maxi,thin_factor,wtf,flag,nconv,drv,dtr,nt)
 implicit none
 
 !In/Out variables
@@ -646,7 +649,7 @@ implicit none
   double precision, intent(inout), dimension(0:2*(10+nt)-1) :: limits_physical
   !f2py intent(in,out)  :: limits_physical
   integer, intent(in), dimension(0:10) :: wtf
-  double precision, intent(in)  :: prec
+  double precision, intent(in)  :: a_factor
   logical, intent(in) :: flag(0:5)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
@@ -825,13 +828,11 @@ implicit none
   open(unit=101,file='mh_fit.dat',status='unknown')
   !Initialize the values
 
-  toler_slope = prec
   j = 1
   n = 0
   get_out = .TRUE.
   is_burn = .FALSE.
-  aa = 2.0
-  aa = 50.0
+  aa = a_factor
   n_burn = 1
 
   !The infinite cycle starts!
@@ -850,8 +851,10 @@ implicit none
     end do
 
     !Let us vary aa randomlly
-    !call random_number(aa)
-    !aa = 1.0 + 99.0 * aa 
+    if ( a_factor < 1.0d0 ) then
+      call random_number(aa)
+      aa = 1.0 + thin_factor * aa 
+    end if
 
     do nk = 0, nwalks - 1
 
@@ -994,12 +997,6 @@ implicit none
 
         end if
       !I checked covergence
-
-      o = minloc(chi2_old_total,dim=1) - 1
-      nk= maxloc(chi2_old_total,dim=1) - 1
-      params_old(:,nk) = params_old(:,o)
-      chi2_old_total(nk) = chi2_old_total(o)
-      chi2_red(nk) = chi2_red(o)
 
       end if
 
