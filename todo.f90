@@ -94,21 +94,20 @@ end subroutine
 !The output parameters are:
 ! ta -> True anomaly (vector with the same dimension that man)
 !------------------------------------------------------------
-subroutine find_anomaly(t,t0,e,w,P,ta,delta,imax,dt)
+subroutine find_anomaly(t,t0,e,w,P,ta,dt)
 implicit none
 !In/Out variables
   integer, intent(in) :: dt
   double precision, intent(in) , dimension(0:dt-1) :: t
   double precision, intent(out), dimension(0:dt-1) :: ta
-  double precision, intent(in) :: t0, e, w, P, delta
-  integer, intent(in) :: imax
+  double precision, intent(in) :: t0, e, w, P
 !Local variables
   integer :: i,n
   double precision, dimension(0:dt-1) :: ma, f, df, esin, ecos
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision :: uno, tp
   double precision, parameter :: fmin=1.d-7
-  integer, parameter :: iimax = int(1e8)
+  integer, parameter :: imax = int(1e8)
 !
   uno = dble(1.)
 
@@ -123,7 +122,7 @@ implicit none
   n = 0
 
   do i = 0, dt-1
-    do while ( abs(f(i)) >= fmin .and. n <= iimax )
+    do while ( abs(f(i)) >= fmin .and. n <= imax )
       f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
       df(i)  =   uno - e * cos(ta(i))
       ta(i)  = ta(i) - f(i) / df(i)

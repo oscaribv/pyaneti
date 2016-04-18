@@ -28,6 +28,7 @@ nwalkers = 100
 unit_mass = 'solar'
 scale_error_bars = True
 s_factor = 1.0
+a_factor = 2.0
 
 #Default priors
 P = 15.

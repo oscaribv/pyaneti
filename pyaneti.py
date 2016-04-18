@@ -161,7 +161,7 @@ elif ( not fit_rv and fit_tr ):
 
 
 		pti.stretch_move_tr(megax, megay, megae,  \
-		params,limits, limits_physical, nwalkers, maxi, thin_factor, what_fit,flag,nconv)
+		params,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor, what_fit,flag,nconv)
 
 	elif ( method == 'plot' ):
 		print 'I will only print the values and generate the plot'

@@ -49,13 +49,11 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:ts-1) :: ta
-  double precision :: delta = 1.e-7
-  integer :: imax = int(1e5)
 !External function
   external :: find_anomaly
 !
   !Obtain the eccentric anomaly by using find_anomaly
-  call find_anomaly(t,t0,e,w,P,ta,delta,imax,ts)
+  call find_anomaly(t,t0,e,w,P,ta,ts)
 
   rv(:) = rv0 + k * ( cos( ta(:) + w ) + e * cos(w) )
   
@@ -83,8 +81,7 @@ implicit none
   double precision, intent(in) :: rv0
 !Local variables
   double precision, dimension(0:ts-1) :: ta
-  double precision :: delta = 1.e-7
-  integer :: imax = int(1e5), i
+  integer :: i
 !External function
   external :: find_anomaly
 !
@@ -93,7 +90,7 @@ implicit none
   do i = 0, npl-1
    !Obtain the true anomaly by using find_anomaly
    !each i is for a different planet
-   call find_anomaly(t,t0(i),e(i),w(i),P(i),ta,delta,imax,ts)
+   call find_anomaly(t,t0(i),e(i),w(i),P(i),ta,ts)
    rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
    ta(:) = dble(0.0)
   end do
@@ -793,7 +790,7 @@ implicit none
     params_rv(4:4+nt) = params_old(9:9+nt,nk)
     !Find the chi2 for each case
     call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
-    call find_chi2_tr(xd_tr,yd_tr,errs_tr,zr,params_tr(6:8),chi2_old_tr(nk),dtr)
+    call find_chi2_tr(yd_tr,errs_tr,zr,params_tr(6:8),chi2_old_tr(nk),dtr)
     call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
     chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
     !print *, chi2_old_total(nk)
@@ -897,7 +894,7 @@ implicit none
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
         !Find the chi2 for each case
         call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
-        call find_chi2_tr(xd_tr,yd_tr,errs_tr,zr,params_tr(6:8),chi2_new_tr(nk),dtr)
+        call find_chi2_tr(yd_tr,errs_tr,zr,params_tr(6:8),chi2_new_tr(nk),dtr)
         call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
       else !we do not have a good model

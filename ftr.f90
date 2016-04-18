@@ -24,8 +24,7 @@ implicit none
   double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: t0, P, e, w, i, a
-  double precision :: si, delta = 1.e-7
-  integer :: imax = int(1e7)
+  double precision :: si
 !External function
   external :: find_anomaly
 !
@@ -46,7 +45,7 @@ implicit none
   if (flag(3)) a = 10**pars(5)
 
   !Obtain the eccentric anomaly by using find_anomaly
-  call find_anomaly(t,t0,e,w,P,ta,delta,imax,ts)
+  call find_anomaly(t,t0,e,w,P,ta,ts)
   swt = sin(w+ta)
 
   si = sin(i)
@@ -66,17 +65,19 @@ implicit none
   logical, intent(out) :: is_good
 !Local variables
   integer :: i
+  double precision :: limit
 
+  limit = 1.d0 + pz
   is_good = .false.
   !At least we have to have one eclipse condition
   do i = 1, sizez - 2
-    if ( z(i) < 1.d0 + pz ) then
+    if ( z(i) < limit ) then
       is_good = .true.
       exit
     end if
   end do
 
-  if ( z(0) < 1.d0 + pz .and. z(sizez-1) < 1.d0 + pz ) is_good = .false.
+  if ( z(0) < limit .and. z(sizez-1) < limit ) is_good = .false.
 
 end subroutine
 
@@ -97,12 +98,12 @@ end subroutine
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
 !subroutine find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2,isc,datas)
-subroutine find_chi2_tr(xd,yd,errs,z,params,chi2,datas)
+subroutine find_chi2_tr(yd,errs,z,params,chi2,datas)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas
-  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs, z
+  double precision, intent(in), dimension(0:datas-1)  :: yd, errs, z
   double precision, intent(in), dimension (0:2) :: params
   double precision, intent(out) :: chi2
 !Local variables
@@ -120,7 +121,6 @@ implicit none
   !Now we have z, let us use Agol's routines
   call occultquad(z,u1,u2,pz,muld,mu,datas)
 
-  !print *, muld
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
   !Here I am assuming that we want limb darkening
@@ -413,7 +413,7 @@ end subroutine
 !
 !-----------------------------------------------------------
 subroutine stretch_move_tr(xd,yd,errs,pars,lims,limits_physical, &
-nwalks,maxi,thin_factor,wtf,flag,nconv,datas)
+nwalks,a_factor,maxi,thin_factor,wtf,flag,nconv,datas)
 implicit none
 
 !In/Out variables
@@ -421,6 +421,7 @@ implicit none
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   double precision, intent(in), dimension(0:8) :: pars
   double precision, intent(in), dimension(0:(2*9)-1) :: lims
+  double precision, intent(in) :: a_factor
   integer, intent(in), dimension(0:8) :: wtf
   logical, intent(in) :: flag(0:3)
 !Local variables
@@ -540,7 +541,6 @@ implicit none
        end if
      end do
    end if
-       
 
     !Let us find z
     call find_z(xd,params_old(0:5,nk),flag,zr,datas) 
@@ -553,7 +553,7 @@ implicit none
     else
     !Each walker is a point in a parameter space
     !Let us estimate our first chi_2 value for each walker
-    call find_chi2_tr(xd,yd,errs,zr,params_old(6:8,nk), &
+    call find_chi2_tr(yd,errs,zr,params_old(6:8,nk), &
                       chi2_old(nk),datas)
       nk = nk + 1
     end if
@@ -583,12 +583,9 @@ implicit none
   n = 0
   get_out = .TRUE.
   is_burn = .FALSE.
-  aa = 2.0 !this is suggested by the original paper
+  aa = a_factor 
   n_burn = 1
   bc = -1
-
-  open(unit=23,file='worst.dat')
-  open(unit=24,file='better.dat')
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
@@ -601,11 +598,12 @@ implicit none
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
 
-    !call random_number(aa)
-    !aa = 1.d0 + 9.9d1 * aa
+    if ( a_factor <= 1.d0 ) then
+      call random_number(aa)
+      aa = 1.d0 + 9.9d1 * aa
+    end if
 
     do nk = 0, nwalks - 1 !walkers
-       ! if (mod(j,thin_factor) == 0) write(23,*) j, nk, r_int(nk)
         params_new(:,nk) = params_old(:,r_int(nk))
     end do
 
@@ -618,7 +616,6 @@ implicit none
       call find_gz(z_rand(nk),aa) 
 
       !Evolve for all the planets for all the parameters
-        !params_new(:,nk) = params_old(:,r_int(nk))
       params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
                            ( params_old(:,nk) - params_new(:,nk) )
 
@@ -636,7 +633,6 @@ implicit none
           end if
         end if
 
-
       if ( is_limit_good ) then !evaluate chi2
         !Let us find z
         call find_z(xd,params_new(0:5,nk),flag,zr,datas) 
@@ -644,21 +640,12 @@ implicit none
         call check_eclipse(zr,params_new(8,nk),is_eclipse,datas)
         !find chi2
         if ( is_eclipse ) then
-        call find_chi2_tr(xd,yd,errs,zr,params_new(6:8,nk),chi2_new(nk),datas)
+        call find_chi2_tr(yd,errs,zr,params_new(6:8,nk),chi2_new(nk),datas)
         else
           chi2_new(nk) = huge(0.0d0)
         end if
       else !we do not have a good model
         chi2_new(nk) = huge(dble(0.0)) !a really big number
-      end if
-
-      if (  mod(j,thin_factor) == 0  ) then
-        if (nk == bc ) then
-          write(24,*) j,bc,chi2_old(bc),chi2_new(bc),params_new(:,nk), minval(zr) / (1+params_new(8,bc))
-        end if
-        if (nk == wc ) then
-          write(23,*) j,wc,chi2_old(wc),chi2_new(wc),params_new(:,nk), minval(zr) / (1+params_new(8,wc))
-        end if
       end if
 
       !Compare the models 
@@ -681,13 +668,6 @@ implicit none
       !End burn-in
 
     end do !walkers
-
-   wc = maxloc(chi2_old,dim=1) - 1
-   bc = minloc(chi2_old,dim=1) - 1
-   !What is our worst chain
-   !bc = maxloc(chi2_old,dim=1) - 1
-   !print *, bc
-
 
      if ( is_burn ) then
 
@@ -760,16 +740,7 @@ implicit none
         end if
       !I checked covergence
 
-      !o = minloc(chi2_old,dim=1) - 1
-      !nk= maxloc(chi2_old,dim=1) - 1
-      !params_old(:,nk) = params_old(:,o)
-      !chi2_old(nk) = chi2_old(o)
-      !chi2_red(nk) = chi2_red(o)
-
-
       end if
-
-            
 
     end if
 
@@ -779,8 +750,6 @@ implicit none
 
   !Close all the files
   close(123)
-  close(23)
-  close(24)
 
 end subroutine
 
