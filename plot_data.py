@@ -18,7 +18,7 @@ if ( nplanets == 1 ):
 
 	  #Redefine megax with the new xt values
 	  megax = np.concatenate(xt)
-          flag = [is_log_P, is_ew, is_sini, is_log_a]
+          flag = [False, False, False, False]
 	  z_val = pti.find_z(megax,[t0_val,P_val,e_val,w_val
 		  ,i_val,a_val],flag)
 	  mud_val, mu0_val = pti.occultquad(z_val,u1_val,u2_val\
