@@ -89,6 +89,7 @@ if (fit_tr):
 	dummyd,dummyf,flag = np.loadtxt(fname_tr,usecols=(2,9,10), \
 	comments='\\',unpack=True)
 
+        dummyd = dummyd - 16./3600./24.
 	#Let us take the good data with the flag
 	nobin_wflux = []
 	nobin_hdate = []
@@ -98,9 +99,8 @@ if (fit_tr):
 			nobin_hdate.append(dummyd[i])
 
 	#bin the data each nbin
-	hdate, err_hdate = bin_data(nobin_hdate,nbin)
-	wflux, errs = bin_data(nobin_wflux,nbin)
-
+	hdate = bin_data_median(nobin_hdate,nbin)
+	wflux, errs = bin_data_mean(nobin_wflux,nbin)
 
 	#THIS HAS TO BE DONE AUTOMATICALLY!	
 	#Find the transits

@@ -78,10 +78,10 @@ implicit none
   double precision :: theta_p
   double precision, parameter :: pi = 3.1415926535897932384626
 
-  theta_p = atan2( sqrt(1.-e*e) * sin( pi/2. - w ), e + cos( pi/2. - w) )
-  theta_p = theta_p - e * sin(theta_p)
+  theta_p = atan2( sqrt( 1.d0 - e * e ) * sin( pi/ 2.d0  - w ), e + cos( pi / 2.d0  - w) )
+  theta_p = theta_p - e * sin( theta_p )
 
-  tp = t0 - theta_p * p / 2. / pi
+  tp = t0 - theta_p * p / 2.d0 / pi
 
 end subroutine
 
@@ -109,16 +109,16 @@ implicit none
   double precision, parameter :: fmin=1.d-7
   integer, parameter :: imax = int(1e8)
 !
-  uno = dble(1.)
+  uno = 1.0d0
 
   call find_tp(t0,e,w,P,tp)
 
   !Calculate the mean anomaly
-  ma = 2. * pi * ( t - tp ) / P
+  ma = 2.d0 * pi * ( t - tp ) / P
 
   !calculate the eccentric anomaly
   ta(:) = ma(:)
-  f(:) = fmin * 10
+  f(:) = fmin * 10.0d0
   n = 0
 
   do i = 0, dt-1
@@ -238,10 +238,10 @@ implicit none
   !f2py itent(in,out) :: z
   double precision, intent(in) :: a
 
-  if ( z >= 1./ a .and. z <= a ) then
-    z = 1. / sqrt(z)
+  if ( z >= 1.d0 / a .and. z <= a ) then
+    z = 1.d0 / sqrt(z)
   else
-    z = 0.0
+    z = 0.0d0
   end if
 
 
@@ -267,7 +267,7 @@ implicit none
 
   is_good = .true.
 
-  if ( u1 + u2 > dble(1.0) ) is_good = .false.
+  if ( u1 + u2 > 1.d0 ) is_good = .false.
 
 end subroutine
 

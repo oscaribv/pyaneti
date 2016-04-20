@@ -44,8 +44,8 @@ if (fit_rv):
 	for i in range(0,nt):
 		v0[i] = ( k0vecmin[i] + k0vecmax[i] ) / 2.0
 
-if (fit_tr):
-	T0 = min(xt[0]) + 0.5*(max(xt[0])-min(xt[0]))
+#if (fit_tr):
+#	T0 = min(xt[0]) + 0.5*(max(xt[0])-min(xt[0]))
 
 if ( is_circular ):
 	fit_e = False
