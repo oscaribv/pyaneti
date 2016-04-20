@@ -65,7 +65,7 @@ def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
 #if the len of your vector is not a multiple of nbin, you 
 #will lost the last residual points
 #-----------------------------------------------------------
-def bin_data(x,nbin):
+def bin_data_mean(x,nbin):
   nx = []
   sd = []
   dx = [None]*nbin
@@ -77,6 +77,19 @@ def bin_data(x,nbin):
       dx = [None]*nbin
   
   return nx,sd
+#----------------------------------------------
+#-----------------------------------------------------------
+def bin_data_median(x,nbin):
+  nx = []
+  sd = []
+  dx = [None]*nbin
+  for i in range(0,len(x)):
+    dx[int(i%nbin)] = x[i]
+    if ( (i+1)%nbin == 0 ):
+      nx.append(np.median(dx))
+      dx = [None]*nbin
+  
+  return nx
 #----------------------------------------------
 
 def find_transits(x,y):
