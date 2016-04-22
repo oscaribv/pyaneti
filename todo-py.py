@@ -87,9 +87,10 @@ def bin_data_median(x,nbin):
     dx[int(i%nbin)] = x[i]
     if ( (i+1)%nbin == 0 ):
       nx.append(np.median(dx))
+      sd.append(np.std(dx,ddof=1)/np.sqrt(nbin-1))
       dx = [None]*nbin
   
-  return nx
+  return nx, sd
 #----------------------------------------------
 
 def find_transits(x,y):
@@ -108,6 +109,7 @@ def find_transits(x,y):
 #-----------------------------------------------------------
 def parabola(x,a,b,c):
   y = a + b*x +c*x*x
+  y =  y - y + 1.0
   return y
 
 #-----------------------------------------------------------

@@ -86,31 +86,23 @@ if (fit_tr):
 	#Read the data file
 	#heliocentric date, dummyf, flag (is it a good datapoint?)
 	#Take care with this, it is assuming a corot data file
-	dummyd,dummyf,flag = np.loadtxt(fname_tr,usecols=(2,9,10), \
+	dummyd,dummyf = np.loadtxt(fname_tr,usecols=columns_tr, \
 	comments='\\',unpack=True)
 
-        dummyd = dummyd - 16./3600./24.
-	#Let us take the good data with the flag
-	nobin_wflux = []
-	nobin_hdate = []
-	for i in range(0,len(flag)):
-		if ( flag[i] == 0):
-			nobin_wflux.append(dummyf[i])
-			nobin_hdate.append(dummyd[i])
+        dummyd = dummyd - 2450000.0
+	##Let us take the good data with the flag
+	#nobin_wflux = []
+	#nobin_hdate = []
+	#for i in range(0,len(flag)):
+	#	if ( flag[i] == 0):
+	#		nobin_wflux.append(dummyf[i])
+	#		nobin_hdate.append(dummyd[i])
+        nobin_hdate = dummyd
+        nobin_wflux = dummyf
 
 	#bin the data each nbin
-	hdate = bin_data_median(nobin_hdate,nbin)
-	wflux, errs = bin_data_mean(nobin_wflux,nbin)
-
-	#THIS HAS TO BE DONE AUTOMATICALLY!	
-	#Find the transits
-
-	ntr = 2
-
-	tls = [None]*ntr
-
-	tls[0] = [3217.,3218.]
-	tls[1] = [3232.1,3233.1]
+	hdate, derrstr = bin_data_mean(nobin_hdate,nbin)
+	wflux, errs    = bin_data_median(nobin_wflux,nbin)
 
 	#crash if you do not have more than one transit
 	if ( ntr < 2):

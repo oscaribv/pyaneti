@@ -30,6 +30,8 @@ scale_error_bars = True
 s_factor = 1.0
 a_factor = 2.0
 
+columns_tr = [0,1]
+
 #Default priors
 P = 15.
 e = 0.1
