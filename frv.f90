@@ -661,7 +661,7 @@ implicit none
   double precision, dimension(0:8) :: params_tr
   double precision, dimension(0:10+nt-1,0:nwalks-1,0:nconv-1) :: params_chains
   double precision, dimension(0:10+nt-1,0:nwalks-1) :: params_old, params_new
-  double precision  :: q, toler_slope
+  double precision  :: q
   double precision  :: esin, ecos, aa, chi2_red_min
   integer :: o,j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: get_out, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg

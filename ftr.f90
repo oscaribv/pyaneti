@@ -441,7 +441,6 @@ implicit none
   integer, dimension(0:8) :: wtf_all 
   double precision :: r_real
   character(len=15) :: output_files
-  integer :: bc, wc
 !external calls
   external :: init_random_seed, find_chi2_tr
 
@@ -585,7 +584,6 @@ implicit none
   is_burn = .FALSE.
   aa = a_factor 
   n_burn = 1
-  bc = -1
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
