@@ -21,7 +21,7 @@ implicit none
   double precision, intent(out), dimension(0:ts-1) :: z
   logical, intent(in), dimension(0:3) :: flag 
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: t0, P, e, w, i, a
   double precision :: si
@@ -36,20 +36,20 @@ implicit none
   i   = pars(4)
   a   = pars(5)
 
-  if ( flag(0) ) P = 10**pars(1)
+  if ( flag(0) ) P = 1.d0**pars(1)
   if ( flag(1) ) then
     e = pars(2) * pars(2) + pars(3) * pars(3)
     w = atan2(pars(2),pars(3))
   end if
   if (flag(2)) i = asin(pars(4))
-  if (flag(3)) a = 10**pars(5)
+  if (flag(3)) a = 1.d0**pars(5)
 
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)
   swt = sin(w+ta)
 
   si = sin(i)
-  z = a * ( 1. - e * e ) * sqrt( 1. - swt * swt * si * si ) &
+  z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
       / ( 1.d0 + e * cos(ta) ) 
   !z has been calculated
   
@@ -107,7 +107,7 @@ implicit none
   double precision, intent(in), dimension (0:2) :: params
   double precision, intent(out) :: chi2
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:datas-1) :: res, muld, mu
   double precision :: u1, u2, pz
 !  integer :: n
@@ -428,7 +428,7 @@ implicit none
   double precision, dimension(0:8) :: params
   double precision, dimension(0:datas-1) :: zr
   double precision, dimension(0:2*(9)-1) :: limits, limits_physical
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains

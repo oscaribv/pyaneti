@@ -14,7 +14,7 @@ if (fit_rv):
 
 	#Read the data file
 	#time, RV, errors, and Telescope label
-	time,rv,err,tspe = np.loadtxt(fname_rv,usecols=(0,1,2,3), \
+        time,rv,err,tspe = np.loadtxt(fname_rv,usecols=(0,1,2,3), \
   	dtype={'names': ('time', 'rv', 'err','telescope'), \
 		'formats': ('float', 'float', 'float', 'S1')}, \
 		comments='#',unpack=True)
@@ -26,6 +26,8 @@ if (fit_rv):
 		err  = err*ktom
 		ylab = 'RV (m/s)'
 	
+
+#        err = err + 0.0042
 	#These lists have lists with data for 
 	#the different telescopes
 	time_all = []

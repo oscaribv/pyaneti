@@ -76,7 +76,7 @@ implicit none
   double precision, intent(out) :: tp
 !Local variables
   double precision :: theta_p
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
 
   theta_p = atan2( sqrt( 1.d0 - e * e ) * sin( pi/ 2.d0  - w ), e + cos( pi / 2.d0  - w) )
   theta_p = theta_p - e * sin( theta_p )
@@ -104,7 +104,7 @@ implicit none
 !Local variables
   integer :: i,n
   double precision, dimension(0:dt-1) :: ma, f, df, esin, ecos
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision :: uno, tp
   double precision, parameter :: fmin=1.d-7
   integer, parameter :: imax = int(1e8)
@@ -118,7 +118,7 @@ implicit none
 
   !calculate the eccentric anomaly
   ta(:) = ma(:)
-  f(:) = fmin * 10.0d0
+  f(:) = fmin * 1.0d1
   n = 0
 
   do i = 0, dt-1
@@ -165,15 +165,15 @@ implicit none
   integer :: i
 
   is_cvg = .false.
-  delta = dble(0.05d0)
+  delta = 5.0d-2
 
   !Let us calculate the mean of each chain
-  sj2(:) = dble(0.0)
+  sj2(:) = 0.0d0
   do i = 0, nchains - 1
     thetaj(i) = sum(par_chains(:,i)) / nconv
       sj2(i) = dot_product(( par_chains(:,i) - thetaj(i) ), &
                            ( par_chains(:,i) - thetaj(i) ) )
-    sj2(i) = sj2(i) / ( nconv - 1. )
+    sj2(i) = sj2(i) / ( dble(nconv) - 1.d0 )
   end do
 
   !Whithin chain variance
@@ -195,7 +195,7 @@ implicit none
   if ( R < 1.d0 + delta ) then
       is_cvg = .true. 
   else
-      print *,  R, 1.d0 + delta
+      print *,  'R = ', R,' delta = ', 1.d0 + delta
   end if
 
 end subroutine

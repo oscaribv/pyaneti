@@ -23,9 +23,9 @@ implicit none
   double precision, intent(out), dimension(0:ts-1) :: rv
   double precision, intent(in) :: k, rv0, t0, P
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
 !
-  rv(:) = rv0 - k * sin( 2.*pi*( t(:) - t0) / P )
+  rv(:) = rv0 - k * sin( 2.d0*pi*( t(:) - t0) / P )
 
 end subroutine
 
@@ -47,7 +47,7 @@ implicit none
   double precision, intent(in) :: rv0, t0, k, P, e, w
   double precision, intent(out), dimension(0:ts-1) :: rv
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:ts-1) :: ta
 !External function
   external :: find_anomaly
@@ -92,7 +92,7 @@ implicit none
    !each i is for a different planet
    call find_anomaly(t,t0(i),e(i),w(i),P(i),ta,ts)
    rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
-   ta(:) = dble(0.0)
+   ta(:) = 0.0d0
   end do
  
 end subroutine
@@ -125,7 +125,7 @@ implicit none
 !Local variables
   double precision, dimension(0:npl-1) :: t0, P, e, w, k
   double precision, dimension(0:nt-1)  :: rv0
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:datas-1) :: model, res
   integer :: i, tel
 !External function
@@ -138,13 +138,13 @@ implicit none
   k(:)   = params(4,:)
   rv0(:) = params(5:4+nt,0) 
 
-  if ( flag(0) ) P(:) = 10.**params(1,:)
+  if ( flag(0) ) P(:) = 1.d1**params(1,:)
   if ( flag(1) ) then
     e(:) = params(2,:) * params(2,:) + params(3,:) * params(3,:)
     w(:) = atan2( params(2,:),params(3,:) ) 
   end if
-  if ( flag(2) ) k(:) = 10.**params(4,:)
-  if ( flag(3) ) rv0(:) = 10.**params(5:4+nt,0)
+  if ( flag(2) ) k(:) = 1.d1**params(4,:)
+  if ( flag(3) ) rv0(:) = 1.d1**params(5:4+nt,0)
 
   !Telescope label counter
   tel = 0
@@ -459,7 +459,7 @@ implicit none
   n = 0
   get_out = .TRUE.
   is_burn = .FALSE.
-  aa = 2.0 !this is suggested by the original paper
+  aa = 2.0d0 !this is suggested by the original paper
   n_burn = 1
 
   !The infinite cycle starts!
@@ -652,7 +652,7 @@ implicit none
   double precision, intent(in)  :: a_factor
   logical, intent(in) :: flag(0:5)
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, &
   chi2_new_rv, chi2_old_tr, chi2_new_tr, &
   chi2_old_total, chi2_new_total, chi2_red
@@ -853,7 +853,7 @@ implicit none
     !Let us vary aa randomlly
     if ( a_factor < 1.0d0 ) then
       call random_number(aa)
-      aa = 1.0 + thin_factor * aa 
+      aa = 1.0d0 + thin_factor * aa 
     end if
 
     do nk = 0, nwalks - 1
