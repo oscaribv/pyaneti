@@ -128,7 +128,8 @@ if ( nplanets == 1 ):
 #		chi2_val, chi2_errl, chi2_errr = find_vals_perc(chi2red,nconv,s_factor)
 
 		chi2tot_val  = np.amin(chi2)
-		chi2_val  = np.amin(chi2red)
+                chi2_val = chi2tot_val / ( ndata - npars )
+		#chi2_val  = np.amin(chi2red)
 
 		if ( scale_error_bars ):
 			s_factor = np.sqrt( chi2_val )
@@ -319,7 +320,8 @@ else:
 				#chi2tot_val[l], chi2tot_errl[l], chi2tot_errr[l] = find_vals_perc(chi2[l],nconv,s_factor)
 				#chi2_val[l], chi2_errl[l], chi2_errr[l] = find_vals_perc(chi2red[l],nconv,s_factor)
 				chi2tot_val[l] = np.amin(chi2[l])
-				chi2_val[l]    = np.amin(chi2red[l])
+                                chi2_val = chi2tot_vali[l] / ( ndata - npars )
+				#chi2_val[l]    = np.amin(chi2red[l])
 
 				if ( scale_error_bars ):
 					s_factor = np.sqrt( chi2_val[l] )
