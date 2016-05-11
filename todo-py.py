@@ -54,6 +54,25 @@ def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
 
   mp = mpsin / np.sin(i)
 
+  #find the mass by solving the mass function, this is useful for 
+  #stars orbited by other stars
+
+  f = [1.0]*len(P)
+  cte = - unoe**3 * P * k**3 / 2. / np.pi / Gc 
+  sini = np.sin(i)
+  flag = True
+  while ( flag ):
+    f = cte + (mp * sini )**3 / ( mstar + mp )**2
+    #df= 3. * mp**2 * sini**3 / ( mstar + mp )**2 - ( 2. * mp**3 * sini**3 / ( mstar + mp )**3 )
+    df= mp**2 * sini**3 / ( mstar + mp )**2 * ( 3. - 2. * mp / (mstar + mp ) )
+    mp = mp - f/df
+    for j in range(0,len(P)):
+      if ( f[i] > 1.e-8 ):
+        flag = True
+        break
+      else:
+        flag = False
+
   return mp
 
 #-----------------------------------------------------------
