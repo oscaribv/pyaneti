@@ -99,6 +99,7 @@ if ( nplanets == 1 ):
 
 		#Print the best fit values values
 		print ('chi2_red = %1.4f +/- %1.4f' %(chi2_val,chi2_errs))
+                print ('')
 		print ('The best fit planet parameters are:')
 		print ('T0    = %4.4f +/- %4.4f days'%(t0_val,t0_err))
 		print ('P     = %4.4f +/- %4.4f days' 		%(P_val,P_err))
@@ -112,11 +113,13 @@ if ( nplanets == 1 ):
 			print ('rp/r* = %4.4f +/- %4.4f    ' 		%(pz_val,pz_err))
 		if (fit_rv):
 			print ('K    = %4.4f +/- %4.4f m/s ' 		%(k_val/1.e-3,k_err/1e-3))
-			print ('Tp   = %4.4f +/- %4.4f m/s ' 		%(tp_val,tp_err))
-			print ('mpsin= %4.4f +/- %4.4f %s masses '%(m_val,m_err, unit_mass))
 			for i in range(0,nt):
 				print ('%s v0 = %4.4f +/- %4.4f km/s' 	%(telescopes[i], \
 				v_val[i],v_err[i]))
+                        print ('')
+                        print ('Derived quantities:')
+			print ('Tp   = %4.4f +/- %4.4f m/s ' 		%(tp_val,tp_err))
+			print ('mpsin= %4.4f +/- %4.4f %s masses '%(m_val,m_err, unit_mass))
 	
 	#Percentile errors
 
@@ -178,6 +181,7 @@ if ( nplanets == 1 ):
 		print ('chi2       = %1.4f' %(chi2tot_val))
 		print ('chi2_red   = %1.4f' %(chi2_val))
 		print ('BIC        = %1.4f' %(chi2tot_val + npln))
+                print ('')
 		print ('The best fit planet parameters are:')
 		print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val,t0_errr,t0_errl))
 		print ('P     = %4.4f + %4.4f - %4.4f days'%(P_val, P_errr , P_errl))
@@ -191,11 +195,13 @@ if ( nplanets == 1 ):
 			print ('rp/r* = %4.4f + %4.4f - %4.4f    ' 		%(pz_val,pz_errr, pz_errl))
 	if (fit_rv):
 			print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
-			print ('Tp    = %4.4f + %4.4f - %4.4f days' 		%(tp_val,tp_errr, tp_errl))
-			print ('mp    = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
 			for i in range(0,nt):
 				print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
 				v_val[i],v_errr[i],v_errl[i]))
+                        print ('')
+                        print ('Derived quantities:')
+			print ('Tp    = %4.4f + %4.4f - %4.4f days' 		%(tp_val,tp_errr, tp_errl))
+			print ('mp    = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
 
 #Multiplanet fit
 else:
