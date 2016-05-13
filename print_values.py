@@ -1,6 +1,9 @@
 from matplotlib import gridspec
 
 
+#what is the minimum chi2
+minchi2_index = np.argmin(chi2)
+
 if ( nplanets == 1 ):
 
 	#If some parameters are transformed let us go back

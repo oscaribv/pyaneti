@@ -14,7 +14,7 @@ if (fit_rv):
 
 	#Read the data file
 	#time, RV, errors, and Telescope label
-        time,rv,err,tspe = np.loadtxt(fname_rv,usecols=(0,1,2,3), \
+	time,rv,err,tspe = np.loadtxt(fname_rv,usecols=(0,1,2,3), \
   	dtype={'names': ('time', 'rv', 'err','telescope'), \
 		'formats': ('float', 'float', 'float', 'S1')}, \
 		comments='#',unpack=True)
@@ -26,8 +26,6 @@ if (fit_rv):
 		err  = err*ktom
 		ylab = 'RV (m/s)'
 	
-
-#        err = err + 0.0042
 	#These lists have lists with data for 
 	#the different telescopes
 	time_all = []
@@ -88,10 +86,10 @@ if (fit_tr):
 	#Read the data file
 	#heliocentric date, dummyf, flag (is it a good datapoint?)
 	#Take care with this, it is assuming a corot data file
-	dummyd,dummyf = np.loadtxt(fname_tr,usecols=columns_tr, \
+	dummyd,dummyf, dummye = np.loadtxt(fname_tr,usecols=columns_tr, \
 	comments='\\',unpack=True)
 
-        dummyd = dummyd - 2450000.0
+        dummyd = dummyd + 4833.0
 	##Let us take the good data with the flag
 	#nobin_wflux = []
 	#nobin_hdate = []
@@ -103,8 +101,11 @@ if (fit_tr):
         nobin_wflux = dummyf
 
 	#bin the data each nbin
-	hdate, derrstr = bin_data_mean(nobin_hdate,nbin)
-	wflux, errs    = bin_data_median(nobin_wflux,nbin)
+	#hdate, derrstr = bin_data_mean(nobin_hdate,nbin)
+	#wflux, errs    = bin_data_median(nobin_wflux,nbin)
+	hdate = dummyd
+	wflux = dummyf
+	errs  = dummye
 
 	#crash if you do not have more than one transit
 	if ( ntr < 2):

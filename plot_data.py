@@ -228,7 +228,9 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 	for i in range(0,n):
 		plt.subplot(gs[i])
 		vpar, lpar, rpar = find_vals_perc(params[i],nconv,1.0)
+                minchi2_val = params[i][minchi2_index]
 		plt.axvline(x=vpar,c=cbars)
+		plt.axvline(x=minchi2_val,c='yellow')
 		plt.axvline(x=vpar-lpar,c=cbars,ls='--')
 		plt.axvline(x=vpar+rpar,c=cbars,ls='--')
 		plt.xlabel(plabs[i])
