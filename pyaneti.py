@@ -94,7 +94,7 @@ if (fit_rv and fit_tr ):
 			max_u2, min_pz, max_pz, min_k, max_k]
 
 		dummy_lims_physical = \
-		[min(xt[0]), max(xt[0]), 0.1, 1000, 1e-10, 0.99, 0.0, 2*np.pi \
+		[min(xt[0]), max(xt[0]), 0.1, 1000, 1e-10, 0.9, 0.0, 2*np.pi \
 			, 1.48, np.pi/2.0, 9.0, 1e4, 0.01, 0.99, 0.01, \
 			  0.9, 0.05, 0.2,1e-3,1e4]
 

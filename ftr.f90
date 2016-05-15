@@ -77,7 +77,7 @@ implicit none
     end if
   end do
 
-  if ( z(0) < limit .and. z(sizez-1) < limit ) is_good = .false.
+  !if ( z(0) < limit .and. z(sizez-1) < limit ) is_good = .false.
 
 end subroutine
 
@@ -97,29 +97,53 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-!subroutine find_chi2_tr(xd,yd,errs,t0,P,e,w,i,a,u1,u2,pz,chi2,isc,datas)
-subroutine find_chi2_tr(yd,errs,z,params,chi2,datas)
+subroutine find_chi2_tr(xd,yd,errs,pars,flag,params,chi2,datas)
+!subroutine find_chi2_tr(yd,errs,z,params,chi2,datas)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas
-  double precision, intent(in), dimension(0:datas-1)  :: yd, errs, z
+  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  double precision, intent(in), dimension(0:5) :: pars
+  logical, intent(in), dimension(0:3) :: flag 
   double precision, intent(in), dimension (0:2) :: params
   double precision, intent(out) :: chi2
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:datas-1) :: res, muld, mu
   double precision :: u1, u2, pz
-!  integer :: n
+  double precision :: t_cad
+
+  double precision, dimension(0:datas-1,0:0)  :: xd_ub, z, flux_ub
+
+  integer :: n_cad, j, k
 !External function
   external :: occultquad
+
+  n_cad = 1
+  t_cad = 30. / 60. / 24.0
 
   u1  = params(0)
   u2  = params(1)
   pz  = params(2) 
 
-  !Now we have z, let us use Agol's routines
-  call occultquad(z,u1,u2,pz,muld,mu,datas)
+  !Let us reesample the time vector
+  do j = 0, datas - 1
+   do k = 0, n_cad - 1
+       xd_ub(j,k) = xd(j) + t_cad*((k+1)-0.5*(n_cad+1))/n_cad 
+   end do
+  end do
+
+  do j = 0, n_cad - 1
+    call find_z(xd_ub(:,j),pars,flag,z(:,j),datas) 
+    !Now we have z, let us use Agol's routines
+    call occultquad(z(:,j),u1,u2,pz,flux_ub(:,j),mu,datas)
+  end do
+
+  !Re-bin the data
+  do j = 0, datas - 1
+    muld(j) = sum(flux_ub(j,:)) / n_cad
+  end do
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
@@ -552,7 +576,7 @@ implicit none
     else
     !Each walker is a point in a parameter space
     !Let us estimate our first chi_2 value for each walker
-    call find_chi2_tr(yd,errs,zr,params_old(6:8,nk), &
+    call find_chi2_tr(xd,yd,errs,params_old(0:5,nk),flag,params_old(6:8,nk), &
                       chi2_old(nk),datas)
       nk = nk + 1
     end if
@@ -638,7 +662,7 @@ implicit none
         call check_eclipse(zr,params_new(8,nk),is_eclipse,datas)
         !find chi2
         if ( is_eclipse ) then
-        call find_chi2_tr(yd,errs,zr,params_new(6:8,nk),chi2_new(nk),datas)
+        call find_chi2_tr(xd,yd,errs,params_new(0:5,nk),flag,params_new(6:8,nk),chi2_new(nk),datas)
         else
           chi2_new(nk) = huge(0.0d0)
         end if

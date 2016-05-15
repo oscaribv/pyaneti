@@ -67,7 +67,7 @@ def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
     df= mp**2 * sini**3 / ( mstar + mp )**2 * ( 3. - 2. * mp / (mstar + mp ) )
     mp = mp - f/df
     for j in range(0,len(P)):
-      if ( f[i] > 1.e-8 ):
+      if ( f[j] > 1.e-8 ):
         flag = True
         break
       else:

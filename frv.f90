@@ -792,8 +792,8 @@ implicit none
     params_rv(0:3) = params_old(0:3,nk)
     params_rv(4:4+nt) = params_old(9:9+nt,nk)
     !Find the chi2 for each case
-    call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
-    call find_chi2_tr(yd_tr,errs_tr,zr,params_tr(6:8),chi2_old_tr(nk),dtr)
+    !call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
+    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),chi2_old_tr(nk),dtr)
     call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
     chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
     !print *, chi2_old_total(nk)
@@ -896,8 +896,8 @@ implicit none
         params_rv(0:3) = params_new(0:3,nk)
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
         !Find the chi2 for each case
-        call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
-        call find_chi2_tr(yd_tr,errs_tr,zr,params_tr(6:8),chi2_new_tr(nk),dtr)
+        !call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
+        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),chi2_new_tr(nk),dtr)
         call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
       else !we do not have a good model

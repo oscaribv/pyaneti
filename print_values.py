@@ -17,9 +17,9 @@ if ( nplanets == 1 ):
 	  wo = np.arctan2(dummy_e,wo)
 
 	if ( fit_tr ):
-	  inclination = io
 	  if (is_sini):
 	    io = np.arcsin(io)
+	  inclination = io
 	  if (is_log_a):
 	    ao = np.power(10.,ao)
 
