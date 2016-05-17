@@ -95,8 +95,8 @@ if (fit_rv and fit_tr ):
 
 		dummy_lims_physical = \
 		[min(xt[0]), max(xt[0]), 0.1, 1000, 1e-10, 0.9, 0.0, 2*np.pi \
-			, 1.48, np.pi/2.0, 9.0, 1e4, 0.01, 0.99, 0.01, \
-			  0.9, 0.05, 0.2,1e-3,1e4]
+			, 1.48, np.pi/2.0, 9.0, 1e4, min_u1, max_u1, min_u2, \
+			  max_u2, 0.005, 0.2,1e-3,1e4]
 
 		limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
 		limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
@@ -156,8 +156,8 @@ elif ( not fit_rv and fit_tr ):
                
                 limits_physical = \
 		[min(xt[0]), max(xt[0]), 0.1, 1000, 1e-10, 0.99, 0.0, 2*np.pi \
-			, 1.48, np.pi/2.0, 9.0, 1e4, 0.01, 0.99, 0.01, \
-			  0.9, 0.05, 0.2]
+			, 1.48, np.pi/2.0, 9.0, 1e4, min_u1, max_u1, min_u2, \
+			  max_u2, 0.005, 0.2]
 
 
 		pti.stretch_move_tr(megax, megay, megae,  \

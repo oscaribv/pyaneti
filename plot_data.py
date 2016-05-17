@@ -26,6 +26,33 @@ if ( nplanets == 1 ):
 	  #Residuals
 	  res = megay - mud_val
 
+          #Let us plot the binned model 
+
+	  #Redefine megax with the new xt values
+          n_cad = 5
+          t_cad = 30./60./24.
+          
+	  megax = np.concatenate(xt)
+	  smegax = sorted(megax)
+          flag = [False, False, False, False]
+
+          xd_ub = np.ndarray(shape=(n_cad,len(smegax)))
+          zd_ub = [None]*n_cad
+          fd_ub = [None]*n_cad
+          for m in range(0,n_cad):
+            for n in range(0,len(smegax)):
+                xd_ub[m][n] = smegax[n] + t_cad * ( (m+1) - 0.5 * (n_cad + 1 )  ) / n_cad
+
+          for m in range(0,n_cad):
+             zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
+	     fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,pz_val)
+
+	  fd_reb = [0.0]*len(megax)
+          for m in range(0,len(megax)):
+	    for n in range(0,n_cad):
+             fd_reb[m] = fd_reb[m] + fd_ub[n][m]/n_cad
+
+
 	  #Get the model data to do the plot
 	  nvec = int(1e5)
 	  dx = ( max(megax) - min(megax) ) / nvec
@@ -44,7 +71,8 @@ if ( nplanets == 1 ):
 	  plt.subplot(gs[0])
 	  plt.xlim(min(xt[0]),max(xt[0]))
 	  plt.errorbar(megax,megay,megae,fmt='o',alpha=0.8)
-	  plt.plot(xvec,mud,'k',linewidth=2.0)
+	  plt.plot(xvec,mud,'k--',linewidth=2.0)
+	  plt.plot(smegax,fd_reb,'k',linewidth=2.0)
 	  #Plot the residuals
 	  plt.subplot(gs[1])
 	  plt.xlim(min(xt[0]),max(xt[0]))
@@ -241,13 +269,30 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 
 def plot_histogram(rf=1):
 
-	if ( fit_tr ):
+	if ( fit_tr and fit_rv ):
+		dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
+		dplabs = ['T0','P','e','$\omega$','i','a','u1','u2','pz','k']
+
+		vlabs = [None]*nt
+		dvo = [None]*nt
+		for i in range(0,nt):
+			vlabs[i] = 'rv0 ' + telescopes[i]
+			dvo[i] = vo[i][0::rf]
+
+
+		params = np.concatenate([dparams,dvo])
+		labs = np.concatenate([dplabs,vlabs])
+	
+		create_plot_histogram(params,labs)
+
+
+	if ( fit_tr and not fit_rv ):
 		params = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf]]
 		labs = ['T0','P','e','$\omega$','i','a','u1','u2','pz']
 	
 		create_plot_histogram(params,labs)
 
-	if ( fit_rv ):
+	if ( not fit_tr and fit_rv ):
 		if (nplanets == 1 ):
 			dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],ko[0::rf]]
 			dplabs = ['T0','P','e','$\omega$','k']
@@ -350,7 +395,23 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 
 def plot_correlations(rf=19):
 
-	if ( fit_tr ):
+	if ( fit_tr and fit_rv ):
+		dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
+		dplabs = ['T0','P','e','$\omega$','i','a','u1','u2','pz','k']
+
+		vlabs = [None]*nt
+		dvo = [None]*nt
+		for i in range(0,nt):
+			vlabs[i] = 'rv0 ' + telescopes[i]
+			dvo[i] = vo[i][0::rf]
+
+		params = np.concatenate([dparams,dvo])
+		labs = np.concatenate([dplabs,vlabs])
+	
+		create_plot_correlation(params,labs,col='blue')
+
+
+	if ( fit_tr and not fit_rv ):
 
 		params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],io[1::rf],ao[1::rf],u1o[1::rf],u2o[1::rf],pzo[1::rf]]
 		labs = ['T0','P','e','$\omega$','i','a','u1','u2','pz']
@@ -358,8 +419,8 @@ def plot_correlations(rf=19):
 		create_plot_correlation(params,labs,col='blue')
 
 	#Now it works only for RV fit	
-	if ( fit_rv ):
-		if (nplanets == 1 ):
+	if ( not fit_tr and fit_rv ):
+		if ( nplanets == 1 ):
 			dparams = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],ko[1::rf]]
 			dplabs = ['T0','P','e','$\omega$','k']
 		else:

@@ -114,13 +114,13 @@ implicit none
   double precision :: u1, u2, pz
   double precision :: t_cad
 
-  double precision, dimension(0:datas-1,0:0)  :: xd_ub, z, flux_ub
+  double precision, dimension(0:datas-1,0:4)  :: xd_ub, z, flux_ub
 
   integer :: n_cad, j, k
 !External function
   external :: occultquad
 
-  n_cad = 1
+  n_cad = 5
   t_cad = 30. / 60. / 24.0
 
   u1  = params(0)
