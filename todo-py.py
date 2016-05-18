@@ -75,6 +75,21 @@ def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
 
   return mp
 
+def get_rhostar(P,a):
+
+   #Gravitational costant
+  #Gc = 6.67408e-11 #m^3 / (kg s^2)
+  Gc = 6.67259e-8 #cgs
+  #Gc = Gc * 1.e6 / 1.e3
+  #Gc = Gc * 1.989e30 # m^3 / (Msun s^2)
+  #Gc = Gc * 1.98855e30 # m^3 / (Msun s^2)
+  #r_sun = 6.95700e8 # m
+  #Gc = Gc / r_sun**3 # ( rho_sun s^2)^(-1)
+  P = P * 24. * 3600. # s
+  rho = 3. * np.pi * a**3 / ( Gc*P*P)
+
+  return rho
+
 #-----------------------------------------------------------
 #bin_data - bin a vector x each nbin points
 # input: x -> vector of a given len (n) 

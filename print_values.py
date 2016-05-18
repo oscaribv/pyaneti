@@ -22,6 +22,16 @@ if ( nplanets == 1 ):
 	  inclination = io
 	  if (is_log_a):
 	    ao = np.power(10.,ao)
+          #calculate the impact parameter (eq. 7 Winn 2014)
+          bo =  ao * np.cos(io) * ( ( 1. - eo*eo ) / ( 1.0 + eo*np.sin(wo)))
+          #Transit durations aproximations (eq. 14, 15, 16 from Winn 2014)
+          ec_factor = np.sqrt(( 1. - eo*eo )) / ( 1.0 + eo*np.sin(wo))
+          tto = np.sqrt( (1. + pzo)**2 - bo**2 ) / ( ao * np.sin(io))
+          tto = Po / np.pi * np.arcsin(tto) * ec_factor * 24.0
+          tfo = np.sqrt( (1. - pzo)**2 - bo**2 ) / ( ao * np.sin(io))
+          tfo = Po / np.pi * np.arcsin(tfo) * ec_factor * 24.0
+          tfo = ( tto - tfo ) / 2.0 #ingress egress time
+          rhoo = get_rhostar(Po,ao)
 
 	if ( fit_rv ):
 	  if ( is_log_k ):
@@ -42,7 +52,8 @@ if ( nplanets == 1 ):
 	  	masso = 332967.750577677 * masso
 	  elif ( unit_mass == 'jupiter'):
 	  	masso = 1047.353299069 * masso
-		
+	
+	
 	#Calculate the BIC
 	if (fit_rv and fit_tr ):
 		ndata = len(megax) + len(mega_rv)
@@ -146,12 +157,12 @@ if ( nplanets == 1 ):
 
 
 		t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv,s_factor)
-		P_val, P_errl, P_errr  = find_vals_perc(Po,nconv,s_factor)
+		P_val, P_errl, P_errr   = find_vals_perc(Po,nconv,s_factor)
 		e_val,e_errl, e_errr 	= find_vals_perc(eo,nconv,s_factor)
 		w_val,w_errl, w_errr 	= find_vals_perc(wo,nconv,s_factor)
 		if (w_val < 0.0 ):
 			w_val = w_val + 2 * np.pi	
-		w_deg 		= w_val * 180. / np.pi
+		w_deg = w_val * 180. / np.pi
 		w_deg_errl = w_errl * 180. / np.pi
 		w_deg_errr = w_errr * 180. / np.pi
 		if ( fit_tr ):
@@ -160,7 +171,11 @@ if ( nplanets == 1 ):
 			u1_val,u1_errl, u1_errr = find_vals_perc(u1o,nconv,s_factor)
 			u2_val,u2_errl, u2_errr = find_vals_perc(u2o,nconv,s_factor)
 			pz_val,pz_errl, pz_errr = find_vals_perc(pzo,nconv,s_factor)
-			i_deg 		= i_val * 180. / np.pi
+			b_val , b_errl, b_errr  = find_vals_perc(bo,nconv,s_factor)
+			tt_val , tt_errl, tt_errr  = find_vals_perc(tto,nconv,s_factor)
+			tf_val , tf_errl, tf_errr  = find_vals_perc(tfo,nconv,s_factor)
+			rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,nconv,s_factor)
+			i_deg = i_val * 180. / np.pi
 			i_deg_errl = i_errl * 180. / np.pi
 			i_deg_errr = i_errr * 180. / np.pi
 		if ( fit_rv ):
@@ -177,26 +192,35 @@ if ( nplanets == 1 ):
 		npln = npars * np.log(ndata)	
 
 		#Print the best fit values values
+                print ('')
+                print 'Summary:'
 		print 'N_data      = ', ndata
 		print 'N_pars      = ', npars
-		print 'DOF         = ', ndata - npars
-		print 'scale factor= ', s_factor
 		print ('chi2       = %1.4f' %(chi2tot_val))
+		print 'DOF         = ', ndata - npars
 		print ('chi2_red   = %1.4f' %(chi2_val))
+		print 'scale factor= ', s_factor
 		print ('BIC        = %1.4f' %(chi2tot_val + npln))
                 print ('')
 		print ('The best fit planet parameters are:')
-		print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val,t0_errr,t0_errl))
-		print ('P     = %4.4f + %4.4f - %4.4f days'%(P_val, P_errr , P_errl))
+		print ('T0    = %4.7f + %4.7f - %4.7f days'%(t0_val,t0_errr,t0_errl))
+		print ('P     = %4.7f + %4.7f - %4.7f days'%(P_val, P_errr , P_errl))
 		print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
 		print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
 		if (fit_tr):
+			print ('Transit fit parameters:')
 			print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))
 			print ('a/r*  = %4.4f + %4.4f - %4.4f    ' 		%(a_val, a_errr , a_errl))
+			print ('rp/r* = %4.4f + %4.4f - %4.4f    ' 		%(pz_val,pz_errr, pz_errl))
 			print ('u1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr, u1_errl))
 			print ('u2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr, u2_errl))
-			print ('rp/r* = %4.4f + %4.4f - %4.4f    ' 		%(pz_val,pz_errr, pz_errl))
-	if (fit_rv):
+                        print ('Derived quantities:')
+			print ('b r*  = %4.4f + %4.4f - %4.4f' 	         	%(b_val,b_errr, b_errl))
+			print ('t_total = %4.4f + %4.4f - %4.4f hours' 		%(tt_val,tt_errr, tt_errl))
+			print ('t_in/eg = %4.4f + %4.4f - %4.4f hours' 		%(tf_val,tf_errr, tf_errl))
+			print ('rho_* = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rho_val,rho_errr, rho_errl))
+	        if (fit_rv):
+			print ('RV fit parameters:')
 			print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
 			for i in range(0,nt):
 				print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \

@@ -71,12 +71,16 @@ if ( nplanets == 1 ):
 	  plt.subplot(gs[0])
 	  plt.xlim(min(xt[0]),max(xt[0]))
 	  plt.errorbar(megax,megay,megae,fmt='o',alpha=0.8)
-	  plt.plot(xvec,mud,'k--',linewidth=2.0)
+	  plt.plot(xvec,mud,'r--',linewidth=2.0)
 	  plt.plot(smegax,fd_reb,'k',linewidth=2.0)
+          plt.ylabel('Relative flux')
 	  #Plot the residuals
 	  plt.subplot(gs[1])
 	  plt.xlim(min(xt[0]),max(xt[0]))
 	  plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)
+	  #Plot the residuals
+          plt.ylabel('Residuals')
+          plt.xlabel("Time")
 	  plt.plot(megax,np.zeros(len(megax)),'k--',linewidth=2.0)
 	  plt.savefig('transit_fit.pdf',format='pdf',bbox_inches='tight')
 	  plt.show()
@@ -251,7 +255,7 @@ else:
 
 def create_plot_histogram(params,plabs,cbars='red',nb=50):
 	n = len(params)
-	plt.figure(1,figsize=(15,3*(n)/2))
+	plt.figure(1,figsize=(15,4*(n)/2))
 	gs = gridspec.GridSpec(nrows=(n+1)/2,ncols=2)
 	for i in range(0,n):
 		plt.subplot(gs[i])
@@ -271,7 +275,7 @@ def plot_histogram(rf=1):
 
 	if ( fit_tr and fit_rv ):
 		dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
-		dplabs = ['T0','P','e','$\omega$','i','a','u1','u2','pz','k']
+		dplabs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$','$k$']
 
 		vlabs = [None]*nt
 		dvo = [None]*nt
@@ -288,14 +292,14 @@ def plot_histogram(rf=1):
 
 	if ( fit_tr and not fit_rv ):
 		params = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf]]
-		labs = ['T0','P','e','$\omega$','i','a','u1','u2','pz']
+		labs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$']
 	
 		create_plot_histogram(params,labs)
 
 	if ( not fit_tr and fit_rv ):
 		if (nplanets == 1 ):
 			dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],ko[0::rf]]
-			dplabs = ['T0','P','e','$\omega$','k']
+			dplabs = ['$T0$','$P$','$e$','$\omega$','$k$']
 		else:
 			dparams = [None]*5*nplanets
 			dplabs = [None]*5*nplanets
@@ -397,7 +401,7 @@ def plot_correlations(rf=19):
 
 	if ( fit_tr and fit_rv ):
 		dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
-		dplabs = ['T0','P','e','$\omega$','i','a','u1','u2','pz','k']
+		dplabs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$','$k$']
 
 		vlabs = [None]*nt
 		dvo = [None]*nt
@@ -414,7 +418,7 @@ def plot_correlations(rf=19):
 	if ( fit_tr and not fit_rv ):
 
 		params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],io[1::rf],ao[1::rf],u1o[1::rf],u2o[1::rf],pzo[1::rf]]
-		labs = ['T0','P','e','$\omega$','i','a','u1','u2','pz']
+		labs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$']
 	
 		create_plot_correlation(params,labs,col='blue')
 
@@ -422,7 +426,7 @@ def plot_correlations(rf=19):
 	if ( not fit_tr and fit_rv ):
 		if ( nplanets == 1 ):
 			dparams = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],ko[1::rf]]
-			dplabs = ['T0','P','e','$\omega$','k']
+			dplabs = ['$T0$','$P$','$e$','$\omega$','$k$']
 		else:
 			dparams = [None]*5*nplanets
 			dplabs = [None]*5*nplanets
