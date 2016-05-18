@@ -16,7 +16,7 @@ if (fit_rv):
 	#time, RV, errors, and Telescope label
 	time,rv,err,tspe = np.loadtxt(fname_rv,usecols=(0,1,2,3), \
   	dtype={'names': ('time', 'rv', 'err','telescope'), \
-		'formats': ('float', 'float', 'float', 'S1')}, \
+		'formats': ('float', 'float', 'float', 'S10')}, \
 		comments='#',unpack=True)
 
 	#Transform rv from km/s to m/s
@@ -45,7 +45,7 @@ if (fit_rv):
 		rv_dum   = []
 		errs_dum = []
 		for j in range(0,len(tspe)):
-			if (tspe[j] == telescopes[i]):
+			if (tspe[j][0] == telescopes[i][0]):
 				time_dum.append(time[j])
 				rv_dum.append(rv[j])
 				errs_dum.append(err[j])

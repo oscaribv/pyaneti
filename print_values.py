@@ -157,6 +157,7 @@ if ( nplanets == 1 ):
 
 
 		t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv,s_factor)
+                T0 = t0_val
 		P_val, P_errl, P_errr   = find_vals_perc(Po,nconv,s_factor)
 		e_val,e_errl, e_errr 	= find_vals_perc(eo,nconv,s_factor)
 		w_val,w_errl, w_errr 	= find_vals_perc(wo,nconv,s_factor)

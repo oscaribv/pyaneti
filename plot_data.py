@@ -14,7 +14,7 @@ if ( nplanets == 1 ):
 	def plot_transit():
 		  #Move all the points to T0
 	  for i in range(0,ntr):
-	    xt[i] = xt[i] - P_val * i
+	    xt[i] = xt[i] - P_val * i 
 
 	  #Redefine megax with the new xt values
 	  megax = np.concatenate(xt)
@@ -29,29 +29,38 @@ if ( nplanets == 1 ):
           #Let us plot the binned model 
 
 	  #Redefine megax with the new xt values
-          n_cad = 5
-          t_cad = 30./60./24.
+          n_cad = 10
+          t_cad = 29.425 /60./24.
           
 	  megax = np.concatenate(xt)
 	  smegax = sorted(megax)
           flag = [False, False, False, False]
 
           xd_ub = np.ndarray(shape=(n_cad,len(smegax)))
+          xd_ub_res = np.ndarray(shape=(n_cad,len(smegax)))
           zd_ub = [None]*n_cad
+          zd_ub_res = [None]*n_cad
           fd_ub = [None]*n_cad
+          fd_ub_res = [None]*n_cad
           for m in range(0,n_cad):
             for n in range(0,len(smegax)):
                 xd_ub[m][n] = smegax[n] + t_cad * ( (m+1) - 0.5 * (n_cad + 1 )  ) / n_cad
+                xd_ub_res[m][n] = megax[n] + t_cad * ( (m+1) - 0.5 * (n_cad + 1 )  ) / n_cad
 
           for m in range(0,n_cad):
              zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
 	     fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,pz_val)
+             zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
+	     fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,pz_val)
 
 	  fd_reb = [0.0]*len(megax)
+	  fd_reb_res = [0.0]*len(megax)
           for m in range(0,len(megax)):
 	    for n in range(0,n_cad):
              fd_reb[m] = fd_reb[m] + fd_ub[n][m]/n_cad
+             fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[n][m]/n_cad
 
+          res_res = megay - fd_reb_res
 
 	  #Get the model data to do the plot
 	  nvec = int(1e5)
@@ -65,23 +74,32 @@ if ( nplanets == 1 ):
 	  #Now we have data to plot a nice model
 
 	  #Do the plot
-	  plt.figure(2,figsize=(7,6))
+	  #plt.figure(2,figsize=(7,6))
+          tfc = 24. # time factor conversion to hours
+	  plt.figure(1,figsize=(7,6))
 	  #Plot the transit light curve
-	  gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[1.618, 1])
+	  gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[2.0, 1.])
+	  #gs = gridspec.GridSpec(nrows=1, ncols=1)
+          gs.update(hspace=0.05) 
 	  plt.subplot(gs[0])
-	  plt.xlim(min(xt[0]),max(xt[0]))
-	  plt.errorbar(megax,megay,megae,fmt='o',alpha=0.8)
-	  plt.plot(xvec,mud,'r--',linewidth=2.0)
-	  plt.plot(smegax,fd_reb,'k',linewidth=2.0)
+	  plt.xlim((min(xt[0])-T0)*tfc,(max(xt[0])-T0)*tfc)
+          min_val_model = max(fd_reb) -  min(fd_reb)
+	  plt.errorbar((megax-T0)*tfc,megay,megae,fmt='r.',alpha=0.8)
+	  #plt.errorbar(megax-T0,res_res + 1. - 2*min_val_model,megae,fmt='r.',alpha=0.8)
+	  #plt.plot(smegax-T0,[1.-2*min_val_model]*len(megax),'k--',linewidth=1.0)
+	  #plt.plot(xvec,mud,'r--',linewidth=2.0)
+	  plt.plot((smegax-T0)*tfc,fd_reb,'k',linewidth=1.0)
           plt.ylabel('Relative flux')
+          plt.tick_params( axis='x',which='both',labelbottom='off') 
 	  #Plot the residuals
 	  plt.subplot(gs[1])
-	  plt.xlim(min(xt[0]),max(xt[0]))
-	  plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)
+	  plt.xlim((min(xt[0])-T0)*tfc,(max(xt[0])-T0)*tfc)
+	  #plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)
+	  plt.errorbar((megax-T0)*tfc,res_res,megae,fmt='r.',alpha=0.8)
 	  #Plot the residuals
           plt.ylabel('Residuals')
-          plt.xlabel("Time")
-	  plt.plot(megax,np.zeros(len(megax)),'k--',linewidth=2.0)
+          plt.xlabel("T - T0 (hours)")
+	  plt.plot((smegax-T0)*tfc,np.zeros(len(smegax)),'k--',linewidth=1.0)
 	  plt.savefig('transit_fit.pdf',format='pdf',bbox_inches='tight')
 	  plt.show()
 
@@ -128,26 +146,34 @@ if ( nplanets == 1 ):
 				p_all[j] = scale_period(time_all[j],t0_val,P_val)
 
 		plt.figure(3,figsize=(7,6))
-		gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[1.618, 1])
+		gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[2., 1.])
+                gs.update(hspace=0.05) 
 		ax0 = plt.subplot(gs[0])
 		#plt.subplot(311)
 		ax0 = plt.xlabel("")
 		ax0 = plt.ylabel("RV (m/s)")
 		ax0 = plt.plot([0.,1.],[0.,0.],'k--')
-		ax0 = plt.plot(p_rv,rvy,'k')
+		ax0 = plt.plot(p_rv,rvy,'k',linewidth=1.0)
 		mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
 		for j in range(0,nt):
 			ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
-			label=telescopes[j],fmt=mark[j],alpha=0.8)
-		ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4, ncol=nt, mode="expand", borderaxespad=0.)
+			label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
+
+		#ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4, ncol=nt, mode="expand", borderaxespad=0.)
+		plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
+
+                plt.xticks(np.arange(0.,1.01,0.1)) 
+                plt.tick_params( axis='x',which='both',labelbottom='off') 
 		#plt.subplot(312)
 		ax1 = plt.subplot(gs[1])
 		ax1 = plt.xlabel("Orbital phase")
+                plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on') 
+                plt.xticks(np.arange(0.,1.01,0.1)) 
 		ax1 = plt.ylabel('Residuals (m/s)')
-		ax1 = plt.plot([0.,1.],[0.,0.],'k--')
+		ax1 = plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
 		for j in range(0,nt):
 			ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
-			label=telescopes[j],fmt=mark[j],alpha=0.8)
+			label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
 		fname = 'planet1.pdf'
 		plt.savefig(fname,format='pdf',bbox_inches='tight')
 		plt.show()
@@ -234,7 +260,7 @@ else:
 			mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
 			for j in range(0,nt):
 				ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
-				label=telescopes[j],fmt=mark[j],alpha=0.8)
+				label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
 				ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
 		     ncol=nt, mode="expand", borderaxespad=0.)
 			#plt.subplot(312)
@@ -244,7 +270,7 @@ else:
 			ax1 = plt.plot([0.,1.],[0.,0.],'k--')
 			for j in range(0,nt):
 				ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
-				label=telescopes[j],fmt=mark[j],alpha=0.8)
+				label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
 			fname = 'planet' + str(i+1) + '.pdf'
 			plt.savefig(fname,format='pdf',bbox_inches='tight')
 			plt.show()
@@ -280,7 +306,7 @@ def plot_histogram(rf=1):
 		vlabs = [None]*nt
 		dvo = [None]*nt
 		for i in range(0,nt):
-			vlabs[i] = 'rv0 ' + telescopes[i]
+			vlabs[i] = 'rv0 ' + telescopes_labels[i]
 			dvo[i] = vo[i][0::rf]
 
 
@@ -318,7 +344,7 @@ def plot_histogram(rf=1):
 		vlabs = [None]*nt
 		dvo = [None]*nt
 		for i in range(0,nt):
-			vlabs[i] = 'rv0 ' + telescopes[i]
+			vlabs[i] = 'rv0 ' + telescopes_labels[i]
 			dvo[i] = vo[i][0::rf]
 
 
@@ -369,7 +395,7 @@ def hist_mp_rv(cbars='red',nb=50):
 			plt.axvline(x=v_val[m],c=cbars)
 			plt.axvline(x=v_val[m]-v_errl[m],c=cbars,ls='--')
 			plt.axvline(x=v_val[m]+v_errr[m],c=cbars,ls='--')
-			plt.xlabel('%s rv0'%(telescopes[m]))
+			plt.xlabel('%s rv0'%(telescopes_labels[m]))
 			plt.hist(vo[m],normed=True,bins=nb)
 		plt.savefig('hist_params'+str(l)+'.pdf',format='pdf',bbox_inches='tight')
 		plt.show()
@@ -406,7 +432,7 @@ def plot_correlations(rf=19):
 		vlabs = [None]*nt
 		dvo = [None]*nt
 		for i in range(0,nt):
-			vlabs[i] = 'rv0 ' + telescopes[i]
+			vlabs[i] = 'rv0 ' + telescopes_labels[i]
 			dvo[i] = vo[i][0::rf]
 
 		params = np.concatenate([dparams,dvo])
@@ -445,7 +471,7 @@ def plot_correlations(rf=19):
 		vlabs = [None]*nt
 		dvo = [None]*nt
 		for i in range(0,nt):
-			vlabs[i] = 'rv0 ' + telescopes[i]
+			vlabs[i] = 'rv0 ' + telescopes_labels[i]
 			dvo[i] = vo[i][1::rf]
 
 
