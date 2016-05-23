@@ -17,6 +17,7 @@ if ( nplanets == 1 ):
 	  wo = np.arctan2(dummy_e,wo)
 
 	if ( fit_tr ):
+          rpo = pzo * rstar
 	  if (is_sini):
 	    io = np.arcsin(io)
 	  inclination = io
@@ -47,6 +48,10 @@ if ( nplanets == 1 ):
 	  	tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m],Po[m])
 
 	  masso = planet_mass(mstar,ko*1.e3,Po,eo,inclination)
+
+          if ( fit_tr ): #We can estimate planet density
+            rho_p = masso / ( 4.*np.pi / 3. * rpo**3 )
+            rho_p = rho_p * 1.410 #sun density g/cm^3
 
 	  if ( unit_mass == 'earth'):
 	  	masso = 332967.750577677 * masso
@@ -172,10 +177,13 @@ if ( nplanets == 1 ):
 			u1_val,u1_errl, u1_errr = find_vals_perc(u1o,nconv,s_factor)
 			u2_val,u2_errl, u2_errr = find_vals_perc(u2o,nconv,s_factor)
 			pz_val,pz_errl, pz_errr = find_vals_perc(pzo,nconv,s_factor)
+			rp_val,rp_errl, rp_errr = find_vals_perc(rpo,nconv,s_factor)
 			b_val , b_errl, b_errr  = find_vals_perc(bo,nconv,s_factor)
 			tt_val , tt_errl, tt_errr  = find_vals_perc(tto,nconv,s_factor)
 			tf_val , tf_errl, tf_errr  = find_vals_perc(tfo,nconv,s_factor)
 			rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,nconv,s_factor)
+		        if ( fit_rv ):
+			  rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,nconv,s_factor)
 			i_deg = i_val * 180. / np.pi
 			i_deg_errl = i_errl * 180. / np.pi
 			i_deg_errr = i_errr * 180. / np.pi
@@ -216,6 +224,7 @@ if ( nplanets == 1 ):
 			print ('u1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr, u1_errl))
 			print ('u2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr, u2_errl))
                         print ('Derived quantities:')
+			print ('r_p   = %4.4f + %4.4f - %4.4f r_sun' 	        %(rp_val,rp_errr, rp_errl))
 			print ('b r*  = %4.4f + %4.4f - %4.4f' 	         	%(b_val,b_errr, b_errl))
 			print ('t_total = %4.4f + %4.4f - %4.4f hours' 		%(tt_val,tt_errr, tt_errl))
 			print ('t_in/eg = %4.4f + %4.4f - %4.4f hours' 		%(tf_val,tf_errr, tf_errl))
@@ -230,6 +239,8 @@ if ( nplanets == 1 ):
                         print ('Derived quantities:')
 			print ('Tp    = %4.4f + %4.4f - %4.4f days' 		%(tp_val,tp_errr, tp_errl))
 			print ('mp    = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
+                        if ( fit_tr ):
+			  print ('rho_p = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rhop_val,rhop_errr, rhop_errl))
 
 #Multiplanet fit
 else:

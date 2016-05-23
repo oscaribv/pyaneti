@@ -90,15 +90,19 @@ if ( nplanets == 1 ):
 	  #plt.plot(xvec,mud,'r--',linewidth=2.0)
 	  plt.plot((smegax-T0)*tfc,fd_reb,'k',linewidth=1.0)
           plt.ylabel('Relative flux')
+          plt.xticks( np.arange(int((min(xt[0])-T0)*tfc),int((max(xt[0])-T0)*tfc),1))
+          plt.minorticks_on()
           plt.tick_params( axis='x',which='both',labelbottom='off') 
 	  #Plot the residuals
 	  plt.subplot(gs[1])
+          plt.xticks( np.arange(int((min(xt[0])-T0)*tfc),int((max(xt[0])-T0)*tfc),1))
 	  plt.xlim((min(xt[0])-T0)*tfc,(max(xt[0])-T0)*tfc)
 	  #plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)
 	  plt.errorbar((megax-T0)*tfc,res_res,megae,fmt='r.',alpha=0.8)
 	  #Plot the residuals
           plt.ylabel('Residuals')
           plt.xlabel("T - T0 (hours)")
+          plt.minorticks_on()
 	  plt.plot((smegax-T0)*tfc,np.zeros(len(smegax)),'k--',linewidth=1.0)
 	  plt.savefig('transit_fit.pdf',format='pdf',bbox_inches='tight')
 	  plt.show()
@@ -145,10 +149,12 @@ if ( nplanets == 1 ):
 			for j in range(0,nt):
 				p_all[j] = scale_period(time_all[j],t0_val,P_val)
 
+
 		plt.figure(3,figsize=(7,6))
 		gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[2., 1.])
                 gs.update(hspace=0.05) 
 		ax0 = plt.subplot(gs[0])
+                plt.minorticks_on()
 		#plt.subplot(311)
 		ax0 = plt.xlabel("")
 		ax0 = plt.ylabel("RV (m/s)")
@@ -171,6 +177,7 @@ if ( nplanets == 1 ):
                 plt.xticks(np.arange(0.,1.01,0.1)) 
 		ax1 = plt.ylabel('Residuals (m/s)')
 		ax1 = plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
+                plt.minorticks_on()
 		for j in range(0,nt):
 			ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
 			label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
@@ -257,6 +264,7 @@ else:
 			ax0 = plt.ylabel("RV (m/s)")
 			ax0 = plt.plot([0.,1.],[0.,0.],'k--')
 			ax0 = plt.plot(p_rv[i],rvy[i],'k')
+                        plt.minorticks_on()
 			mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
 			for j in range(0,nt):
 				ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
@@ -268,6 +276,7 @@ else:
 			ax1 = plt.xlabel("Orbital phase")
 			ax1 = plt.ylabel('Residuals (m/s)')
 			ax1 = plt.plot([0.,1.],[0.,0.],'k--')
+                        plt.minorticks_on()
 			for j in range(0,nt):
 				ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
 				label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
