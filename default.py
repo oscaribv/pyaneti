@@ -11,6 +11,11 @@ units_ms = False
 ylab = 'RV (km/s)'
 ktom = 1.0
 mstar= 1.0
+rstar= 1.0
+
+#Transit data cadence
+n_cad = 10
+t_cad = 29.425 / 60. / 24.
 
 #No telescopes
 telescopes = []

@@ -97,35 +97,34 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_tr(xd,yd,errs,pars,flag,params,chi2,datas)
+subroutine find_chi2_tr(xd,yd,errs,pars,flag,params,n_cad,t_cad,chi2,datas)
 !subroutine find_chi2_tr(yd,errs,z,params,chi2,datas)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas
+  integer, intent(in) :: datas, n_cad
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   double precision, intent(in), dimension(0:5) :: pars
+  double precision, intent(in) :: t_cad
   logical, intent(in), dimension(0:3) :: flag 
   double precision, intent(in), dimension (0:2) :: params
   double precision, intent(out) :: chi2
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:datas-1) :: res, muld, mu
-  double precision :: u1, u2, pz
-  double precision :: t_cad
-
-  double precision, dimension(0:datas-1,0:9)  :: xd_ub, z, flux_ub
-
-  integer :: n_cad, j, k
+  double precision :: u1, u2, pz, q1k, q2k
+  double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
+  integer ::  j, k
 !External function
   external :: occultquad
 
-  n_cad = 10
-  t_cad = 29.425 / 60. / 24.0
-
-  u1  = params(0)
-  u2  = params(1)
+  q1k = params(0)
+  q2k = params(1)
   pz  = params(2) 
+  !re-transform the parameters to u1 and u2
+  u1 = sqrt(q1k)
+  u2 = u1*( 1.d0 - 2.d0*q2k)
+  u1 = 2.d0*u1*q2k
 
   !Let us reesample the time vector
   do j = 0, datas - 1
@@ -437,15 +436,15 @@ end subroutine
 !
 !-----------------------------------------------------------
 subroutine stretch_move_tr(xd,yd,errs,pars,lims,limits_physical, &
-nwalks,a_factor,maxi,thin_factor,wtf,flag,nconv,datas)
+nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,nconv,datas)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: nwalks, maxi, thin_factor, datas, nconv
+  integer, intent(in) :: nwalks, maxi, thin_factor, n_cad, datas, nconv
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   double precision, intent(in), dimension(0:8) :: pars
   double precision, intent(in), dimension(0:(2*9)-1) :: lims
-  double precision, intent(in) :: a_factor
+  double precision, intent(in) :: a_factor, t_cad
   integer, intent(in), dimension(0:8) :: wtf
   logical, intent(in) :: flag(0:3)
 !Local variables
@@ -456,7 +455,7 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains
-  double precision  :: q
+  double precision  :: q, q1k, q2k
   double precision  :: esin, ecos, aa, chi2_red_min
   integer :: o, j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: get_out, is_burn, is_limit_good, is_cvg, is_eclipse
@@ -513,6 +512,22 @@ implicit none
     limits(10:11) = log10(limits(10:11))
     limits_physical(10:11) = log10(limits_physical(10:11))
   end if
+  !u1 and u2
+  !Change the  u1 and u2 limb darkening coefficints following Kipping 2013
+  q1k = ( params(6) + params(7) )  
+  q2k = 0.5 * params(6) / q1k
+  q1k = q1k*q1k
+  !the limits are by default [0,1] take care with this
+  params(6) = q1k
+  params(7) = q2k
+  limits(12) = 0.0
+  limits_physical(12) = 0.0
+  limits(13) = 1.0
+  limits_physical(13) = 1.0
+  limits(14) = 0.0
+  limits_physical(14) = 0.0
+  limits(15) = 1.0
+  limits_physical(15) = 1.0
 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -544,14 +559,14 @@ implicit none
       end do
 
       !Check that u1 + u2 < 1 for ew
-          is_limit_good = .false.
-          do while ( .not. is_limit_good )
-            call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
-            if ( .not. is_limit_good  ) then
-              params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
-              params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
-            end if
-        end do
+!          is_limit_good = .false.
+!          do while ( .not. is_limit_good )
+!            call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
+!            if ( .not. is_limit_good  ) then
+!              params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
+!              params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
+!            end if
+!        end do
 
        !Check that e < 1 for ew
    if ( flag(1) ) then
@@ -577,7 +592,7 @@ implicit none
     !Each walker is a point in a parameter space
     !Let us estimate our first chi_2 value for each walker
     call find_chi2_tr(xd,yd,errs,params_old(0:5,nk),flag,params_old(6:8,nk), &
-                      chi2_old(nk),datas)
+                      n_cad, t_cad, chi2_old(nk),datas)
       nk = nk + 1
     end if
 
@@ -662,7 +677,7 @@ implicit none
         call check_eclipse(zr,params_new(8,nk),is_eclipse,datas)
         !find chi2
         if ( is_eclipse ) then
-        call find_chi2_tr(xd,yd,errs,params_new(0:5,nk),flag,params_new(6:8,nk),chi2_new(nk),datas)
+        call find_chi2_tr(xd,yd,errs,params_new(0:5,nk),flag,params_new(6:8,nk),n_cad,t_cad,chi2_new(nk),datas)
         else
           chi2_new(nk) = huge(0.0d0)
         end if

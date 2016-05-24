@@ -103,7 +103,7 @@ if (fit_rv and fit_tr ):
 
 		pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
 		,megax, megay, megae, params,limits, limits_p , nwalkers,a_factor, maxi, thin_factor, \
-		what_fit, flag, nconv)
+		n_cad,t_cad,what_fit, flag, nconv)
 
 	elif ( method == 'plot' ):
 		print 'I will only print the values and generate the plot'
@@ -161,7 +161,7 @@ elif ( not fit_rv and fit_tr ):
 
 
 		pti.stretch_move_tr(megax, megay, megae,  \
-		params,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor, what_fit,flag,nconv)
+		params,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor,n_cad,t_cad, what_fit,flag,nconv)
 
 	elif ( method == 'plot' ):
 		print 'I will only print the values and generate the plot'

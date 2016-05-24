@@ -634,11 +634,11 @@ end subroutine
 
 !-----------------------------------------------------------
 subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params, &
-limits,limits_physical,nwalks,a_factor,maxi,thin_factor,wtf,flag,nconv,drv,dtr,nt)
+limits,limits_physical,nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,nconv,drv,dtr,nt)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: nwalks, maxi, thin_factor, drv, dtr, nt, nconv
+  integer, intent(in) :: nwalks, maxi, thin_factor,n_cad, drv, dtr, nt, nconv
   double precision, intent(in), dimension(0:drv-1)  :: xd_rv, yd_rv, errs_rv
   double precision, intent(in), dimension(0:dtr-1)  :: xd_tr, yd_tr, errs_tr
   integer, intent(in), dimension(0:drv-1)  :: tlab
@@ -649,7 +649,7 @@ implicit none
   double precision, intent(inout), dimension(0:2*(10+nt)-1) :: limits_physical
   !f2py intent(in,out)  :: limits_physical
   integer, intent(in), dimension(0:10) :: wtf
-  double precision, intent(in)  :: a_factor
+  double precision, intent(in)  :: a_factor, t_cad
   logical, intent(in) :: flag(0:5)
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626d0
@@ -661,7 +661,7 @@ implicit none
   double precision, dimension(0:8) :: params_tr
   double precision, dimension(0:10+nt-1,0:nwalks-1,0:nconv-1) :: params_chains
   double precision, dimension(0:10+nt-1,0:nwalks-1) :: params_old, params_new
-  double precision  :: q
+  double precision  :: q, q1k, q2k
   double precision  :: esin, ecos, aa, chi2_red_min
   integer :: o,j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: get_out, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg
@@ -719,6 +719,22 @@ implicit none
     limits(10:11) = log10(limits(10:11))
     limits_physical(10:11) = log10(limits_physical(10:11))
   end if
+  !u1 and u2
+  !Change the  u1 and u2 limb darkening coefficints following Kipping 2013
+  q1k = ( params(6) + params(7) )
+  q2k = 0.5 * params(6) / q1k
+  q1k = q1k*q1k
+  !the limits are by default [0,1] take care with this
+  params(6) = q1k
+  params(7) = q2k
+  limits(12) = 0.0
+  limits_physical(12) = 0.0
+  limits(13) = 1.0
+  limits_physical(13) = 1.0
+  limits(14) = 0.0
+  limits_physical(14) = 0.0
+  limits(15) = 1.0
+  limits_physical(15) = 1.0
   !k
   if ( flag(4) ) then
     params(9) = log10(params(9))
@@ -767,14 +783,14 @@ implicit none
     end do
 
    !Check that u1 + u2 < 1 for ew
-   is_limit_good = .false.
-   do while ( .not. is_limit_good )
-     call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
-     if ( .not. is_limit_good  ) then
-      params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
-      params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
-     end if
-   end do
+!   is_limit_good = .false.
+!   do while ( .not. is_limit_good )
+!     call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
+!     if ( .not. is_limit_good  ) then
+!      params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
+!      params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
+!     end if
+!   end do
 
    !Check that e < 1 for ew
    if ( flag(1) ) then
@@ -793,7 +809,7 @@ implicit none
     params_rv(4:4+nt) = params_old(9:9+nt,nk)
     !Find the chi2 for each case
     !call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
-    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),chi2_old_tr(nk),dtr)
+    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
     call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
     chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
     !print *, chi2_old_total(nk)
@@ -881,13 +897,13 @@ implicit none
                           is_limit_good,10+nt)
         if ( is_limit_good ) then
           ! u1 + u2 < 1 limit
-          call check_us(params_new(6,nk),params_new(7,nk),is_limit_good)
-          if (is_limit_good ) then
+!          call check_us(params_new(6,nk),params_new(7,nk),is_limit_good)
+!          if (is_limit_good ) then
             !Check that e < 1 for ew
             if ( flag(1) ) then
               call check_e(params_new(2,nk),params_new(3,nk),dble(1.0), is_limit_good )
             end if          
-          end if
+!          end if
         end if
 
       if ( is_limit_good ) then !evaluate chi2
@@ -897,7 +913,7 @@ implicit none
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
         !Find the chi2 for each case
         !call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
-        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),chi2_new_tr(nk),dtr)
+        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_new_tr(nk),dtr)
         call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
       else !we do not have a good model

@@ -17,6 +17,12 @@ if ( nplanets == 1 ):
 	  wo = np.arctan2(dummy_e,wo)
 
 	if ( fit_tr ):
+          #Take back the u1 and u2 values, Kipping 2013
+          du1 = 2*np.sqrt(u1o)*u2o
+          du2 = np.sqrt(u1o)*(1.-2.*u2o) 
+          u1o = du1
+          u2o = du2
+               
           rpo = pzo * rstar
 	  if (is_sini):
 	    io = np.arcsin(io)
