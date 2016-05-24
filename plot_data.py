@@ -1,4 +1,4 @@
-	#Let us do the plots here
+#Let us do the plots here
 
 from matplotlib import gridspec
 
@@ -29,9 +29,6 @@ if ( nplanets == 1 ):
           #Let us plot the binned model 
 
 	  #Redefine megax with the new xt values
-          n_cad = 10
-          t_cad = 29.425 /60./24.
-          
 	  megax = np.concatenate(xt)
 	  smegax = sorted(megax)
           flag = [False, False, False, False]
@@ -74,36 +71,34 @@ if ( nplanets == 1 ):
 	  #Now we have data to plot a nice model
 
 	  #Do the plot
-	  #plt.figure(2,figsize=(7,6))
           tfc = 24. # time factor conversion to hours
 	  plt.figure(1,figsize=(7,6))
 	  #Plot the transit light curve
-	  gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[2.0, 1.])
-	  #gs = gridspec.GridSpec(nrows=1, ncols=1)
-          gs.update(hspace=0.05) 
+	  gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3.0, 1.])
+          gs.update(hspace=0.00) 
 	  plt.subplot(gs[0])
-	  plt.xlim((min(xt[0])-T0)*tfc,(max(xt[0])-T0)*tfc)
+	  x_lim = (min(xt[0])-T0)*tfc
+	  plt.xlim(x_lim,-x_lim)
           min_val_model = max(fd_reb) -  min(fd_reb)
 	  plt.errorbar((megax-T0)*tfc,megay,megae,fmt='r.',alpha=0.8)
-	  #plt.errorbar(megax-T0,res_res + 1. - 2*min_val_model,megae,fmt='r.',alpha=0.8)
-	  #plt.plot(smegax-T0,[1.-2*min_val_model]*len(megax),'k--',linewidth=1.0)
-	  #plt.plot(xvec,mud,'r--',linewidth=2.0)
 	  plt.plot((smegax-T0)*tfc,fd_reb,'k',linewidth=1.0)
           plt.ylabel('Relative flux')
-          plt.xticks( np.arange(int((min(xt[0])-T0)*tfc),int((max(xt[0])-T0)*tfc),1))
+          plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
           plt.minorticks_on()
           plt.tick_params( axis='x',which='both',labelbottom='off') 
 	  #Plot the residuals
-	  plt.subplot(gs[1])
-          plt.xticks( np.arange(int((min(xt[0])-T0)*tfc),int((max(xt[0])-T0)*tfc),1))
-	  plt.xlim((min(xt[0])-T0)*tfc,(max(xt[0])-T0)*tfc)
-	  #plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)
+	  dplot = plt.subplot(gs[1])
+	  plt.plot((smegax-T0)*tfc,np.zeros(len(smegax)),'k--',linewidth=1.0)
 	  plt.errorbar((megax-T0)*tfc,res_res,megae,fmt='r.',alpha=0.8)
+          yylims = dplot.get_ylim()
+          plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/5.))
+          plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
+	  plt.xlim(x_lim,-x_lim)
+	  #plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)
 	  #Plot the residuals
           plt.ylabel('Residuals')
           plt.xlabel("T - T0 (hours)")
           plt.minorticks_on()
-	  plt.plot((smegax-T0)*tfc,np.zeros(len(smegax)),'k--',linewidth=1.0)
 	  plt.savefig('transit_fit.pdf',format='pdf',bbox_inches='tight')
 	  plt.show()
 
@@ -151,8 +146,8 @@ if ( nplanets == 1 ):
 
 
 		plt.figure(3,figsize=(7,6))
-		gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[2., 1.])
-                gs.update(hspace=0.05) 
+		gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
+                gs.update(hspace=0.00) 
 		ax0 = plt.subplot(gs[0])
                 plt.minorticks_on()
 		#plt.subplot(311)
@@ -172,15 +167,17 @@ if ( nplanets == 1 ):
                 plt.tick_params( axis='x',which='both',labelbottom='off') 
 		#plt.subplot(312)
 		ax1 = plt.subplot(gs[1])
-		ax1 = plt.xlabel("Orbital phase")
+		plt.xlabel("Orbital phase")
                 plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on') 
                 plt.xticks(np.arange(0.,1.01,0.1)) 
-		ax1 = plt.ylabel('Residuals (m/s)')
-		ax1 = plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
-                plt.minorticks_on()
+		plt.ylabel('Residuals (m/s)')
+		plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
 		for j in range(0,nt):
-			ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
+			plt.errorbar(p_all[j],res[j],errs_all[j],\
 			label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
+                yylims = ax1.get_ylim()
+                plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
+                plt.minorticks_on()
 		fname = 'planet1.pdf'
 		plt.savefig(fname,format='pdf',bbox_inches='tight')
 		plt.show()

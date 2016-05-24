@@ -50,7 +50,7 @@ if ( nplanets == 1 ):
 	  masso = planet_mass(mstar,ko*1.e3,Po,eo,inclination)
 
           if ( fit_tr ): #We can estimate planet density
-            rho_p = masso / ( 4.*np.pi / 3. * rpo**3 )
+            rho_p = masso / ( rpo**3 )
             rho_p = rho_p * 1.410 #sun density g/cm^3
 
 	  if ( unit_mass == 'earth'):
