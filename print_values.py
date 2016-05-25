@@ -61,8 +61,10 @@ if ( nplanets == 1 ):
 
 	  if ( unit_mass == 'earth'):
 	  	masso = 332967.750577677 * masso
+                rpo = rpo / 0.009154
 	  elif ( unit_mass == 'jupiter'):
 	  	masso = 1047.353299069 * masso
+                rpo = rpo / 0.10045
 	
 	
 	#Calculate the BIC
@@ -230,7 +232,7 @@ if ( nplanets == 1 ):
 			print ('u1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr, u1_errl))
 			print ('u2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr, u2_errl))
                         print ('Derived quantities:')
-			print ('r_p   = %4.4f + %4.4f - %4.4f r_sun' 	        %(rp_val,rp_errr, rp_errl))
+			print ('r_p   = %4.4f + %4.4f - %4.4f R_%s' 	        %(rp_val,rp_errr, rp_errl,unit_mass))
 			print ('b r*  = %4.4f + %4.4f - %4.4f' 	         	%(b_val,b_errr, b_errl))
 			print ('t_total = %4.4f + %4.4f - %4.4f hours' 		%(tt_val,tt_errr, tt_errl))
 			print ('t_in/eg = %4.4f + %4.4f - %4.4f hours' 		%(tf_val,tf_errr, tf_errl))
