@@ -112,8 +112,9 @@ implicit none
 !Local variables
   double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:datas-1) :: res, muld, mu
-  double precision :: u1, u2, pz, q1k, q2k
-  double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
+  double precision :: u1, u2, pz, q1k, q2k, zdum(0:0)
+  !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
+  double precision, dimension(0:n_cad-1)  :: xd_ub, z, flux_ub
   integer ::  j, k
 !External function
   external :: occultquad
@@ -126,25 +127,34 @@ implicit none
   u2 = u1*( 1.d0 - 2.d0*q2k)
   u1 = 2.d0*u1*q2k
 
-  !Let us reesample the time vector
+  !Selective re-sampling
   do j = 0, datas - 1
-   do k = 0, n_cad - 1
-       xd_ub(j,k) = xd(j) + t_cad*((k+1)-0.5*(n_cad+1))/n_cad 
-   end do
+
+    !Are we generating an eclipse?
+    call find_z(xd(j),pars,flag,zdum,1) 
+
+    if ( zdum(0) > 1.0 + pz ) then
+
+      muld(j) = 1.d0 !This is not eclipse
+
+    else   
+
+      do k = 0, n_cad - 1
+        xd_ub(k) = xd(j) + t_cad*((k+1)-0.5*(n_cad+1))/n_cad 
+      end do
+
+      call find_z(xd_ub,pars,flag,z,n_cad) 
+      !Now we have z, let us use Agol's routines
+      call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
+
+      !Re-bin the data
+      muld(j) = sum(flux_ub) / n_cad
+
+    end if
+
   end do
 
-  do j = 0, n_cad - 1
-    call find_z(xd_ub(:,j),pars,flag,z(:,j),datas) 
-    !Now we have z, let us use Agol's routines
-    call occultquad(z(:,j),u1,u2,pz,flux_ub(:,j),mu,datas)
-  end do
-
-  !Re-bin the data
-  do j = 0, datas - 1
-    muld(j) = sum(flux_ub(j,:)) / n_cad
-  end do
-
-  !Let us calculate the residuals
+    !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
   !Here I am assuming that we want limb darkening
   !If this is not true, use mu 
