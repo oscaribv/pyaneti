@@ -15,16 +15,16 @@ import sys
 import pyaneti as pti #FORTRAN module
 
 #Read the file with all the python functions
-execfile('todo-py.py')
+execfile('src/todo-py.py')
 
 #Read the file with the default values
-execfile('default.py')
+execfile('src/default.py')
 
 #Read input file
 execfile('input_fit.py')
 
 #Prepare data
-execfile('prepare_data.py')
+execfile('src/prepare_data.py')
 
 #PRIORS SECTION
 
@@ -324,10 +324,10 @@ else:
 #-------------------------------------------------------------
 
 #Print the values
-execfile('print_values.py')
+execfile('src/print_values.py')
 
 #Create plots
-execfile('plot_data.py')
+execfile('src/plot_data.py')
 
 if ( nplanets == 1):
 
