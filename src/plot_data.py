@@ -306,8 +306,8 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 def plot_histogram(rf=1):
 
 	if ( fit_tr and fit_rv ):
-		dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
-		dplabs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$','$k$']
+		dparams = [ chi2red[0::rf],t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
+		dplabs = ['$\chi^2_{red}$','$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$','$k$']
 
 		vlabs = [None]*nt
 		dvo = [None]*nt
@@ -432,8 +432,8 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 def plot_correlations(rf=19):
 
 	if ( fit_tr and fit_rv ):
-		dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
-		dplabs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$','$k$']
+		dparams = [chi2red[0::rf],t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
+		dplabs = ['$\chi^2_{red}$','$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$','$k$']
 
 		vlabs = [None]*nt
 		dvo = [None]*nt
