@@ -6,6 +6,31 @@
 #                 O. Barragan, March 2016
 #-----------------------------------------------------------
 
+#Constants
+#Solar and planetary constants according to IAU 2015
+# http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1605.09788
+#Sun
+S_radius_SI    = 6.957e8       	  #m
+S_radius_cgs   = S_radius_SI*1e2  #cm
+S_GM_SI        = 1.3271244e20     #m^3 s^{-1} 
+S_GM_cgs       = S_GM_SI*1e6      #cm^3 s^{-1} 
+G_SI	       = 6.67408e-11      #m^3 kg^{-1} s^{-2}		
+G_cgs	       = G_SI*1e3         #cm^3 g^{-1} s^{-2}
+S_vol_SI       = 4./3.*np.pi*S_radius_SI**3  #m^3 
+S_vol_cgs      = 4./3.*np.pi*S_radius_cgs**3 #cm^3
+S_den_SI       = S_GM_SI/G_SI/S_vol_SI    #kg/m^3
+S_den_cgs      = S_GM_cgs/G_cgs/S_vol_cgs #g/cm^3
+#Earth
+E_GM_SI        = 3.986004e14      #m^3 s^{-1} 
+E_radius_e_SI  = 6.3781e6         # ecuatorial radius [m]
+E_radius_p_SI  = 6.3568e6         # polar radius [m]
+#Jupiter
+J_GM_SI        = 1.2668653e17     #m^3 s^{-1} 
+J_radius_e_SI  = 7.1492e7         # ecuatorial radius [m]
+J_radius_p_SI  = 6.6854e7         # polar radius [m]
+#Other constants
+AU_SI = 1.4960e11 # m
+
 #Plot parameters
 units_ms = False
 ylab = 'RV (km/s)'

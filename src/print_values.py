@@ -6,249 +6,211 @@ minchi2_index = np.argmin(chi2)
 
 if ( nplanets == 1 ):
 
-	#If some parameters are transformed let us go back
+  #If some parameters are transformed let us go back
 
-	if (is_log_P):
-	  Po = np.power(10.,Po)
+  if (is_log_P):
+    Po = np.power(10.,Po)
 
-	if (is_ew):
-	  dummy_e = eo
-	  eo = eo * eo + wo * wo
-	  wo = np.arctan2(dummy_e,wo)
+  if (is_ew):
+    dummy_e = eo
+    eo = eo * eo + wo * wo
+    wo = np.arctan2(dummy_e,wo)
 
-	if ( fit_tr ):
-          #Take back the u1 and u2 values, Kipping 2013
-          du1 = 2*np.sqrt(u1o)*u2o
-          du2 = np.sqrt(u1o)*(1.-2.*u2o) 
-          u1o = du1
-          u2o = du2
-               
-          rpo = pzo * rstar
-	  if (is_sini):
-	    io = np.arcsin(io)
-	  inclination = io
-	  if (is_log_a):
-	    ao = np.power(10.,ao)
-          #calculate the impact parameter (eq. 7 Winn 2014)
-          bo =  ao * np.cos(io) * ( ( 1. - eo*eo ) / ( 1.0 + eo*np.sin(wo)))
-          #Transit durations aproximations (eq. 14, 15, 16 from Winn 2014)
-          ec_factor = np.sqrt(( 1. - eo*eo )) / ( 1.0 + eo*np.sin(wo))
-          tto = np.sqrt( (1. + pzo)**2 - bo**2 ) / ( ao * np.sin(io))
-          tto = Po / np.pi * np.arcsin(tto) * ec_factor * 24.0
-          tfo = np.sqrt( (1. - pzo)**2 - bo**2 ) / ( ao * np.sin(io))
-          tfo = Po / np.pi * np.arcsin(tfo) * ec_factor * 24.0
-          tfo = ( tto - tfo ) / 2.0 #ingress egress time
-          rhoo = get_rhostar(Po,ao)
+  if ( fit_tr ):
 
-	if ( fit_rv ):
-	  if ( is_log_k ):
-	    ko = np.power(10.,ko)
-	  for j in range(0,nt):
-	    if ( is_log_rv0 ):
-	      vo[j] = np.power(10.,vo[j])
+    if (is_sini):
+      io = np.arcsin(io)
+    inclination = io
+    if (is_log_a):
+      ao = np.power(10.,ao)
 
-		#Get tp and mass from the the values
-	  tpo = [None]*len(t0o) 
-	  masso = [None]*len(t0o) 
-	  for m in range(0,len(t0o)):
-	  	tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m],Po[m])
+    #Take back the u1 and u2 values, Kipping 2013
+    q1o = u1o
+    q2o = u2o
+    u1o = 2*np.sqrt(q1o)*q2o
+    u2o = np.sqrt(q1o)*(1.-2.*q2o) 
+ 
+    #Calculate the planet size in solar radii
+    #rstar must be given in solar radius           
+    rpo = pzo * rstar
+    
+    #calculate the impact parameter (eq. 7 Winn 2014)
+    bo =  ao * np.cos(io) * ( ( 1. - eo*eo ) / ( 1.0 + eo*np.sin(wo)))
+    #Transit durations aproximations (eq. 14, 15, 16 from Winn 2014)
+    ec_factor = np.sqrt(( 1. - eo*eo )) / ( 1.0 + eo*np.sin(wo))
+    tto = np.sqrt( (1. + pzo)**2 - bo**2 ) / ( ao * np.sin(io))
+    tto = Po / np.pi * np.arcsin(tto) * ec_factor * 24.0
+    tfo = np.sqrt( (1. - pzo)**2 - bo**2 ) / ( ao * np.sin(io))
+    tfo = Po / np.pi * np.arcsin(tfo) * ec_factor * 24.0
+    tfo = ( tto - tfo ) / 2.0 #ingress egress time
+    #Calculate the star density from transit data
+    #Eq. (30) Winn 2014
+    rhoo = get_rhostar(Po,ao) #cgs
+    #physical semi-mayor axis
+    aphyo = ao * rstar * S_radius_SI / AU_SI
 
-	  masso = planet_mass(mstar,ko*1.e3,Po,eo,inclination)
+  if ( fit_rv ):
 
-          if ( fit_tr ): #We can estimate planet density
-            rho_p = masso / ( rpo**3 )
-            rho_p = rho_p * 1.410 #sun density g/cm^3
+    if ( is_log_k ):
+      ko = np.power(10.,ko)
 
-	  if ( unit_mass == 'earth'):
-	  	masso = 332967.750577677 * masso
-                rpo = rpo / 0.009154
-	  elif ( unit_mass == 'jupiter'):
-	  	masso = 1047.353299069 * masso
-                rpo = rpo / 0.10045
+    for j in range(0,nt):
+      if ( is_log_rv0 ):
+        vo[j] = np.power(10.,vo[j])
+
+    #Get tp and mass from the the values
+    tpo = [None]*len(t0o) 
+    masso = [None]*len(t0o) 
+    for m in range(0,len(t0o)):
+      tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m],Po[m])
+
+    masso = planet_mass(mstar,ko*1.e3,Po,eo,inclination)
+
+    if ( fit_tr ):               
+      #We can estimate the planet density
+      rho_p = masso / ( rpo**3 ) #all is given in solar units
+      rho_p = rho_p * S_den_cgs  #sun density [g/cm^3]
+      #We can stimate planet surface gravity (eq. (31) Winn)
+      gpo = (Po*24.*3600.) * (pzo/ao)**2 * np.sin(io)
+      gpo = 2.*np.pi * np.sqrt(1. - eo*eo) * (ko*1.e5) / gpo # cm/s^2
+
+  #Change to earth or jupiter parameters
+  #based on IAU resolution http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1605.09788
+
+  if ( unit_mass == 'earth'):
+    if ( fit_rv ):
+      masso = masso * S_GM_SI / E_GM_SI
+    if ( fit_tr ):
+      rpo = rpo * S_radius_SI / E_radius_e_SI
+  elif ( unit_mass == 'jupiter'):
+    if ( fit_rv ):
+      masso = masso * S_GM_SI / J_GM_SI
+    if ( fit_tr ):
+      rpo = rpo * S_radius_SI / J_radius_e_SI
 	
 	
-	#Calculate the BIC
-	if (fit_rv and fit_tr ):
-		ndata = len(megax) + len(mega_rv)
-		npars = sum(what_fit) + nt - 1
-	elif(fit_rv and not fit_tr):
-		ndata = len(mega_rv)
-		npars = sum(what_fit) + nt - 1
-	elif(not fit_rv and fit_tr):
-		ndata = len(megax)
-		npars = sum(what_fit)
+  #Calculate the BIC
+  if (fit_rv and fit_tr ):
+    ndata = len(megax) + len(mega_rv)
+    npars = sum(what_fit) + nt - 1
+  elif(fit_rv and not fit_tr):
+    ndata = len(mega_rv)
+    npars = sum(what_fit) + nt - 1
+  elif(not fit_rv and fit_tr):
+    ndata = len(megax)
+    npars = sum(what_fit)
 			
 
-	if ( errores == 'gauss' ):
+  #Let us estimate the errors and print them
+  if ( errores == 'perc' ):
 
-		chi2_val, chi2_errs = find_vals_gauss(chi2red,nconv)
-		t0_val,t0_err = find_vals_gauss(t0o,nconv)
-		P_val, P_err  = find_vals_gauss(Po,nconv)
-		e_val,e_err 	= find_vals_gauss(eo,nconv)
-		w_val,w_err 	= find_vals_gauss(wo,nconv)
-		if (w_val < 0.0 ):
-			w_val = w_val + 2 * np.pi	
-		w_deg 		= w_val * 180. / np.pi
-		w_deg_err = w_err * 180. / np.pi
-		if ( fit_tr ):
-			inclination  = io
-			i_val,i_err 	= find_vals_gauss(io,nconv)
-			a_val,a_err 	= find_vals_gauss(ao,nconv)
-			u1_val,u1_err = find_vals_gauss(u1o,nconv)
-			u2_val,u2_err = find_vals_gauss(u2o,nconv)
-			pz_val,pz_err = find_vals_gauss(pzo,nconv)
-			i_deg 		= i_val * 180. / np.pi
-			i_deg_err = i_err * 180. / np.pi
-		if ( fit_rv ):
-			m_val, m_err	= find_vals_gauss(masso,nconv)
-			tp_val, tp_err= find_vals_gauss(tpo,nconv)
-			k_val, k_err  = find_vals_gauss(ko,nconv)
-			v_val = [None]*nt
-			v_err = [None]*nt
-			for j in range(0,nt):
-				v_val[j], v_err[j] = find_vals_gauss(vo[j],nconv)
+    #Obtain the minimin chi2 and calculate the reduced chi2
+    chi2tot_val  = np.amin(chi2)
+    chi2_val = chi2tot_val / ( ndata - npars )
 
-		t0_errl = t0_err
-		t0_errr = t0_err
-		P_errl = P_err
-		P_errr = P_err
-		e_errl = e_err
-		e_errr = e_err 
-		w_errl = w_err
-		w_errr = w_err
-		k_errl = k_err
-		k_errr = k_err
-		v_errl = [None]*nt
-		v_errr = [None]*nt
-		for m in range(0,nt):
-			v_errl[m] = v_err[m]
-			v_errr[m] = v_err[m]
+    if ( scale_error_bars ):
+      s_factor = np.sqrt( chi2_val )
+      if ( chi2_val > 1.0 ):
+        s_factor = 1.0 / s_factor
+    else:
+      s_factor = 1.0
 
-		#Print the best fit values values
-		print ('chi2_red = %1.4f +/- %1.4f' %(chi2_val,chi2_errs))
-                print ('')
-		print ('The best fit planet parameters are:')
-		print ('T0    = %4.4f +/- %4.4f days'%(t0_val,t0_err))
-		print ('P     = %4.4f +/- %4.4f days' 		%(P_val,P_err))
-		print ('e     = %4.4f +/- %4.4f     '			%(e_val,e_err))
-		print ('w     = %4.4f +/- %4.4f deg '	%(w_deg,w_deg_err))
-		if (fit_tr):
-			print ('i     = %4.4f +/- %4.4f deg' %(i_deg,i_deg_err))
-			print ('a/r*  = %4.4f +/- %4.4f    ' 		%(a_val,a_err))
-			print ('u1    = %4.4f +/- %4.4f    ' 		%(u1_val,u1_err))
-			print ('u2    = %4.4f +/- %4.4f    ' 		%(u2_val,u2_err))
-			print ('rp/r* = %4.4f +/- %4.4f    ' 		%(pz_val,pz_err))
-		if (fit_rv):
-			print ('K    = %4.4f +/- %4.4f m/s ' 		%(k_val/1.e-3,k_err/1e-3))
-			for i in range(0,nt):
-				print ('%s v0 = %4.4f +/- %4.4f km/s' 	%(telescopes[i], \
-				v_val[i],v_err[i]))
-                        print ('')
-                        print ('Derived quantities:')
-			print ('Tp   = %4.4f +/- %4.4f m/s ' 		%(tp_val,tp_err))
-			print ('mpsin= %4.4f +/- %4.4f %s masses '%(m_val,m_err, unit_mass))
-	
-	#Percentile errors
+    t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv,s_factor)
+    T0 = t0_val
+    P_val, P_errl, P_errr = find_vals_perc(Po,nconv,s_factor)
+    e_val,e_errl, e_errr = find_vals_perc(eo,nconv,s_factor)
+    w_val,w_errl, w_errr = find_vals_perc(wo,nconv,s_factor)
+    if (w_val < 0.0 ):
+      w_val = w_val + 2 * np.pi	
+    #Transform periastron from rad to degrees
+    w_deg = w_val * 180. / np.pi
+    w_deg_errl = w_errl * 180. / np.pi
+    w_deg_errr = w_errr * 180. / np.pi
 
-	if ( errores == 'perc' ):
-
-		s_factor = 1.0
-
-#		chi2tot_val, chi2tot_errl, chi2tot_errr = find_vals_perc(chi2,nconv,s_factor)
-#		chi2_val, chi2_errl, chi2_errr = find_vals_perc(chi2red,nconv,s_factor)
-
-		chi2tot_val  = np.amin(chi2)
-                chi2_val = chi2tot_val / ( ndata - npars )
-		#chi2_val  = np.amin(chi2red)
-
-		if ( scale_error_bars ):
-			s_factor = np.sqrt( chi2_val )
-			if ( chi2_val > 1.0 ):
-				s_factor = 1.0 / s_factor
-		else:
-			s_factor = 1.0
-
-
-		t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv,s_factor)
-                T0 = t0_val
-		P_val, P_errl, P_errr   = find_vals_perc(Po,nconv,s_factor)
-		e_val,e_errl, e_errr 	= find_vals_perc(eo,nconv,s_factor)
-		w_val,w_errl, w_errr 	= find_vals_perc(wo,nconv,s_factor)
-		if (w_val < 0.0 ):
-			w_val = w_val + 2 * np.pi	
-		w_deg = w_val * 180. / np.pi
-		w_deg_errl = w_errl * 180. / np.pi
-		w_deg_errr = w_errr * 180. / np.pi
-		if ( fit_tr ):
-			i_val,i_errl, i_errr 	= find_vals_perc(io,nconv,s_factor)
-			a_val,a_errl, a_errr 	= find_vals_perc(ao,nconv,s_factor)
-			u1_val,u1_errl, u1_errr = find_vals_perc(u1o,nconv,s_factor)
-			u2_val,u2_errl, u2_errr = find_vals_perc(u2o,nconv,s_factor)
-			pz_val,pz_errl, pz_errr = find_vals_perc(pzo,nconv,s_factor)
-			rp_val,rp_errl, rp_errr = find_vals_perc(rpo,nconv,s_factor)
-			b_val , b_errl, b_errr  = find_vals_perc(bo,nconv,s_factor)
-			tt_val , tt_errl, tt_errr  = find_vals_perc(tto,nconv,s_factor)
-			tf_val , tf_errl, tf_errr  = find_vals_perc(tfo,nconv,s_factor)
-			rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,nconv,s_factor)
-		        if ( fit_rv ):
-			  rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,nconv,s_factor)
-			i_deg = i_val * 180. / np.pi
-			i_deg_errl = i_errl * 180. / np.pi
-			i_deg_errr = i_errr * 180. / np.pi
-		if ( fit_rv ):
-			k_val, k_errl, k_errr  	= find_vals_perc(ko,nconv,s_factor)
-			m_val, m_errl, m_errr  	= find_vals_perc(masso,nconv,s_factor)
-			tp_val, tp_errl, tp_errr= find_vals_perc(tpo,nconv,s_factor)
-			v_val = [None]*nt
-			v_errl = [None]*nt
-			v_errr = [None]*nt
-			for j in range(0,nt):
-				v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv,s_factor)
+    if ( fit_tr ):
+      i_val,i_errl, i_errr = find_vals_perc(io,nconv,s_factor)
+      a_val,a_errl, a_errr = find_vals_perc(ao,nconv,s_factor)
+      aphy_val,aphy_errl, aphy_errr = find_vals_perc(aphyo,nconv,s_factor)
+      q1_val,q1_errl, q1_errr = find_vals_perc(q1o,nconv,s_factor)
+      q2_val,q2_errl, q2_errr = find_vals_perc(q2o,nconv,s_factor)
+      u1_val,u1_errl, u1_errr = find_vals_perc(u1o,nconv,s_factor)
+      u2_val,u2_errl, u2_errr = find_vals_perc(u2o,nconv,s_factor)
+      pz_val,pz_errl, pz_errr = find_vals_perc(pzo,nconv,s_factor)
+      rp_val,rp_errl, rp_errr = find_vals_perc(rpo,nconv,s_factor)
+      b_val , b_errl, b_errr  = find_vals_perc(bo,nconv,s_factor)
+      tt_val , tt_errl, tt_errr  = find_vals_perc(tto,nconv,s_factor)
+      tf_val , tf_errl, tf_errr  = find_vals_perc(tfo,nconv,s_factor)
+      rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,nconv,s_factor)
+      rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,nconv,s_factor)
+      gp_val,gp_errl, gp_errr = find_vals_perc(gpo,nconv,s_factor)
+      i_deg = i_val * 180. / np.pi
+      i_deg_errl = i_errl * 180. / np.pi
+      i_deg_errr = i_errr * 180. / np.pi
+    if ( fit_rv ):
+      k_val, k_errl, k_errr = find_vals_perc(ko,nconv,s_factor)
+      m_val, m_errl, m_errr  	= find_vals_perc(masso,nconv,s_factor)
+      tp_val, tp_errl, tp_errr= find_vals_perc(tpo,nconv,s_factor)
+      #Systemic velocities are stored in v_val
+      v_val = [None]*nt
+      v_errl = [None]*nt
+      v_errr = [None]*nt
+      for j in range(0,nt):
+        v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv,s_factor)
 	
 
-		npln = npars * np.log(ndata)	
+    npln = npars * np.log(ndata)	
 
-		#Print the best fit values values
-                print ('')
-                print 'Summary:'
-		print 'N_data      = ', ndata
-		print 'N_pars      = ', npars
-		print ('chi2       = %1.4f' %(chi2tot_val))
-		print 'DOF         = ', ndata - npars
-		print ('chi2_red   = %1.4f' %(chi2_val))
-		print 'scale factor= ', s_factor
-		print ('BIC        = %1.4f' %(chi2tot_val + npln))
-                print ('')
-		print ('The best fit planet parameters are:')
-		print ('T0    = %4.7f + %4.7f - %4.7f days'%(t0_val,t0_errr,t0_errl))
-		print ('P     = %4.7f + %4.7f - %4.7f days'%(P_val, P_errr , P_errl))
-		print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
-		print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
-		if (fit_tr):
-			print ('Transit fit parameters:')
-			print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))
-			print ('a/r*  = %4.4f + %4.4f - %4.4f    ' 		%(a_val, a_errr , a_errl))
-			print ('rp/r* = %4.4f + %4.4f - %4.4f    ' 		%(pz_val,pz_errr, pz_errl))
-			print ('u1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr, u1_errl))
-			print ('u2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr, u2_errl))
-                        print ('Derived quantities:')
-			print ('r_p   = %4.4f + %4.4f - %4.4f R_%s' 	        %(rp_val,rp_errr, rp_errl,unit_mass))
-			print ('b r*  = %4.4f + %4.4f - %4.4f' 	         	%(b_val,b_errr, b_errl))
-			print ('t_total = %4.4f + %4.4f - %4.4f hours' 		%(tt_val,tt_errr, tt_errl))
-			print ('t_in/eg = %4.4f + %4.4f - %4.4f hours' 		%(tf_val,tf_errr, tf_errl))
-			print ('rho_* = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rho_val,rho_errr, rho_errl))
-	        if (fit_rv):
-			print ('RV fit parameters:')
-			print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
-			for i in range(0,nt):
-				print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
-				v_val[i],v_errr[i],v_errl[i]))
-                        print ('')
-                        print ('Derived quantities:')
-			print ('Tp    = %4.4f + %4.4f - %4.4f days' 		%(tp_val,tp_errr, tp_errl))
-			print ('mp    = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
-                        if ( fit_tr ):
-			  print ('rho_p = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rhop_val,rhop_errr, rhop_errl))
+    #Print the best fit values values
+    print ('')
+    print 'Summary:'
+    print 'N_chains    = ', nwalkers
+    print 'N_conv      = ', nconv
+    print 'thin_factor = ', thin_factor
+    print 'N_data      = ', ndata
+    print 'N_pars      = ', npars
+    print ('chi2       = %1.4f' %(chi2tot_val))
+    print 'DOF         = ', ndata - npars
+    print ('chi2_red   = %1.4f' %(chi2_val))
+    print 'scale factor= ', s_factor
+    print ('BIC        = %1.4f' %(chi2tot_val + npln))
+    print ('')
+    print ('The best fit planet parameters are:')
+    print ('T0    = %4.7f + %4.7f - %4.7f days'%(t0_val,t0_errr,t0_errl))
+    print ('P     = %4.7f + %4.7f - %4.7f days'%(P_val, P_errr , P_errl))
+    print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
+    print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
+    if (fit_tr):
+      print ('Transit fit parameters:')
+      print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))
+      print ('a/r*  = %4.4f + %4.4f - %4.4f    ' 		%(a_val, a_errr , a_errl))
+      print ('rp/r* = %4.4f + %4.4f - %4.4f    ' 		%(pz_val,pz_errr, pz_errl))
+      print ('q_1    = %4.4f + %4.4f - %4.4f    ' 		%(q1_val,q1_errr, q1_errl))
+      print ('q_2    = %4.4f + %4.4f - %4.4f    ' 		%(q2_val,q2_errr, q2_errl))
+    if (fit_rv):
+      print ('RV fit parameters:')
+      print ('K     = %4.4f + %4.4f - %4.4f m/s' 		%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
+      for i in range(0,nt):
+        print ('%s v0  = %4.4f + %4.4f - %4.4f km/s' 	%(telescopes[i], \
+              v_val[i],v_errr[i],v_errl[i]))
+      print ('')
+    
+    print ('Derived parameters:')
+    if (fit_tr):
+      print ('r_p   = %4.4f + %4.4f - %4.4f R_%s' 	        %(rp_val,rp_errr, rp_errl,unit_mass))
+      print ('a   = %4.4f + %4.4f - %4.4f  AU ' 		%(aphy_val, aphy_errr , aphy_errl))  
+      print ('b r*  = %4.4f + %4.4f - %4.4f' 	         	%(b_val,b_errr, b_errl))
+      print ('t_total = %4.4f + %4.4f - %4.4f hours' 		%(tt_val,tt_errr, tt_errl))
+      print ('t_in/eg = %4.4f + %4.4f - %4.4f hours' 		%(tf_val,tf_errr, tf_errl))
+      print ('rho_* = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rho_val,rho_errr, rho_errl))
+      print ('u_1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr, u1_errl))
+      print ('u_2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr, u2_errl))
+    if (fit_rv):
+      print ('Tp    = %4.4f + %4.4f - %4.4f days' 		%(tp_val,tp_errr, tp_errl))
+      print ('mp    = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
+      if ( fit_tr ):
+        print ('rho_p = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rhop_val,rhop_errr, rhop_errl))
+        print ('g_p = %4.4f + %4.4f - %4.4f cm/s^2' 		%(gp_val,gp_errr, gp_errl))
+
 
 #Multiplanet fit
 else:
