@@ -67,7 +67,8 @@ implicit none
   integer :: i
   double precision :: limit
 
-  limit = 1.d0 + pz
+  !This works only for not grazing transits
+  limit = 1.d0 - 2.*pz
   is_good = .false.
   !At least we have to have one eclipse condition
   do i = 1, sizez - 2

@@ -664,7 +664,7 @@ implicit none
   double precision  :: q, q1k, q2k
   double precision  :: esin, ecos, aa, chi2_red_min
   integer :: o,j, n, nu, nk, n_burn, spar, new_thin_factor
-  logical :: get_out, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg
+  logical :: get_out, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg, is_eclipse
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   integer, dimension(0:nwalks-1) :: r_int
@@ -758,39 +758,25 @@ implicit none
   chi2_old_total(:) = huge(1.d4)
   aa = huge(1.e4)
 
-  do o = 1, 1
-
-  do nk = 0, nwalks - 1
+  nk = 0
+  do while ( nk < nwalks )
 
     print *, 'creating walker ', nk + 1
-
-    do while ( chi2_old_total(nk) > aa )
 
     j = 0
 
     do n = 0, 10 + nt - 1
 
-
       if ( wtf_all(n) == 0 ) then
+        !this parameter does not change
         params_old(n,nk) = params(n)
       else
         call random_number(r_real)
         params_old(n,nk) = limits(j+1) - limits(j)
         params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
       end if
-      !print *, params_old(n,nk), limits(j), limits(j+1)
       j = j + 2
     end do
-
-   !Check that u1 + u2 < 1 for ew
-!   is_limit_good = .false.
-!   do while ( .not. is_limit_good )
-!     call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
-!     if ( .not. is_limit_good  ) then
-!      params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
-!      params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
-!     end if
-!   end do
 
    !Check that e < 1 for ew
    if ( flag(1) ) then
@@ -807,21 +793,28 @@ implicit none
     params_tr = params_old(0:8,nk)
     params_rv(0:3) = params_old(0:3,nk)
     params_rv(4:4+nt) = params_old(9:9+nt,nk)
-    !Find the chi2 for each case
-    !call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
-    call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
-    call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
-    chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
-    !print *, chi2_old_total(nk)
 
-  end do
+    !Let us find z
+    call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
+    !Let us check if there is an eclipse
+    call check_eclipse(zr,params_tr(8),is_eclipse,dtr)
+    !if we do not have an eclipse, let us recalculate this wlaker
 
-  end do
+    if ( .not. is_eclipse ) then
+      nk = nk
+      print *, "Recalculating walker ", nk + 1
+    else
+      call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
+      call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
+      chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
+      nk = nk + 1
+    end if
+
+  end do !while ( nk < nwalks )
   
   aa = sum(chi2_old_total)/nwalks
   print *, 'mean chi2 =', aa
 
-  end do
 
   !stop
 
@@ -879,31 +872,16 @@ implicit none
       call find_gz(z_rand(nk),aa) 
     
       !Now we can have the evolved walker
-      do o = 0, 9 + nt
-      !params_new(o,nk) = params_new(o,nk) + wtf_all(o) * z_rand(nk) * &
-      !                 ( params_old(o,nk) - params_new(o,nk) )
-      params_new(o,nk) = params_new(o,nk) + z_rand(nk) * &
-                       ( params_old(o,nk) - params_new(o,nk) )
-      !params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
-      !                 ( params_old(:,nk) - params_new(:,nk) )
-      end do
-
-      !Let us check the limits
-      !call check_limits(params_new(:,nk),limits, &
-      !is_limit_good,4+nt)
+      params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
+                       ( params_old(:,nk) - params_new(:,nk) )
 
         !Let us check the limits
-        call check_limits(params_new(:,nk),limits_physical(:), &
-                          is_limit_good,10+nt)
+        call check_limits(params_new(:,nk),limits_physical(:),is_limit_good,10+nt)
         if ( is_limit_good ) then
-          ! u1 + u2 < 1 limit
-!          call check_us(params_new(6,nk),params_new(7,nk),is_limit_good)
-!          if (is_limit_good ) then
             !Check that e < 1 for ew
             if ( flag(1) ) then
               call check_e(params_new(2,nk),params_new(3,nk),dble(1.0), is_limit_good )
             end if          
-!          end if
         end if
 
       if ( is_limit_good ) then !evaluate chi2
@@ -911,19 +889,32 @@ implicit none
         params_tr = params_new(0:8,nk)
         params_rv(0:3) = params_new(0:3,nk)
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
+
         !Find the chi2 for each case
-        !call find_z(xd_tr,params_tr(0:5),flag_tr,zr,dtr)
-        call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_new_tr(nk),dtr)
-        call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),drv,nt,1)
+        call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
+        !Let us check if there is an eclipse
+        call check_eclipse(zr,params_tr(8),is_eclipse,dtr)
+        !if we do not have an eclipse
+
+        !NOW THIS IS CALCULATING TWO TIMES Z, 
+        !THINK ABOUT IT OSCAR!
+        if ( is_eclipse ) then
+          call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_new_tr(nk),dtr)
+          call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
+        else
+          chi2_new_total(nk) = huge(dble(0.0))
+        end if
+
       else !we do not have a good model
+
         chi2_new_total(nk) = huge(dble(0.0))
-        !print *, 'I almost collapse!'
+
       end if
 
       !Is the new model better? 
-      q = z_rand(nk)**( spar - 1 ) * &
-          dexp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
+      q = z_rand(nk)**( int(spar - 1) ) * &
+          exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
         chi2_old_total(nk) = chi2_new_total(nk)
@@ -1002,7 +993,7 @@ implicit none
             print *, 'STARTING BURNING-IN PHASE'
             print *, '==========================='
             is_burn = .True.
-            new_thin_factor = 50
+            new_thin_factor = thin_factor
             print *, 'Creating ', output_files
           end if
 
