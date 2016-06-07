@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.stats import norm, sigmaclip
 import sys
+import os
 import pyaneti as pti #FORTRAN module
 
 #Read the file with all the python functions
@@ -25,6 +26,11 @@ execfile('input_fit.py')
 
 #Prepare data
 execfile('src/prepare_data.py')
+
+#Create ouput directory
+outdir = 'pyout/' + star + '_out'
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
 
 #PRIORS SECTION
 
@@ -44,8 +50,6 @@ if (fit_rv):
 	for i in range(0,nt):
 		v0[i] = ( k0vecmin[i] + k0vecmax[i] ) / 2.0
 
-#if (fit_tr):
-#	T0 = min(xt[0]) + 0.5*(max(xt[0])-min(xt[0]))
 
 if ( is_circular ):
 	fit_e = False
@@ -115,11 +119,14 @@ if (fit_rv and fit_tr ):
 		print 'method = plot -> Plot of a previous run'
 		sys.exit('choose your favorite.')
 
-	print 'Reading the data file, wait a bit!'
+        print 'Reading the data file, wait a bit!'
 
+        newfile = outdir+'/'+star+'_rv-tr.dat'
+        os.rename('mh_fit.dat',newfile)
+        
 	#Read the data
 	vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko =  \
-	np.loadtxt('mh_fit.dat', comments='#',unpack=True, \
+	np.loadtxt(newfile, comments='#',unpack=True, \
 	usecols=range(0,13))
 	vo = [None]*nt
 	for j in range(0,nt):
@@ -175,9 +182,11 @@ elif ( not fit_rv and fit_tr ):
 
 	print 'Reading the data file, wait a bit!'
 
+        newfile = outdir+'/'+star+'_tr.dat'
+        os.rename('mh_trfit.dat',newfile)
 		#Read the data
 	vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
-        np.loadtxt('mh_trfit.dat', comments='#',unpack=True)
+        np.loadtxt(newfile, comments='#',unpack=True)
 
 #-------------------------------------------------------------
 #                   FIT RV CURVE ONLY
@@ -246,13 +255,6 @@ elif ( fit_rv and not fit_tr ):
 				limits[(10+j*2)+(5+nt)*2*m] = min_v0
 				limits[(11+j*2)+(5+nt)*2*m] = max_v0
 
-	if ( nplanets == 1):
-		out_file = 'planet1.dat'
-	elif ( nplanets > 1):
-		out_file = [None]*nplanets
-		for m in range(0,nplanets):
-			out_file[m] = 'planet' + str(m+1) + '.dat'
-
 
 	if ( method == 'mh' ):
 		pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err, \
@@ -278,15 +280,27 @@ elif ( fit_rv and not fit_tr ):
 
 	print 'Reading the data file, wait a bit!'
 
+	if ( nplanets == 1):
+	        out_file = 'planet1.dat'
+                newfile = outdir+'/'+star+'_rv.dat'
+                os.rename(out_file,newfile)
+	elif ( nplanets > 1):
+		out_file = [None]*nplanets
+                newfile = [None]*nplanets
+		for m in range(0,nplanets):
+			out_file[m] = 'planet' + str(m+1) + '.dat'
+                        newfile[m] = outdir+'/'+star+'_rv'+str(m+1)+'.dat'
+                        os.rename(out_file[m],newfile[m])
+
 	if ( nplanets == 1 ):
 		vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
-		np.loadtxt(out_file, comments='#', unpack=True,\
+		np.loadtxt(newfile, comments='#', unpack=True,\
 		usecols=range(0,8))
 		#Read the systemic velocities
 		vo = [None]*nt
 		for j in range(0,nt):
 			n = [8+j]
-			a = np.loadtxt(out_file, comments='#',unpack=True,\
+			a = np.loadtxt(newfile, comments='#',unpack=True,\
 					usecols=(n))
 			vo[j] = a
 	else:
@@ -302,13 +316,13 @@ elif ( fit_rv and not fit_tr ):
 		#each l index is for a different planet
 		for l in range(0,nplanets):
 			vari[l],chi2[l],chi2red[l],t0o[l],Po[l],eo[l], \
-			wo[l],ko[l] = np.loadtxt(out_file[l], comments='#', \
+			wo[l],ko[l] = np.loadtxt(newfile[l], comments='#', \
 										unpack=True, usecols=range(0,8))
 		#The  systemic velocities are the same for all the planets
 		vo = [None]*nt
 		for j in range(0,nt):
 			n = [8+j]
-			a = np.loadtxt(out_file[0], comments='#', \
+			a = np.loadtxt(newfile[0], comments='#', \
 					unpack=True, usecols=(n))
 			vo[j] = a
 		

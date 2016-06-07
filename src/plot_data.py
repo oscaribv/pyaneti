@@ -99,7 +99,7 @@ if ( nplanets == 1 ):
           plt.ylabel('Residuals')
           plt.xlabel("T - T0 (hours)")
           plt.minorticks_on()
-	  plt.savefig('transit_fit.pdf',format='pdf',bbox_inches='tight')
+	  plt.savefig(outdir+'/'+star+'_tr.pdf',format='pdf',bbox_inches='tight')
 	  plt.show()
 
 
@@ -178,8 +178,7 @@ if ( nplanets == 1 ):
                 yylims = ax1.get_ylim()
                 plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
                 plt.minorticks_on()
-		fname = 'planet1.pdf'
-		plt.savefig(fname,format='pdf',bbox_inches='tight')
+		plt.savefig(outdir+'/'+star+'_rv.pdf',format='pdf',bbox_inches='tight')
 		plt.show()
 
 
@@ -277,7 +276,7 @@ else:
 			for j in range(0,nt):
 				ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
 				label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
-			fname = 'planet' + str(i+1) + '.pdf'
+                        fname = outdir+'/'+star+str(i+1)+'_rv.pdf'
 			plt.savefig(fname,format='pdf',bbox_inches='tight')
 			plt.show()
 
@@ -300,7 +299,7 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 		plt.xlabel(plabs[i])
 		plt.hist(params[i],normed=True,bins=nb)
 
-	plt.savefig('histogram.pdf',format='pdf',bbox_inches='tight')
+	plt.savefig(outdir+'/'+star+'_histogram.pdf',format='pdf',bbox_inches='tight')
 	plt.show()
 
 def plot_histogram(rf=1):
@@ -403,7 +402,7 @@ def hist_mp_rv(cbars='red',nb=50):
 			plt.axvline(x=v_val[m]+v_errr[m],c=cbars,ls='--')
 			plt.xlabel('%s rv0'%(telescopes_labels[m]))
 			plt.hist(vo[m],normed=True,bins=nb)
-		plt.savefig('hist_params'+str(l)+'.pdf',format='pdf',bbox_inches='tight')
+		plt.savefig(outdir+'/'+star+'_hist_params'+str(l)+'.pdf',format='pdf',bbox_inches='tight')
 		plt.show()
 
 #===========================================================
@@ -426,7 +425,7 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 			else:
 				plt.tick_params( axis='x',which='both',labelbottom='off') 
 			plt.plot(params[j],params[i],c=col,marker=mark,ls='',alpha=0.5)
-	plt.savefig('correlations.pdf',format='pdf',bbox_inches='tight')
+	plt.savefig(outdir+'/'+star+'_correlations.pdf',format='pdf',bbox_inches='tight')
 	plt.show()
 
 def plot_correlations(rf=19):
