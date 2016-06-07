@@ -28,7 +28,7 @@ execfile('input_fit.py')
 execfile('src/prepare_data.py')
 
 #Create ouput directory
-outdir = 'pyout/' + star + '_out'
+outdir = 'outpy/' + star + '_out'
 if not os.path.exists(outdir):
     os.makedirs(outdir)
 
