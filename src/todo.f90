@@ -238,40 +238,12 @@ implicit none
   !f2py itent(in,out) :: z
   double precision, intent(in) :: a
 
-<<<<<<< HEAD:todo.f90
-  if ( z >= 1./ a .and. z <= a ) then
-    z = 1. / sqrt(z)
-=======
   if ( z >= 1.d0 / a .and. z <= a ) then
     z = 1.d0 / sqrt(z)
->>>>>>> e932e86:src/todo.f90
   else
     z = 0.0d0
   end if
 
-<<<<<<< HEAD:todo.f90
-end subroutine
-
-
-!Subroutine to generate a random array of integers
-!in the range 0 to n - 1
-subroutine random_int(r_int, n)
-implicit none
-
-  integer, intent(in) :: n
-  integer, dimension(0:n-1), intent(out) :: r_int
-  integer :: i
-  real :: r_real
-
-  do i = 0, n - 1
-    r_int(i) = i
-    do while ( r_int(i) == i )
-      call random_number( r_real )
-      r_int(i) = int( r_real * (n + 1 ) ) - 1
-    end do
-  end do
-=======
->>>>>>> e932e86:src/todo.f90
 
 end subroutine
 
