@@ -1,12 +1,12 @@
 FP=f2py
-fc=gfortran
+fc=gnu95
 cc=unix 
 
 FLAGS= -c -m
-SOURCES= 	ftr.f90\
-					frv.f90\
-					quad.f90\
-					todo.f90
+SOURCES= 	src/ftr.f90\
+					src/frv.f90\
+					src/quad.f90\
+					src/todo.f90
 
 EXECUTABLE=pyaneti
 

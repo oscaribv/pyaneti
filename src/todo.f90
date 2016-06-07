@@ -76,12 +76,12 @@ implicit none
   double precision, intent(out) :: tp
 !Local variables
   double precision :: theta_p
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
 
-  theta_p = atan2( sqrt(1.-e*e) * sin( pi/2. - w ), e + cos( pi/2. - w) )
-  theta_p = theta_p - e * sin(theta_p)
+  theta_p = atan2( sqrt( 1.d0 - e * e ) * sin( pi/ 2.d0  - w ), e + cos( pi / 2.d0  - w) )
+  theta_p = theta_p - e * sin( theta_p )
 
-  tp = t0 - theta_p * p / 2. / pi
+  tp = t0 - theta_p * p / 2.d0 / pi
 
 end subroutine
 
@@ -94,34 +94,35 @@ end subroutine
 !The output parameters are:
 ! ta -> True anomaly (vector with the same dimension that man)
 !------------------------------------------------------------
-subroutine find_anomaly(t,t0,e,w,P,ta,delta,imax,dt)
+subroutine find_anomaly(t,t0,e,w,P,ta,dt)
 implicit none
 !In/Out variables
   integer, intent(in) :: dt
   double precision, intent(in) , dimension(0:dt-1) :: t
   double precision, intent(out), dimension(0:dt-1) :: ta
-  double precision, intent(in) :: t0, e, w, P, delta
-  integer, intent(in) :: imax
+  double precision, intent(in) :: t0, e, w, P
 !Local variables
   integer :: i,n
   double precision, dimension(0:dt-1) :: ma, f, df, esin, ecos
-  double precision, parameter :: pi = 3.1415926535897932384626
+  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision :: uno, tp
+  double precision, parameter :: fmin=1.d-7
+  integer, parameter :: imax = int(1e8)
 !
-  uno = dble(1.)
+  uno = 1.0d0
 
   call find_tp(t0,e,w,P,tp)
 
   !Calculate the mean anomaly
-  ma = 2. * pi * ( t - tp ) / P
+  ma = 2.d0 * pi * ( t - tp ) / P
 
   !calculate the eccentric anomaly
   ta(:) = ma(:)
-  f(:) = delta * 10
+  f(:) = fmin * 1.0d1
   n = 0
 
   do i = 0, dt-1
-    do while ( abs(f(i)) >= delta .and. n <= imax )
+    do while ( abs(f(i)) >= fmin .and. n <= imax )
       f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
       df(i)  =   uno - e * cos(ta(i))
       ta(i)  = ta(i) - f(i) / df(i)
@@ -146,6 +147,56 @@ implicit none
   !end do
   !ta(:) = sqrt( ( uno + e ) / ( uno - e ) ) * tan(ta(:)*0.5) 
   !ta(:) = 2.0 * asin( ta(:) / (sqrt( uno + ta(:)*ta(:) ) ) )
+
+end subroutine
+
+!Gelman and Rubin statistics
+subroutine gr_test(par_chains,nchains,nconv,is_cvg)
+implicit none
+  
+!In/Out variables
+  integer, intent(in) :: nchains, nconv
+  double precision, intent(in), dimension(0:nconv-1,0:nchains-1) :: par_chains
+  logical, intent(out) :: is_cvg
+!Local variables
+  double precision :: W, B, V, R
+  double precision :: thetajj, delta
+  double precision, dimension(0:nchains-1):: sj2, thetaj
+  integer :: i
+
+  is_cvg = .false.
+  delta = 5.0d-2
+
+  !Let us calculate the mean of each chain
+  sj2(:) = 0.0d0
+  do i = 0, nchains - 1
+    thetaj(i) = sum(par_chains(:,i)) / nconv
+      sj2(i) = dot_product(( par_chains(:,i) - thetaj(i) ), &
+                           ( par_chains(:,i) - thetaj(i) ) )
+    sj2(i) = sj2(i) / ( dble(nconv) - 1.d0 )
+  end do
+
+  !Whithin chain variance
+  W = sum(sj2(:)) / nchains
+
+  thetajj = sum(thetaj(:)) / nchains
+
+  !Between chain variance
+  B = dot_product( ( thetaj(:) - thetajj),( thetaj(:) - thetajj) )
+  B = nconv * B / ( nchains - 1 )
+
+  !Estimated variance
+  V = W - (W - B) / nconv
+
+  !Potential scale reduction factor
+  R = sqrt ( V / W )
+
+
+  if ( R < 1.d0 + delta ) then
+      is_cvg = .true. 
+  else
+      print *,  'R = ', R,' delta = ', 1.d0 + delta
+  end if
 
 end subroutine
 
@@ -187,12 +238,18 @@ implicit none
   !f2py itent(in,out) :: z
   double precision, intent(in) :: a
 
+<<<<<<< HEAD:todo.f90
   if ( z >= 1./ a .and. z <= a ) then
     z = 1. / sqrt(z)
+=======
+  if ( z >= 1.d0 / a .and. z <= a ) then
+    z = 1.d0 / sqrt(z)
+>>>>>>> e932e86:src/todo.f90
   else
-    z = 0.0
+    z = 0.0d0
   end if
 
+<<<<<<< HEAD:todo.f90
 end subroutine
 
 
@@ -213,5 +270,116 @@ implicit none
       r_int(i) = int( r_real * (n + 1 ) ) - 1
     end do
   end do
+=======
+>>>>>>> e932e86:src/todo.f90
 
 end subroutine
+
+subroutine check_e(es,ec,el,is_good)
+implicit none
+
+  double precision, intent(in) :: es, ec, el
+  logical, intent(out) :: is_good
+
+  is_good = .true.
+
+  if ( es*es + ec*ec >= el ) is_good = .false.
+
+end subroutine
+
+subroutine check_us(u1,u2,is_good)
+implicit none
+
+  double precision, intent(in) :: u1, u2
+  logical, intent(out) :: is_good
+
+  is_good = .true.
+
+  if ( u1 + u2 > 1.d0 ) is_good = .false.
+
+end subroutine
+
+
+
+!Subroutine to create random integers between 0 and n
+subroutine random_int(r_int,n)
+implicit none
+
+  !In/Out variables
+  integer, intent(in) :: n
+  integer, intent(out), dimension(0:n-1) :: r_int
+  !Local variables
+  double precision :: r_real
+  integer :: i
+
+  do i = 0, n - 1
+    r_int(i) = i
+    do while ( r_int(i) == i )
+    call random_number(r_real)
+    r_int(i) = int( r_real *  n ) 
+    end do
+  end do
+
+
+end subroutine
+
+
+!Subroutine to check the limits of the parameters
+subroutine check_limits(params,limits,is_true,npar)
+implicit none
+
+  !In/Out variables
+  integer, intent(in) :: npar
+  double precision, intent(in) :: params(0:npar-1), &
+                                  limits(0:2*npar-1)
+  logical, intent(out) :: is_true
+  !Local variables
+  integer :: i, j
+
+  is_true = .true.
+  j = 0
+  do i = 0, npar - 1
+    if ( params(i) <= limits(j) .or. &
+         params(i) >= limits(j+1) ) then
+      is_true = .false.
+      exit
+    end if
+    j = j + 2
+  end do
+
+end subroutine
+
+
+!Create filenames
+
+subroutine createfieldbinaryfilename(i,fieldname,filename)
+implicit none
+!input variables
+     integer           :: i
+!    output variables
+        !Field name can be gasdens, gasvx, gasvy, etc
+     character(len=15) :: fieldname
+     character(len=30) :: filename
+!    subroutine variables
+     character(len=4)  :: ix
+
+        if (i.lt.10) then
+              write(ix,'(I1)') i
+        filename=trim(fieldname)//trim(ix)//'.dat'
+        endif
+        if ((i.ge.10).and.(i.lt.100)) then
+              write(ix,'(I2)') i
+        filename=trim(fieldname)//trim(ix)//'.dat'
+        endif
+        if ((i.ge.100).and.(i.lt.1000)) then
+              write(ix,'(I3)') i
+        filename=trim(fieldname)//trim(ix)//'.dat'
+        endif
+        if ((i.ge.1000)) then
+              write(ix,'(I4)') i
+        filename=trim(fieldname)//trim(ix)//'.dat'
+        endif
+
+     end subroutine
+
+  
