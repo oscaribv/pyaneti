@@ -278,9 +278,6 @@ elif ( fit_rv and not fit_tr ):
 
 	print 'Reading the data file, wait a bit!'
 
-	#Read the data
-	nconv = nconv * (nwalkers-1)
-
 	if ( nplanets == 1 ):
 		vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
 		np.loadtxt(out_file, comments='#', unpack=True,\
