@@ -77,12 +77,8 @@ if (fit_rv and fit_tr ):
 	params = np.concatenate((dummy,v0))
 
 	#Call the fit routine
-	if ( method == 'mh' ):
-		pti.metropolis_hastings(mega_time,mega_rv,mega_err,tlab \
-		,megax, megay, megae, params, prec, maxi, thin_factor, \
-		what_fit, flag, nconv)
 
-	elif ( method == 'sm' ):
+	if ( method == 'sm' ):
 
 		min_t0	= min(xt[0])
 		max_t0 	= max(xt[0])
@@ -114,7 +110,6 @@ if (fit_rv and fit_tr ):
 
 	else:
 		print 'You did not choose a method!'
-		print 'method = mh   -> Metropolis-Hasting'
 		print 'method = sm   -> Stretch move'
 		print 'method = plot -> Plot of a previous run'
 		sys.exit('choose your favorite.')
@@ -149,12 +144,7 @@ elif ( not fit_rv and fit_tr ):
 
 	params = [T0,P,e,w,ii,a,u1,u2,pz]
 
-	#Call fit routine
-	if ( method == 'mh' ):
-		pti.metropolis_hastings_tr(megax, megay, megae,  \
-		params, prec, maxi, thin_factor, what_fit,flag,nconv)
-
-	elif ( method == 'sm' ):
+	if ( method == 'sm' ):
                 #The transit time should be in the first window
 		limits = \
 		[ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
@@ -175,7 +165,6 @@ elif ( not fit_rv and fit_tr ):
 
 	else:
 		print 'You did not choose a method!'
-		print 'method = mh   -> Metropolis-Hasting'
 		print 'method = sm   -> Stretch move'
 		print 'method = plot -> Plot of a previous run'
 		sys.exit('choose your favorite.')
@@ -256,12 +245,7 @@ elif ( fit_rv and not fit_tr ):
 				limits[(11+j*2)+(5+nt)*2*m] = max_v0
 
 
-	if ( method == 'mh' ):
-		pti.metropolis_hastings_rv(mega_time,mega_rv,mega_err, \
-		tlab, params, prec, maxi, thin_factor, \
-		what_fit,flag,nconv)
-
-	elif ( method == 'sm' ):
+	if ( method == 'sm' ):
 
 		pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
   	params, limits, nwalkers, maxi, thin_factor, \
@@ -273,7 +257,6 @@ elif ( fit_rv and not fit_tr ):
 
 	else:
 		print 'You did not choose a method!'
-		print 'method = mh   -> Metropolis-Hasting'
 		print 'method = sm   -> Stretch move'
 		print 'method = plot -> Plot of a previous run'
 		sys.exit('choose your favorite.')
