@@ -71,6 +71,7 @@ a = 13.0
 u1 = 0.42
 u2 = 0.25
 pz = 0.5
+k0 = 1.0
 
 
 #Transit fit
@@ -123,14 +124,37 @@ max_i   = np.pi / 2.0  # 90 degrees
 min_a   = 1.5	       # The planet is outside the star
 max_a   = 1.e8	       # The planet is really far
 min_u1  = 0.0	       #
-max_u1  = 0.5          #
+max_u1  = 1.0          #
 min_u2  = 0.0	       #
-max_u2  = 0.5	       #
-min_pz  = 1.e-2	       # Earth size planet / sun
+max_u2  = 1.0	       #
+min_pz  = 1.e-3	       # Earth size planet / sun
 max_pz  = 0.99	       # a really big planet
 #rv fit
-min_k   = 1.e-3	       # m/s amplitudes
+min_k   = 5.e-4	       # m/s amplitudes
 max_k   = 30.	       # a really big planet
 min_rv0 = 1.	       #Systemic velocities
 max_rv0 = 100.	       #systemic velocities
 
+#Physical Limits
+min_phys_t0  = 0.0          #days
+max_phys_t0  = 1e6          #days
+min_phys_P   = 0.1 	       #days
+max_phys_P   = 1e4 	       #days
+min_phys_e   = 0.0       #zero
+max_phys_e   = 0.99999	       #one
+min_phys_w   = 0.0	       #rad
+max_phys_w   = 2*np.pi      #rad
+#transit fit
+min_phys_i   = 1.22173      # 70 degrees
+max_phys_i   = np.pi / 2.0  # 90 degrees
+min_phys_a   = 1.5	       # The planet is outside the star
+max_phys_a   = 1.e4	       # The planet is really far
+min_phys_u1  = 0.0	       #
+max_phys_u1  = 1.0             #
+min_phys_u2  = 0.0	       #
+max_phys_u2  = 1.0	       #
+min_phys_pz  = 1.e-3	       # Earth size planet / sun
+max_phys_pz  = 0.99	       # a really big planet
+#rv fit
+min_phys_k   = 5.e-4           # m/s amplitudes
+max_phys_k   = 30.	       # a really big planet
