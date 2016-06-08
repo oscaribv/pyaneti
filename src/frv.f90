@@ -161,7 +161,7 @@ implicit none
 end subroutine
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,maxi, &
+subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,a_factor,maxi, &
 thin_factor,wtf,flag,nconv,datas,nt,npl)
 implicit none
 
@@ -172,6 +172,7 @@ implicit none
   double precision, intent(in), dimension(0:npl*(5+nt)-1) :: pars
   double precision, intent(in), dimension(0:2*npl*(5+nt)-1) :: lims
   integer, intent(in), dimension(0:6*npl-1) :: wtf
+  double precision, intent(in) :: a_factor
   logical, intent(in) ::  flag(0:3)
 !Local variables
   double precision, dimension(0:5+nt-1,0:npl-1) :: params
@@ -314,9 +315,9 @@ implicit none
   !Initialize the values
   j = 1
   n = 0
+  aa = a_factor
   get_out = .TRUE.
   is_burn = .FALSE.
-  aa = 2.0d0 !this is suggested by the original paper
   n_burn = 1
 
   !The infinite cycle starts!
@@ -330,8 +331,11 @@ implicit none
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
 
-    call random_number(aa)
-    aa = 1.d0 + 9.9d1 * aa
+    !Let us vary aa randomlly
+    if ( a_factor < 1.0d0 ) then
+      call random_number(aa)
+      aa = 1.0d0 + thin_factor * aa 
+    end if
 
     do nk = 0, nwalks - 1 !walkers
       do m = 0, npl - 1
@@ -459,7 +463,7 @@ implicit none
             print *, 'STARTING BURNING-IN PHASE'
             print *, '==========================='
             is_burn = .True.
-            new_thin_factor = 50
+            new_thin_factor = thin_factor
             do m = 0, npl - 1
               print *, 'Creating ', output_files(m)
             end do

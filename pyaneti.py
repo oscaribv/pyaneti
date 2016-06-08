@@ -248,7 +248,7 @@ elif ( fit_rv and not fit_tr ):
 	if ( method == 'sm' ):
 
 		pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-  	params, limits, nwalkers, maxi, thin_factor, \
+  	params, limits, nwalkers, a_factor, maxi, thin_factor, \
 		what_fit,flag,nconv,datas=len(mega_time), \
 		nt=nt,npl=nplanets)
 
