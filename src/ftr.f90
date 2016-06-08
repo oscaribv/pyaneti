@@ -648,7 +648,7 @@ implicit none
 
     if ( a_factor <= 1.d0 ) then
       call random_number(aa)
-      aa = 1.d0 + 9.9d1 * aa
+      aa = 1.d0 + abs(aa*a_factor)
     end if
 
     do nk = 0, nwalks - 1 !walkers
@@ -776,7 +776,7 @@ implicit none
             print *, 'STARTING BURNING-IN PHASE'
             print *, '==========================='
             is_burn = .True.
-            new_thin_factor = 50
+            new_thin_factor = thin_factor
             print *, 'Creating ', output_files
           end if
 

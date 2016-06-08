@@ -165,7 +165,7 @@ implicit none
   integer :: i
 
   is_cvg = .false.
-  delta = 5.0d-2
+  delta = 1.0d-2
 
   !Let us calculate the mean of each chain
   sj2(:) = 0.0d0

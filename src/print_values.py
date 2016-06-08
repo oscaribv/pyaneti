@@ -141,8 +141,9 @@ if ( nplanets == 1 ):
       tt_val , tt_errl, tt_errr  = find_vals_perc(tto,nconv,s_factor)
       tf_val , tf_errl, tf_errr  = find_vals_perc(tfo,nconv,s_factor)
       rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,nconv,s_factor)
-      rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,nconv,s_factor)
-      gp_val,gp_errl, gp_errr = find_vals_perc(gpo,nconv,s_factor)
+      if ( fit_rv ):
+        rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,nconv,s_factor)
+        gp_val,gp_errl, gp_errr = find_vals_perc(gpo,nconv,s_factor)
       i_deg = i_val * 180. / np.pi
       i_deg_errl = i_errl * 180. / np.pi
       i_deg_errr = i_errr * 180. / np.pi
