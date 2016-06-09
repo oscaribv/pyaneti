@@ -135,7 +135,8 @@ if (fit_rv and fit_tr ):
   print 'Reading the data file, wait a bit!'
 
   newfile = outdir+'/'+star+'_rv-tr.dat'
-  os.rename('mh_fit.dat',newfile)
+  if ( not os.path.isfile(newfile) ):
+    os.rename('mh_fit.dat',newfile)
         
   #Read the data
   vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko =  \
@@ -194,7 +195,8 @@ elif ( not fit_rv and fit_tr ):
   print 'Reading the data file, wait a bit!'
 
   newfile = outdir+'/'+star+'_tr.dat'
-  os.rename('mh_trfit.dat',newfile)
+  if ( not os.path.isfile(newfile) ):
+    os.rename('mh_trfit.dat',newfile)
   #Read the data
   vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
   np.loadtxt(newfile, comments='#',unpack=True)
@@ -287,14 +289,16 @@ elif ( fit_rv and not fit_tr ):
   if ( nplanets == 1):
     out_file = 'planet1.dat'
     newfile = outdir+'/'+star+'_rv.dat'
-    os.rename(out_file,newfile)
+    if ( not os.path.isfile(newfile) ):
+      os.rename(out_file,newfile)
   elif ( nplanets > 1):
     out_file = [None]*nplanets
     newfile = [None]*nplanets
     for m in range(0,nplanets):
       out_file[m] = 'planet' + str(m+1) + '.dat'
       newfile[m] = outdir+'/'+star+'_rv'+str(m+1)+'.dat'
-      os.rename(out_file[m],newfile[m])
+      if ( not os.path.isfile(newfile[m]) ):
+        os.rename(out_file[m],newfile[m])
 
   if ( nplanets == 1 ):
     vari,chi2,chi2red,t0o,Po,eo,wo,ko = \

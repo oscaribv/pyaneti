@@ -622,7 +622,7 @@ implicit none
   nk = 0
   do while ( nk < nwalks )
 
-    print *, 'creating walker ', nk + 1
+!    print *, 'creating walker ', nk + 1
 
     j = 0
 
@@ -663,7 +663,7 @@ implicit none
 
     if ( .not. is_eclipse ) then
       nk = nk
-      print *, "Recalculating walker ", nk + 1
+!      print *, "Recalculating walker ", nk + 1
     else
       call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
       call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
