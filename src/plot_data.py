@@ -2,6 +2,44 @@
 
 from matplotlib import gridspec
 
+def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
+  plt.figure(3,figsize=(7,6))
+  gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
+  gs.update(hspace=0.00) 
+  ax0 = plt.subplot(gs[0])
+  plt.minorticks_on()
+  #plt.subplot(311)
+  ax0 = plt.xlabel("")
+  ax0 = plt.ylabel("RV (m/s)")
+  ax0 = plt.plot([0.,1.],[0.,0.],'k--')
+  ax0 = plt.plot(p_rv,rvy,'k',linewidth=1.0)
+  mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
+  for j in range(0,nt):
+    ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
+    label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
+
+  #ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4, ncol=nt, mode="expand", borderaxespad=0.)
+  plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
+
+  plt.xticks(np.arange(0.,1.01,0.1)) 
+  plt.tick_params( axis='x',which='both',labelbottom='off') 
+  #plt.subplot(312)
+  ax1 = plt.subplot(gs[1])
+  plt.xlabel("Orbital phase")
+  plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on') 
+  plt.xticks(np.arange(0.,1.01,0.1)) 
+  plt.ylabel('Residuals (m/s)')
+  plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
+  for j in range(0,nt):
+    plt.errorbar(p_all[j],res[j],errs_all[j],\
+    label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
+  yylims = ax1.get_ylim()
+  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
+  plt.minorticks_on()
+  plt.savefig(fname,format='pdf',bbox_inches='tight')
+  plt.show()
+
+
 #===========================================================
 #                   One planet plots
 #===========================================================
@@ -106,6 +144,7 @@ if ( nplanets == 1 ):
 	#=========================#
 	#        RV plot          #
 	#=========================#
+
   #Plot RV for one planet
 	def plot_rv_one():
 		k_dum = 1e3*k_val
@@ -144,42 +183,8 @@ if ( nplanets == 1 ):
 			for j in range(0,nt):
 				p_all[j] = scale_period(time_all[j],t0_val,P_val)
 
-
-		plt.figure(3,figsize=(7,6))
-		gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
-                gs.update(hspace=0.00) 
-		ax0 = plt.subplot(gs[0])
-                plt.minorticks_on()
-		#plt.subplot(311)
-		ax0 = plt.xlabel("")
-		ax0 = plt.ylabel("RV (m/s)")
-		ax0 = plt.plot([0.,1.],[0.,0.],'k--')
-		ax0 = plt.plot(p_rv,rvy,'k',linewidth=1.0)
-		mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
-		for j in range(0,nt):
-			ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
-			label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
-
-		#ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4, ncol=nt, mode="expand", borderaxespad=0.)
-		plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
-
-                plt.xticks(np.arange(0.,1.01,0.1)) 
-                plt.tick_params( axis='x',which='both',labelbottom='off') 
-		#plt.subplot(312)
-		ax1 = plt.subplot(gs[1])
-		plt.xlabel("Orbital phase")
-                plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on') 
-                plt.xticks(np.arange(0.,1.01,0.1)) 
-		plt.ylabel('Residuals (m/s)')
-		plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
-		for j in range(0,nt):
-			plt.errorbar(p_all[j],res[j],errs_all[j],\
-			label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
-                yylims = ax1.get_ylim()
-                plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
-                plt.minorticks_on()
-		plt.savefig(outdir+'/'+star+'_rv.pdf',format='pdf',bbox_inches='tight')
-		plt.show()
+		fname = outdir+'/'+star+'_rv.pdf'
+                plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname)
 
 
 #===========================================================
@@ -252,33 +257,8 @@ else:
 			for j in range(0,nt):
 				p_all[j] = scale_period(time_all[j],t0_val[i],P_val[i])
 
-			plt.figure(3,figsize=(7,6))
-			gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[1.618, 1])
-			ax0 = plt.subplot(gs[0])
-			#plt.subplot(311)
-			ax0 = plt.xlabel("")
-			ax0 = plt.ylabel("RV (m/s)")
-			ax0 = plt.plot([0.,1.],[0.,0.],'k--')
-			ax0 = plt.plot(p_rv[i],rvy[i],'k')
-                        plt.minorticks_on()
-			mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
-			for j in range(0,nt):
-				ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
-				label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
-				ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4,
-		     ncol=nt, mode="expand", borderaxespad=0.)
-			#plt.subplot(312)
-			ax1 = plt.subplot(gs[1])
-			ax1 = plt.xlabel("Orbital phase")
-			ax1 = plt.ylabel('Residuals (m/s)')
-			ax1 = plt.plot([0.,1.],[0.,0.],'k--')
-                        plt.minorticks_on()
-			for j in range(0,nt):
-				ax1 = plt.errorbar(p_all[j],res[j],errs_all[j],\
-				label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
                         fname = outdir+'/'+star+str(i+1)+'_rv.pdf'
-			plt.savefig(fname,format='pdf',bbox_inches='tight')
-			plt.show()
+                        plot_rv_fancy(p_rv[i],rvy[i],p_all,rv_dum,errs_all,res,telescopes_labels,fname)
 
 #===========================================================
 #                   Histogram plots
