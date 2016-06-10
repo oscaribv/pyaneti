@@ -59,7 +59,7 @@ if ( nplanets == 1 ):
           flag = [False, False, False, False]
 	  z_val = pti.find_z(megax,[t0_val,P_val,e_val,w_val
 		  ,i_val,a_val],flag)
-	  mud_val, mu0_val = pti.occultquad(z_val,u1_val,u2_val\
+	  mud_val, mu0_val = pti.occultquad(z_val,q1_val,q2_val\
 		  ,pz_val)
 	  #Residuals
 	  res = megay - mud_val
@@ -84,9 +84,9 @@ if ( nplanets == 1 ):
 
           for m in range(0,n_cad):
              zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
-	     fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,pz_val)
+	     fd_ub[m], dummm = pti.occultquad(zd_ub[m],q1_val,q2_val,pz_val)
              zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
-	     fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,pz_val)
+	     fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],q1_val,q2_val,pz_val)
 
 	  fd_reb = [0.0]*len(megax)
 	  fd_reb_res = [0.0]*len(megax)
@@ -105,7 +105,7 @@ if ( nplanets == 1 ):
 	  for i in range(1,nvec):
 	    xvec[i] = xvec[i-1] + dx
 	  zvec = pti.find_z(xvec,[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
-	  mud, mu0 = pti.occultquad(zvec,u1_val,u2_val,pz_val)
+	  mud, mu0 = pti.occultquad(zvec,q1_val,q2_val,pz_val)
 	  #Now we have data to plot a nice model
 
 	  #Do the plot
@@ -285,8 +285,8 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 def plot_histogram(rf=1):
 
 	if ( fit_tr and fit_rv ):
-		dparams = [ chi2red[0::rf],t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
-		dplabs = ['$\chi^2_{red}$','$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$','$k$']
+		dparams = [ chi2red[0::rf],t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf],ko[0::rf]]
+		dplabs = ['$\chi^2_{red}$','$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$','$k$']
 
 		vlabs = [None]*nt
 		dvo = [None]*nt
@@ -302,8 +302,8 @@ def plot_histogram(rf=1):
 
 
 	if ( fit_tr and not fit_rv ):
-		params = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf]]
-		labs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$']
+		params = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf]]
+		labs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$']
 	
 		create_plot_histogram(params,labs)
 
@@ -411,8 +411,8 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 def plot_correlations(rf=19):
 
 	if ( fit_tr and fit_rv ):
-		dparams = [chi2red[0::rf],t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],u1o[0::rf],u2o[0::rf],pzo[0::rf],ko[0::rf]]
-		dplabs = ['$\chi^2_{red}$','$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$','$k$']
+		dparams = [chi2red[0::rf],t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf],ko[0::rf]]
+		dplabs = ['$\chi^2_{red}$','$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$','$k$']
 
 		vlabs = [None]*nt
 		dvo = [None]*nt
@@ -428,8 +428,8 @@ def plot_correlations(rf=19):
 
 	if ( fit_tr and not fit_rv ):
 
-		params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],io[1::rf],ao[1::rf],u1o[1::rf],u2o[1::rf],pzo[1::rf]]
-		labs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$u1$','$u2$','$R_p/R_*$']
+		params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],io[1::rf],ao[1::rf],q1o[1::rf],q2o[1::rf],pzo[1::rf]]
+		labs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$']
 	
 		create_plot_correlation(params,labs,col='blue')
 

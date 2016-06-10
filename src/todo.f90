@@ -237,6 +237,9 @@ implicit none
   double precision, intent(inout) :: z
   !f2py itent(in,out) :: z
   double precision, intent(in) :: a
+  double precision :: c
+
+  c = 0.5 * ( sqrt(a) - 1./sqrt(a) )
 
   if ( z >= 1.d0 / a .and. z <= a ) then
     z = 1.d0 / sqrt(z)
@@ -321,6 +324,25 @@ implicit none
 
 end subroutine
 
+subroutine gauss_random_bm(mu,sigma,valor,n)
+implicit none
+
+  !In/Out variables
+  integer, intent(in) :: n
+  double precision, intent(in) :: mu, sigma
+  double precision, intent(out), dimension(0:n-1) :: valor
+  !Local variables
+  double precision, dimension(0:2*n-1) :: r_real
+  double precision, parameter :: two_pi = 2*3.1415926535897932384626d0
+
+  call random_number(r_real)
+
+  valor(:) = sqrt( - 2.d0 * log(r_real(0:n-1)) ) * &
+             cos( two_pi * r_real(n:2*n-1))
+
+  valor(:) = sigma * valor(:) + mu
+
+end subroutine
 
 !Create filenames
 
