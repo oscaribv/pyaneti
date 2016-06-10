@@ -53,8 +53,10 @@ if (fit_rv):
   #Estimate k priors and limits from data
   if ( P.__class__ == float  ):
     max_phys_k = (max_rv0 - min_rv0) / 2.0 
+    max_k = (max_rv0 - min_rv0) / 2.0 
   else:
     max_phys_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
+    max_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
   #P
   max_phys_P = max(mega_time) - min(mega_time)
   #T0
