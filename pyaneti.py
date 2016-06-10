@@ -15,6 +15,16 @@ import sys
 import os
 import pyaneti as pti #FORTRAN module
 
+#Load the input file
+#You have to run the program as ./pyaneti star_name
+star = str(sys.argv[1])
+
+inf_name = 'inpy/'+star+'/input_fit.py'
+
+if ( not os.path.isfile( inf_name ) ):
+  print 'You have not created', inf_name
+  sys.exit()
+
 #Read the file with all the python functions
 execfile('src/todo-py.py')
 
@@ -22,7 +32,7 @@ execfile('src/todo-py.py')
 execfile('src/default.py')
 
 #Read input file
-execfile('input_fit.py')
+execfile(inf_name)
 
 #Prepare data
 execfile('src/prepare_data.py')
@@ -85,10 +95,10 @@ if (fit_rv and fit_tr ):
   flag = [is_log_P,is_ew,is_sini,is_log_a,is_log_k,is_log_rv0]
 
   what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
-              int(fit_i),int(fit_a),int(fit_u1),int(fit_u2),\
+              int(fit_i),int(fit_a),int(fit_q1),int(fit_q1),\
               int(fit_pz), int(fit_k), int(fit_v0)]
 
-  dummy = [T0,P,e,w,ii,a,u1,u2,pz,k0]
+  dummy = [T0,P,e,w,ii,a,q1,q1,pz,k0]
   params = np.concatenate((dummy,v0))
 
   #Call the fit routine
@@ -107,13 +117,13 @@ if (fit_rv and fit_tr ):
 
     dummy_lims = \
     [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
-    , min_i, max_i, min_a, max_a, min_u1, max_u1, min_u2, \
-      max_u2, min_pz, max_pz, min_k, max_k]
+    , min_i, max_i, min_a, max_a, min_q1, max_q1, min_q1, \
+      max_q1, min_pz, max_pz, min_k, max_k]
 
     dummy_lims_physical = \
     [min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w \
-    , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_u1, max_phys_u1, min_phys_u2, \
-    max_phys_u2, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k]
+    , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
+    max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k]
 
     limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
     limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
@@ -138,7 +148,7 @@ if (fit_rv and fit_tr ):
     os.rename('mh_fit.dat',newfile)
         
   #Read the data
-  vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo,ko =  \
+  vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko =  \
   np.loadtxt(newfile, comments='#',unpack=True, \
   usecols=range(0,13))
   vo = [None]*nt
@@ -162,22 +172,22 @@ elif ( not fit_rv and fit_tr ):
   flag = [is_log_P, is_ew, is_sini, is_log_a]
 
   what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
-                int(fit_i),int(fit_a), int(fit_u1),int(fit_u2),\
+                int(fit_i),int(fit_a), int(fit_q1),int(fit_q1),\
                 int(fit_pz)]
 
-  params = [T0,P,e,w,ii,a,u1,u2,pz]
+  params = [T0,P,e,w,ii,a,q1,q1,pz]
 
   if ( method == 'sm' ):
     #The transit time should be in the first window
     limits = \
     [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
-    , min_i, max_i, min_a, max_a, min_u1, max_u1, \
-    min_u2, max_u2, min_pz, max_pz]
+    , min_i, max_i, min_a, max_a, min_q1, max_q1, \
+    min_q1, max_q1, min_pz, max_pz]
                
     limits_physical = \
     [min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w \
-    , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_u1, max_phys_u1, min_phys_u2, \
-    max_phys_u2, min_phys_pz, max_phys_pz]
+    , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
+    max_phys_q1, min_phys_pz, max_phys_pz]
 
     pti.stretch_move_tr(megax, megay, megae,  \
     params,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor,n_cad,t_cad, what_fit,flag,nconv)
@@ -197,7 +207,7 @@ elif ( not fit_rv and fit_tr ):
   if ( os.path.isfile('mh_trfit.dat') ):
     os.rename('mh_trfit.dat',newfile)
   #Read the data
-  vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
+  vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo = \
   np.loadtxt(newfile, comments='#',unpack=True)
 
 #-------------------------------------------------------------

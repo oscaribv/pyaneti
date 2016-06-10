@@ -68,11 +68,13 @@ e = 0.1
 w = 3.1415926 / 2.0
 ii = 3.1415026 / 2.0
 a = 13.0
-u1 = 0.42
-u2 = 0.25
+q1 = 0.42
+q2 = 0.25
 pz = 0.5
 k0 = 1.0
 
+
+columns_tr = [0,1,2]
 
 #Transit fit
 nbin = 16
@@ -93,8 +95,8 @@ fit_w   = True
 #transit fit
 fit_i   = True
 fit_a   = True
-fit_u1  = True
-fit_u2  = True
+fit_q1  = True
+fit_q2  = True
 fit_pz  = True
 #rv fit
 fit_k   = True
@@ -123,10 +125,10 @@ min_i   = 1.22173      # 70 degrees
 max_i   = np.pi / 2.0  # 90 degrees
 min_a   = 1.5	       # The planet is outside the star
 max_a   = 1.e8	       # The planet is really far
-min_u1  = 0.0	       #
-max_u1  = 1.0          #
-min_u2  = 0.0	       #
-max_u2  = 1.0	       #
+min_q1  = 0.0	       #
+max_q1  = 1.0          #
+min_q2  = 0.0	       #
+max_q2  = 1.0	       #
 min_pz  = 1.e-3	       # Earth size planet / sun
 max_pz  = 0.99	       # a really big planet
 #rv fit
@@ -149,10 +151,10 @@ min_phys_i   = 1.22173      # 70 degrees
 max_phys_i   = np.pi / 2.0  # 90 degrees
 min_phys_a   = 1.5	       # The planet is outside the star
 max_phys_a   = 1.e4	       # The planet is really far
-min_phys_u1  = 0.0	       #
-max_phys_u1  = 1.0             #
-min_phys_u2  = 0.0	       #
-max_phys_u2  = 1.0	       #
+min_phys_q1  = 0.0	       #
+max_phys_q1  = 1.0             #
+min_phys_q2  = 0.0	       #
+max_phys_q2  = 1.0	       #
 min_phys_pz  = 1.e-3	       # Earth size planet / sun
 max_phys_pz  = 0.99	       # a really big planet
 #rv fit

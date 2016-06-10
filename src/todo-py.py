@@ -238,8 +238,8 @@ def print_init():
   if (fit_tr):
     print 'fitting i      = ', fit_i
     print 'fitting a      = ', fit_a
-    print 'fitting q1     = ', fit_u1
-    print 'fitting q2     = ', fit_u2
+    print 'fitting q1     = ', fit_q1
+    print 'fitting q2     = ', fit_q2
     print 'fitting pz     = ', fit_pz
   if (fit_rv):
     print 'fitting k      = ', fit_k

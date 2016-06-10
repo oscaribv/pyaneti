@@ -25,8 +25,6 @@ if ( nplanets == 1 ):
       ao = np.power(10.,ao)
 
     #Take back the u1 and u2 values, Kipping 2013
-    q1o = u1o
-    q2o = u2o
     u1o = 2*np.sqrt(q1o)*q2o
     u2o = np.sqrt(q1o)*(1.-2.*q2o) 
  
