@@ -1,6 +1,5 @@
 from matplotlib import gridspec
 
-
 #what is the minimum chi2
 minchi2_index = np.argmin(chi2)
 
@@ -113,6 +112,19 @@ if ( nplanets == 1 ):
     else:
       s_factor = 1.0
 
+    #Input stellar parameters
+    if (mstar.__class__ == float ):
+      ms_val = mstar
+      ms_errr = 0.0
+      ms_errl = 0.0
+      rs_val = rstar
+      rs_errr = 0.0
+      rs_errl = 0.0
+    else:
+      ms_val, ms_errl, ms_errr = find_vals_perc(mstar,nconv,1.0)
+      rs_val, rs_errl, rs_errr = find_vals_perc(rstar,nconv,1.0)
+
+
     t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv,s_factor)
     T0 = t0_val
     P_val, P_errl, P_errr = find_vals_perc(Po,nconv,s_factor)
@@ -172,6 +184,9 @@ if ( nplanets == 1 ):
     print ('chi2_red   = %1.4f' %(chi2_val))
     print 'scale factor= ', s_factor
     print ('BIC        = %1.4f' %(chi2tot_val + npln))
+    print 'Input stellar parameters'
+    print ('M_*     = %4.7f + %4.7f - %4.7f solar masses'%(ms_val,ms_errr,ms_errl))
+    print ('R_*     = %4.7f + %4.7f - %4.7f solar radii'%(rs_val, rs_errr , rs_errl))
     print ('')
     print ('The best fit planet parameters are:')
     print ('T0    = %4.7f + %4.7f - %4.7f days'%(t0_val,t0_errr,t0_errl))
