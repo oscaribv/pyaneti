@@ -34,8 +34,6 @@ if not os.path.exists(outdir):
 
 #PRIORS SECTION
 
-print 'ESTIMATING PRIORS'
-
 #Let us try to do a guess for the init values
 if (fit_rv):
   #Estimate systemic velocity priors and limits from data
@@ -43,8 +41,12 @@ if (fit_rv):
   max_rv0 = max(mega_rv)
   v0 = [min_rv0]*nt
   #Estimate k priors and limits from data
-  max_k = (max_rv0 - min_rv0) / 2.0 
-  max_phys_k = max_k
+  if ( P.__class__ == float  ):
+    max_k = (max_rv0 - min_rv0) / 2.0 
+    max_phys_k = max_k
+  else:
+    max_k = [(max_rv0 - min_rv0) / 2.0]*nplanets 
+    max_phys_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
   #P
   max_phys_P = max(mega_time) - min(mega_time)
   #T0
@@ -62,9 +64,6 @@ if (fit_tr):
   min_phys_t0 = min(megax)
   max_phys_t0 = max(megax)
 
-#print 'PRIORS'
-#print min_rv0, max_rv0, min_k, max_k, min_phys_pz, max_phys_pz
-#sys.exit('')
 
 if ( is_circular ):
   fit_e = False
@@ -135,7 +134,7 @@ if (fit_rv and fit_tr ):
   print 'Reading the data file, wait a bit!'
 
   newfile = outdir+'/'+star+'_rv-tr.dat'
-  if ( not os.path.isfile(newfile) ):
+  if ( os.path.isfile('mh_fit.dat') ):
     os.rename('mh_fit.dat',newfile)
         
   #Read the data
@@ -195,7 +194,7 @@ elif ( not fit_rv and fit_tr ):
   print 'Reading the data file, wait a bit!'
 
   newfile = outdir+'/'+star+'_tr.dat'
-  if ( not os.path.isfile(newfile) ):
+  if ( os.path.isfile('mh_trfit.dat') ):
     os.rename('mh_trfit.dat',newfile)
   #Read the data
   vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,u1o,u2o,pzo = \
@@ -265,8 +264,8 @@ elif ( fit_rv and not fit_tr ):
       limits[8+(5+nt)*2*m] = min_k[m]
       limits[9+(5+nt)*2*m] = max_k[m]
       for j in range(0,nt):
-        limits[(10+j*2)+(5+nt)*2*m] = min_v0
-        limits[(11+j*2)+(5+nt)*2*m] = max_v0
+        limits[(10+j*2)+(5+nt)*2*m] = min_rv0
+        limits[(11+j*2)+(5+nt)*2*m] = max_rv0
 
   if ( method == 'sm' ):
 
@@ -289,7 +288,7 @@ elif ( fit_rv and not fit_tr ):
   if ( nplanets == 1):
     out_file = 'planet1.dat'
     newfile = outdir+'/'+star+'_rv.dat'
-    if ( not os.path.isfile(newfile) ):
+    if ( os.path.isfile(out_file) ):
       os.rename(out_file,newfile)
   elif ( nplanets > 1):
     out_file = [None]*nplanets
@@ -297,7 +296,7 @@ elif ( fit_rv and not fit_tr ):
     for m in range(0,nplanets):
       out_file[m] = 'planet' + str(m+1) + '.dat'
       newfile[m] = outdir+'/'+star+'_rv'+str(m+1)+'.dat'
-      if ( not os.path.isfile(newfile[m]) ):
+      if ( os.path.isfile(out_file[m]) ):
         os.rename(out_file[m],newfile[m])
 
   if ( nplanets == 1 ):

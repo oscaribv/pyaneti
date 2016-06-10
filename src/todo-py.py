@@ -227,42 +227,55 @@ def print_init():
   print '------------------------------'
   print 'is_circular    = ', is_circular
   print 'iter max       = ', maxi
-  print 'step precision = ', prec
   print 'thin factor    =', thin_factor
   print 'nconv          =',nconv
   print 'fit RV         =', fit_rv
   print 'fit Transit    =', fit_tr
-  print '------------------------------'
-  print '          Priors              '
-  print '------------------------------'
-  print 'T_0         = ', T0
-  print 'Period      = ', P
-  print 'eccentriciy =', e
-  print 'periastron  =', w
+  print 'fitting T0     = ', fit_t0
+  print 'fitting P      = ', fit_P
+  print 'fitting e      = ', fit_e
+  print 'fitting w      = ', fit_w
   if (fit_tr):
-    print 'sin(i)    = ', np.sin(ii)
-    print 'a/r*      = ', a
-    print 'u1        = ', u1
-    print 'u2        = ', u2
-    print 'rp/r*     = ', pz
-  print '------------------------------'
-  print '     What am I fitting?       '
-  print '------------------------------'
-  print 'fit T0= ', fit_t0
-  print 'fit P = ', fit_P
-  print 'fit e = ', fit_e
-  print 'fit w = ', fit_w
-  if (fit_tr):
-    print 'fit i = ', fit_i
-    print 'fit a = ', fit_a
-    print 'fit u1= ', fit_u1
-    print 'fit u2= ', fit_u2
-    print 'fit pz= ', fit_pz
+    print 'fitting i      = ', fit_i
+    print 'fitting a      = ', fit_a
+    print 'fitting q1     = ', fit_u1
+    print 'fitting q2     = ', fit_u2
+    print 'fitting pz     = ', fit_pz
   if (fit_rv):
-    print 'fit k = ', fit_k
-    print 'fit v0= ', fit_v0
+    print 'fitting k      = ', fit_k
+    print 'fitting v0     = ', fit_v0
+  print '------------------------------'
+  print '        PRIOR RANGES          '
+  print '------------------------------'
+  if ( min_t0.__class__ == float ):
+    print ('T0 = [ %4.4f , %4.4f ]' %(min_t0,max_t0))
+    print ('P  = [ %4.4f , %4.4f ]' %(min_P,max_P))
+    print ('e  = [ %4.4f , %4.4f ]' %(min_e,max_e))
+    print ('w  = [ %4.4f , %4.4f ]' %(min_w,max_w))
+    if (fit_tr):
+      print ('i  = [ %4.4f , %4.4f ]' %(min_i,max_i))
+      print ('a  = [ %4.4f , %4.4f ]' %(min_a,max_a))
+      print ('pz = [ %4.4f , %4.4f ]' %(min_pz,max_pz))
+      print ('q1 = [ %4.4f , %4.4f ]' %(min_q1,max_q1))
+      print ('q2 = [ %4.4f , %4.4f ]' %(min_q2,max_q2))
+    if (fit_rv):
+      print ('K  = [ %4.4f , %4.4f ]' %(min_k,max_k))
+      print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0,max_rv0))
+  else:
+    for j in range(0,nplanets):
+      print 'Planet ', j + 1
+      print ('T0 = [ %4.4f , %4.4f ]' %(min_t0[j],max_t0[j]))
+      print ('P  = [ %4.4f , %4.4f ]' %(min_P[j],max_P[j]))
+      print ('e  = [ %4.4f , %4.4f ]' %(min_e[j],max_e[j]))
+      print ('w  = [ %4.4f , %4.4f ]' %(min_w[j],max_w[j]))
+      if (fit_tr):
+        print ('i  = [ %4.4f , %4.4f ]' %(min_i[j],max_i[j]))
+        print ('a  = [ %4.4f , %4.4f ]' %(min_a[j],max_a[j]))
+        print ('pz = [ %4.4f , %4.4f ]' %(min_pz[j],max_pz[j]))
+        print ('q1 = [ %4.4f , %4.4f ]' %(min_q1[j],max_q1[j]))
+        print ('q2 = [ %4.4f , %4.4f ]' %(min_q2[j],max_q2[j]))
+      if (fit_rv):
+        print ('K  = [ %4.4f , %4.4f ]' %(min_k[j],max_k[j]))
+        print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0,max_rv0))
   print '------------------------------'
   print '=============================='
-  print ''
-
-

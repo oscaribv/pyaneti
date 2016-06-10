@@ -336,11 +336,11 @@ else:
 				#chi2tot_val[l], chi2tot_errl[l], chi2tot_errr[l] = find_vals_perc(chi2[l],nconv,s_factor)
 				#chi2_val[l], chi2_errl[l], chi2_errr[l] = find_vals_perc(chi2red[l],nconv,s_factor)
 				chi2tot_val[l] = np.amin(chi2[l])
-                                chi2_val = chi2tot_vali[l] / ( ndata - npars )
+                                chi2_val = chi2tot_val[l] / ( ndata - npars )
 				#chi2_val[l]    = np.amin(chi2red[l])
 
 				if ( scale_error_bars ):
-					s_factor = np.sqrt( chi2_val[l] )
+					s_factor = np.sqrt( chi2_val )
 					if ( chi2_val > 1.0 ):
 						s_factor = 1.0 / s_factor
 				else:
@@ -370,7 +370,7 @@ else:
 				print 'DOF         = ', ndata - npars
 				print 'scale factor= ', s_factor
 				print ('chi2 = %1.4f' %(chi2tot_val[l]))
-				print ('chi2_red = %1.4f' %(chi2_val[l]))
+				print ('chi2_red = %1.4f' %(chi2_val))
 				print ('BIC        = %1.4f ' %(chi2tot_val[l] + npln))
 				print ('The best fit planet parameters are:')
 				print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val[l],t0_errr[l],t0_errl[l]))
