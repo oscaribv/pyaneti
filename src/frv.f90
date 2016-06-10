@@ -187,8 +187,9 @@ implicit none
   logical :: get_out, is_burn, is_limit_good, is_cvg
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
+  double precision, dimension(0:npl-1) :: t0_mean, P_mean
   integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
-  double precision :: r_real
+  double precision :: r_real, sigma_t0(0:npl-1), sigma_P(0:npl-1)
   character(len=11), dimension(0:npl-1) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
@@ -202,6 +203,8 @@ implicit none
   do m = 0, npl - 1
     params(:,m) = pars(m*(5+nt):(m+1)*(5+nt)-1)
     limits(:,m) = lims(m*2*(5+nt):(m+1)*2*(5+nt)-1)
+    t0_mean(m) = params(0,m)
+    P_mean(m) = params(1,m)
     wtf_all(0:4,m) = wtf(m*6:(m+1)*4-1)
     wtf_all(5:5+nt-1,m) = wtf(5*(m+1))
   end do
@@ -216,11 +219,13 @@ implicit none
 
   !Check if there are flags to evolve modified parameters
 
+  sigma_t0 = 0.5*(limits(1,:) - limits(0,:))
   !Period
   if ( flag(0) )  then
     params(1,:)   = log10(params(1,:))
     limits(2:3,:) = log10(limits(2:3,:))
   end if
+  sigma_P = 0.5*(limits(3,:) - limits(2,:))
   ! e and w
   if ( flag(1) ) then
     esin(:) = sqrt(params(2,:)) * sin(params(3,:))
@@ -336,6 +341,15 @@ implicit none
       call random_number(aa)
       aa = 1.0d0 + thin_factor * aa 
     end if
+
+    do m = 0, npl - 1
+      if( wtf_all(0,m) == 0 ) then !T0
+        call gauss_random_bm(t0_mean(m),sigma_t0(m),params_old(0,m,:),nwalks)
+      end if
+      if( wtf_all(1,m) == 0 ) then !P0
+        call gauss_random_bm(P_mean(m),sigma_P(m),params_old(1,m,:),nwalks)
+      end if
+    end do
 
     do nk = 0, nwalks - 1 !walkers
       do m = 0, npl - 1

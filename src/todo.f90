@@ -324,6 +324,7 @@ implicit none
 
 end subroutine
 
+!Create a normal distribution based on Box-Muller
 subroutine gauss_random_bm(mu,sigma,valor,n)
 implicit none
 
