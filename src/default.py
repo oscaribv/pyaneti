@@ -105,12 +105,12 @@ fit_v0  = True
 
 
 #flags
-is_log_P     = True
-is_ew        = True
-is_sini      = True
-is_log_a     = True
-is_log_k     = True
-is_log_rv0   = True
+is_log_P     = False
+is_ew        = False
+is_sini      = False
+is_log_a     = False
+is_log_k     = False
+is_log_rv0   = False
 
 #Limits
 min_t0  = 0.0          #days
@@ -159,5 +159,5 @@ max_phys_q2  = 1.0	       #
 min_phys_pz  = 1.e-3	       # Earth size planet / sun
 max_phys_pz  = 0.99	       # a really big planet
 #rv fit
-min_phys_k   = 5.e-4           # m/s amplitudes
+min_phys_k   = 1.e-6           # m/s amplitudes
 max_phys_k   = 30.	       # a really big planet

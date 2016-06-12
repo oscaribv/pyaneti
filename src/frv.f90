@@ -23,7 +23,7 @@ implicit none
   double precision, intent(out), dimension(0:ts-1) :: rv
   double precision, intent(in) :: k, rv0, t0, P
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626d0
+  double precision :: pi = 3.1415926535897932384626d0
 !
   rv(:) = rv0 - k * sin( 2.d0*pi*( t(:) - t0) / P )
 
@@ -47,7 +47,6 @@ implicit none
   double precision, intent(in) :: rv0, t0, k, P, e, w
   double precision, intent(out), dimension(0:ts-1) :: rv
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:ts-1) :: ta
 !External function
   external :: find_anomaly
@@ -125,7 +124,6 @@ implicit none
 !Local variables
   double precision, dimension(0:npl-1) :: t0, P, e, w, k
   double precision, dimension(0:nt-1)  :: rv0
-  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:datas-1) :: model, res
   integer :: i, tel
 !External function
@@ -177,7 +175,6 @@ implicit none
 !Local variables
   double precision, dimension(0:5+nt-1,0:npl-1) :: params
   double precision, dimension(0:2*(5+nt)-1,0:npl-1) :: limits
-  double precision, parameter :: pi = 3.1415926535897932384626
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1,0:nconv-1) :: params_chains
@@ -281,7 +278,7 @@ implicit none
           is_limit_good = .false.
           do while ( .not. is_limit_good )
             !print *, params_old(2,m,nk), params_old(3,m,nk)
-            call check_e(params_old(2,m,nk),params_old(3,m,nk),limits(5,m)**2,is_limit_good)
+            call check_e(params_old(2,m,nk),params_old(3,m,nk),1.0,is_limit_good)
             if ( .not. is_limit_good  ) then
               params_old(2,m,nk) = params_old(2,m,nk) * params_old(2,m,nk)
               params_old(3,m,nk) = params_old(3,m,nk) * params_old(3,m,nk)
@@ -290,7 +287,7 @@ implicit none
       end if
 
     end do
-        
+ 
     !Each walker is a point in a parameter space
     !Each point contains the information of all the planets
     !Let us estimate our first chi_2 value for each walker
@@ -527,7 +524,6 @@ implicit none
   double precision, intent(in)  :: a_factor, t_cad
   logical, intent(in) :: flag(0:5)
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, &
   chi2_new_rv, chi2_old_tr, chi2_new_tr, &
   chi2_old_total, chi2_new_total, chi2_red
@@ -545,7 +541,7 @@ implicit none
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:10+nt-1) :: wtf_all 
   real :: r_real
-  character (len=15) :: output_files
+  character (len=11) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
 

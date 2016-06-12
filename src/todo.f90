@@ -13,11 +13,13 @@
 ! https://gcc.gnu.org/onlinedocs/gfortran/RANDOM_005fSEED.html#RANDOM_005fSEED
 !----------------------------------------------------------
 subroutine init_random_seed()
-use iso_fortran_env, only: int64
+!Modified to work with f90
+!use iso_fortran_env, only: int64
 implicit none
+integer,parameter :: int32 = selected_int_kind(32)
 integer, allocatable :: seed(:)
 integer :: i, n, un, istat, dt(8), pid
-integer(int64) :: t
+integer(int32) :: t
 
 call random_seed(size = n)
 allocate(seed(n))
@@ -34,9 +36,9 @@ else
    call system_clock(t)
    if (t == 0) then
       call date_and_time(values=dt)
-      t = (dt(1) - 1970) * 365_int64 * 24 * 60 * 60 * 1000 &
-           + dt(2) * 31_int64 * 24 * 60 * 60 * 1000 &
-           + dt(3) * 24_int64 * 60 * 60 * 1000 &
+      t = (dt(1) - 1970) * 365_int32 * 24 * 60 * 60 * 1000 &
+           + dt(2) * 31_int32 * 24 * 60 * 60 * 1000 &
+           + dt(3) * 24_int32 * 60 * 60 * 1000 &
            + dt(5) * 60 * 60 * 1000 &
            + dt(6) * 60 * 1000 + dt(7) * 1000 &
            + dt(8)
@@ -54,14 +56,14 @@ contains
 ! sufficient for seeding a better PRNG.
 function lcg(s)
   integer :: lcg
-  integer(int64) :: s
+  integer(int32) :: s
   if (s == 0) then
      s = 104729
   else
-     s = mod(s, 4294967296_int64)
+     s = mod(s, 4294967296_int32)
   end if
-  s = mod(s * 279470273_int64, 4294967291_int64)
-  lcg = int(mod(s, int(huge(0), int64)), kind(0))
+  s = mod(s * 279470273_int32, 4294967291_int32)
+  lcg = int(mod(s, int(huge(0), int32)), kind(0))
 end function lcg
 end subroutine init_random_seed
 
@@ -76,7 +78,7 @@ implicit none
   double precision, intent(out) :: tp
 !Local variables
   double precision :: theta_p
-  double precision, parameter :: pi = 3.1415926535897932384626d0
+  double precision :: pi = 3.1415926535897d0
 
   theta_p = atan2( sqrt( 1.d0 - e * e ) * sin( pi/ 2.d0  - w ), e + cos( pi / 2.d0  - w) )
   theta_p = theta_p - e * sin( theta_p )
@@ -104,17 +106,17 @@ implicit none
 !Local variables
   integer :: i,n
   double precision, dimension(0:dt-1) :: ma, f, df, esin, ecos
-  double precision, parameter :: pi = 3.1415926535897932384626d0
+  double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   double precision :: uno, tp
-  double precision, parameter :: fmin=1.d-7
-  integer, parameter :: imax = int(1e8)
+  double precision :: fmin=1.d-7
+  integer :: imax = int(1e8)
 !
   uno = 1.0d0
 
   call find_tp(t0,e,w,P,tp)
 
   !Calculate the mean anomaly
-  ma = 2.d0 * pi * ( t - tp ) / P
+  ma = two_pi * ( t - tp ) / P
 
   !calculate the eccentric anomaly
   ta(:) = ma(:)
@@ -122,9 +124,9 @@ implicit none
   n = 0
 
   do i = 0, dt-1
-    do while ( abs(f(i)) >= fmin .and. n <= imax )
+    do while ( abs(f(i)) > fmin .and. n < imax )
       f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
-      df(i)  =   uno - e * cos(ta(i))
+      df(i)  = uno - e * cos(ta(i))
       ta(i)  = ta(i) - f(i) / df(i)
       n = n + 1
     end do
@@ -132,6 +134,7 @@ implicit none
 
   if ( n > imax ) then
     print *, 'I am tired, too much Newton-Raphson for me!'
+    print *, e, f
     stop
   end if 
 
@@ -250,15 +253,17 @@ implicit none
 
 end subroutine
 
-subroutine check_e(es,ec,el,is_good)
+subroutine check_e(es,ec,is_good)
 implicit none
 
-  double precision, intent(in) :: es, ec, el
+  double precision, intent(in) :: es, ec
   logical, intent(out) :: is_good
 
   is_good = .true.
 
-  if ( es*es + ec*ec >= el ) is_good = .false.
+  if ( .not. (es*es + ec*ec) < 1.d0  ) then
+    is_good = .false.
+  end if
 
 end subroutine
 
@@ -334,7 +339,7 @@ implicit none
   double precision, intent(out), dimension(0:n-1) :: valor
   !Local variables
   double precision, dimension(0:2*n-1) :: r_real
-  double precision, parameter :: two_pi = 2*3.1415926535897932384626d0
+  double precision  :: two_pi = 2*3.1415926535897932384626d0
 
   call random_number(r_real)
 

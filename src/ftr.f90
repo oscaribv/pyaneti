@@ -21,7 +21,6 @@ implicit none
   double precision, intent(out), dimension(0:ts-1) :: z
   logical, intent(in), dimension(0:3) :: flag 
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: t0, P, e, w, i, a
   double precision :: si
@@ -111,7 +110,6 @@ implicit none
   double precision, intent(in), dimension (0:2) :: params
   double precision, intent(out) :: chi2
 !Local variables
-  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:datas-1) :: res, muld, mu
   double precision :: u1, u2, pz, q1k, q2k, zdum(0:0)
   !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
@@ -180,7 +178,6 @@ implicit none
   double precision, dimension(0:8) :: params
   double precision, dimension(0:datas-1) :: zr
   double precision, dimension(0:2*(9)-1) :: limits, limits_physical
-  double precision, parameter :: pi = 3.1415926535897932384626d0
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains
@@ -241,14 +238,7 @@ implicit none
     limits(10:11) = log10(limits(10:11))
     limits_physical(10:11) = log10(limits_physical(10:11))
   end if
-  !u1 and u2
-  !Change the  u1 and u2 limb darkening coefficints following Kipping 2013
-  q1k = ( params(6) + params(7) )  
-  q2k = 0.5 * params(6) / q1k
-  q1k = q1k*q1k
-  !the limits are by default [0,1] take care with this
-  params(6) = q1k
-  params(7) = q2k
+  !q1 and q2
   limits(12) = 0.0
   limits_physical(12) = 0.0
   limits(13) = 1.0

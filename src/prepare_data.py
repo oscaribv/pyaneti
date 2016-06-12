@@ -87,9 +87,9 @@ if (fit_tr):
 	#heliocentric date, dummyf, flag (is it a good datapoint?)
 	#Take care with this, it is assuming a corot data file
 	dummyd,dummyf, dummye = np.loadtxt('inpy/'+star+'/'+fname_tr,usecols=columns_tr, \
-	comments='\\',unpack=True)
+	comments='#',unpack=True)
 
-        dummyd = dummyd + 4833.0
+        #dummyd = dummyd + 4833.0
 	##Let us take the good data with the flag
 	#nobin_wflux = []
 	#nobin_hdate = []

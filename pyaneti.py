@@ -53,7 +53,7 @@ if (fit_rv):
   #Estimate k priors and limits from data
   if ( P.__class__ == float  ):
     max_phys_k = (max_rv0 - min_rv0) / 2.0 
-    max_k = (max_rv0 - min_rv0) / 2.0 
+    max_k = min( [max_k,max_phys_k] )
   else:
     max_phys_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
     max_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
@@ -68,7 +68,9 @@ if (fit_tr):
   max_flux = max(megay)  
   max_phys_pz = max_flux - min_flux 
   max_phys_pz = np.sqrt(max_phys_pz)
-  min_phys_pz = max_phys_pz*0.8
+  min_phys_pz = max_phys_pz*0.5
+  max_pz = min([max_pz,max_phys_pz])
+  min_pz = max([min_pz,min_phys_pz])
   #P
   max_phys_P = max(megax) - min(megax)
   min_phys_t0 = min(megax)
@@ -79,7 +81,7 @@ if ( is_circular ):
   fit_e = False
   fit_w = False
   is_ew = False
-  e = 0.0
+  e = 1e-5
   w = np.pi / 2.0
 
 #Print intial configuration
@@ -98,15 +100,13 @@ if (fit_rv and fit_tr ):
               int(fit_i),int(fit_a),int(fit_q1),int(fit_q1),\
               int(fit_pz), int(fit_k), int(fit_v0)]
 
-  dummy = [T0,P,e,w,ii,a,q1,q1,pz,k0]
+  dummy = [T0,P,e,w,ii,a,q1,q2,pz,k0]
   params = np.concatenate((dummy,v0))
 
   #Call the fit routine
 
   if ( method == 'sm' ):
 
-    min_t0 = min(xt[0])
-    max_t0 = max(xt[0])
     min_phys_t0 = min_t0
     max_phys_t0 = max_t0
 
@@ -164,8 +164,6 @@ if (fit_rv and fit_tr ):
 
 elif ( not fit_rv and fit_tr ):
 
-  min_t0 = min(xt[0])
-  max_t0 = max(xt[0])
   min_phys_t0 = min_t0
   max_phys_t0 = max_t0
 
@@ -175,7 +173,7 @@ elif ( not fit_rv and fit_tr ):
                 int(fit_i),int(fit_a), int(fit_q1),int(fit_q1),\
                 int(fit_pz)]
 
-  params = [T0,P,e,w,ii,a,q1,q1,pz]
+  params = [T0,P,e,w,ii,a,q1,q2,pz]
 
   if ( method == 'sm' ):
     #The transit time should be in the first window
