@@ -379,7 +379,10 @@ else:
 					for j in range(0,nt):
 						v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv,s_factor)
 			
+                         
 		
+				bic2 = get_BIC()
+
 				#Print the best fit values values
 				print 'N_data      = ', ndata
 				print 'N_pars      = ', npars
@@ -388,6 +391,7 @@ else:
 				print ('chi2 = %1.4f' %(chi2tot_val[l]))
 				print ('chi2_red = %1.4f' %(chi2_val))
 				print ('BIC        = %1.4f ' %(chi2tot_val[l] + npln))
+				print ('BIC2       = %1.4f ' %(bic2))
 				print ('The best fit planet parameters are:')
 				print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val[l],t0_errr[l],t0_errl[l]))
 				print ('Tp    = %4.4f + %4.4f - %4.4f days'%(tp_val[l],tp_errr[l],tp_errl[l]))

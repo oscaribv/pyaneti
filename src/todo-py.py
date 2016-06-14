@@ -13,7 +13,6 @@ from scipy.optimize import curve_fit
 from scipy.stats import norm
 import sys
 
-#Assuming a Gaussian likelihood
 def get_BIC():
 
   #Get the number of data and parameters
@@ -39,8 +38,9 @@ def get_BIC():
 	    #the actual value, minus the systemic velocity
 	    rv_dum[j] = rv_dum[j] - v_val[j] 
 	    res[j] = rv_dum[j] - res[j]
-    res_rv = np.concatenate(res)
-    variance = sum(res_rv*res_rv) / ndata
+
+  variance = np.concatenate(res)
+  variance = sum(abs(variance*variance)) / ndata
 
   BIC = ndata * np.log(variance) + npars * np.log(ndata)
 
