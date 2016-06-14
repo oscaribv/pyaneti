@@ -169,6 +169,8 @@ if ( nplanets == 1 ):
         v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv,s_factor)
 	
 
+    bic2 = get_BIC()
+
     npln = npars * np.log(ndata)	
 
     #Print the best fit values values
@@ -184,6 +186,7 @@ if ( nplanets == 1 ):
     print ('chi2_red   = %1.4f' %(chi2_val))
     print 'scale factor= ', s_factor
     print ('BIC        = %1.4f' %(chi2tot_val + npln))
+    print ('BIC2       = %1.4f' %(bic2))
     print 'Input stellar parameters'
     print ('M_*     = %4.7f + %4.7f - %4.7f solar masses'%(ms_val,ms_errr,ms_errl))
     print ('R_*     = %4.7f + %4.7f - %4.7f solar radii'%(rs_val, rs_errr , rs_errl))

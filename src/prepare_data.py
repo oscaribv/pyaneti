@@ -122,6 +122,7 @@ if (fit_tr):
 	#the transit data is inside the limits tls
 	for i in range(0,ntr):
 		xt[i],yt[i],et[i] = normalize_transit(hdate,wflux,errs,tls[i])
+                
 
 	#Let us put together the information of all the arrays
 	#the mega* lists have the data of all the transits

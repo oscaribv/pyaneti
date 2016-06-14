@@ -187,7 +187,8 @@ implicit none
   double precision, dimension(0:npl-1) :: t0_mean, P_mean
   integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
   double precision :: r_real, sigma_t0(0:npl-1), sigma_P(0:npl-1)
-  character(len=11), dimension(0:npl-1) :: output_files
+  !character(len=11), dimension(0:npl-1) :: output_files
+  character(len=11), dimension(0:1) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
 
@@ -592,12 +593,6 @@ implicit none
   end if
   !u1 and u2
   !Change the  u1 and u2 limb darkening coefficints following Kipping 2013
-  q1k = ( params(6) + params(7) )
-  q2k = 0.5 * params(6) / q1k
-  q1k = q1k*q1k
-  !the limits are by default [0,1] take care with this
-  params(6) = q1k
-  params(7) = q2k
   limits(12) = 0.0
   limits_physical(12) = 0.0
   limits(13) = 1.0

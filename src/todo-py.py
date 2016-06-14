@@ -13,6 +13,40 @@ from scipy.optimize import curve_fit
 from scipy.stats import norm
 import sys
 
+#Assuming a Gaussian likelihood
+def get_BIC():
+
+  #Get the number of data and parameters
+  if (fit_rv and fit_tr ):
+    ndata = len(megax) + len(mega_rv)
+    npars = sum(what_fit) + nt - 1
+  elif(fit_rv and not fit_tr):
+    ndata = len(mega_rv)
+    npars = sum(what_fit) + nt - nplanets
+  elif(not fit_rv and fit_tr):
+    ndata = len(megax)
+    npars = sum(what_fit)
+
+  if ( fit_rv and not fit_tr ):
+    rv_dum = []
+    for j in range(0,nt):
+      rv_dum.append(rv_all[j])
+    res = [None]*nt
+    for j in range(0,nt):
+	  #This is the model of the actual planet
+	    res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val,k_val,\
+	    P_val,e_val,w_val)
+	    #the actual value, minus the systemic velocity
+	    rv_dum[j] = rv_dum[j] - v_val[j] 
+	    res[j] = rv_dum[j] - res[j]
+    res_rv = np.concatenate(res)
+    variance = sum(res_rv*res_rv) / ndata
+
+  BIC = ndata * np.log(variance) + npars * np.log(ndata)
+
+  return BIC
+
+
 #-----------------------------------------------------------
 #scale_period -> To calculate the periodogram of a RV curve
 #input: jd -> time vector in julian date to be escaled (days)
