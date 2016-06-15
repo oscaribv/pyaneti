@@ -506,7 +506,7 @@ end subroutine
 
 
 !-----------------------------------------------------------
-subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params, &
+subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params,pstar, lpstar, &
 limits,limits_physical,nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,nconv,drv,dtr,nt)
 implicit none
 
@@ -514,6 +514,7 @@ implicit none
   integer, intent(in) :: nwalks, maxi, thin_factor,n_cad, drv, dtr, nt, nconv
   double precision, intent(in), dimension(0:drv-1)  :: xd_rv, yd_rv, errs_rv
   double precision, intent(in), dimension(0:dtr-1)  :: xd_tr, yd_tr, errs_tr
+  double precision, intent(in), dimension(0:1)  :: pstar, lpstar
   integer, intent(in), dimension(0:drv-1)  :: tlab
   double precision, intent(inout), dimension(0:10+nt-1) :: params
   !f2py intent(in,out)  :: params
@@ -533,7 +534,8 @@ implicit none
   double precision, dimension(0:8) :: params_tr
   double precision, dimension(0:10+nt-1,0:nwalks-1,0:nconv-1) :: params_chains
   double precision, dimension(0:10+nt-1,0:nwalks-1) :: params_old, params_new
-  double precision  :: q, q1k, q2k
+  double precision, dimension(0:nwalks-1) :: mstar, rstar
+  double precision  :: q
   double precision  :: esin, ecos, aa, chi2_red_min
   integer :: o,j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: get_out, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg, is_eclipse
@@ -731,6 +733,17 @@ implicit none
       aa = 1.0d0 + thin_factor * aa 
     end if
 
+    if ( .True. ) then
+      wtf_all(5) = 0
+      !Fill mass and radius 
+      call gauss_random_bm(pstar(0),lpstar(0),mstar,nwalks)
+      call gauss_random_bm(pstar(1),lpstar(1),rstar,nwalks)
+      !The a parameter comes from 3rd kepler law
+      !params_old(1) is the period
+      call get_a_scaled(mstar,rstar,params_old(1,:),params_old(5,:),nwalks)
+    end if
+
+
     do nk = 0, nwalks - 1
 
       !Let us generate a random step
@@ -749,6 +762,7 @@ implicit none
               call check_e(params_new(2,nk),params_new(3,nk), is_limit_good )
             end if          
         end if
+ 
 
       if ( is_limit_good ) then !evaluate chi2
         !Obtain the new chi square 

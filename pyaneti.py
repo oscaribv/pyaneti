@@ -128,8 +128,12 @@ if (fit_rv and fit_tr ):
     limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
     limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
 
+    if ( True ):
+      pstar = [mstar_mean,rstar_mean] 
+      lpstar = [mstar_sigma,rstar_sigma] 
+
     pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
-    ,megax, megay, megae, params,limits, limits_p , nwalkers,a_factor, maxi, thin_factor, \
+    ,megax, megay, megae, params,pstar,lpstar,limits, limits_p , nwalkers,a_factor, maxi, thin_factor, \
     n_cad,t_cad,what_fit, flag, nconv)
 
   elif ( method == 'plot' ):

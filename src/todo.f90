@@ -153,6 +153,31 @@ implicit none
 
 end subroutine
 
+!Get semi-major axis assuming we know the stellar parameters
+
+subroutine get_a_scaled(mstar,rstar,P,a,lenvec)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: lenvec
+  double precision, intent(in), dimension(0:lenvec-1) :: mstar, rstar, P
+  double precision, intent(out), dimension(0:lenvec-1) :: a
+!Local variables
+  double precision :: pi = 3.1415926535897d0
+  double precision :: S_radius_SI = 6.957d8 !R_sun
+  double precision :: S_GM_SI = 1.3271244d20 ! G M_sun
+  double precision, dimension(0:lenvec-1) :: R_SI, GM_SI
+
+  R_SI  = rstar(:) * S_radius_SI
+  GM_SI = mstar(:) * S_GM_SI
+
+  !Get scaled semi-major axis from 3rd Kepler law
+  a(:) = 0.25d0 * GM_SI(:) * ( P * 24 * 3600 ) * ( P * 24 * 3600 )
+  a(:) = a(:) / R_SI(:) / R_SI(:) / R_SI(:) / pi / pi 
+  a(:) = a(:)**(1./3.)
+
+end subroutine
+
 !Gelman and Rubin statistics
 subroutine gr_test(par_chains,nchains,nconv,is_cvg)
 implicit none
@@ -240,16 +265,12 @@ implicit none
   double precision, intent(inout) :: z
   !f2py itent(in,out) :: z
   double precision, intent(in) :: a
-  double precision :: c
-
-  c = 0.5 * ( sqrt(a) - 1./sqrt(a) )
 
   if ( z >= 1.d0 / a .and. z <= a ) then
-    z = 1.d0 / sqrt(z)
+    z = 1.d0 / sqrt(z) 
   else
     z = 0.0d0
   end if
-
 
 end subroutine
 

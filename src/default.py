@@ -35,8 +35,10 @@ AU_SI = 1.4960e11 # m
 units_ms = False
 ylab = 'RV (km/s)'
 ktom = 1.0
-mstar= 1.0
-rstar= 1.0
+mstar_mean = 1.0
+rstar_mean = 1.0
+mstar_sigma = 0.0
+rstar_sigma = 0.0
 
 #Transit data cadence
 n_cad = 10

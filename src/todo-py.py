@@ -13,7 +13,8 @@ from scipy.optimize import curve_fit
 from scipy.stats import norm
 import sys
 
-def get_BIC():
+#Calculated as of http://arxiv.org/abs/1501.05415
+def get_BIC(chi2tot_val):
 
   #Get the number of data and parameters
   if (fit_rv and fit_tr ):
@@ -26,23 +27,25 @@ def get_BIC():
     ndata = len(megax)
     npars = sum(what_fit)
 
-  if ( fit_rv and not fit_tr ):
-    rv_dum = []
-    for j in range(0,nt):
-      rv_dum.append(rv_all[j])
-    res = [None]*nt
-    for j in range(0,nt):
-	  #This is the model of the actual planet
-	    res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val,k_val,\
-	    P_val,e_val,w_val)
-	    #the actual value, minus the systemic velocity
-	    rv_dum[j] = rv_dum[j] - v_val[j] 
-	    res[j] = rv_dum[j] - res[j]
+#  if ( fit_rv and not fit_tr ):
+#    rv_dum = []
+#    for j in range(0,nt):
+#      rv_dum.append(rv_all[j])
+#    res = [None]*nt
+#    for j in range(0,nt):
+#	  #This is the model of the actual planet
+#	    res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val,k_val,\
+#	    P_val,e_val,w_val)
+#	    #the actual value, minus the systemic velocity
+#	    rv_dum[j] = rv_dum[j] - v_val[j] 
+#	    res[j] = rv_dum[j] - res[j]
 
-  variance = np.concatenate(res)
-  variance = sum(abs(variance*variance)) / ndata
+  #variance = np.concatenate(res)
+  #variance = sum(abs(variance*variance)) / ndata
 
-  BIC = ndata * np.log(variance) + npars * np.log(ndata)
+  #BIC = ndata * np.log(variance) + npars * np.log(ndata)
+
+  BIC = chi2tot_val + npars * np.log(ndata)  
 
   return BIC
 

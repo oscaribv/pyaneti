@@ -5,6 +5,9 @@
 #                   O. Barragan, March 2016
 #-----------------------------------------------------------
 
+#Create the stellar data
+mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=nwalkers*nconv)
+rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=nwalkers*nconv)
 
 #-----------------------------------------------------------
 #                         RV DATA
@@ -89,7 +92,7 @@ if (fit_tr):
 	dummyd,dummyf, dummye = np.loadtxt('inpy/'+star+'/'+fname_tr,usecols=columns_tr, \
 	comments='#',unpack=True)
 
-        #dummyd = dummyd + 4833.0
+        dummyd = dummyd + textra
 	##Let us take the good data with the flag
 	#nobin_wflux = []
 	#nobin_hdate = []
