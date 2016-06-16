@@ -507,7 +507,7 @@ end subroutine
 
 !-----------------------------------------------------------
 subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params,pstar, lpstar, &
-limits,limits_physical,nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,nconv,drv,dtr,nt)
+limits,limits_physical,nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,afk,nconv,drv,dtr,nt)
 implicit none
 
 !In/Out variables
@@ -525,6 +525,7 @@ implicit none
   integer, intent(in), dimension(0:10) :: wtf
   double precision, intent(in)  :: a_factor, t_cad
   logical, intent(in) :: flag(0:5)
+  logical, intent(in) :: afk
 !Local variables
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, &
   chi2_new_rv, chi2_old_tr, chi2_new_tr, &
@@ -733,7 +734,7 @@ implicit none
       aa = 1.0d0 + thin_factor * aa 
     end if
 
-    if ( .True. ) then
+    if ( afk ) then
       wtf_all(5) = 0
       !Fill mass and radius 
       call gauss_random_bm(pstar(0),lpstar(0),mstar,nwalks)

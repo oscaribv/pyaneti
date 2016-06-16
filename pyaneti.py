@@ -76,7 +76,6 @@ if (fit_tr):
   min_phys_t0 = min(megax)
   max_phys_t0 = max(megax)
 
-
 if ( is_circular ):
   fit_e = False
   fit_w = False
@@ -93,6 +92,12 @@ print_init()
 
 #FIT TRANSIT AND RV CURVES
 if (fit_rv and fit_tr ):
+
+  if ( a_from_kepler ):
+    is_log_a = False
+    fit_a = False
+  pstar = [mstar_mean,rstar_mean]
+  lpstar = [mstar_sigma,rstar_sigma]
 
   flag = [is_log_P,is_ew,is_sini,is_log_a,is_log_k,is_log_rv0]
 
@@ -128,13 +133,10 @@ if (fit_rv and fit_tr ):
     limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
     limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
 
-    if ( True ):
-      pstar = [mstar_mean,rstar_mean] 
-      lpstar = [mstar_sigma,rstar_sigma] 
 
     pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
     ,megax, megay, megae, params,pstar,lpstar,limits, limits_p , nwalkers,a_factor, maxi, thin_factor, \
-    n_cad,t_cad,what_fit, flag, nconv)
+    n_cad,t_cad,what_fit, flag,a_from_kepler, nconv)
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'
