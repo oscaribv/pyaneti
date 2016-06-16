@@ -1,6 +1,8 @@
 #Let us do the plots here
 
 from matplotlib import gridspec
+from matplotlib.colors import LogNorm
+
 
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.figure(3,figsize=(7,6))
@@ -396,6 +398,8 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 	for i in range(0,n):
 		for j in range(0,i):
 			plt.subplot(gs[i*n+j])
+			#aver = np.histogram2d(params[i],params[j],bins=100)
+                        #plt.contour(aver[0])  
 			if ( j == 0 ):
 				plt.ylabel(plabs[i])
 			else:
@@ -404,7 +408,9 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 				plt.xlabel(plabs[j])
 			else:
 				plt.tick_params( axis='x',which='both',labelbottom='off') 
-			plt.plot(params[j],params[i],c=col,marker=mark,ls='',alpha=0.5)
+			#plt.plot(params[j],params[i],c=col,marker=mark,ls='',alpha=0.5)
+
+                        plt.hist2d(params[j],params[i],bins=100,norm=LogNorm())
 	plt.savefig(outdir+'/'+star+'_correlations.pdf',format='pdf',bbox_inches='tight')
 	plt.show()
 
