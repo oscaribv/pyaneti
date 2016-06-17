@@ -112,12 +112,39 @@ def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
 
   return mp
 
+#-----------------------------------------------------------
+
 def get_rhostar(P,a):
 
   P = P * 24. * 3600. # s
   rho = 3. * np.pi * a**3 / ( G_cgs * P * P)
 
   return rho
+
+#-----------------------------------------------------------
+
+#Get ranges, assumes that the consecutive 
+#data is almost equally spaced
+def get_transit_ranges(times):
+
+  xlimits = []
+  xlimits.append(times[0])
+  dx = times[3] - times[0]
+  for i in range(1,len(times)-1):
+    if ( times[i+1] - times[i] > dx ): # We are in other transit
+      xlimits.append(times[i])
+      xlimits.append(times[i+1])
+  xlimits.append(times[len(times)-1]) 
+
+  print xlimits
+  
+  lims = [None]*(len(xlimits)/2)
+  for i in range(0,len(xlimits),2):
+    lims[i/2] = [xlimits[i],xlimits[i+1]]
+
+  ntr = len(lims)
+
+  return lims, ntr
 
 #-----------------------------------------------------------
 #bin_data - bin a vector x each nbin points
@@ -271,9 +298,9 @@ def print_init():
   print 'fit Transit    = ', fit_tr
   print '------------------------------'
   if (fit_tr):
-    print 'LC data      = ', lc_data
-    print 'cadence time = ', t_cad
-    print 'n rebinning  = ', n_cad
+    print 'LC data        = ', lc_data
+    print ('cadence time   =  %2.3f min'%(t_cad*60.*24))
+    print 'n rebinning    = ', n_cad
   print '------------------------------'
   print 'fitting T0     = ', fit_t0
   print 'fitting P      = ', fit_P
