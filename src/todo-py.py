@@ -244,6 +244,24 @@ def normalize_transit(x,y,err,limits):
   return dummyx, dummyy, dummyerr
 
 #-----------------------------------------------------------
+
+def separate_transits(x,y,err,limits):
+  dummyx  = []
+  dummyy  = []
+  dummyerr= []
+  newx = []
+  newy = []
+  newerr = []
+  for i in range(0,len(x)):
+    if ( x[i] > limits[0] and x[i] < limits[1] ):
+      dummyy.append(y[i])
+      dummyx.append(x[i])
+      dummyerr.append(err[i])
+
+  return dummyx, dummyy, dummyerr
+
+
+#-----------------------------------------------------------
 # find_vals_gauss -> find the mean and standard deviation
 #               of the last nconv points of a given array
 #input: x -> vector with a minimum size nconv

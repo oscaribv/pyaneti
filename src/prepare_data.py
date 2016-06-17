@@ -101,28 +101,18 @@ if (fit_rv):
 if (fit_tr):
 
 	#Read the data file
-	#heliocentric date, dummyf, flag (is it a good datapoint?)
-	#Take care with this, it is assuming a corot data file
 	dummyd,dummyf, dummye = np.loadtxt('inpy/'+star+'/'+fname_tr,usecols=columns_tr, \
 	comments='#',unpack=True)
 
         dummyd = dummyd + textra
-	##Let us take the good data with the flag
-	#nobin_wflux = []
-	#nobin_hdate = []
-	#for i in range(0,len(flag)):
-	#	if ( flag[i] == 0):
-	#		nobin_wflux.append(dummyf[i])
-	#		nobin_hdate.append(dummyd[i])
-        nobin_hdate = dummyd
-        nobin_wflux = dummyf
 
-	#bin the data each nbin
-	#hdate, derrstr = bin_data_mean(nobin_hdate,nbin)
-	#wflux, errs    = bin_data_median(nobin_wflux,nbin)
 	hdate = dummyd
 	wflux = dummyf
 	errs  = dummye
+
+        #Get the transit ranges
+        #This assumes that the input file has the different transits separated
+	tls, ntr = get_transit_ranges(hdate)
 
 	#crash if you do not have more than one transit
 	if ( ntr < 2):
@@ -138,7 +128,7 @@ if (fit_tr):
 	#Normalize all the transit independently
 	#the transit data is inside the limits tls
 	for i in range(0,ntr):
-		xt[i],yt[i],et[i] = normalize_transit(hdate,wflux,errs,tls[i])
+		xt[i],yt[i],et[i] = separate_transits(hdate,wflux,errs,tls[i])
                 
 
 	#Let us put together the information of all the arrays
