@@ -9,6 +9,20 @@
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=nwalkers*nconv)
 
+#What transit data are we fitting
+if (fit_tr):
+  if ( lc_data == 'kepler_lc' ):
+    n_cad = 10
+    t_cad = 29.425 / 60. / 24.0 #days
+  elif ( lc_data == 'kepler_sc' ):
+    n_cad = 1
+    t_cad = 1.5 / 60. / 24.0 #days
+  elif ( lc_data == 'free' ):
+    #values given by the user    
+    n_cad = n_cad
+    t_cad = t_cad
+
+
 #-----------------------------------------------------------
 #                         RV DATA
 #-----------------------------------------------------------

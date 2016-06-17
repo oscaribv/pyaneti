@@ -262,12 +262,19 @@ def print_init():
   print '------------------------------'
   print "    INITIAL CONFIGURATION     "
   print '------------------------------'
-  print 'is_circular    = ', is_circular
   print 'iter max       = ', maxi
-  print 'thin factor    =', thin_factor
-  print 'nconv          =',nconv
-  print 'fit RV         =', fit_rv
-  print 'fit Transit    =', fit_tr
+  print 'thin factor    = ', thin_factor
+  print 'nconv          = ', nconv
+  print 'nwalkers       = ', nwalkers
+  print '------------------------------'
+  print 'fit RV         = ', fit_rv
+  print 'fit Transit    = ', fit_tr
+  print '------------------------------'
+  if (fit_tr):
+    print 'LC data      = ', lc_data
+    print 'cadence time = ', t_cad
+    print 'n rebinning  = ', n_cad
+  print '------------------------------'
   print 'fitting T0     = ', fit_t0
   print 'fitting P      = ', fit_P
   print 'fitting e      = ', fit_e
@@ -314,5 +321,22 @@ def print_init():
       if (fit_rv):
         print ('K  = [ %4.4f , %4.4f ]' %(min_k[j],max_k[j]))
         print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0,max_rv0))
+  print '------------------------------'
+  print '     PHYSICAL LIMITS          '
+  print '------------------------------'
+  if ( min_t0.__class__ == float ):
+    print ('T0 = [ %4.4f , %4.4f ]' %(min_phys_t0,max_phys_t0))
+    print ('P  = [ %4.4f , %4.4f ]' %(min_phys_P,max_phys_P))
+    print ('e  = [ %4.4f , %4.4f ]' %(min_phys_e,max_phys_e))
+    print ('w  = [ %4.4f , %4.4f ]' %(min_phys_w,max_phys_w))
+    if (fit_tr):
+      print ('i  = [ %4.4f , %4.4f ]' %(min_phys_i,max_phys_i))
+      print ('a  = [ %4.4f , %4.4f ]' %(min_phys_a,max_phys_a))
+      print ('pz = [ %4.4f , %4.4f ]' %(min_phys_pz,max_phys_pz))
+      print ('q1 = [ %4.4f , %4.4f ]' %(min_phys_q1,max_phys_q1))
+      print ('q2 = [ %4.4f , %4.4f ]' %(min_phys_q2,max_phys_q2))
+    if (fit_rv):
+      print ('K  = [ %4.4f , %4.4f ]' %(min_phys_k,max_phys_k))
+      print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0,max_rv0))
   print '------------------------------'
   print '=============================='

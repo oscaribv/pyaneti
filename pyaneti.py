@@ -75,6 +75,12 @@ if (fit_tr):
   max_phys_P = max(megax) - min(megax)
   min_phys_t0 = min(megax)
   max_phys_t0 = max(megax)
+  #i
+  if ( fit_e == False ):
+    min_phys_i = ( 1. + max_phys_pz ) / min_phys_a
+    min_phys_i = np.arccos(min_phys_i)
+    if ( min_i < min_phys_i ):
+      min_i = min_phys_i
 
 if ( is_circular ):
   fit_e = False

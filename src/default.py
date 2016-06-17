@@ -59,10 +59,8 @@ errores='perc'
 nwalkers = 100
 unit_mass = 'solar'
 scale_error_bars = True
-s_factor = 1.0
 a_factor = 2.0
 
-columns_tr = [0,1]
 
 #Default priors
 P = 15.
@@ -136,7 +134,7 @@ max_q2  = 1.0	       #
 min_pz  = 1.e-3	       # Earth size planet / sun
 max_pz  = 0.99	       # a really big planet
 #rv fit
-min_k   = 5.e-4	       # m/s amplitudes
+min_k   = 1.e-6	       # m/s amplitudes
 max_k   = 30.	       # a really big planet
 min_rv0 = 1.	       #Systemic velocities
 max_rv0 = 100.	       #systemic velocities
@@ -153,7 +151,7 @@ max_phys_w   = 2*np.pi      #rad
 #transit fit
 min_phys_i   = 1.22173      # 70 degrees
 max_phys_i   = np.pi / 2.0  # 90 degrees
-min_phys_a   = 1.5	       # The planet is outside the star
+min_phys_a   = 3.0	       # The planet is outside the star
 max_phys_a   = 1.e4	       # The planet is really far
 min_phys_q1  = 0.0	       #
 max_phys_q1  = 1.0             #

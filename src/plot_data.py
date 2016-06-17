@@ -398,10 +398,11 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 	for i in range(0,n):
 		for j in range(0,i):
 			plt.subplot(gs[i*n+j])
-			#aver = np.histogram2d(params[i],params[j],bins=100)
-                        #plt.contour(aver[0])  
 			if ( j == 0 ):
 				plt.ylabel(plabs[i])
+			elif ( j == i - 1 ):
+				#plt.colorbar() 
+				plt.tick_params( axis='y',which='both',labelleft='off') 
 			else:
 				plt.tick_params( axis='y',which='both',labelleft='off') 
 			if ( i == n-1):
@@ -414,7 +415,7 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 	plt.savefig(outdir+'/'+star+'_correlations.pdf',format='pdf',bbox_inches='tight')
 	plt.show()
 
-def plot_correlations(rf=19):
+def plot_correlations(rf=1):
 
 	if ( fit_tr and fit_rv ):
 		dparams = [chi2red[0::rf],t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf],ko[0::rf]]

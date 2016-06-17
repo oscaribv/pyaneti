@@ -174,7 +174,7 @@ implicit none
   !Get scaled semi-major axis from 3rd Kepler law
   a(:) = 0.25d0 * GM_SI(:) * ( P * 24 * 3600 ) * ( P * 24 * 3600 )
   a(:) = a(:) / R_SI(:) / R_SI(:) / R_SI(:) / pi / pi 
-  a(:) = a(:)**(1./3.)
+  a(:) = a(:)**(1.d0/3.d0)
 
 end subroutine
 
