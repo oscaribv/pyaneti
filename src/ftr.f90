@@ -54,6 +54,36 @@ implicit none
   
 end subroutine
 
+!-----------------------------------------------------
+
+subroutine get_first_transit_ranges(times,nsize,lims,ilim)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: nsize
+  double precision, intent(in),dimension(0:nsize-1) :: times
+  double precision, intent(out),dimension(0:1) :: lims
+  integer, intent(out) :: ilim
+!Local variables
+  double precision :: dx
+  integer :: i
+
+  lims(0) = times(0)
+  dx = times(4) - times(0)
+  i = 1
+  do while (times(i+1) - times(i) < dx )
+   i = i + 1
+  end do
+
+  lims(1) = times(i)
+  ilim = i
+   
+
+end subroutine
+
+!-----------------------------------------------------
+
+
 subroutine check_eclipse(z,pz,is_good,sizez)
 implicit none
 
@@ -66,7 +96,6 @@ implicit none
   integer :: i
   double precision :: limit
 
-  !This works only for not grazing transits
   limit = 1.d0 + pz
   is_good = .false.
   !At least we have to have one eclipse condition

@@ -545,6 +545,9 @@ implicit none
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:10+nt-1) :: wtf_all 
   real :: r_real
+  double precision, allocatable, dimension(:) :: xd_tr_ft, z_ft !first transit variables
+  double precision :: lims_ft(0:1)
+  integer :: i_ft
   character (len=11) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
@@ -617,6 +620,17 @@ implicit none
     limits_physical(20:2*(10+nt)-1) = log10(limits_physical(20:2*(10+nt)-1))
   end if
 
+
+  !Let us find first transit
+  call get_first_transit_ranges(xd_tr,dtr,lims_ft,i_ft)
+
+  !Now we have the index of the first transit limit
+  !Let us allocate memory
+  allocate(    z_ft(i_ft))
+  allocate(xd_tr_ft(i_ft))
+  !Now the search for transit signals is only made in the first  transit
+
+
   !Call a random seed 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -663,10 +677,10 @@ implicit none
     params_rv(0:3) = params_old(0:3,nk)
     params_rv(4:4+nt) = params_old(9:9+nt,nk)
 
-    !Let us find z
-    call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
-    !Let us check if there is an eclipse
-    call check_eclipse(zr,params_tr(8),is_eclipse,dtr)
+    !Let us find z for the first transit signal
+    call find_z(xd_tr_ft,params_tr(0:5),flag,z_ft,i_ft)
+    !Let us check if there is an eclipse for the first transit
+    call check_eclipse(z_ft,params_tr(8),is_eclipse,i_ft)
     !if we do not have an eclipse, let us recalculate this wlaker
 
     if ( .not. is_eclipse ) then
@@ -772,9 +786,9 @@ implicit none
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
 
         !Find the chi2 for each case
-        call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
+        call find_z(xd_tr_ft,params_tr(0:5),flag,z_ft,i_ft)
         !Let us check if there is an eclipse
-        call check_eclipse(zr,params_tr(8),is_eclipse,dtr)
+        call check_eclipse(z_ft,params_tr(8),is_eclipse,i_ft)
         !if we do not have an eclipse
 
         !NOW THIS IS CALCULATING TWO TIMES Z, 
@@ -894,6 +908,8 @@ implicit none
 
   end do
 
+  deallocate(z_ft)
+  deallocate(xd_tr_ft)
   close(101)
 
 end subroutine
