@@ -51,6 +51,63 @@ def get_BIC(chi2tot_val):
 
 
 #-----------------------------------------------------------
+
+def smart_priors():
+  global max_k, max_pz, min_pz, min_P, max_P, min_t0, max_t0
+  global min_rv0, max_rv0, v0
+  #Let us try to do a guess for the init values
+  if (fit_rv):
+    #Estimate systemic velocity priors and limits from data
+    min_rv0 = min(mega_rv)
+    max_rv0 = max(mega_rv)
+    v0 = [min_rv0]*nt
+    #Estimate k priors and limits from data
+    if ( P.__class__ == float  ):
+      max_phys_k = (max_rv0 - min_rv0) / 2.0   
+      max_k = min( [max_k,max_phys_k] )
+    else:
+      max_phys_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
+      max_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
+    #P
+    max_phys_P = max(mega_time) - min(mega_time)
+    #T0
+    min_phys_t0 = min(mega_time)
+    max_phys_t0 = max(mega_time)
+  if (fit_tr):
+    #Let us estimate limits for planet size from data 
+    min_flux = min(megay)  
+    max_flux = max(megay)  
+    max_phys_pz = max_flux - min_flux 
+    max_phys_pz = np.sqrt(max_phys_pz)
+    min_phys_pz = max_phys_pz*0.5
+    max_pz = min([max_pz,max_phys_pz])
+    min_pz = max([min_pz,min_phys_pz])
+    #P
+    #tls is the list with the limits of the transits
+    max_phys_P = tls[1][1] - tls[0][0]
+    min_phys_P = tls[1][0] - tls[0][1]
+    if ( min_P < min_phys_P ):
+      min_P = min_phys_P
+    if ( max_P > max_phys_P ):
+      max_P = max_phys_P
+    #t0
+    min_phys_t0 = tls[0][0]
+    max_phys_t0 = tls[0][1]
+    if (min_t0 < min_phys_t0 ):
+      min_t0 = tls[0][0]
+    if (max_t0 > max_phys_t0 ):
+      max_t0 = tls[0][1]
+    #i
+    if ( fit_e == False ):
+      min_phys_i = ( 1. + max_phys_pz ) / min_phys_a  
+      min_phys_i = np.arccos(min_phys_i)
+      min_i = ( 1. + max_pz ) / min_a
+      min_i = np.arccos(min_i)
+      if ( min_i < min_phys_i ):
+        min_i = min_phys_i
+
+
+#-----------------------------------------------------------
 #scale_period -> To calculate the periodogram of a RV curve
 #input: jd -> time vector in julian date to be escaled (days)
 # T0 -> time zero of the transit (days)
