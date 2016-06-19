@@ -139,7 +139,7 @@ if ( nplanets == 1 ):
           plt.ylabel('Residuals')
           plt.xlabel("T - T0 (hours)")
           plt.minorticks_on()
-	  plt.savefig(outdir+'/'+star+'_tr.pdf',format='pdf',bbox_inches='tight')
+	  plt.savefig(outdir+'/'+star+plabels[0]+'_tr.pdf',format='pdf',bbox_inches='tight')
 	  plt.show()
 
 
@@ -185,7 +185,7 @@ if ( nplanets == 1 ):
 			for j in range(0,nt):
 				p_all[j] = scale_period(time_all[j],t0_val,P_val)
 
-		fname = outdir+'/'+star+'_rv.pdf'
+		fname = outdir+'/'+star+plabels[0]+'_rv.pdf'
                 plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname)
 
 
@@ -259,7 +259,7 @@ else:
 			for j in range(0,nt):
 				p_all[j] = scale_period(time_all[j],t0_val[i],P_val[i])
 
-                        fname = outdir+'/'+star+str(i+1)+'_rv.pdf'
+                        fname = outdir+'/'+star+plabels[i]+'_rv.pdf'
                         plot_rv_fancy(p_rv[i],rvy[i],p_all,rv_dum,errs_all,res,telescopes_labels,fname)
 
 #===========================================================
@@ -281,7 +281,7 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 		plt.xlabel(plabs[i])
 		plt.hist(params[i],normed=True,bins=nb)
 
-	plt.savefig(outdir+'/'+star+'_histogram.pdf',format='pdf',bbox_inches='tight')
+	plt.savefig(outdir+'/'+star+plabels[0]+'_histogram.pdf',format='pdf',bbox_inches='tight')
 	plt.show()
 
 def plot_histogram(rf=1):
@@ -412,7 +412,7 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 			#plt.plot(params[j],params[i],c=col,marker=mark,ls='',alpha=0.5)
 
                         plt.hist2d(params[j],params[i],bins=100,norm=LogNorm())
-	plt.savefig(outdir+'/'+star+'_correlations.pdf',format='pdf',bbox_inches='tight')
+	plt.savefig(outdir+'/'+star+plabels[0]+'_correlations.pdf',format='pdf',bbox_inches='tight')
 	plt.show()
 
 def plot_correlations(rf=1):

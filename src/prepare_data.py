@@ -113,6 +113,9 @@ if (fit_tr):
         #Get the transit ranges
         #This assumes that the input file has the different transits separated
 	tls, ntr = get_transit_ranges(hdate)
+	#print tls
+	#sys.exit()
+
 
 	#crash if you do not have more than one transit
 	if ( ntr < 2):

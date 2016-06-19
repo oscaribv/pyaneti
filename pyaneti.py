@@ -82,10 +82,16 @@ if (fit_tr):
   #t0
   min_phys_t0 = tls[0][0]
   max_phys_t0 = tls[0][1]
+  if (min_t0 < min_phys_t0 ):
+    min_t0 = tls[0][0]
+  if (max_t0 > max_phys_t0 ):
+    max_t0 = tls[0][1]
   #i
   if ( fit_e == False ):
     min_phys_i = ( 1. + max_phys_pz ) / min_phys_a
     min_phys_i = np.arccos(min_phys_i)
+    min_i = ( 1. + max_pz ) / min_a
+    min_i = np.arccos(min_i)
     if ( min_i < min_phys_i ):
       min_i = min_phys_i
 
@@ -125,9 +131,6 @@ if (fit_rv and fit_tr ):
 
   if ( method == 'sm' ):
 
-    min_phys_t0 = min_t0
-    max_phys_t0 = max_t0
-
     vec_rv0_limits = []
     for m in range(0,nt):
       vec_rv0_limits.append(min_rv0) 
@@ -162,7 +165,7 @@ if (fit_rv and fit_tr ):
 
   print 'Reading the data file, wait a bit!'
 
-  newfile = outdir+'/'+star+'_rv-tr.dat'
+  newfile = outdir+'/'+star+plabels[0]+'_rv-tr.dat'
   if ( os.path.isfile('mh_fit.dat') ):
     os.rename('mh_fit.dat',newfile)
         
@@ -182,9 +185,6 @@ if (fit_rv and fit_tr ):
 #-----------------------------------------------------------
 
 elif ( not fit_rv and fit_tr ):
-
-  min_phys_t0 = min_t0
-  max_phys_t0 = max_t0
 
   flag = [is_log_P, is_ew, is_sini, is_log_a]
 
@@ -220,7 +220,7 @@ elif ( not fit_rv and fit_tr ):
 
   print 'Reading the data file, wait a bit!'
 
-  newfile = outdir+'/'+star+'_tr.dat'
+  newfile = outdir+'/'+star+plabels[0]+'_tr.dat'
   if ( os.path.isfile('mh_trfit.dat') ):
     os.rename('mh_trfit.dat',newfile)
   #Read the data
@@ -314,7 +314,7 @@ elif ( fit_rv and not fit_tr ):
 
   if ( nplanets == 1):
     out_file = 'planet1.dat'
-    newfile = outdir+'/'+star+'_rv.dat'
+    newfile = outdir+'/'+star+plabels[0]+'_rv.dat'
     if ( os.path.isfile(out_file) ):
       os.rename(out_file,newfile)
   elif ( nplanets > 1):
@@ -322,7 +322,7 @@ elif ( fit_rv and not fit_tr ):
     newfile = [None]*nplanets
     for m in range(0,nplanets):
       out_file[m] = 'planet' + str(m+1) + '.dat'
-      newfile[m] = outdir+'/'+star+'_rv'+str(m+1)+'.dat'
+      newfile[m] = outdir+'/'+star+plabels[i]+'_rv.dat'
       if ( os.path.isfile(out_file[m]) ):
         os.rename(out_file[m],newfile[m])
 

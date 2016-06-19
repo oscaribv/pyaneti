@@ -40,9 +40,7 @@ rstar_mean = 1.0
 mstar_sigma = 0.0
 rstar_sigma = 0.0
 
-#Transit data cadence
-n_cad = 10
-t_cad = 29.425 / 60. / 24.
+
 
 #No telescopes
 telescopes = []
@@ -61,6 +59,14 @@ unit_mass = 'solar'
 scale_error_bars = True
 a_factor = 2.0
 
+plabels=['b','c','d','e','f','g','h','i']
+lc_data ='free'
+n_cad = 1
+t_cad = 90 / 60 / 24 
+
+textra = 0.0
+
+a_from_kepler = False
 
 #Default priors
 P = 15.
