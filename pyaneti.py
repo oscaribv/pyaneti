@@ -45,12 +45,7 @@ if not os.path.exists(outdir):
 #PRIORS SECTION
 smart_priors()
 
-if ( is_circular ):
-  fit_e = False
-  fit_w = False
-  is_ew = False
-  e = 1e-5
-  w = np.pi / 2.0
+check_circular()
 
 #Print intial configuration
 print_init()

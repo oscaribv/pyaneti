@@ -49,6 +49,19 @@ def get_BIC(chi2tot_val):
 
   return BIC
 
+def check_circular():
+  global fit_e, fit_w, is_ew, e, w
+  if ( is_circular ):
+    fit_e = False
+    fit_w = False
+    is_ew = False
+    if ( min_t0.__class__ == float ):
+      e = 1e-5
+      w = np.pi / 2.0
+    else:
+      e = [1e-5]*nplanets
+      w = [np.pi/2.0]*nplanets
+
 
 #-----------------------------------------------------------
 
