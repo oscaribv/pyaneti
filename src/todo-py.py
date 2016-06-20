@@ -68,6 +68,8 @@ def check_circular():
 def smart_priors():
   global max_k, max_pz, min_pz, min_P, max_P, min_t0, max_t0
   global min_rv0, max_rv0, v0
+  global max_phys_k, max_phys_pz, min_phys_pz, min_phys_P, max_phys_P, min_phys_t0, max_phys_t0
+  global min_phys_rv0, max_phys_rv0, v0
   #Let us try to do a guess for the init values
   if (fit_rv):
     #Estimate systemic velocity priors and limits from data
@@ -99,17 +101,13 @@ def smart_priors():
     #tls is the list with the limits of the transits
     max_phys_P = tls[1][1] - tls[0][0]
     min_phys_P = tls[1][0] - tls[0][1]
-    if ( min_P < min_phys_P ):
-      min_P = min_phys_P
-    if ( max_P > max_phys_P ):
-      max_P = max_phys_P
+    min_P = max([min_P,min_phys_P])
+    max_P = min([max_P,max_phys_P])
     #t0
     min_phys_t0 = tls[0][0]
     max_phys_t0 = tls[0][1]
-    if (min_t0 < min_phys_t0 ):
-      min_t0 = tls[0][0]
-    if (max_t0 > max_phys_t0 ):
-      max_t0 = tls[0][1]
+    min_t0 = max([min_t0,min_phys_t0])
+    max_t0 = min([max_t0,max_phys_t0])
     #i
     if ( fit_e == False ):
       min_phys_i = ( 1. + max_phys_pz ) / min_phys_a  

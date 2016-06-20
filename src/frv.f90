@@ -518,7 +518,6 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, &
   chi2_new_rv, chi2_old_tr, chi2_new_tr, &
   chi2_old_total, chi2_new_total, chi2_red
-  double precision, dimension(0:dtr-1)  :: zr
   double precision, dimension(0:4+nt) :: params_rv
   double precision, dimension(0:8) :: params_tr
   double precision, dimension(0:10+nt-1,0:nwalks-1,0:nconv-1) :: params_chains

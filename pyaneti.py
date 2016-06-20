@@ -131,6 +131,13 @@ if (fit_rv and fit_tr ):
 
 elif ( not fit_rv and fit_tr ):
 
+  if ( a_from_kepler ):
+    is_log_a = False
+    fit_a = False
+  pstar = [mstar_mean,rstar_mean]
+  lpstar = [mstar_sigma,rstar_sigma]
+
+
   flag = [is_log_P, is_ew, is_sini, is_log_a]
 
   what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
@@ -152,7 +159,7 @@ elif ( not fit_rv and fit_tr ):
     max_phys_q1, min_phys_pz, max_phys_pz]
 
     pti.stretch_move_tr(megax, megay, megae,  \
-    params,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor,n_cad,t_cad, what_fit,flag,nconv)
+    params,pstar,lpstar,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor,n_cad,t_cad, what_fit,a_from_kepler,flag,nconv)
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'
