@@ -15,6 +15,10 @@ import sys
 import os
 import pyaneti as pti #FORTRAN module
 
+#-------------------------------------------------------------
+#                   INITIALIZATION
+#-------------------------------------------------------------
+
 #Load the input file
 #You have to run the program as ./pyaneti star_name
 star = str(sys.argv[1])
@@ -57,15 +61,15 @@ print_init()
 #                   FITTING ROUTINES
 #-------------------------------------------------------------
 
-#FIT TRANSIT AND RV CURVES
+#Joint fit
 if (fit_rv and fit_tr ):
   fit_joint()
 
-
+#Transit fit
 elif ( not fit_rv and fit_tr ):
   fit_transit()
 
-
+#Radial velocity fit
 elif ( fit_rv and not fit_tr ):
   fit_radial_velocity()
 
@@ -74,7 +78,7 @@ else:
   sys.exit("Nothing to fit!")
 
 #-------------------------------------------------------------
-#             	END FITTING ROUTINES
+#             	PRINT AND PLOT ROUTINES
 #-------------------------------------------------------------
 
 #Print the values

@@ -272,7 +272,7 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 	gs = gridspec.GridSpec(nrows=(n+1)/2,ncols=2)
 	for i in range(0,n):
 		plt.subplot(gs[i])
-		vpar, lpar, rpar = find_vals_perc(params[i],nconv,1.0)
+		vpar, lpar, rpar = find_vals_perc(params[i],1.0)
                 minchi2_val = params[i][minchi2_index]
 		plt.axvline(x=vpar,c=cbars)
 		plt.axvline(x=minchi2_val,c='yellow')

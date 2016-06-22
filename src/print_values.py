@@ -124,16 +124,16 @@ if ( nplanets == 1 ):
         rs_errl = 0.0
     else:
       if ( fit_rv ):
-        ms_val, ms_errl, ms_errr = find_vals_perc(mstar,nconv*nwalkers,1.0)
+        ms_val, ms_errl, ms_errr = find_vals_perc(mstar,1.0)
       if ( fit_tr ):
-        rs_val, rs_errl, rs_errr = find_vals_perc(rstar,nconv*nwalkers,1.0)
+        rs_val, rs_errl, rs_errr = find_vals_perc(rstar,1.0)
 
 
-    t0_val, t0_errl, t0_errr = find_vals_perc(t0o,nconv*nwalkers,s_factor)
+    t0_val, t0_errl, t0_errr = find_vals_perc(t0o,s_factor)
     T0 = t0_val
-    P_val, P_errl, P_errr = find_vals_perc(Po,nconv*nwalkers,s_factor)
-    e_val,e_errl, e_errr = find_vals_perc(eo,nconv*nwalkers,s_factor)
-    w_val,w_errl, w_errr = find_vals_perc(wo,nconv*nwalkers,s_factor)
+    P_val, P_errl, P_errr = find_vals_perc(Po,s_factor)
+    e_val,e_errl, e_errr = find_vals_perc(eo,s_factor)
+    w_val,w_errl, w_errr = find_vals_perc(wo,s_factor)
     if (w_val < 0.0 ):
       w_val = w_val + 2 * np.pi	
     #Transform periastron from rad to degrees
@@ -142,35 +142,35 @@ if ( nplanets == 1 ):
     w_deg_errr = w_errr * 180. / np.pi
 
     if ( fit_tr ):
-      i_val,i_errl, i_errr = find_vals_perc(io,nconv*nwalkers,s_factor)
-      a_val,a_errl, a_errr = find_vals_perc(ao,nconv*nwalkers,s_factor)
-      aphy_val,aphy_errl, aphy_errr = find_vals_perc(aphyo,nconv*nwalkers,s_factor)
-      q1_val,q1_errl, q1_errr = find_vals_perc(q1o,nconv*nwalkers,s_factor)
-      q2_val,q2_errl, q2_errr = find_vals_perc(q2o,nconv*nwalkers,s_factor)
-      u1_val,u1_errl, u1_errr = find_vals_perc(u1o,nconv*nwalkers,s_factor)
-      u2_val,u2_errl, u2_errr = find_vals_perc(u2o,nconv*nwalkers,s_factor)
-      pz_val,pz_errl, pz_errr = find_vals_perc(pzo,nconv*nwalkers,s_factor)
-      rp_val,rp_errl, rp_errr = find_vals_perc(rpo,nconv*nwalkers,s_factor)
-      b_val , b_errl, b_errr  = find_vals_perc(bo,nconv*nwalkers,s_factor)
-      tt_val , tt_errl, tt_errr  = find_vals_perc(tto,nconv*nwalkers,s_factor)
-      tf_val , tf_errl, tf_errr  = find_vals_perc(tfo,nconv*nwalkers,s_factor)
-      rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,nconv*nwalkers,s_factor)
+      i_val,i_errl, i_errr = find_vals_perc(io,s_factor)
+      a_val,a_errl, a_errr = find_vals_perc(ao,s_factor)
+      aphy_val,aphy_errl, aphy_errr = find_vals_perc(aphyo,s_factor)
+      q1_val,q1_errl, q1_errr = find_vals_perc(q1o,s_factor)
+      q2_val,q2_errl, q2_errr = find_vals_perc(q2o,s_factor)
+      u1_val,u1_errl, u1_errr = find_vals_perc(u1o,s_factor)
+      u2_val,u2_errl, u2_errr = find_vals_perc(u2o,s_factor)
+      pz_val,pz_errl, pz_errr = find_vals_perc(pzo,s_factor)
+      rp_val,rp_errl, rp_errr = find_vals_perc(rpo,s_factor)
+      b_val , b_errl, b_errr  = find_vals_perc(bo,s_factor)
+      tt_val , tt_errl, tt_errr  = find_vals_perc(tto,s_factor)
+      tf_val , tf_errl, tf_errr  = find_vals_perc(tfo,s_factor)
+      rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,s_factor)
       if ( fit_rv ):
-        rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,nconv*nwalkers,s_factor)
-        gp_val,gp_errl, gp_errr = find_vals_perc(gpo,nconv*nwalkers,s_factor)
+        rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,s_factor)
+        gp_val,gp_errl, gp_errr = find_vals_perc(gpo,s_factor)
       i_deg = i_val * 180. / np.pi
       i_deg_errl = i_errl * 180. / np.pi
       i_deg_errr = i_errr * 180. / np.pi
     if ( fit_rv ):
-      k_val, k_errl, k_errr = find_vals_perc(ko,nconv*nwalkers,s_factor)
-      m_val, m_errl, m_errr  	= find_vals_perc(masso,nconv*nwalkers,s_factor)
-      tp_val, tp_errl, tp_errr= find_vals_perc(tpo,nconv*nwalkers,s_factor)
+      k_val, k_errl, k_errr = find_vals_perc(ko,s_factor)
+      m_val, m_errl, m_errr  	= find_vals_perc(masso,s_factor)
+      tp_val, tp_errl, tp_errr= find_vals_perc(tpo,s_factor)
       #Systemic velocities are stored in v_val
       v_val = [None]*nt
       v_errl = [None]*nt
       v_errr = [None]*nt
       for j in range(0,nt):
-        v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv*nwalkers,s_factor)
+        v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],s_factor)
       if ( not fit_tr ):
         inc_deg = inclination * 180 / np.pi
         if ( inclination.__class__ == float ):
@@ -178,7 +178,7 @@ if ( nplanets == 1 ):
           iinp_errl = 0.0
           iinp_errr = 0.0 
         else:
-          iinp_val,iinp_errl, iinp_errr = find_vals_perc(inc_deg,nconv*nwalkers,s_factor)
+          iinp_val,iinp_errl, iinp_errr = find_vals_perc(inc_deg,s_factor)
 	
 
     bic2 = get_BIC(chi2tot_val)
@@ -356,33 +356,33 @@ else:
             rs_errl = 0.0
         else:
           if ( fit_rv ):
-            ms_val, ms_errl, ms_errr = find_vals_perc(mstar,nconv*nwalkers,1.0)
+            ms_val, ms_errl, ms_errr = find_vals_perc(mstar,1.0)
           if ( fit_tr ):
-            rs_val, rs_errl, rs_errr = find_vals_perc(rstar,nconv*nwalkers,1.0)
+            rs_val, rs_errl, rs_errr = find_vals_perc(rstar,1.0)
 
 	
-        t0_val[l], t0_errl[l], t0_errr[l] = find_vals_perc(t0o[l],nconv*nwalkers,s_factor)
-        mass_val[l], mass_errl[l], mass_errr[l] = find_vals_perc(masso,nconv*nwalkers,s_factor)
-        tp_val[l], tp_errl[l], tp_errr[l] = find_vals_perc(tpo,nconv*nwalkers,s_factor)
-        P_val[l], P_errl[l], P_errr[l]  = find_vals_perc(Po[l],nconv*nwalkers,s_factor)
-        e_val[l],e_errl[l], e_errr[l] 	= find_vals_perc(eo[l],nconv*nwalkers,s_factor)
-        w_val[l],w_errl[l], w_errr[l] 	= find_vals_perc(wo[l],nconv*nwalkers,s_factor)
+        t0_val[l], t0_errl[l], t0_errr[l] = find_vals_perc(t0o[l],s_factor)
+        mass_val[l], mass_errl[l], mass_errr[l] = find_vals_perc(masso,s_factor)
+        tp_val[l], tp_errl[l], tp_errr[l] = find_vals_perc(tpo,s_factor)
+        P_val[l], P_errl[l], P_errr[l]  = find_vals_perc(Po[l],s_factor)
+        e_val[l],e_errl[l], e_errr[l] 	= find_vals_perc(eo[l],s_factor)
+        w_val[l],w_errl[l], w_errr[l] 	= find_vals_perc(wo[l],s_factor)
         if (w_val[l] < 0.0 ):
           w_val[l] = w_val[l] + 2 * np.pi	
         w_deg[l] = w_val[l] * 180. / np.pi
         w_deg_errl[l] = w_errl[l] * 180. / np.pi
         w_deg_errr[l] = w_errr[l] * 180. / np.pi
         if ( fit_rv ):
-          k_val[l], k_errl[l], k_errr[l]  = find_vals_perc(ko[l],nconv*nwalkers,s_factor)
+          k_val[l], k_errl[l], k_errr[l]  = find_vals_perc(ko[l],s_factor)
           for j in range(0,nt):
-            v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],nconv*nwalkers,s_factor)
+            v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],s_factor)
             inc_deg = inclination * 180 / np.pi
           if ( inclination.__class__ == float ):
             iinp_val = inc_deg
             iinp_errl = 0.0
             iinp_errr = 0.0 
           else:
-            iinp_val,iinp_errl,iinp_errr = find_vals_perc(inc_deg,nconv*nwalkers,1.0)
+            iinp_val,iinp_errl,iinp_errr = find_vals_perc(inc_deg,1.0)
 	
         bic2 = get_BIC(chi2tot_val[l])
 

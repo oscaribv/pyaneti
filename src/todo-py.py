@@ -4,16 +4,19 @@
 #	    Oscar Barragan, March, 2016   
 #-----------------------------------------------------------
 
-
 # Useful libraries
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from scipy.stats import norm
 import sys
 
+#-----------------------------------------------------------
+#This suborutine calculates the Bayesian Information Criteria
 #Calculated as of http://arxiv.org/abs/1501.05415
+# Input  -> chi2 (not reduced)
+# output -> BIC
+#-----------------------------------------------------------
 def get_BIC(chi2tot_val):
 
   #Get the number of data and parameters
@@ -27,31 +30,13 @@ def get_BIC(chi2tot_val):
     ndata = len(megax)
     npars = sum(what_fit)
 
-#  if ( fit_rv and not fit_tr ):
-#    rv_dum = []
-#    for j in range(0,nt):
-#      rv_dum.append(rv_all[j])
-#    res = [None]*nt
-#    for j in range(0,nt):
-#	  #This is the model of the actual planet
-#	    res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val,k_val,\
-#	    P_val,e_val,w_val)
-#	    #the actual value, minus the systemic velocity
-#	    rv_dum[j] = rv_dum[j] - v_val[j] 
-#	    res[j] = rv_dum[j] - res[j]
-
-  #variance = np.concatenate(res)
-  #variance = sum(abs(variance*variance)) / ndata
-
-  #BIC = ndata * np.log(variance) + npars * np.log(ndata)
-
   BIC = chi2tot_val + npars * np.log(ndata)  
 
   return BIC
 
-
 #-----------------------------------------------------------
-#scale_period -> To calculate the periodogram of a RV curve
+#This function returns the phase of a temporal array given
+#the period
 #input: jd -> time vector in julian date to be escaled (days)
 # T0 -> time zero of the transit (days)
 # P  -> planet orbital period (days)
@@ -77,33 +62,28 @@ def scale_period(jd,Tp,P):
 #-----------------------------------------------------------
 def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
 
-  #Gravitational costant
-  #Gc = 6.67408e-11 #m^3 / (kgs^2)
-  Gc = 6.67259e-11
-  #Gc = Gc * 1.989e30 # m^3 / (Msun s^2)
-  Gc = Gc * 1.98855e30 # m^3 / (Msun s^2)
   P = P * 24. * 3600. # s
 
+  #Let us make a guess by assuming mstar >> mp
   unoe = np.sqrt(1.-ecc*ecc) 
-
-  mpsin = k * ( 2. * np.pi * Gc / P)**(-1./3.)  * \
+  mpsin = k * ( 2. * np.pi * S_GM_SI / P)**(-1./3.)  * \
   mstar**(2./3.) * unoe
-
   mp = mpsin / np.sin(i)
 
-  #find the mass by solving the mass function, this is useful for 
-  #stars orbited by other stars
+  #find the mass by solving the mass function, 
+  #this is useful for stars orbited by other stars
 
   f = [1.0]*len(P)
-  cte = - unoe**3 * P * k**3 / 2. / np.pi / Gc 
+  cte = - unoe**3 * P * k**3 / 2. / np.pi / S_GM_SI 
   sini = np.sin(i)
   flag = True
+  #Start Newton-Raphson algorithm
   while ( flag ):
     f = cte + (mp * sini )**3 / ( mstar + mp )**2
-    #df= 3. * mp**2 * sini**3 / ( mstar + mp )**2 - ( 2. * mp**3 * sini**3 / ( mstar + mp )**3 )
     df= mp**2 * sini**3 / ( mstar + mp )**2 * ( 3. - 2. * mp / (mstar + mp ) )
     mp = mp - f/df
     for j in range(0,len(P)):
+      #check that all the array elemets have converged
       if ( f[j] > 1.e-8 ):
         flag = True
         break
@@ -113,7 +93,15 @@ def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
   return mp
 
 #-----------------------------------------------------------
-
+# This routine calculates the stellar density
+# Based on eq. 30 from Winn., 2014
+# Assuming the companion is too small
+# Input:
+# P -> Period
+# a -> semi-major axis
+# Output:
+# rho -> stellar density
+#-----------------------------------------------------------
 def get_rhostar(P,a):
 
   P = P * 24. * 3600. # s
@@ -122,7 +110,8 @@ def get_rhostar(P,a):
   return rho
 
 #-----------------------------------------------------------
-
+# check if we force a circular orbit
+#-----------------------------------------------------------
 def check_circular():
  
   if (nplanets == 1 ):
@@ -140,74 +129,110 @@ def check_circular():
       w = [np.pi / 2.0]*nplanets
 
 #-----------------------------------------------------------
-#Smart priors
-
+#  Smart priors, get the best values of the physical and 
+#  priors limits 
+#-----------------------------------------------------------
 def smart_priors():
+  #We are using global variables
   global fit_tr, fit_rv
   global min_rv0, max_rv0, v0, min_k, max_k, min_phys_k, max_phys_k
   global min_P, max_P, min_phys_P, max_phys_P, min_t0, max_t0, \
          min_phys_t0, max_phys_t0, min_pz, max_pz, min_phys_pz, \
          max_phys_z, min_i, max_i, min_phys_i, max_phys_i
+
   #Let us try to do a guess for the init values
   if (fit_rv):
+
     #Estimate systemic velocity priors and limits from data
+    #The systemic velocity value of all the telescope should 
+    #be between the smallest and larger RV datapoint
     min_rv0 = min(mega_rv)
     max_rv0 = max(mega_rv)
     v0 = [min_rv0]*nt
     #Estimate k priors and limits from data
     if ( P.__class__ == float  ):
+      # The maximum value ok K should be 
       max_phys_k = (max_rv0 - min_rv0) / 2.0 
+      # if we gave a worst prior for k, let us take a better
       max_k = min( [max_k,max_phys_k] )
     else:
+      # The maximum value ok K should be 
       max_phys_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
+      # if we gave a worst prior for k, let us take a better
       max_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
     #P
+    #The period should not be larger than our obsrvational run
     max_phys_P = max(mega_time) - min(mega_time)
     #T0
+    #The T0 should not be larger than our obsrvational run
     min_phys_t0 = min(mega_time)
     max_phys_t0 = max(mega_time)
+
   if (fit_tr):
+
     #Let us estimate limits for planet size from data 
+    #The maximum depth of the data is max_flux - min_flux
     min_flux = min(megay)  
     max_flux = max(megay)  
     max_phys_pz = max_flux - min_flux   
+    #Then, our maximum planet size should be (eq. 23 Winn) 
     max_phys_pz = np.sqrt(max_phys_pz)
-    min_phys_pz = max_phys_pz*0.5
+    #Let us assume that the smallest planet in the data
+    #is around 10% of the maximum depth
+    min_phys_pz = 0.1 * max_phys_pz
+    #If we gave a worst prior for planet size, take a better
     max_pz = min([max_pz,max_phys_pz])
     min_pz = max([min_pz,min_phys_pz])
     #P
     #tls is the list with the limits of the transits
+    #The period cannot be larger (smaller)  than the outer
+    # (inner) boudarie of two consecutive transit sets
     max_phys_P = tls[1][1] - tls[0][0]
     min_phys_P = tls[1][0] - tls[0][1]
     min_P = max(min_P,min_phys_P)
     max_P = min(max_P,max_phys_P)
     #t0
+    #T0 should be in the first transit data set
     min_phys_t0 = tls[0][0]
     max_phys_t0 = tls[0][1]
     #i
+    #The minimum inclination should be
     if ( fit_e == False ):
+      #for a circular orbit
+      #min_i = arccos [ (1 + max_pz) / min_a ]
       min_phys_i = ( 1. + max_phys_pz ) / min_phys_a
       min_phys_i = np.arccos(min_phys_i)
       min_i = max(min_i,min_phys_i)
 
-
 #-----------------------------------------------------------
-
-#Get ranges, assumes that the consecutive 
+#Get transit ranges, assumes that the consecutive 
 #data is almost equally spaced
+# it assumes the times vector has a gap between transit sets
+#   ----          ---       (GAP)      ----          ----
+#       -        -                         -        -
+#        --------                           --------
+#Input:
+# times -> vector with the time stamps
+#Output:
+# lims  -> transit limits list size (ntr), each list has
+#          two values, the first and last transit datapoint
+# ntr   -> number of transits
+#-----------------------------------------------------------
 def get_transit_ranges(times):
 
   xlimits = []
   xlimits.append(times[0])
-  dx = times[3] - times[0]
+  dx = times[3] - times[0] #At lest a gap of 4
   for i in range(1,len(times)-1):
-    if ( times[i+1] - times[i] > dx ): # We are in other transit
+    if ( times[i+1] - times[i] > dx ): 
+      # We are in other transit
       xlimits.append(times[i])
       xlimits.append(times[i+1])
   xlimits.append(times[len(times)-1]) 
-
-  print xlimits
-  
+  #xlims has all the data points when the transit data sets
+  #start and end
+ 
+  #Let us put them in lims 
   lims = [None]*(len(xlimits)/2)
   for i in range(0,len(xlimits),2):
     lims[i/2] = [xlimits[i],xlimits[i+1]]
@@ -217,151 +242,48 @@ def get_transit_ranges(times):
   return lims, ntr
 
 #-----------------------------------------------------------
-#bin_data - bin a vector x each nbin points
-# input: x -> vector of a given len (n) 
-# nbin  -> number of points to bin
-#output: nx -> binned vector with len int(n/nbin)	 
-#WARNING!
-#if the len of your vector is not a multiple of nbin, you 
-#will lost the last residual points
+# This subroutine separate the transit data in different
+# data sets, each data set has a transit signal
+# Input:
+#   x      -> time array
+#   y      -> flux array
+#   err    -> error array
+#   limits -> time limits for a given transit
+# Output:
+#   dummyx   ->  time vector with the time data between 
+#                limits[0] and limits[1]
+#   dummyy   ->  flux vector with the time data between 
+#                limits[0] and limits[1]
+#   dummyerr ->  errors vector with the time data between 
+#                limits[0] and limits[1]
 #-----------------------------------------------------------
-def bin_data_mean(x,nbin):
-  nx = []
-  sd = []
-  dx = [None]*nbin
-  for i in range(0,len(x)):
-    dx[int(i%nbin)] = x[i]
-    if ( (i+1)%nbin == 0 ):
-      nx.append(np.mean(dx))
-      sd.append(np.std(dx,ddof=1)/np.sqrt(nbin-1))
-      dx = [None]*nbin
-  
-  return nx,sd
-#----------------------------------------------
-#-----------------------------------------------------------
-def bin_data_median(x,nbin):
-  nx = []
-  sd = []
-  dx = [None]*nbin
-  for i in range(0,len(x)):
-    dx[int(i%nbin)] = x[i]
-    if ( (i+1)%nbin == 0 ):
-      nx.append(np.median(dx))
-      sd.append(np.std(dx,ddof=1)/np.sqrt(nbin-1))
-      dx = [None]*nbin
-  
-  return nx, sd
-#----------------------------------------------
-
-def find_transits(x,y):
-
-  newy = sigmaclip(y,low=3.0,high=3.0)
-
-  transits, miny, maxy = y - newy
-
-#-----------------------------------------------------------
-#parabola -> a parabola
-#input: x -> vector of x values 
-#       a  -> zero order term 
-#       b  -> first order term 
-#       c  -> second order term 
-#output: y -> your parabola vector
-#-----------------------------------------------------------
-def parabola(x,a,b,c):
-  y = a + b*x +c*x*x
-  y =  y - y + 1.0
-  return y
-
-#-----------------------------------------------------------
-# normalize_transit -> normalizes a planet transit curve
-#input: x -> vector with the temporal values
-#       y -> vector with the flux values
-#     err -> vector with the flux error values
-#  limits -> 2d vector with the start and ending date
-#	     of a planetary transit
-#output: dummyx, dummyy, dummyerr 
-#     the normalized x, y and err vectors, respectively
-#WARNING!
-# This routine assumes that your transit depth is 
-#	above 3 sigma of the data				 
-#-----------------------------------------------------------
-def normalize_transit(x,y,err,limits):
-  dummyx  = []
-  dummyy  = []
-  dummyerr= []
-  newx = []
-  newy = []
-  newerr = []
-  for i in range(0,len(x)):
-    if ( x[i] > limits[0] and x[i] < limits[1] ):
-      dummyy.append(y[i])
-      dummyx.append(x[i])
-      dummyerr.append(err[i])
-
-  newy = sigmaclip(dummyy,low=3.0,high=3.0)
-  newy = sigmaclip(newy[0],low=2.0,high=2.0)
-  for i in range(0,len(dummyx)):
-    if ( dummyy[i] > newy[1] and dummyy[i] < newy[2] ):
-      newx.append(dummyx[i])
-      newerr.append(dummyerr[i])
-
-  popt, cov = curve_fit(parabola,newx,newy[0],sigma=newerr)
-  dummyx = np.array(dummyx)
-  par = parabola(dummyx,popt[0],popt[1],popt[2])
-  dummyy = dummyy / par
-  dummyerr = dummyerr / par
-
-  return dummyx, dummyy, dummyerr
-
-#-----------------------------------------------------------
-
 def separate_transits(x,y,err,limits):
   dummyx  = []
   dummyy  = []
   dummyerr= []
-  newx = []
-  newy = []
-  newerr = []
   for i in range(0,len(x)):
     if ( x[i] > limits[0] and x[i] < limits[1] ):
-      dummyy.append(y[i])
       dummyx.append(x[i])
+      dummyy.append(y[i])
       dummyerr.append(err[i])
 
   return dummyx, dummyy, dummyerr
 
-
-#-----------------------------------------------------------
-# find_vals_gauss -> find the mean and standard deviation
-#               of the last nconv points of a given array
-#input: x -> vector with a minimum size nconv
-#   nconv -> the last nconv points to be taken account
-#	     in the gaussian fit
-#output: mu -> peak position of the gaussian fit
-#        std-> standard deviation of the gaussian fit
-#-----------------------------------------------------------
-def find_vals_gauss(x,nconv):
-  #let us take only the converging part
-  iout = len(x) - nconv
-  xnew = x[iout:]
-  mu,std = norm.fit(xnew)
-  return mu, std
-
 #-----------------------------------------------------------
 # find_vals_perc -> find the median and the errors within
 #  a 68% confidence interval
-#input: x -> vector with a minimum size nconv
+#input: 
+#       x -> vector with a minimum size nconv
 #   nconv -> the last nconv points to be taken account
 #            in the gaussian fit
-#output: med -> median value
+#output:
+#        med -> median value
 #	mine -> left error (50% - 16%)
 #	maxe -> right error (84% - 50%)
 #-----------------------------------------------------------
-def find_vals_perc(x,nconv,sf=1.0):
-  iout = len(x) - nconv
-  xnew = x[iout:]
+def find_vals_perc(x,sf=1.0):
   #With a 68% confidence interval
-  mine, med, maxe = np.percentile(xnew,[16,50,84])
+  mine, med, maxe = np.percentile(x,[16,50,84])
   maxe = ( maxe - med ) / sf
   mine = ( med - mine ) / sf
   
