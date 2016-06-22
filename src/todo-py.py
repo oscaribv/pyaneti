@@ -367,6 +367,98 @@ def find_vals_perc(x,nconv,sf=1.0):
   
   return med, mine, maxe
 
+#-----------------------------------------------------------
+#         FIT JOINT RV-TRANSIT DATA
+#-----------------------------------------------------------
+def fit_joint():
+
+  global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
+  global is_log_P, is_ew, is_sini_is_log_a, is_log_k, is_log_rv0
+  global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_pz, fit_k,fit_v0
+  global T0,P,e,w,ii,a,q1,q2,pz,k0, v0
+  global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
+         max_a, min_q1, max_q1, min_q1, max_q1, min_pz, max_pz, min_k, max_k
+  global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
+         min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
+         max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k
+  global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko,vo, what_fit
+  
+
+  if ( a_from_kepler ):
+    k_log_a = False
+    fit_a = False
+  else:
+    k_log_a = is_log_a
+    fit_a = fit_a
+ 
+  pstar = [mstar_mean,rstar_mean]
+  lpstar = [mstar_sigma,rstar_sigma]
+
+  flag = [is_log_P,is_ew,is_sini,k_log_a,is_log_k,is_log_rv0]
+
+  what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
+              int(fit_i),int(fit_a),int(fit_q1),int(fit_q2),\
+              int(fit_pz), int(fit_k), int(fit_v0)]
+
+  dummy = [T0,P,e,w,ii,a,q1,q2,pz,k0]
+  params = np.concatenate((dummy,v0))
+
+  #Call the fit routine
+
+  if ( method == 'sm' ):
+
+    min_phys_t0 = min_t0
+    max_phys_t0 = max_t0
+
+    vec_rv0_limits = []
+    for m in range(0,nt):
+      vec_rv0_limits.append(min_rv0) 
+      vec_rv0_limits.append(max_rv0) 
+
+    dummy_lims = \
+    [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
+    , min_i, max_i, min_a, max_a, min_q1, max_q1, min_q1, \
+      max_q1, min_pz, max_pz, min_k, max_k]
+
+    dummy_lims_physical = \
+    [min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w \
+    , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
+    max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k]
+
+    limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
+    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
+
+
+    pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
+    ,megax, megay, megae, params,pstar,lpstar,limits, limits_p , nwalkers,a_factor, maxi, thin_factor, \
+    n_cad,t_cad,what_fit, flag,a_from_kepler, nconv)
+
+  elif ( method == 'plot' ):
+    print 'I will only print the values and generate the plot'
+
+  else:
+    print 'You did not choose a method!'
+    print 'method = sm   -> Stretch move'
+    print 'method = plot -> Plot of a previous run'
+    sys.exit('choose your favorite.')
+
+  print 'Reading the data file, wait a bit!'
+
+  newfile = outdir+'/'+star+'_rv-tr.dat'
+  if ( os.path.isfile('mh_fit.dat') ):
+    os.rename('mh_fit.dat',newfile)
+        
+  #Read the data
+  vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko =  \
+  np.loadtxt(newfile, comments='#',unpack=True, \
+  usecols=range(0,13))
+  vo = [None]*nt
+  for j in range(0,nt):
+    n = [13+j]
+    a = np.loadtxt(newfile, comments='#', \
+    unpack=True, usecols=(n))
+    vo[j] = a
+
 
 #-----------------------------------------------------------
 # PRINT INITIAL CONFIGURATION
