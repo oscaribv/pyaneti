@@ -161,10 +161,8 @@ def smart_priors():
     #tls is the list with the limits of the transits
     max_phys_P = tls[1][1] - tls[0][0]
     min_phys_P = tls[1][0] - tls[0][1]
-    if ( min_P < min_phys_P ):
-      min_P = min_phys_P
-    if ( max_P > max_phys_P ):
-      max_P = max_phys_P
+    min_P = max(min_P,min_phys_P)
+    max_P = min(max_P,max_phys_P)
     #t0
     min_phys_t0 = tls[0][0]
     max_phys_t0 = tls[0][1]
@@ -172,8 +170,7 @@ def smart_priors():
     if ( fit_e == False ):
       min_phys_i = ( 1. + max_phys_pz ) / min_phys_a
       min_phys_i = np.arccos(min_phys_i)
-      if ( min_i < min_phys_i ):
-        min_i = min_phys_i  
+      min_i = max(min_i,min_phys_i)
 
 
 #-----------------------------------------------------------
