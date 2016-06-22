@@ -61,55 +61,10 @@ print_init()
 if (fit_rv and fit_tr ):
   fit_joint()
 
-#-----------------------------------------------------------
-#                   FIT TRANSIT CURVE ONLY
-#-----------------------------------------------------------
 
 elif ( not fit_rv and fit_tr ):
+  fit_transit()
 
-  min_phys_t0 = min_t0
-  max_phys_t0 = max_t0
-
-  flag = [is_log_P, is_ew, is_sini, is_log_a]
-
-  what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
-                int(fit_i),int(fit_a), int(fit_q1),int(fit_q1),\
-                int(fit_pz)]
-
-  params = [T0,P,e,w,ii,a,q1,q2,pz]
-
-  if ( method == 'sm' ):
-    #The transit time should be in the first window
-    limits = \
-    [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
-    , min_i, max_i, min_a, max_a, min_q1, max_q1, \
-    min_q1, max_q1, min_pz, max_pz]
-               
-    limits_physical = \
-    [min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w \
-    , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
-    max_phys_q1, min_phys_pz, max_phys_pz]
-
-    pti.stretch_move_tr(megax, megay, megae,  \
-    params,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor,n_cad,t_cad, what_fit,flag,nconv)
-
-  elif ( method == 'plot' ):
-    print 'I will only print the values and generate the plot'
-
-  else:
-    print 'You did not choose a method!'
-    print 'method = sm   -> Stretch move'
-    print 'method = plot -> Plot of a previous run'
-    sys.exit('choose your favorite.')
-
-  print 'Reading the data file, wait a bit!'
-
-  newfile = outdir+'/'+star+'_tr.dat'
-  if ( os.path.isfile('mh_trfit.dat') ):
-    os.rename('mh_trfit.dat',newfile)
-  #Read the data
-  vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo = \
-  np.loadtxt(newfile, comments='#',unpack=True)
 
 #-------------------------------------------------------------
 #                   FIT RV CURVE ONLY
