@@ -122,6 +122,24 @@ def get_rhostar(P,a):
   return rho
 
 #-----------------------------------------------------------
+
+def check_circular():
+ 
+  if (nplanets == 1 ):
+    if ( is_circular ):
+      fit_e = False
+      fit_w = False
+      is_ew = False
+      e = 1e-5
+      w = np.pi / 2.0
+  else:
+      fit_e = [False]*nplanets
+      fit_w = [False]*nplanets
+      is_ew = False
+      e = [1e-5]*nplanets
+      w = [np.pi / 2.0]*nplanets
+
+#-----------------------------------------------------------
 #Smart priors
 
 def smart_priors():

@@ -19,8 +19,10 @@ import pyaneti as pti #FORTRAN module
 #You have to run the program as ./pyaneti star_name
 star = str(sys.argv[1])
 
+#Create path to the input_fit.py file
 inf_name = 'inpy/'+star+'/input_fit.py'
 
+#Did you create an input_fit.py file?
 if ( not os.path.isfile( inf_name ) ):
   print 'You have not created', inf_name
   sys.exit()
@@ -42,15 +44,9 @@ outdir = 'outpy/' + star + '_out'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
-#PRIORS SECTION
 smart_priors()
 
-if ( is_circular ):
-  fit_e = False
-  fit_w = False
-  is_ew = False
-  e = 1e-5
-  w = np.pi / 2.0
+check_circular()
 
 #Print intial configuration
 print_init()
