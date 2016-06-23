@@ -97,11 +97,12 @@ mp    = 0.9469 + 0.0143 - 0.0154 earth masses
 rho_p = 5.2639 + 0.0944 - 0.0928 g/cm^3
 g_p = 918.1049 + 17.9905 - 17.4897 cm/s^2
 ```
+Once see this, you will see some plots similar to
 
-ESCRIBIR MAS AQUI
+
 
 ## Documentation
 
 _I am working on it!_
 
-## Papers citing pyaneti
+## Science  with pyaneti

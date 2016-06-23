@@ -7,8 +7,6 @@
 # Useful libraries
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-from scipy.stats import norm
 import sys
 
 #-----------------------------------------------------------
@@ -152,14 +150,14 @@ def smart_priors():
     #Estimate k priors and limits from data
     if ( P.__class__ == float  ):
       # The maximum value ok K should be 
-      max_phys_k = (max_rv0 - min_rv0) / 2.0 
+      max_phys_k = (max_rv0 - min_rv0) 
       # if we gave a worst prior for k, let us take a better
       max_k = min( [max_k,max_phys_k] )
     else:
       # The maximum value ok K should be 
-      max_phys_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
+      max_phys_k = [(max_rv0 - min_rv0) ]*nplanets
       # if we gave a worst prior for k, let us take a better
-      max_k = [(max_rv0 - min_rv0) / 2.0]*nplanets
+      max_k = [(max_rv0 - min_rv0) ]*nplanets
     #P
     #The period should not be larger than our obsrvational run
     max_phys_P = max(mega_time) - min(mega_time)
