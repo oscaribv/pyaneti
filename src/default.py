@@ -60,6 +60,8 @@ nwalkers = 100
 unit_mass = 'solar'
 scale_error_bars = True
 a_factor = 2.0
+plot_histogram = True
+plot_correlations = True
 
 
 #Default priors
@@ -151,6 +153,7 @@ max_phys_w   = 2*np.pi      #rad
 #transit fit
 min_phys_i   = 1.22173      # 70 degrees
 max_phys_i   = np.pi / 2.0  # 90 degrees
+max_phys_i   = np.pi - 1.22173 # 90 degrees
 min_phys_a   = 3.0	       # The planet is outside the star
 max_phys_a   = 1.e4	       # The planet is really far
 min_phys_q1  = 0.0	       #

@@ -9,8 +9,6 @@
 #Load libraries
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
-from scipy.stats import norm, sigmaclip
 import sys
 import os
 import pyaneti as pti #FORTRAN module
@@ -89,9 +87,11 @@ execfile('src/plot_data.py')
 
 if ( nplanets == 1):
 
-  plot_histogram()
+  if (plot_histogram):
+    plot_histogram()
 
-  plot_correlations()
+  if (plot_correlations):
+    plot_correlations()
 
   #PLOT TRANSIT
   if ( fit_tr ):
@@ -103,7 +103,8 @@ if ( nplanets == 1):
 	
 elif (nplanets > 1):
 
-  hist_mp_rv()
+  if (plot_histogram):
+    hist_mp_rv()
 
   #plot_correlations()
 
