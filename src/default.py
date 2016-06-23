@@ -60,8 +60,8 @@ nwalkers = 100
 unit_mass = 'solar'
 scale_error_bars = True
 a_factor = 2.0
-plot_histogram = True
-plot_correlations = True
+is_plot_histogram = True
+is_plot_correlations = True
 
 
 #Default priors

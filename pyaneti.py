@@ -55,6 +55,7 @@ check_circular()
 #Print intial configuration
 print_init()
 
+
 #-------------------------------------------------------------
 #                   FITTING ROUTINES
 #-------------------------------------------------------------
@@ -85,12 +86,13 @@ execfile('src/print_values.py')
 #Create plots
 execfile('src/plot_data.py')
 
+
 if ( nplanets == 1):
 
-  if (plot_histogram):
+  if ( is_plot_histogram ):
     plot_histogram()
 
-  if (plot_correlations):
+  if ( is_plot_correlations ):
     plot_correlations()
 
   #PLOT TRANSIT
