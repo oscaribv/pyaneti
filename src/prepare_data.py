@@ -35,13 +35,6 @@ if (fit_rv):
   	dtype={'names': ('time', 'rv', 'err','telescope'), \
 		'formats': ('float', 'float', 'float', 'S10')}, \
 		comments='#',unpack=True)
-
-	#Transform rv from km/s to m/s
-	if(units_ms):
-		ktom = 1000
-		rv   = rv*ktom
-		err  = err*ktom
-		ylab = 'RV (m/s)'
 	
 	#These lists have lists with data for 
 	#the different telescopes
