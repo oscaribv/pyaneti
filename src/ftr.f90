@@ -54,36 +54,6 @@ implicit none
   
 end subroutine
 
-!-----------------------------------------------------
-
-subroutine get_first_transit_ranges(times,nsize,lims,ilim)
-implicit none
-
-!In/Out variables
-  integer, intent(in) :: nsize
-  double precision, intent(in),dimension(0:nsize-1) :: times
-  double precision, intent(out),dimension(0:1) :: lims
-  integer, intent(out) :: ilim
-!Local variables
-  double precision :: dx
-  integer :: i
-
-  lims(0) = times(0)
-  dx = times(4) - times(0)
-  i = 1
-  do while (times(i+1) - times(i) < dx )
-   i = i + 1
-  end do
-
-  lims(1) = times(i)
-  ilim = i
-   
-
-end subroutine
-
-!-----------------------------------------------------
-
-
 subroutine check_eclipse(z,pz,is_good,sizez)
 implicit none
 
@@ -96,6 +66,7 @@ implicit none
   integer :: i
   double precision :: limit
 
+  !This works only for not grazing transits
   limit = 1.d0 + pz
   is_good = .false.
   !At least we have to have one eclipse condition
@@ -191,8 +162,8 @@ implicit none
 
 end subroutine
 !-----------------------------------------------------------
-subroutine stretch_move_tr(xd,yd,errs,pars,pstar,lpstar,lims,limits_physical, &
-nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,afk,flag,nconv,datas)
+subroutine stretch_move_tr(xd,yd,errs,pars,lims,limits_physical, &
+nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,nconv,datas)
 implicit none
 
 !In/Out variables
@@ -201,16 +172,14 @@ implicit none
   double precision, intent(in), dimension(0:8) :: pars
   double precision, intent(in), dimension(0:(2*9)-1) :: lims
   double precision, intent(in) :: a_factor, t_cad
-  double precision, intent(in), dimension(0:1)  :: pstar, lpstar
   integer, intent(in), dimension(0:8) :: wtf
   logical, intent(in) :: flag(0:3)
-  logical, intent(in) :: afk
 !Local variables
   double precision, dimension(0:8) :: params
+  double precision, dimension(0:datas-1) :: zr
   double precision, dimension(0:2*(9)-1) :: limits, limits_physical
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
-  double precision, dimension(0:nwalks-1) :: mstar, rstar
   double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains
   double precision  :: q, esin, ecos, aa, chi2_red_min
   integer :: o, j, n, nu, nk, n_burn, spar, new_thin_factor
@@ -218,9 +187,6 @@ implicit none
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:8) :: wtf_all 
-  double precision, allocatable, dimension(:) :: xd_tr_ft, z_ft !first transit variables
-  double precision :: lims_ft(0:1)
-  integer :: i_ft
   double precision :: r_real
   character(len=15) :: output_files
 !external calls
@@ -281,17 +247,6 @@ implicit none
   limits(15) = 1.0
   limits_physical(15) = 1.0
 
-
-  !Let us find first transit
-  call get_first_transit_ranges(xd,datas,lims_ft,i_ft)
-
-  !Now we have the index of the first transit limit
-  !Let us allocate memory
-  allocate(    z_ft(i_ft))
-  allocate(xd_tr_ft(i_ft))
-  !Now the search for transit signals is only made in the first  transit
-
-
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
 
@@ -301,7 +256,7 @@ implicit none
   nk = 0
   do while (nk < nwalks )
 
-      !print *, 'creating walker ', nk + 1
+      print *, 'creating walker ', nk + 1
       !Counter for the limits
       j = 0
 
@@ -313,13 +268,25 @@ implicit none
           call random_number(r_real)
           params_old(n,nk) = limits(j+1) - limits(j)
           params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
+          !print *,n, params_old(n,m,nk), limits(j+1,m) - limits(j,m)
+          !print *, params_old(2,m,nk)
         end if
+          !print *, params_old(2,m,nk), limits(5,m) - limits(4,m)
         j = j + 2 !two limits for each parameter
 
       end do
 
+      !Check that u1 + u2 < 1 for ew
+!          is_limit_good = .false.
+!          do while ( .not. is_limit_good )
+!            call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
+!            if ( .not. is_limit_good  ) then
+!              params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
+!              params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
+!            end if
+!        end do
 
-   !Check that e < 1 for ew
+       !Check that e < 1 for ew
    if ( flag(1) ) then
      is_limit_good = .false.
      do while ( .not. is_limit_good )
@@ -332,10 +299,10 @@ implicit none
    end if
 
     !Let us find z
-    call find_z(xd_tr_ft,params_old(0:5,nk),flag,z_ft,i_ft) 
+    call find_z(xd,params_old(0:5,nk),flag,zr,datas) 
 
     !Let us check if there is an eclipse
-    call check_eclipse(z_ft,params_old(8,nk),is_eclipse,i_ft)
+    call check_eclipse(zr,params_old(8,nk),is_eclipse,datas)
     !if we do not have an eclipse, let us recalculate this wlaker
     if ( .not. is_eclipse ) then 
       nk = nk
@@ -386,25 +353,14 @@ implicit none
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
 
-!    if ( a_factor <= 1.d0 ) then
-!      call random_number(aa)
-!      aa = 1.d0 + abs(aa*a_factor)
-!    end if
+    if ( a_factor <= 1.d0 ) then
+      call random_number(aa)
+      aa = 1.d0 + abs(aa*a_factor)
+    end if
 
     do nk = 0, nwalks - 1 !walkers
         params_new(:,nk) = params_old(:,r_int(nk))
     end do
-
-    if ( afk ) then
-      wtf_all(5) = 0
-      !Fill mass and radius 
-      call gauss_random_bm(pstar(0),lpstar(0),mstar,nwalks)
-      call gauss_random_bm(pstar(1),lpstar(1),rstar,nwalks)
-      !The a parameter comes from 3rd kepler law
-      !params_old(1) is the period
-      call get_a_scaled(mstar,rstar,params_old(1,:),params_old(5,:),nwalks)
-    end if
-
 
     do nk = 0, nwalks - 1 !walkers
 
@@ -434,9 +390,9 @@ implicit none
 
       if ( is_limit_good ) then !evaluate chi2
         !Let us find z
-        call find_z(xd_tr_ft,params_new(0:5,nk),flag,z_ft,i_ft) 
+        call find_z(xd,params_new(0:5,nk),flag,zr,datas) 
         !HERE I HAVE TO WRITE THE CHECK ECLIPSE ROUTINE
-        call check_eclipse(z_ft,params_new(8,nk),is_eclipse,i_ft)
+        call check_eclipse(zr,params_new(8,nk),is_eclipse,datas)
         !find chi2
         if ( is_eclipse ) then
         call find_chi2_tr(xd,yd,errs,params_new(0:5,nk),flag,params_new(6:8,nk),n_cad,t_cad,chi2_new(nk),datas)
@@ -547,8 +503,6 @@ implicit none
 
   end do
 
-  deallocate(z_ft)
-  deallocate(xd_tr_ft)
   !Close all the files
   close(123)
 

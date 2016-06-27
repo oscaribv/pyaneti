@@ -8,33 +8,71 @@
 !------------------------------------------------------------
 
 !-----------------------------------------------------------
-!                     rv_curve_mp
-!       radial velocity curve for multi planets
+! This subroutine computes the circular radial velocity 
+! curve for a set of values t. The subroutine returns 
+! a vector (rv of the same size that t) by solving:
+!  $ rv = rv0 - k [ sin ( 2* \pi ( t - t_0) / P ) ] $
+! Where the parameters are the typical for a RV curve
+!------------------------------------------------------------
+subroutine rv_circular(t,rv0,t0,k,P,rv,ts)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: ts
+  double precision, intent(in), dimension(0:ts-1)  :: t
+  double precision, intent(out), dimension(0:ts-1) :: rv
+  double precision, intent(in) :: k, rv0, t0, P
+!Local variables
+  double precision :: pi = 3.1415926535897932384626d0
+!
+  rv(:) = rv0 - k * sin( 2.d0*pi*( t(:) - t0) / P )
+
+end subroutine
+
 !-----------------------------------------------------------
-!This subroutine computes the radial velocity for a 
-! multiplanet system RV curve for an eccentric orbit, 
-! given a set of values t. 
+! This subroutine computes the radial velocity 
+! curve for an eccentric orbit, given a set of values t. 
 !The subroutine returns  a vector (rv of the same size that t)
 ! by solving:
-!  $ rv = rv0 + \sum_i^{nplanets} k_i 
-!        [ cos ( \theta_i + \omega_i ) + 
-!          e_i * cos ( \omega_i ) ] $
-!Where the parameters are the typical for a RV curve
-!SUBROUTINE ARGUMENTS
-!t   -> time stamps vector (dimension ts (time size))
-!rv0 -> systemic velocity (scalar)
-!t0  -> First transit epoch(vector, size npl(number of planets))
-!k   -> RV semi-amplitude(vector, size npl)
-!P   -> orbital period (vector, size npl)
-!e   -> eccentricity (vector, size npl)
-!w   -> periastron (vector, size npl)
-!rv  -> output with RV values (vector, size ts)
+!  $ rv = rv0 + k [ cos ( \theta + \omega ) 
+!             + e * cos ( \omega ) ] $
+!  Where the parameters are the typical for a RV curve
+!------------------------------------------------------------
+subroutine rv_curve(t,rv0,t0,k,P,e,w,rv,ts)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: ts
+  double precision, intent(in), dimension(0:ts-1)  :: t
+  double precision, intent(in) :: rv0, t0, k, P, e, w
+  double precision, intent(out), dimension(0:ts-1) :: rv
+!Local variables
+  double precision, dimension(0:ts-1) :: ta
+!External function
+  external :: find_anomaly
+!
+  !Obtain the eccentric anomaly by using find_anomaly
+  call find_anomaly(t,t0,e,w,P,ta,ts)
+
+  rv(:) = rv0 + k * ( cos( ta(:) + w ) + e * cos(w) )
+  
+end subroutine
+
+!-----------------------------------------------------------
+!CHANGE THIS HEADER
+! This subroutine computes the radial velocity for a multiplanet system
+! curve for an eccentric orbit, given a set of values t. 
+!The subroutine returns  a vector (rv of the same size that t)
+! by solving:
+!  $ rv = rv0 + k [ cos ( \theta + \omega ) 
+!             + e * cos ( \omega ) ] $
+!  Where the parameters are the typical for a RV curve
 !------------------------------------------------------------
 subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,rv,ts,npl)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: ts, npl !sizes of vectors
+  integer, intent(in) :: ts, npl
   double precision, intent(in), dimension(0:ts-1)  :: t
   double precision, intent(out), dimension(0:ts-1) :: rv
   double precision, intent(in), dimension(0:npl-1) :: k, t0, P, e, w
@@ -47,51 +85,40 @@ implicit none
   external :: find_anomaly
 !
 
-  rv(:) = rv0 !our zero is the systemic velocity
+  rv(:) = rv0
   do i = 0, npl-1
    !Obtain the true anomaly by using find_anomaly
-   !each i corresponds to a planet
+   !each i is for a different planet
    call find_anomaly(t,t0(i),e(i),w(i),P(i),ta,ts)
-   rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) &
-           + e(i) * cos(w(i)) )
+   rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
    ta(:) = 0.0d0
   end do
  
 end subroutine
 
 !-----------------------------------------------------------
-!                    find_chi2_rv
-!           find chi^2 for radial velocity 
-!-----------------------------------------------------------
-!This routine calculates the chi square for a RV curve
-! given a set of xd-yd data points and the orbital parameters.
-!It takes into acount the possible difference in systematic
+! This routine calculates the chi square for a RV curve
+! given a set of xd-yd data points
+! It takes into acount the possible difference in systematic
 ! velocities for different telescopes.
-!SUBROUTINE ARGUMENTS
-! xd     -> time vector (vector size datas)
-! yd     -> RV measurements vector (vector size datas)
-! errs   -> RV errors vector (vector size datas)
-! tlab   -> Telescope labels (vector size datas) This is an 
-!           array of integers number, each integer is a 
-!           different telescope
-! params -> orbital parameters matrix (size 0:4+nt,0:npl-1),
-!           first dimension is all the orbital parameters
-!           second dimension correspond to each planet 
-!           the orbital parametrs are
-!           t0, P, e, w, k and rv0 for each telescope
-! flags  -> logical vector (size 4), flag indicating if we are
-!           evolving some parameters with some parametrization
+!Input parameters are:
+! xd, yd, errs -> set of data to fit (array(datas))
+! tlab -> Telescope labels (array of integers number)
+! rv0  -> array for the different systemic velocities,
+!         its size is the number of telescopes
+! k, ec, w, t0, P -> typical planet parameters
+! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)  
 !Output parameter:
-! chi2   -> chi2 value, scalar double precision
+! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
 subroutine find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2,datas,nt,npl)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, nt, npl !vector sizes
+  integer, intent(in) :: datas, nt, npl
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1) :: tlab
-  double precision, intent(in), dimension(0:4+nt,0:npl-1) :: params !Matrix with all the orbital parameters for all the planets
+  double precision, intent(in), dimension(0:4+nt,0:npl-1) :: params
   logical, intent(in)  :: flag(0:3)
   double precision, intent(out) :: chi2
 !Local variables
@@ -100,9 +127,8 @@ implicit none
   double precision, dimension(0:datas-1) :: model, res
   integer :: i, tel
 !External function
-  external :: rv_curve_mp
+  external :: rv_circular, rv_curve_mp
 
-  !Extract the values from params for easy reading
   t0(:)  = params(0,:)
   P(:)   = params(1,:)
   e(:)   = params(2,:)
@@ -110,7 +136,6 @@ implicit none
   k(:)   = params(4,:)
   rv0(:) = params(5:4+nt,0) 
 
-  !Let us check if we are using some parametrization
   if ( flag(0) ) P(:) = 1.d1**params(1,:)
   if ( flag(1) ) then
     e(:) = params(2,:) * params(2,:) + params(3,:) * params(3,:)
@@ -122,13 +147,10 @@ implicit none
   !Telescope label counter
   tel = 0
 
-  !If tlab(i) changes, it means that we are dealing with data
-  ! of other telescope, so we have to change the index of rv0
   do i = 0, datas-1
-   if ( tel .ne. tlab(i)  ) tel = tel + 1  
+   if ( tel .ne. tlab(i)  ) tel = tel + 1 
     call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,npl)
   end do
-  !All the model data is in the model vector
 
   !Let us obtain chi^2
   res(:) = ( model(:) - yd(:) ) / errs(:) 
@@ -136,9 +158,6 @@ implicit none
 
 end subroutine
 
-!-----------------------------------------------------------
-!                stretch_move_rv
-!         Stretch move for radial velocity fit
 !-----------------------------------------------------------
 subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,a_factor,maxi, &
 thin_factor,wtf,flag,nconv,datas,nt,npl)
@@ -168,21 +187,14 @@ implicit none
   double precision, dimension(0:npl-1) :: t0_mean, P_mean
   integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
   double precision :: r_real, sigma_t0(0:npl-1), sigma_P(0:npl-1)
-  character(len=11), dimension(0:8) :: output_files
+  !character(len=11), dimension(0:npl-1) :: output_files
+  character(len=11), dimension(0:1) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
 
 !I have to do this automatically
   output_files(0) = 'planet1.dat'
   output_files(1) = 'planet2.dat'
-  output_files(2) = 'planet3.dat'
-  output_files(3) = 'planet4.dat'
-  output_files(4) = 'planet5.dat'
-  output_files(5) = 'planet6.dat'
-  output_files(6) = 'planet7.dat'
-  output_files(7) = 'planet8.dat'
-  output_files(8) = 'planet9.dat'
-!
 
   !Let us convert all the big arrays to 
   !matrix form 
@@ -323,10 +335,10 @@ implicit none
     call random_int(r_int,nwalks)
 
     !Let us vary aa randomlly
-    !if ( a_factor < 1.0d0 ) then
-    !  call random_number(aa)
-    !  aa = 1.0d0 + thin_factor * aa 
-    !end if
+    if ( a_factor < 1.0d0 ) then
+      call random_number(aa)
+      aa = 1.0d0 + thin_factor * aa 
+    end if
 
     do m = 0, npl - 1
       if( wtf_all(0,m) == 0 ) then !T0
@@ -518,6 +530,7 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, &
   chi2_new_rv, chi2_old_tr, chi2_new_tr, &
   chi2_old_total, chi2_new_total, chi2_red
+  double precision, dimension(0:dtr-1)  :: zr
   double precision, dimension(0:4+nt) :: params_rv
   double precision, dimension(0:8) :: params_tr
   double precision, dimension(0:10+nt-1,0:nwalks-1,0:nconv-1) :: params_chains
@@ -532,9 +545,6 @@ implicit none
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:10+nt-1) :: wtf_all 
   real :: r_real
-  double precision, allocatable, dimension(:) :: xd_tr_ft, z_ft !first transit variables
-  double precision :: lims_ft(0:1)
-  integer :: i_ft
   character (len=11) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
@@ -607,17 +617,6 @@ implicit none
     limits_physical(20:2*(10+nt)-1) = log10(limits_physical(20:2*(10+nt)-1))
   end if
 
-
-  !Let us find first transit
-  call get_first_transit_ranges(xd_tr,dtr,lims_ft,i_ft)
-
-  !Now we have the index of the first transit limit
-  !Let us allocate memory
-  allocate(    z_ft(i_ft))
-  allocate(xd_tr_ft(i_ft))
-  !Now the search for transit signals is only made in the first  transit
-
-
   !Call a random seed 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -664,10 +663,10 @@ implicit none
     params_rv(0:3) = params_old(0:3,nk)
     params_rv(4:4+nt) = params_old(9:9+nt,nk)
 
-    !Let us find z for the first transit signal
-    call find_z(xd_tr_ft,params_tr(0:5),flag,z_ft,i_ft)
-    !Let us check if there is an eclipse for the first transit
-    call check_eclipse(z_ft,params_tr(8),is_eclipse,i_ft)
+    !Let us find z
+    call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
+    !Let us check if there is an eclipse
+    call check_eclipse(zr,params_tr(8),is_eclipse,dtr)
     !if we do not have an eclipse, let us recalculate this wlaker
 
     if ( .not. is_eclipse ) then
@@ -730,10 +729,10 @@ implicit none
     end do
 
     !Let us vary aa randomlly
-!    if ( a_factor < 1.0d0 ) then
-!      call random_number(aa)
-!      aa = 1.0d0 + thin_factor * aa 
-!    end if
+    if ( a_factor < 1.0d0 ) then
+      call random_number(aa)
+      aa = 1.0d0 + thin_factor * aa 
+    end if
 
     if ( afk ) then
       wtf_all(5) = 0
@@ -773,9 +772,9 @@ implicit none
         params_rv(4:4+nt) = params_new(9:9+nt,nk)
 
         !Find the chi2 for each case
-        call find_z(xd_tr_ft,params_tr(0:5),flag,z_ft,i_ft)
+        call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
         !Let us check if there is an eclipse
-        call check_eclipse(z_ft,params_tr(8),is_eclipse,i_ft)
+        call check_eclipse(zr,params_tr(8),is_eclipse,dtr)
         !if we do not have an eclipse
 
         !NOW THIS IS CALCULATING TWO TIMES Z, 
@@ -895,8 +894,6 @@ implicit none
 
   end do
 
-  deallocate(z_ft)
-  deallocate(xd_tr_ft)
   close(101)
 
 end subroutine
