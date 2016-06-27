@@ -27,18 +27,49 @@ for a major coverage of the parameter space
 * Correct treatment of short and long cadence data ([Kipping, 2010](http://mnras.oxfordjournals.org/content/408/3/1758)).
 * Single and joint RV-transit fits.
 
+## ** Dependencies **
+
+You need to have in your computer:
+* gfortran
+* numpy
+* matplotlib
 
 ## ** Start to use it now! **
 
-Ensure you have installed the gfortran compiler and the python libraries numpy, scipy and matplotlib.
+You do not need install anything, just clone or download pyaneti.
 
-You do not need install anything, just clone or download pyaneti, type make and it is done!
+```
+git clone https://github.com/oscaribv/pyaneti
+```
+
+The advantage about cloning the repository is the possibility to follow the changes to this package easily with git pull (learn more about git
+in [https://git-scm.com/](https://git-scm.com/)).
+Or if you want
+
+```
+wget https://github.com/oscaribv/pyaneti/archive/master.zip
+unzip master.zip
+mv pyaneti_master pyaneti
+```
+
+if you choose this option, you should repeat it every time the code is updated.
+
+The next step is to get inside the pyaneti folder and see what we can find inside it
+
+```
+cd pyaneti
+ls
+  LICENSE   outpy  src inpy  makefile  pyaneti.py  README.md
+```
+
+ type ``make``, you would see a lot of text apearing in the terminal, after it finishes, you are done!
 
 ```
 make
 ```
 
-if you have all the packages, you are ready to run pyaneti.
+If you have all the dependencies installed, the make procces ended without any error.
+Now you are ready to run the code for the first time.
 
 ```
 ./pyaneti.py test
@@ -54,51 +85,71 @@ The program will start. Wait a couple of minutes and then you should see somethi
 
 ```
 Summary:
-N_chains    =  100
+N_chains    =  50
 N_conv      =  500
 thin_factor =  1
 N_data      =  174
 N_pars      =  7
-chi2       = 190.2928
+chi2       = 168.4746
 DOF         =  167
-chi2_red   = 1.1395
-scale factor=  0.936800476854
-BIC        = 226.4061
+chi2_red   = 1.0088
+scale factor=  0.995614042083
+BIC        = 204.5880
 Input parameters
-M_*     = 1.0000000 + 0.0000099 - 0.0000101 solar masses
-R_*     = 1.0000000 + 0.0000100 - 0.0000099 solar radii
+M_*     = 1.0005287 + 0.0498459 - 0.0501476 solar masses
+R_*     = 0.9996468 + 0.0502219 - 0.0496047 solar radii
 
 The best fit planet parameters are:
-T0    = 2448285.2568223 + 0.0001310 - 0.0001186 days
-P     = 365.2558537 + 0.0017473 - 0.0019224 days
+T0    = 2448285.0956823 + 0.0017752 - 0.0019077 days
+P     = 365.2533004 + 0.0014328 - 0.0014945 days
 e     = 0.0000 + 0.0000 - 0.0000     
 w     = 90.0000 + 0.0000 - 0.0000 deg
 Transit fit parameters:
-i     = 89.9646 + 0.0090 - 0.0100 deg
-a/r*  = 213.2180 + 0.8937 - 1.1412    
-rp/r* = 0.0091 + 0.0000 - 0.0000    
-q_1    = 0.0000 + 0.0000 - 0.0000    
-q_2    = 0.0000 + 0.0000 - 0.0000    
+i     = 89.9999 + 0.0000 - 0.0000 deg
+a/r*  = 213.9276 + 11.9416 - 9.1588    
+rp/r* = 0.0090 + 0.0000 - 0.0000    
+q_1    = 0.5510 + 0.0821 - 0.0759    
+q_2    = 0.3672 + 0.0792 - 0.0945    
 RV fit parameters:
-K     = 0.0847 + 0.0013 - 0.0014 m/s
-S v0  = 0.0000 + 0.0000 - 0.0000 km/s
+K     = 0.0896 + 0.0007 - 0.0007 m/s
+S v0  = 22.0720 + 0.0000 - 0.0000 km/s
 
 Derived parameters:
-r_p   = 0.9960 + 0.0021 - 0.0020 R_earth
-a   = 0.9915 + 0.0042 - 0.0053  AU
-b r*  = 0.1318 + 0.0364 - 0.0332
-t_total = 13.0915 + 0.0069 - 0.0075 hours
-t_in/eg = 0.1206 + 0.0014 - 0.0010 hours
-rho_* = 1.3745 + 0.0174 - 0.0220 g/cm^3
-u_1    = 0.0000 + 0.0000 - 0.0000    
-u_2    = 0.0032 + 0.0000 - 0.0000    
-Tp    = 2448285.2568 + 0.0001 - 0.0001 days
-mp    = 0.9469 + 0.0143 - 0.0154 earth masses
-rho_p = 5.2639 + 0.0944 - 0.0928 g/cm^3
-g_p = 918.1049 + 17.9905 - 17.4897 cm/s^2
+r_p   = 0.9821 + 0.0498 - 0.0491 R_earth
+a   = 0.9976 + 0.0732 - 0.0676  AU
+b r*  = 0.0003 + 0.0000 - 0.0000
+t_total = 13.1609 + 0.5886 - 0.6962 hours
+t_in/eg = 0.1175 + 0.0053 - 0.0062 hours
+rho_* = 1.3882 + 0.2457 - 0.1708 g/cm^3
+u_1    = 0.5471 + 0.0727 - 0.1145    
+u_2    = 0.1969 + 0.1628 - 0.1210    
+Tp    = 2448285.0957 + 0.0018 - 0.0019 days
+mp    = 1.0017 + 0.0347 - 0.0352 earth masses
+rho_p = 5.8022 + 0.9945 - 0.8179 g/cm^3
+g_p = 1006.6511 + 115.7284 - 85.6492 cm/s^2
 ```
 Once see this, you will see some plots similar to
 
+![Transit first fit](/outpy/test_out/transit_test.png)
+![Radial-Velocity first fit](/outpy/test_out/rv_test.png)
+
+Let me explain you briefly what this is:  
+> If you were an advanced alien civilization with really high technology, and "lucky" enough to see the Earth crossing in front of the Sun, **this is how the Earth would look like to you**.
+
+Look at those well known parameters:    
+* 1 Earth Mass
+* 1 Earth radii
+* Period of 365 days
+* 1 AU semi-major axis
+* Density of 5.5-6.0 g/cm^2,
+* Gravity of 10 m/s^2.  
+
+Of course you would need a spectograph with a precision of a few cm/s and also a very nice photometer.
+
+> If you are at this point, you learned two things. First, with good data you can obtain really nice planet parameters and second, you learned how to run pyaneti.  
+
+
+## ** Create your own setup **
 
 
 ## Documentation

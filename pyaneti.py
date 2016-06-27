@@ -108,6 +108,7 @@ elif (nplanets > 1):
   if (plot_histogram):
     hist_mp_rv()
 
+  #This is not ready yet
   #plot_correlations()
 
   #PLOT THE RV curves

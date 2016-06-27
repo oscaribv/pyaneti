@@ -181,8 +181,7 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains
-  double precision  :: q, q1k, q2k
-  double precision  :: esin, ecos, aa, chi2_red_min
+  double precision  :: q, esin, ecos, aa, chi2_red_min
   integer :: o, j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: get_out, is_burn, is_limit_good, is_cvg, is_eclipse
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
