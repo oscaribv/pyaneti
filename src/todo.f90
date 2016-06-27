@@ -78,9 +78,12 @@ implicit none
   double precision, intent(out) :: tp
 !Local variables
   double precision :: theta_p
+  double precision :: ereal, eimag
   double precision :: pi = 3.1415926535897d0
 
-  theta_p = atan2( sqrt( 1.d0 - e * e ) * sin( pi/ 2.d0  - w ), e + cos( pi / 2.d0  - w) )
+  ereal = e + cos( pi / 2.d0  - w)
+  eimag = sqrt( 1.d0 - e * e ) * sin( pi/ 2.d0  - w )
+  theta_p = atan2(eimag, ereal )
   theta_p = theta_p - e * sin( theta_p )
 
   tp = t0 - theta_p * p / 2.d0 / pi
@@ -105,7 +108,7 @@ implicit none
   double precision, intent(in) :: t0, e, w, P
 !Local variables
   integer :: i,n
-  double precision, dimension(0:dt-1) :: ma, f, df, esin, ecos
+  double precision, dimension(0:dt-1) :: ma, f, df, eimag, ereal
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   double precision :: uno, tp
   double precision :: fmin=1.d-7
@@ -119,6 +122,7 @@ implicit none
   ma = two_pi * ( t - tp ) / P
 
   !calculate the eccentric anomaly
+  !Using Newthon-Raphson algorithm
   ta(:) = ma(:)
   f(:) = fmin * 1.0d1
   n = 0
@@ -132,24 +136,22 @@ implicit none
     end do
   end do
 
-  if ( n > imax ) then
+  if ( n > imax ) then !This should never happen!
     print *, 'I am tired, too much Newton-Raphson for me!'
     print *, e, f
     stop
   end if 
 
-  !ta(:) = sqrt(1. + e )  * sin(ta(:)*0.5) / sqrt(1. - e )
-  !ta(:) = 2. * atan2( ta(:), cos(ta(:)*0.5) )
 
   !calculate the true anomaly
-  esin = ( sqrt(uno-e*e) * sin(ta) ) / (uno-e*cos(ta))
-  ecos = ( cos (ta) - e ) / (uno-e*cos(ta))
-  ta = atan2(esin,ecos)
-  !do i = 0, dma-1
-  !  if ( ta(i) < dble(0.0) ) ta(i) = ta(i) + 2. * pi 
-  !end do
-  !ta(:) = sqrt( ( uno + e ) / ( uno - e ) ) * tan(ta(:)*0.5) 
-  !ta(:) = 2.0 * asin( ta(:) / (sqrt( uno + ta(:)*ta(:) ) ) )
+  !Relation between true anomaly(ta) and eccentric anomaly(ea) is
+  !tan(ta) = sqrt(1-e^2) sin (ea) / ( cos(ea) - e ) https://en.wikipedia.org/wiki/True_anomaly
+  !In a complex plane, this is =  (cos(ea) - e) + i (sqrt(1-e^2) *sin(ea) ) 
+  !with modulus = 1 - e cos(ea) 
+  eimag = ( sqrt(uno-e*e) * sin(ta) ) / (uno-e*cos(ta))
+  ereal = ( cos (ta) - e ) / (uno-e*cos(ta))
+  !Therefore, the tue anomaly is 
+  ta = atan2(eimag,ereal)
 
 end subroutine
 

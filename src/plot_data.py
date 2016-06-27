@@ -18,7 +18,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
   for j in range(0,nt):
     ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
-    label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
+    label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
 
   #ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4, ncol=nt, mode="expand", borderaxespad=0.)
   plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
@@ -34,7 +34,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
     plt.errorbar(p_all[j],res[j],errs_all[j],\
-    label=telescopes_labels[j],fmt=mark[j],alpha=0.8)
+    label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
   yylims = ax1.get_ylim()
   plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.minorticks_on()
@@ -120,7 +120,7 @@ if ( nplanets == 1 ):
 	  x_lim = (min(xt[0])-T0)*tfc
 	  plt.xlim(x_lim,-x_lim)
           min_val_model = max(fd_reb) -  min(fd_reb)
-	  plt.errorbar((megax-T0)*tfc,megay,megae,fmt='r.',alpha=0.8)
+	  plt.errorbar((megax-T0)*tfc,megay,megae,fmt='r.',alpha=1.0)
 	  plt.plot((smegax-T0)*tfc,fd_reb,'k',linewidth=1.0)
           plt.ylabel('Relative flux')
           plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
@@ -129,7 +129,7 @@ if ( nplanets == 1 ):
 	  #Plot the residuals
 	  dplot = plt.subplot(gs[1])
 	  plt.plot((smegax-T0)*tfc,np.zeros(len(smegax)),'k--',linewidth=1.0)
-	  plt.errorbar((megax-T0)*tfc,res_res,megae,fmt='r.',alpha=0.8)
+	  plt.errorbar((megax-T0)*tfc,res_res,megae,fmt='r.',alpha=1.0)
           yylims = dplot.get_ylim()
           plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/5.))
           plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))

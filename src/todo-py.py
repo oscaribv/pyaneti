@@ -287,6 +287,60 @@ def find_vals_perc(x,sf=1.0):
   
   return med, mine, maxe
 
+
+#-----------------------------------------------------------
+
+def good_clustering(chi2,nconv,nwalkers):
+  #Let us find the good indixes for the cluster
+  #We have n walkers
+
+  print 'STARTING CHAIN CLUSTERING'
+  print 'Initial number of chains:', nwalkers
+
+  #This variable will have each walker information
+  chi2_walkers = [None]*nwalkers
+  chi2_mean = [None]*nwalkers
+  for i in range (0,nwalkers):
+   chi2_walkers[i] = chi2[i::nconv]
+
+
+  #The mean of each walker
+  for i in range (0,nwalkers):
+    chi2_mean[i] = np.mean(chi2_walkers[i])
+
+  #mean of means
+  total_median = np.median(chi2_mean)
+
+  good_index = []
+  #Let us kill all the walkers above 5 the median
+  for i in range(0,nwalkers):
+    if ( chi2_mean[i] < 5*total_median ):
+      good_index.append(i)
+
+  new_nwalkers = len(good_index)
+ 
+  print 'Final number of chains:', new_nwalkers
+  return good_index, new_nwalkers
+
+#-----------------------------------------------------------
+
+def clustering(par,good_index,nconv):
+
+  dummy_par = []
+  for i in good_index:
+    dummy_par.append(par[i::nwalkers])
+
+  cluster_par = np.ndarray(len(good_index)*nconv)
+
+  n = 0
+  for i in range(0,len(dummy_par)):
+    for j in range(0,len(dummy_par[i])):
+      cluster_par[n] = dummy_par[i][j]
+      n = n + 1
+
+  return cluster_par
+    
+
 #-----------------------------------------------------------
 #         FIT JOINT RV-TRANSIT DATA
 #-----------------------------------------------------------
@@ -379,6 +433,10 @@ def fit_joint():
     unpack=True, usecols=(n))
     vo[j] = a
 
+  aver  = good_clustering(chi2,nconv,nwalkers)
+  print aver
+  sys.exit('')
+
 #-----------------------------------------------------------
 #         FIT TRANSIT DATA
 #-----------------------------------------------------------
@@ -451,6 +509,7 @@ def fit_radial_velocity():
   global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
          min_phys_k,max_phys_k
   global vari,chi2,chi2red,t0o,Po,eo,wo,ko,vo, what_fit
+  global new_nwalkers
 
   flag = [is_log_P,is_ew,is_log_k,is_log_rv0]
 
@@ -546,16 +605,30 @@ def fit_radial_velocity():
         os.rename(out_file[m],newfile[m])
 
   if ( nplanets == 1 ):
-    vari,chi2,chi2red,t0o,Po,eo,wo,ko = \
+    vari,chi2,chi2red,dt0o,dPo,deo,dwo,dko = \
     np.loadtxt(newfile, comments='#', unpack=True,\
     usecols=range(0,8))
     #Read the systemic velocities
-    vo = [None]*nt
+    dvo = [None]*nt
     for j in range(0,nt):
       n = [8+j]
       a = np.loadtxt(newfile, comments='#',unpack=True,\
       usecols=(n))
-      vo[j] = a
+      dvo[j] = a
+
+    #Cluster variables
+    good_index, new_nwalkers = good_clustering(chi2,nconv,nwalkers)
+    t0o = clustering(dt0o,good_index,nconv)
+    Po = clustering(dPo,good_index,nconv)
+    print Po
+    eo = clustering(deo,good_index,nconv)
+    wo = clustering(dwo,good_index,nconv)
+    ko = clustering(dko,good_index,nconv)
+    vo = [None]*nt
+    for j in range(0,nt):
+      vo[j] = clustering(dvo[j],good_index,nconv)
+
+   
   else:
     #Create all the variables, list of lists
     vari = [[]]*nplanets
@@ -578,7 +651,8 @@ def fit_radial_velocity():
       a = np.loadtxt(newfile[0], comments='#', \
       unpack=True, usecols=(n))
       vo[j] = a
-		
+
+   
 
 
 #-----------------------------------------------------------

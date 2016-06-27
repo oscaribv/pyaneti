@@ -34,8 +34,8 @@ AU_SI = 1.4960e11 # m
 #Default stellar parameters
 mstar_mean = 1.0
 rstar_mean = 1.0
-mstar_sigma = 0.0
-rstar_sigma = 0.0
+mstar_sigma = 1e-10
+rstar_sigma = 1e-10
 
 #Default transit data cadence
 n_cad = 1

@@ -81,7 +81,7 @@ or
 python pyaneti.py test
 ```
 
-The program will start. Wait a couple of minutes and then you should see something like:
+The program will start. You will see a lot of things appearing on your screen, ignore them now. Wait a couple of minutes and then you should see something like:
 
 ```
 Summary:
@@ -141,7 +141,7 @@ Look at those well known parameters:
 * 1 Earth radii
 * Period of 365 days
 * 1 AU semi-major axis
-* Density of 5.5-6.0 g/cm^2,
+* Density of 5.5 g/cm^2,
 * Gravity of 10 m/s^2.  
 
 Of course you would need a spectograph with a precision of a few cm/s and also a very nice photometer.
@@ -152,8 +152,9 @@ Of course you would need a spectograph with a precision of a few cm/s and also a
 ## ** Create your own setup **
 
 
-## Documentation
+## ** Documentation **
 
-_I am working on it!_
+_Work in progress!_
 
-## Science  with pyaneti
+## ** Science  with pyaneti **
+* Nespral et al., 2016, _Mass determination of K2-19b and K2-19c from radial velocities and transit timing variations_, A&A, submitted, (http://arxiv.org/abs/1604.01265)
