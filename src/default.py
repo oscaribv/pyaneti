@@ -2,7 +2,7 @@
 #                       default.py
 #  This file contains the defalut values to run pyaneti.
 #  You can change all the values here. You can also control
-#	 the values in input_file.py
+#	 the values inside the input_file.py
 #                 O. Barragan, March 2016
 #-----------------------------------------------------------
 
@@ -31,64 +31,52 @@ J_radius_p_SI  = 6.6854e7         # polar radius [m]
 #Other constants
 AU_SI = 1.4960e11 # m
 
-#Plot parameters
-units_ms = False
-ylab = 'RV (km/s)'
-ktom = 1.0
+#Default stellar parameters
 mstar_mean = 1.0
 rstar_mean = 1.0
 mstar_sigma = 0.0
 rstar_sigma = 0.0
 
-
+#Default transit data cadence
+n_cad = 1
+t_cad = 30 / 60. / 24.
+#Default input columns for transit fit
+columns_tr = [0,1,2]
 
 #No telescopes
 telescopes = []
+telescopes_labels = ['']
 
 #MCMC controls
 method = 'sm'
 is_circular = False
-ics = False
-prec = 1.e-4
 maxi = int(1e8)
-thin_factor = int(5e3)
+thin_factor = 10
 nconv = 100
 errores='perc'
 nwalkers = 100
 unit_mass = 'solar'
 scale_error_bars = True
 a_factor = 2.0
-
-plabels=['b','c','d','e','f','g','h','i']
-lc_data ='free'
-n_cad = 1
-t_cad = 90 / 60 / 24 
-
+is_plot_histogram = True
+is_plot_correlations = True
 textra = 0.0
-
-a_from_kepler = False
-
-#Default priors
-P = 15.
-e = 0.1
-w = 3.1415926 / 2.0
-ii = 3.1415026 / 2.0
-inclination = ii
-a = 13.0
-q1 = 0.42
-q2 = 0.25
-pz = 0.5
-k0 = 1.0
-v0 = 0.0
-
-
-columns_tr = [0,1,2]
-
-#Transit fit
-nbin = 16
-
 #The defaul number of planets is 1
 nplanets = 1
+plabels = ['b','c','d','e','f','g']
+
+#Default priors
+P = 365
+e = 1e-8
+w = np.pi / 2.0
+ii = np.pi / 2.0
+inclination = ii
+a = 215.0
+q1 = 0.0
+q2 = 0.0
+pz = 0.1
+k0 = 1.0
+v0 = 0.0
 
 #Fit nothing
 fit_rv = False
@@ -110,7 +98,6 @@ fit_pz  = True
 fit_k   = True
 fit_v0  = True
 
-
 #flags
 is_log_P     = False
 is_ew        = False
@@ -119,7 +106,7 @@ is_log_a     = False
 is_log_k     = False
 is_log_rv0   = False
 
-#Limits
+#Default priors rages (wide)
 min_t0  = 0.0          #days
 max_t0  = 1e6          #days
 min_P   = 0.1 	       #days
@@ -150,7 +137,7 @@ min_phys_t0  = 0.0          #days
 max_phys_t0  = 1e6          #days
 min_phys_P   = 0.1 	       #days
 max_phys_P   = 1e4 	       #days
-min_phys_e   = 0.0       #zero
+min_phys_e   = 0.0             #zero
 max_phys_e   = 0.99999	       #one
 min_phys_w   = 0.0	       #rad
 max_phys_w   = 2*np.pi      #rad
@@ -158,7 +145,7 @@ max_phys_w   = 2*np.pi      #rad
 min_phys_i   = 1.22173      # 70 degrees
 max_phys_i   = np.pi / 2.0  # 90 degrees
 min_phys_a   = 3.0	       # The planet is outside the star
-max_phys_a   = 1.e4	       # The planet is really far
+max_phys_a   = 1.e3	       # The planet is really far
 min_phys_q1  = 0.0	       #
 max_phys_q1  = 1.0             #
 min_phys_q2  = 0.0	       #
