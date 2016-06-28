@@ -356,6 +356,7 @@ def fit_joint():
          min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
          max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko,vo, what_fit
+  global new_nwalkers
   
 
   if ( a_from_kepler ):
@@ -434,8 +435,7 @@ def fit_joint():
     vo[j] = a
 
   aver  = good_clustering(chi2,nconv,nwalkers)
-  print aver
-  sys.exit('')
+  new_nwalkers = nwalkers
 
 #-----------------------------------------------------------
 #         FIT TRANSIT DATA
@@ -452,6 +452,7 @@ def fit_transit():
          min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
          max_phys_q1, min_phys_pz, max_phys_pz
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo, what_fit
+  global new_nwalkers
 
 
   flag = [is_log_P, is_ew, is_sini, is_log_a]
@@ -494,6 +495,9 @@ def fit_transit():
   #Read the data
   vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo = \
   np.loadtxt(newfile, comments='#',unpack=True)
+
+  new_nwalkers = nwalkers
+
 
 #-----------------------------------------------------------
 #                 FIT RV DATA
