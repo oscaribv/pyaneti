@@ -309,12 +309,12 @@ def good_clustering(chi2,nconv,nwalkers):
     chi2_mean[i] = np.mean(chi2_walkers[i])
 
   #mean of means
-  total_median = np.median(chi2_mean)
+  total_median = min(chi2_mean)
 
   good_index = []
   #Let us kill all the walkers above 5 the median
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < 5*total_median ):
+    if ( chi2_mean[i] < 2*total_median ):
       good_index.append(i)
 
   new_nwalkers = len(good_index)
@@ -620,7 +620,6 @@ def fit_radial_velocity():
     good_index, new_nwalkers = good_clustering(chi2,nconv,nwalkers)
     t0o = clustering(dt0o,good_index,nconv)
     Po = clustering(dPo,good_index,nconv)
-    print Po
     eo = clustering(deo,good_index,nconv)
     wo = clustering(dwo,good_index,nconv)
     ko = clustering(dko,good_index,nconv)
