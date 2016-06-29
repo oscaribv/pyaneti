@@ -1,7 +1,7 @@
 # __pyaneti__
-#### Written by Barragán O. 2016
+#### Written by Barragán O. et al. 2016
 ##### email: oscaribv@gmail.com
-##### Updated Jun 21, 2016
+##### Updated Jun 29, 2016
 
 ### __Introduction__
 
@@ -29,7 +29,7 @@ for a major coverage of the parameter space
 
 ## ** Dependencies **
 
-You need to have in your computer:
+You need to install in your computer:
 * gfortran
 * numpy
 * matplotlib
@@ -130,8 +130,8 @@ g_p = 1006.6511 + 115.7284 - 85.6492 cm/s^2
 ```
 Once see this, you will see some plots similar to
 
-![Transit first fit](/outpy/test_out/transit_test.png)
-![Radial-Velocity first fit](/outpy/test_out/rv_test.png)
+![Transit first fit](./outpy/test_out/transit_test.png)
+![Radial-Velocity first fit](./outpy/test_out/rv_test.png)
 
 Let me explain you briefly what this is:  
 > If you were an advanced alien civilization with really high technology, and "lucky" enough to see the Earth crossing in front of the Sun, **this is how the Earth would look like to you**.
@@ -150,7 +150,7 @@ Of course you would need a spectograph with a precision of a few cm/s and also a
 
 
 ## ** Create your own setup **
-
+_Work in progress!_
 
 ## ** Documentation **
 
