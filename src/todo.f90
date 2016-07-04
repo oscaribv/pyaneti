@@ -148,8 +148,8 @@ implicit none
   !tan(ta) = sqrt(1-e^2) sin (ea) / ( cos(ea) - e ) https://en.wikipedia.org/wiki/True_anomaly
   !In a complex plane, this is =  (cos(ea) - e) + i (sqrt(1-e^2) *sin(ea) ) 
   !with modulus = 1 - e cos(ea) 
-  eimag = ( sqrt(uno-e*e) * sin(ta) ) / (uno-e*cos(ta))
-  ereal = ( cos (ta) - e ) / (uno-e*cos(ta))
+  eimag = ( sqrt(uno-e*e) * sin(ta) ) !/ (uno-e*cos(ta))
+  ereal = ( cos (ta) - e ) !/ (uno-e*cos(ta))
   !Therefore, the tue anomaly is 
   ta = atan2(eimag,ereal)
 

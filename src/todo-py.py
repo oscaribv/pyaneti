@@ -308,13 +308,13 @@ def good_clustering(chi2,nconv,nwalkers):
   for i in range (0,nwalkers):
     chi2_mean[i] = np.mean(chi2_walkers[i])
 
-  #mean of means
-  total_median = min(chi2_mean)
+  #get the minimum chi2
+  total_min = min(chi2_mean)
 
   good_index = []
-  #Let us kill all the walkers above 5 the median
+  #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < 2*total_median ):
+    if ( chi2_mean[i] < 2*total_min ):
       good_index.append(i)
 
   new_nwalkers = len(good_index)
@@ -424,17 +424,33 @@ def fit_joint():
     os.rename('mh_fit.dat',newfile)
         
   #Read the data
-  vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko =  \
+  vari,chi2,chi2red,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo,dko =  \
   np.loadtxt(newfile, comments='#',unpack=True, \
   usecols=range(0,13))
-  vo = [None]*nt
+  dvo = [None]*nt
   for j in range(0,nt):
     n = [13+j]
     a = np.loadtxt(newfile, comments='#', \
     unpack=True, usecols=(n))
-    vo[j] = a
+    dvo[j] = a
 
-  aver  = good_clustering(chi2,nconv,nwalkers)
+  #Starting clustering
+  good_index, new_nwalkers = good_clustering(chi2,nconv,nwalkers)
+  t0o = clustering(dt0o,good_index,nconv)
+  Po = clustering(dPo,good_index,nconv)
+  eo = clustering(deo,good_index,nconv)
+  wo = clustering(dwo,good_index,nconv)
+  io = clustering(dio,good_index,nconv)
+  ao = clustering(dao,good_index,nconv)
+  q1o = clustering(dq1o,good_index,nconv)
+  q2o = clustering(dq2o,good_index,nconv)
+  pzo = clustering(dpzo,good_index,nconv)
+  ko = clustering(dko,good_index,nconv)
+  vo = [None]*nt
+  for j in range(0,nt):
+    vo[j] = clustering(dvo[j],good_index,nconv)
+
+
   new_nwalkers = nwalkers
 
 #-----------------------------------------------------------
@@ -493,10 +509,20 @@ def fit_transit():
   if ( os.path.isfile('mh_trfit.dat') ):
     os.rename('mh_trfit.dat',newfile)
   #Read the data
-  vari, chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo = \
+  vari, chi2,chi2red,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo = \
   np.loadtxt(newfile, comments='#',unpack=True)
 
-  new_nwalkers = nwalkers
+  #Starting clustering
+  good_index, new_nwalkers = good_clustering(chi2,nconv,nwalkers)
+  t0o = clustering(dt0o,good_index,nconv)
+  Po = clustering(dPo,good_index,nconv)
+  eo = clustering(deo,good_index,nconv)
+  wo = clustering(dwo,good_index,nconv)
+  io = clustering(dio,good_index,nconv)
+  ao = clustering(dao,good_index,nconv)
+  q1o = clustering(dq1o,good_index,nconv)
+  q2o = clustering(dq2o,good_index,nconv)
+  pzo = clustering(dpzo,good_index,nconv)
 
 
 #-----------------------------------------------------------
@@ -654,6 +680,8 @@ def fit_radial_velocity():
       a = np.loadtxt(newfile[0], comments='#', \
       unpack=True, usecols=(n))
       vo[j] = a
+
+    new_nwalkers = nwalkers
 
    
 
