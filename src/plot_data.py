@@ -3,6 +3,12 @@
 from matplotlib import gridspec
 from matplotlib.colors import LogNorm
 
+def plot_chains():
+  plt.xlabel('iteration')
+  plt.ylabel('$\chi^2$')
+  plt.plot(vari,chi2red,'b.')
+  plt.show()
+
 
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.figure(3,figsize=(7,6))
@@ -273,9 +279,9 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 	for i in range(0,n):
 		plt.subplot(gs[i])
 		vpar, lpar, rpar = find_vals_perc(params[i],1.0)
-                minchi2_val = params[i][minchi2_index]
+          #      minchi2_val = params[i][minchi2_index]
 		plt.axvline(x=vpar,c=cbars)
-		plt.axvline(x=minchi2_val,c='yellow')
+#		plt.axvline(x=minchi2_val,c='yellow')
 		plt.axvline(x=vpar-lpar,c=cbars,ls='--')
 		plt.axvline(x=vpar+rpar,c=cbars,ls='--')
 		plt.xlabel(plabs[i])
@@ -287,17 +293,17 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 def plot_histogram(rf=1):
 
 	if ( fit_tr and fit_rv ):
-		dparams = [ chi2red[0::rf],t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf],ko[0::rf]]
-		dplabs = ['$\chi^2_{red}$','$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$','$k$']
+		dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf],ko[0::rf]]
+		dplabs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$','$k$']
 
 		vlabs = [None]*nt
-		dvo = [None]*nt
+		dumvo = [None]*nt
 		for i in range(0,nt):
 			vlabs[i] = 'rv0 ' + telescopes_labels[i]
-			dvo[i] = vo[i][0::rf]
+			dumvo[i] = vo[i][0::rf]
 
 
-		params = np.concatenate([dparams,dvo])
+		params = np.concatenate([dparams,dumvo])
 		labs = np.concatenate([dplabs,vlabs])
 	
 		create_plot_histogram(params,labs)
@@ -418,8 +424,8 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 def plot_correlations(rf=1):
 
 	if ( fit_tr and fit_rv ):
-		dparams = [chi2red[0::rf],t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf],ko[0::rf]]
-		dplabs = ['$\chi^2_{red}$','$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$','$k$']
+		dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf],ko[0::rf]]
+		dplabs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$','$k$']
 
 		vlabs = [None]*nt
 		dvo = [None]*nt

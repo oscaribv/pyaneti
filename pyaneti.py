@@ -86,6 +86,7 @@ execfile('src/print_values.py')
 #Create plots
 execfile('src/plot_data.py')
 
+plot_chains()
 
 if ( nplanets == 1):
 

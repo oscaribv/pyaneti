@@ -314,7 +314,7 @@ def good_clustering(chi2,nconv,nwalkers):
   good_index = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < 2*total_min ):
+    if ( chi2_mean[i] < 1.05*total_min ):
       good_index.append(i)
 
   new_nwalkers = len(good_index)
@@ -356,7 +356,7 @@ def fit_joint():
          min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
          max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko,vo, what_fit
-  global new_nwalkers
+  global new_nwalkers, good_index
   
 
   if ( a_from_kepler ):
@@ -451,8 +451,6 @@ def fit_joint():
     vo[j] = clustering(dvo[j],good_index,nconv)
 
 
-  new_nwalkers = nwalkers
-
 #-----------------------------------------------------------
 #         FIT TRANSIT DATA
 #-----------------------------------------------------------
@@ -468,7 +466,7 @@ def fit_transit():
          min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
          max_phys_q1, min_phys_pz, max_phys_pz
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo, what_fit
-  global new_nwalkers
+  global new_nwalkers, good_index
 
 
   flag = [is_log_P, is_ew, is_sini, is_log_a]
@@ -539,7 +537,7 @@ def fit_radial_velocity():
   global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
          min_phys_k,max_phys_k
   global vari,chi2,chi2red,t0o,Po,eo,wo,ko,vo, what_fit
-  global new_nwalkers
+  global new_nwalkers, good_index
 
   flag = [is_log_P,is_ew,is_log_k,is_log_rv0]
 
@@ -659,6 +657,7 @@ def fit_radial_velocity():
 
    
   else:
+    new_nwalkers = nwalkers
     #Create all the variables, list of lists
     vari = [[]]*nplanets
     chi2 = [[]]*nplanets
@@ -681,7 +680,6 @@ def fit_radial_velocity():
       unpack=True, usecols=(n))
       vo[j] = a
 
-    new_nwalkers = nwalkers
 
    
 
