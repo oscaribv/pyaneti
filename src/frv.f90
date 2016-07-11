@@ -68,7 +68,7 @@ end subroutine
 !             + e * cos ( \omega ) ] $
 !  Where the parameters are the typical for a RV curve
 !------------------------------------------------------------
-subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,rv,ts,npl)
+subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,alpha,beta,rv,ts,npl)
 implicit none
 
 !In/Out variables
@@ -77,7 +77,7 @@ implicit none
   double precision, intent(out), dimension(0:ts-1) :: rv
   double precision, intent(in), dimension(0:npl-1) :: k, t0, P, e, w
   !Here rv0 depends on the telescope systemic not the planets
-  double precision, intent(in) :: rv0
+  double precision, intent(in) :: rv0, alpha, beta
 !Local variables
   double precision, dimension(0:ts-1) :: ta
   integer :: i
@@ -85,7 +85,9 @@ implicit none
   external :: find_anomaly
 !
 
-  rv(:) = rv0
+  !Added systemic velocity and linear and quadratic trends
+  rv(:) = rv0 + t(:)*alpha + t(:)*t(:)*beta
+  !Now add the planet influence on the star
   do i = 0, npl-1
    !Obtain the true anomaly by using find_anomaly
    !each i is for a different planet
@@ -124,6 +126,7 @@ implicit none
 !Local variables
   double precision, dimension(0:npl-1) :: t0, P, e, w, k
   double precision, dimension(0:nt-1)  :: rv0
+  double precision  :: alpha, beta
   double precision, dimension(0:datas-1) :: model, res
   integer :: i, tel
 !External function
@@ -134,7 +137,9 @@ implicit none
   e(:)   = params(2,:)
   w(:)   = params(3,:)
   k(:)   = params(4,:)
-  rv0(:) = params(5:4+nt,0) 
+  alpha  = params(5,0) 
+  beta   = params(6,0) 
+  rv0(:) = params(7:6+nt,0) 
 
   if ( flag(0) ) P(:) = 1.d1**params(1,:)
   if ( flag(1) ) then
@@ -142,14 +147,14 @@ implicit none
     w(:) = atan2( params(2,:),params(3,:) ) 
   end if
   if ( flag(2) ) k(:) = 1.d1**params(4,:)
-  if ( flag(3) ) rv0(:) = 1.d1**params(5:4+nt,0)
+  if ( flag(3) ) rv0(:) = 1.d1**params(7:6+nt,0)
 
   !Telescope label counter
   tel = 0
 
   do i = 0, datas-1
    if ( tel .ne. tlab(i)  ) tel = tel + 1 
-    call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,model(i),1,npl)
+    call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,alpha,beta,model(i),1,npl)
   end do
 
   !Let us obtain chi^2
@@ -167,17 +172,17 @@ implicit none
   integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv, npl
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1)  :: tlab
-  double precision, intent(in), dimension(0:npl*(5+nt)-1) :: pars
-  double precision, intent(in), dimension(0:2*npl*(5+nt)-1) :: lims
-  integer, intent(in), dimension(0:6*npl-1) :: wtf
+  double precision, intent(in), dimension(0:npl*(7+nt)-1) :: pars
+  double precision, intent(in), dimension(0:2*npl*(7+nt)-1) :: lims
+  integer, intent(in), dimension(0:8*npl-1) :: wtf
   double precision, intent(in) :: a_factor
   logical, intent(in) ::  flag(0:3)
 !Local variables
-  double precision, dimension(0:5+nt-1,0:npl-1) :: params
-  double precision, dimension(0:2*(5+nt)-1,0:npl-1) :: limits
+  double precision, dimension(0:7+nt-1,0:npl-1) :: params
+  double precision, dimension(0:2*(7+nt)-1,0:npl-1) :: limits
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
-  double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1) :: params_old, params_new
-  double precision, dimension(0:4+nt,0:npl-1,0:nwalks-1,0:nconv-1) :: params_chains
+  double precision, dimension(0:6+nt,0:npl-1,0:nwalks-1) :: params_old, params_new
+  double precision, dimension(0:6+nt,0:npl-1,0:nwalks-1,0:nconv-1) :: params_chains
   double precision  :: q
   double precision  :: esin(0:npl-1), ecos(0:npl-1), aa, chi2_red_min
   integer :: l,o,m, j, n, nu, nk, n_burn, spar, new_thin_factor
@@ -185,7 +190,7 @@ implicit none
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
   double precision, dimension(0:npl-1) :: t0_mean, P_mean
-  integer, dimension(0:5+nt-1,0:npl-1) :: wtf_all 
+  integer, dimension(0:7+nt-1,0:npl-1) :: wtf_all 
   double precision :: r_real, sigma_t0(0:npl-1), sigma_P(0:npl-1)
   !character(len=11), dimension(0:npl-1) :: output_files
   character(len=11), dimension(0:1) :: output_files
@@ -199,12 +204,12 @@ implicit none
   !Let us convert all the big arrays to 
   !matrix form 
   do m = 0, npl - 1
-    params(:,m) = pars(m*(5+nt):(m+1)*(5+nt)-1)
-    limits(:,m) = lims(m*2*(5+nt):(m+1)*2*(5+nt)-1)
+    params(:,m) = pars(m*(7+nt):(m+1)*(7+nt)-1)
+    limits(:,m) = lims(m*2*(7+nt):(m+1)*2*(7+nt)-1)
     t0_mean(m) = params(0,m)
     P_mean(m) = params(1,m)
-    wtf_all(0:4,m) = wtf(m*6:(m+1)*4-1)
-    wtf_all(5:5+nt-1,m) = wtf(5*(m+1))
+    wtf_all(0:6,m) = wtf(m*6:(m+1)*6-1)
+    wtf_all(7:7+nt-1,m) = wtf(7*(m+1))
   end do
 
   !size of parameters (only parameters to fit!)
@@ -258,7 +263,7 @@ implicit none
       !Counter for the limits
       j = 0
 
-      do n = 0, 4 + nt
+      do n = 0, 6 + nt
         if ( wtf_all(n,m) == 0 ) then
           !this parameter does not change for the planet m
           params_old(n,m,nk) = params(n,m)
@@ -371,7 +376,7 @@ implicit none
 
         !Let us check the limits
         call check_limits(params_new(:,m,nk),limits(:,m), &
-                          is_limit_good,5+nt)
+                          is_limit_good,7+nt)
 
         !Check that e < 1 for ew
         if ( flag(1) ) then
@@ -449,7 +454,7 @@ implicit none
 
           !Let us check convergence for all the parameters
           is_cvg = .true.
-          do o = 0, 4 + nt !For all parameters 
+          do o = 0, 6 + nt !For all parameters 
             do l = 0, npl - 1 !for all planets
             !Do the test to the parameters that we are fitting
               if ( wtf_all(o,l) == 1 ) then

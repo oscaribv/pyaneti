@@ -162,9 +162,7 @@ if ( nplanets == 1 ):
 				rv_all[i][j] = 1e3*rv_all[i][j]
 				errs_all[i][j] = 1e3*errs_all[i][j]
 
-		rv_dum = []
-		for j in range(0,nt):
-			rv_dum.append(rv_all[j])
+                #Let us save all the RV data in rv_dum
 		n = 5000
 		xmin = t0_val
 		xmax = t0_val + P_val
@@ -174,16 +172,22 @@ if ( nplanets == 1 ):
 		for j in range(1,n):
 			rvx[j] = rvx[j-1] + dn
 
+                #Model curve
 		rvy = pti.rv_curve_mp(rvx,0.0,t0_val,\
-						         k_dum,P_val,e_val,w_val)
-
+	        k_dum,P_val,e_val,w_val,0.0,0.0)
 		res = [None]*nt
+		rv_dum = [None]*nt
 		for j in range(0,nt):
 			#This is the model of the actual planet
 			res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val,k_dum,\
-	      	         P_val,e_val,w_val)
+	      	         P_val,e_val,w_val,0.0,0.0)
 			#the actual value, minus the systemic velocity
-			rv_dum[j] = rv_dum[j] - v_val[j] 
+                        alpha_time = [None]*len(time_all[j])
+                        beta_time = [None]*len(time_all[j])
+                        for m in range(0,len(time_all[j])):
+                          alpha_time[m] = time_all[j][m] * alpha_val * 1e3
+                          beta_time[m]  = time_all[j][m] * time_all[j][m] * beta_val * 1e3
+			rv_dum[j] = rv_all[j] - v_val[j] - alpha_time - beta_time 
 			res[j] = rv_dum[j] - res[j]
 
 			p_rv = scale_period(rvx,t0_val,P_val)
@@ -317,8 +321,8 @@ def plot_histogram(rf=1):
 
 	if ( not fit_tr and fit_rv ):
 		if (nplanets == 1 ):
-			dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],ko[0::rf]]
-			dplabs = ['$T0$','$P$','$e$','$\omega$','$k$']
+			dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],ko[0::rf],alphao[0::rf],betao[0::rf]]
+			dplabs = ['$T0$','$P$','$e$','$\omega$','$k$','alpha','beta']
 		else:
 			dparams = [None]*5*nplanets
 			dplabs = [None]*5*nplanets
@@ -449,8 +453,8 @@ def plot_correlations(rf=1):
 	#Now it works only for RV fit	
 	if ( not fit_tr and fit_rv ):
 		if ( nplanets == 1 ):
-			dparams = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],ko[1::rf]]
-			dplabs = ['$T0$','$P$','$e$','$\omega$','$k$']
+			dparams = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],ko[1::rf],alphao[1::rf],betao[1::rf]]
+			dplabs = ['$T0$','$P$','$e$','$\omega$','$k$','alpha','beta']
 		else:
 			dparams = [None]*5*nplanets
 			dplabs = [None]*5*nplanets

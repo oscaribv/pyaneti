@@ -168,6 +168,8 @@ if ( nplanets == 1 ):
       i_deg_errr = i_errr * 180. / np.pi
     if ( fit_rv ):
       k_val, k_errl, k_errr = find_vals_perc(ko,s_factor)
+      alpha_val, alpha_errl, alpha_errr = find_vals_perc(alphao,s_factor)
+      beta_val, beta_errl, beta_errr = find_vals_perc(betao,s_factor)
       m_val, m_errl, m_errr  	= find_vals_perc(masso,s_factor)
       tp_val, tp_errl, tp_errr= find_vals_perc(tpo,s_factor)
       #Systemic velocities are stored in v_val
@@ -214,6 +216,8 @@ if ( nplanets == 1 ):
     print ('P     = %4.7f + %4.7f - %4.7f days'%(P_val, P_errr , P_errl))
     print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
     print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
+    print ('alpha = %4.4f + %4.4f - %4.4f     '%(alpha_val, alpha_errr , alpha_errl))
+    print ('beta  = %4.4f + %4.4f - %4.4f     '%(beta_val, beta_errr , beta_errl))
     if (fit_tr):
       print ('Transit fit parameters:')
       print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))

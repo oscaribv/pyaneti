@@ -78,6 +78,8 @@ q2 = 0.0
 pz = 0.1
 k0 = 1.0
 v0 = 0.0
+alpha = 0.0
+beta = 0.0
 
 #Fit nothing
 fit_rv = False
@@ -97,6 +99,8 @@ fit_q2  = True
 fit_pz  = True
 #rv fit
 fit_k   = True
+fit_alpha = False
+fit_beta  = False
 fit_v0  = True
 
 #flags
@@ -130,6 +134,10 @@ max_pz  = 0.99	       # a really big planet
 #rv fit
 min_k   = 1.e-6	       # m/s amplitudes
 max_k   = 30.	       # a really big planet
+min_alpha = -100       
+max_alpha = 100       
+min_beta = -100       
+max_beta = 100       
 min_rv0 = 1.	       #Systemic velocities
 max_rv0 = 100.	       #systemic velocities
 
@@ -156,3 +164,7 @@ max_phys_pz  = 0.99	       # a really big planet
 #rv fit
 min_phys_k   = 1.e-6           # m/s amplitudes
 max_phys_k   = 30.	       # a really big planet
+min_phys_alpha = -100       
+max_phys_alpha = 100       
+min_phys_beta = -100       
+max_phys_beta = 100       

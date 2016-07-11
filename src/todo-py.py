@@ -314,7 +314,7 @@ def good_clustering(chi2,nconv,nwalkers):
   good_index = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < 1.05*total_min ):
+    if ( chi2_mean[i] < 10*total_min ):
       good_index.append(i)
 
   new_nwalkers = len(good_index)
@@ -533,17 +533,17 @@ def fit_radial_velocity():
   global fit_t0, fit_P, fit_e, fit_w,fit_k,fit_v0
   global T0,P,e,w,k0, v0
   global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w,\
-         min_k, max_k
+         min_k, max_k, min_alpha, max_alpha, min_beta, max_beta
   global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
-         min_phys_k,max_phys_k
-  global vari,chi2,chi2red,t0o,Po,eo,wo,ko,vo, what_fit
+         min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, min_phys_beta, max_phys_beta
+  global vari,chi2,chi2red,t0o,Po,eo,wo,ko,alphao,betao,vo, what_fit
   global new_nwalkers, good_index
 
   flag = [is_log_P,is_ew,is_log_k,is_log_rv0]
 
   if ( P.__class__ == float ):
-    what_fit = [fit_t0, fit_P, fit_e, fit_w, fit_k, fit_v0 ]
-    dparams = [T0, P, e, w, k0]
+    what_fit = [fit_t0, fit_P, fit_e, fit_w, fit_k, fit_alpha, fit_beta, fit_v0 ]
+    dparams = [T0, P, e, w, k0, alpha, beta]
     params = np.concatenate((dparams,v0))
 	
     vec_rv0_limits = []
@@ -553,11 +553,11 @@ def fit_radial_velocity():
 	
     dummy_lims = \
     [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, \
-    min_k, max_k]
+    min_k, max_k, min_alpha, max_alpha, min_beta, max_beta]
 
     dummy_lims_physical = \
     [ min_t0, max_t0, min_P, 1000, 1e-10, 0.99, 0.0, 2*np.pi, \
-    1e-3,1e4]
+    1e-3,1e4,  min_alpha, max_alpha, min_beta, max_beta]
 
     limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
     limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
@@ -570,35 +570,43 @@ def fit_radial_velocity():
     #all the number of planets
     for m in range(0,nplanets):
       #What to fit from the input lists	
-      what_fit[0+6*m] = int(fit_t0[m]) 
-      what_fit[1+6*m] = int(fit_P[m]) 
-      what_fit[2+6*m] = int(fit_e[m]) 
-      what_fit[3+6*m] = int(fit_w[m]) 
-      what_fit[4+6*m] = int(fit_k[m]) 
-      what_fit[5+6*m] = int(fit_v0[m]) 
+      what_fit[0+8*m] = int(fit_t0[m]) 
+      what_fit[1+8*m] = int(fit_P[m]) 
+      what_fit[2+8*m] = int(fit_e[m]) 
+      what_fit[3+8*m] = int(fit_w[m]) 
+      what_fit[4+8*m] = int(fit_k[m]) 
+      what_fit[5+8*m] = int(fit_alpha[m]) 
+      what_fit[6+8*m] = int(fit_beta[m]) 
+      what_fit[7+8*m] = int(fit_v0[m]) 
       #fill the parameters vector
-      params[0+(5+nt)*m] = T0[m]
-      params[1+(5+nt)*m] = P[m]
-      params[2+(5+nt)*m] = e[m]
-      params[3+(5+nt)*m] = w[m]
-      params[4+(5+nt)*m] = k[m]
+      params[0+(7+nt)*m] = T0[m]
+      params[1+(7+nt)*m] = P[m]
+      params[2+(7+nt)*m] = e[m]
+      params[3+(7+nt)*m] = w[m]
+      params[4+(7+nt)*m] = k[m]
+      params[5+(7+nt)*m] = alpha[m]
+      params[6+(7+nt)*m] = beta[m]
       #fill the systemic velocities
       for j in range(0,nt):
-        params[(5+j)+(5+nt)*m] = v0[j]
+        params[(7+j)+(7+nt)*m] = v0[j]
 	#fill the limits
-      limits[0+(5+nt)*2*m] = min_t0[m]
-      limits[1+(5+nt)*2*m] = max_t0[m]
-      limits[2+(5+nt)*2*m] = min_P[m]
-      limits[3+(5+nt)*2*m] = max_P[m]
-      limits[4+(5+nt)*2*m] = min_e[m]
-      limits[5+(5+nt)*2*m] = max_e[m]
-      limits[6+(5+nt)*2*m] = min_w[m]
-      limits[7+(5+nt)*2*m] = max_w[m]
-      limits[8+(5+nt)*2*m] = min_k[m]
-      limits[9+(5+nt)*2*m] = max_k[m]
+      limits[0+(7+nt)*2*m] = min_t0[m]
+      limits[1+(7+nt)*2*m] = max_t0[m]
+      limits[2+(7+nt)*2*m] = min_P[m]
+      limits[3+(7+nt)*2*m] = max_P[m]
+      limits[4+(7+nt)*2*m] = min_e[m]
+      limits[5+(7+nt)*2*m] = max_e[m]
+      limits[6+(7+nt)*2*m] = min_w[m]
+      limits[7+(7+nt)*2*m] = max_w[m]
+      limits[8+(7+nt)*2*m] = min_k[m]
+      limits[9+(7+nt)*2*m] = max_k[m]
+      limits[10+(7+nt)*2*m] = min_alpha[m]
+      limits[11+(7+nt)*2*m] = max_alpha[m]
+      limits[12+(7+nt)*2*m] = min_beta[m]
+      limits[13+(7+nt)*2*m] = max_beta[m]
       for j in range(0,nt):
-        limits[(10+j*2)+(5+nt)*2*m] = min_rv0
-        limits[(11+j*2)+(5+nt)*2*m] = max_rv0
+        limits[(14+j*2)+(7+nt)*2*m] = min_rv0
+        limits[(15+j*2)+(7+nt)*2*m] = max_rv0
 
   if ( method == 'sm' ):
 
@@ -633,13 +641,13 @@ def fit_radial_velocity():
         os.rename(out_file[m],newfile[m])
 
   if ( nplanets == 1 ):
-    vari,chi2,chi2red,dt0o,dPo,deo,dwo,dko = \
+    vari,chi2,chi2red,dt0o,dPo,deo,dwo,dko,dalphao, dbetao = \
     np.loadtxt(newfile, comments='#', unpack=True,\
-    usecols=range(0,8))
+    usecols=range(0,10))
     #Read the systemic velocities
     dvo = [None]*nt
     for j in range(0,nt):
-      n = [8+j]
+      n = [10+j]
       a = np.loadtxt(newfile, comments='#',unpack=True,\
       usecols=(n))
       dvo[j] = a
@@ -651,6 +659,8 @@ def fit_radial_velocity():
     eo = clustering(deo,good_index,nconv)
     wo = clustering(dwo,good_index,nconv)
     ko = clustering(dko,good_index,nconv)
+    alphao = clustering(dalphao,good_index,nconv)
+    betao = clustering(dbetao,good_index,nconv)
     vo = [None]*nt
     for j in range(0,nt):
       vo[j] = clustering(dvo[j],good_index,nconv)
@@ -667,15 +677,17 @@ def fit_radial_velocity():
     eo = [[]]*nplanets
     wo = [[]]*nplanets
     ko = [[]]*nplanets
+    alphao = [[]]*nplanets
+    betao = [[]]*nplanets
     #each l index is for a different planet
     for l in range(0,nplanets):
       vari[l],chi2[l],chi2red[l],t0o[l],Po[l],eo[l], \
-      wo[l],ko[l] = np.loadtxt(newfile[l], comments='#', \
-      unpack=True, usecols=range(0,8))
+      wo[l],ko[l], alphao[l], betao[l] = np.loadtxt(newfile[l], comments='#', \
+      unpack=True, usecols=range(0,10))
     #The  systemic velocities are the same for all the planets
     vo = [None]*nt
     for j in range(0,nt):
-      n = [8+j]
+      n = [10+j]
       a = np.loadtxt(newfile[0], comments='#', \
       unpack=True, usecols=(n))
       vo[j] = a
