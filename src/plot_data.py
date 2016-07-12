@@ -9,7 +9,6 @@ def plot_chains():
   plt.plot(vari,chi2red,'b.')
   plt.show()
 
-
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.figure(3,figsize=(7,6))
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
@@ -25,10 +24,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   for j in range(0,nt):
     ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
     label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
-
-  #ax0 = plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=4, ncol=nt, mode="expand", borderaxespad=0.)
   plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
-
   plt.xticks(np.arange(0.,1.01,0.1)) 
   plt.tick_params( axis='x',which='both',labelbottom='off') 
   #plt.subplot(312)
@@ -46,7 +42,6 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.minorticks_on()
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.show()
-
 
 #===========================================================
 #                   One planet plots
@@ -155,12 +150,11 @@ if ( nplanets == 1 ):
 
   #Plot RV for one planet
 	def plot_rv_one():
-		k_dum = 1e3*k_val
+		cfactor = np.float(1.e3)
 		for i in range(0,nt):
-			v_val[i] = 1e3*v_val[i]
 			for j in range(0,len(rv_all[i])):
-				rv_all[i][j] = 1e3*rv_all[i][j]
-				errs_all[i][j] = 1e3*errs_all[i][j]
+				rv_all[i][j] = cfactor*rv_all[i][j]
+				errs_all[i][j] = cfactor*errs_all[i][j]
 
                 #Let us save all the RV data in rv_dum
 		n = 5000
@@ -174,20 +168,23 @@ if ( nplanets == 1 ):
 
                 #Model curve
 		rvy = pti.rv_curve_mp(rvx,0.0,t0_val,\
-	        k_dum,P_val,e_val,w_val,0.0,0.0)
+	        k_val*cfactor,P_val,e_val,w_val,0.0,0.0)
 		res = [None]*nt
 		rv_dum = [None]*nt
 		for j in range(0,nt):
 			#This is the model of the actual planet
-			res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val,k_dum,\
+			res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val,k_val*cfactor,\
 	      	         P_val,e_val,w_val,0.0,0.0)
+			#res[j] = pti.rv_curve_mp(time_all[j],v_val[j],t0_val,k_dum,\
+	      	        # P_val,e_val,w_val,alpha_val,beta_val)
 			#the actual value, minus the systemic velocity
                         alpha_time = [None]*len(time_all[j])
                         beta_time = [None]*len(time_all[j])
                         for m in range(0,len(time_all[j])):
-                          alpha_time[m] = time_all[j][m] * alpha_val * 1e3
-                          beta_time[m]  = time_all[j][m] * time_all[j][m] * beta_val * 1e3
-			rv_dum[j] = rv_all[j] - v_val[j] - alpha_time - beta_time 
+                          alpha_time[m] = time_all[j][m]**1 * alpha_val * cfactor
+                          beta_time[m]  = time_all[j][m]**2 * beta_val  * cfactor
+
+			rv_dum[j] = rv_all[j] - v_val[j]*cfactor - alpha_time - beta_time 
 			res[j] = rv_dum[j] - res[j]
 
 			p_rv = scale_period(rvx,t0_val,P_val)
@@ -210,12 +207,12 @@ else:
 		p_rv = [None]*nplanets
 		k_dum = [None]*nplanets
 		for i in range(0,nplanets):
-			k_dum[i] = 1e3*k_val[i]
+			k_dum[i] = cfactor*k_val[i]
 		for i in range(0,nt):
-			v_val[i] = 1e3*v_val[i]
+			v_val[i] = cfactor*v_val[i]
 			for j in range(0,len(rv_all[i])):
-				rv_all[i][j] = 1e3*rv_all[i][j]
-				errs_all[i][j] = 1e3*errs_all[i][j]
+				rv_all[i][j] = cfactor*rv_all[i][j]
+				errs_all[i][j] = cfactor*errs_all[i][j]
 
 
 		for i in range(0,nplanets):

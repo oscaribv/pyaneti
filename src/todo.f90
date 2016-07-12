@@ -111,7 +111,7 @@ implicit none
   double precision, dimension(0:dt-1) :: ma, f, df, eimag, ereal
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   double precision :: uno, tp
-  double precision :: fmin=1.d-7
+  double precision :: fmin=1.d-6
   integer :: imax = int(1e8)
 !
   uno = 1.0d0

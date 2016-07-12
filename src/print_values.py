@@ -140,7 +140,7 @@ if ( nplanets == 1 ):
     e_val,e_errl, e_errr = find_vals_perc(eo,s_factor)
     w_val,w_errl, w_errr = find_vals_perc(wo,s_factor)
     if (w_val < 0.0 ):
-      w_val = w_val + 2 * np.pi	
+      w_val = w_val + 2.e0 * np.pi	
     #Transform periastron from rad to degrees
     w_deg = w_val * 180. / np.pi
     w_deg_errl = w_errl * 180. / np.pi
@@ -216,8 +216,8 @@ if ( nplanets == 1 ):
     print ('P     = %4.7f + %4.7f - %4.7f days'%(P_val, P_errr , P_errl))
     print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
     print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
-    print ('alpha = %4.4f + %4.4f - %4.4f     '%(alpha_val, alpha_errr , alpha_errl))
-    print ('beta  = %4.4f + %4.4f - %4.4f     '%(beta_val, beta_errr , beta_errl))
+    print ('alpha = %4.4e + %4.4e - %4.4e     '%(alpha_val, alpha_errr , alpha_errl))
+    print ('beta  = %4.4e + %4.4e - %4.4e     '%(beta_val, beta_errr , beta_errl))
     if (fit_tr):
       print ('Transit fit parameters:')
       print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))

@@ -420,7 +420,7 @@ implicit none
      if ( is_burn ) then
 
         if ( mod(j,new_thin_factor) == 0 ) then
-            print *, 'Iter ',j
+            !print *, 'Iter ',j
             n_burn = n_burn + 1
         end if
 
@@ -433,7 +433,7 @@ implicit none
         !Obtain the chi2 mean of all the variables
         chi2_red_min = sum(chi2_red) / nwalks
 
-        print *, 'Iter ',j,', Chi^2_red =', chi2_red_min
+!        print *, 'Iter ',j,', Chi^2_red =', chi2_red_min
 
         !Create the 4D array to use the Gelman-Rubin test
         !The first two elemets are the parameters for mp fit
@@ -447,6 +447,12 @@ implicit none
 
           n = 0
 
+          print *, '==========================='
+          print *, '     Chain statistics      '
+          print *, '==========================='
+          print *, ' best  : ',minval(chi2_red)
+          print *, ' worst : ',maxval(chi2_red)
+          print *, ' mean  : ', chi2_red_min
           print *, '==========================='
           print *, '  PERFOMING GELMAN-RUBIN'
           print *, '   TEST FOR CONVERGENCE'
@@ -471,7 +477,7 @@ implicit none
           if ( .not. is_cvg  ) then
             print *, '=================================='
             print *, 'CHAINS HAVE NOT CONVERGED YET!'
-            print *,  nconv,' ITERATIONS MORE!'
+            print *,  nconv*thin_factor,' ITERATIONS MORE!'
             print *, '=================================='
           else
             print *, '==========================='
