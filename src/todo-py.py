@@ -149,8 +149,11 @@ def smart_priors():
     v0 = [min_rv0]*nt
     #Estimate k priors and limits from data
     if ( P.__class__ == float  ):
-      # The maximum value ok K should be 
-      max_phys_k = (max_rv0 - min_rv0) 
+      for i in range(0,nt):
+        # The maximum value ok K should be 
+        max_phys_k = max(rv_all[i]) - min(rv_all[i]) 
+      max_phys_k = max_phys_k / nt
+     
       # if we gave a worst prior for k, let us take a better
       max_k = min( [max_k,max_phys_k] )
     else:
