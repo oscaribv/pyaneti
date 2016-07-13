@@ -148,6 +148,50 @@ if ( nplanets == 1 ):
 	#        RV plot          #
 	#=========================#
 
+       #Plot without fold the data
+	def plot_rv_all_data():
+		cfactor = np.float(1.e3)
+		for i in range(0,nt):
+			for j in range(0,len(rv_all[i])):
+				rv_all[i][j] = cfactor*rv_all[i][j]
+				errs_all[i][j] = cfactor*errs_all[i][j]
+
+                #Let us save all the RV data in rv_dum
+		n = 5000
+		xmin = min(np.concatenate(time_all)) - 1
+		xmax = max(np.concatenate(time_all)) + 1
+		dn = (xmax - xmin) /  n
+		rvx = np.empty([n])
+		rvx[0] = xmin
+		for j in range(1,n):
+			rvx[j] = rvx[j-1] + dn
+
+                #Model curve
+		rvy = pti.rv_curve_mp(rvx,0.0,t0_val,\
+	        k_val*cfactor,P_val,e_val,w_val,alpha_val*cfactor,beta_val*cfactor)
+		rv_dum = [None]*nt
+		for j in range(0,nt):
+			#This is the model of the actual planet
+			#the actual value, minus the systemic velocity
+			rv_dum[j] = rv_all[j] - v_val[j]*cfactor
+
+                plt.figure(1,figsize=(7,6))
+                plt.plot(rvx,rvy,'k')
+                plt.minorticks_on()
+                plt.xlabel("JD (days)")
+                plt.ylabel('RV (m/s)')
+                mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
+                for j in range(0,nt):
+                  plt.errorbar(time_all[j],rv_dum[j],errs_all[j],\
+                  label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
+                plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
+		fname = outdir+'/'+star+plabels[0]+'_rv_all.pdf'
+                plt.savefig(fname,format='pdf',bbox_inches='tight')
+                plt.show()
+
+
+#===========================================================
+
   #Plot RV for one planet
 	def plot_rv_one():
 		cfactor = np.float(1.e3)
