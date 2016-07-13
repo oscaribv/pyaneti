@@ -216,8 +216,9 @@ if ( nplanets == 1 ):
     print ('P     = %4.7f + %4.7f - %4.7f days'%(P_val, P_errr , P_errl))
     print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
     print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
-    print ('alpha = %4.4e + %4.4e - %4.4e     '%(alpha_val, alpha_errr , alpha_errl))
-    print ('beta  = %4.4e + %4.4e - %4.4e     '%(beta_val, beta_errr , beta_errl))
+    if ( fit_rv and not fit_tr ):
+      print ('alpha = %4.4e + %4.4e - %4.4e     '%(alpha_val, alpha_errr , alpha_errl))
+      print ('beta  = %4.4e + %4.4e - %4.4e     '%(beta_val, beta_errr , beta_errl))
     if (fit_tr):
       print ('Transit fit parameters:')
       print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))
