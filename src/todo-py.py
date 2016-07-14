@@ -557,8 +557,8 @@ def fit_radial_velocity():
     min_k, max_k, min_alpha, max_alpha, min_beta, max_beta]
 
     dummy_lims_physical = \
-    [ min_t0, max_t0, min_P, 1000, 1e-10, 0.99, 0.0, 2*np.pi, \
-    1e-3,1e4,  min_alpha, max_alpha, min_beta, max_beta]
+    [ min_t0, max_t0, min_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
+    min_phys_k,max_phys_k,  min_alpha, max_alpha, min_beta, max_beta]
 
     limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
     limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 

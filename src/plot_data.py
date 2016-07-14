@@ -151,10 +151,14 @@ if ( nplanets == 1 ):
        #Plot without fold the data
 	def plot_rv_all_data():
 		cfactor = np.float(1.e3)
+                rv_datas = list(rv_all)
+                errs_datas = list(errs_all)
 		for i in range(0,nt):
 			for j in range(0,len(rv_all[i])):
-				rv_all[i][j] = cfactor*rv_all[i][j]
-				errs_all[i][j] = cfactor*errs_all[i][j]
+				#rv_all[i][j] = cfactor*rv_all[i][j]
+				#errs_all[i][j] = cfactor*errs_all[i][j]
+				rv_datas[i][j] = cfactor*rv_datas[i][j]
+				errs_datas[i][j] = cfactor*errs_datas[i][j]
 
                 #Let us save all the RV data in rv_dum
 		n = 5000
@@ -173,7 +177,7 @@ if ( nplanets == 1 ):
 		for j in range(0,nt):
 			#This is the model of the actual planet
 			#the actual value, minus the systemic velocity
-			rv_dum[j] = rv_all[j] - v_val[j]*cfactor
+			rv_dum[j] = rv_datas[j] - v_val[j]*cfactor
 
                 plt.figure(1,figsize=(7,6))
                 plt.plot(rvx,rvy,'k')
@@ -183,7 +187,7 @@ if ( nplanets == 1 ):
 	        plt.xlim(xmin,xmax)
                 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
                 for j in range(0,nt):
-                  plt.errorbar(time_all[j],rv_dum[j],errs_all[j],\
+                  plt.errorbar(time_all[j],rv_dum[j],errs_datas[j],\
                   label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
                 plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
 		fname = outdir+'/'+star+plabels[0]+'_rv_all.pdf'
@@ -196,10 +200,12 @@ if ( nplanets == 1 ):
   #Plot RV for one planet
 	def plot_rv_one():
 		cfactor = np.float(1.e3)
+                rv_dat2 = list(rv_all)
+                errs_dat2 = list(errs_all)
 		for i in range(0,nt):
 			for j in range(0,len(rv_all[i])):
-				rv_all[i][j] = cfactor*rv_all[i][j]
-				errs_all[i][j] = cfactor*errs_all[i][j]
+				rv_dat2[i][j] = cfactor*rv_dat2[i][j]
+				errs_dat2[i][j] = cfactor*errs_dat2[i][j]
 
                 #Let us save all the RV data in rv_dum
 		n = 5000
@@ -226,10 +232,10 @@ if ( nplanets == 1 ):
                         alpha_time = [None]*len(time_all[j])
                         beta_time = [None]*len(time_all[j])
                         for m in range(0,len(time_all[j])):
-                          alpha_time[m] = time_all[j][m]**1 * alpha_val * cfactor
-                          beta_time[m]  = time_all[j][m]**2 * beta_val  * cfactor
+                          alpha_time[m] = (time_all[j][m]-t0_val)**1 * alpha_val * cfactor
+                          beta_time[m]  = (time_all[j][m]-t0_val)**2 * beta_val  * cfactor
 
-			rv_dum[j] = rv_all[j] - v_val[j]*cfactor - alpha_time - beta_time 
+			rv_dum[j] = rv_dat2[j] - v_val[j]*cfactor - alpha_time - beta_time 
 			res[j] = rv_dum[j] - res[j]
 
 			p_rv = scale_period(rvx,t0_val,P_val)
@@ -238,7 +244,7 @@ if ( nplanets == 1 ):
 				p_all[j] = scale_period(time_all[j],t0_val,P_val)
 
 		fname = outdir+'/'+star+plabels[0]+'_rv.pdf'
-                plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname)
+                plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_dat2,res,telescopes_labels,fname)
 
 
 #===========================================================
