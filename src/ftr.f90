@@ -139,7 +139,7 @@ implicit none
     else   
 
       do k = 0, n_cad - 1
-        xd_ub(k) = xd(j) + t_cad*((k+1)-0.5*(n_cad+1))/n_cad 
+        xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5*(n_cad+1.d0))/n_cad 
       end do
 
       call find_z(xd_ub,pars,flag,z,n_cad) 
@@ -427,7 +427,6 @@ implicit none
      if ( is_burn ) then
 
         if ( mod(j,new_thin_factor) == 0 ) then
-          print *, 'Iter', j
           n_burn = n_burn + 1
         end if
         if ( n_burn > nconv ) get_out = .false.
@@ -438,8 +437,6 @@ implicit none
 
         !Obtain the chi2 mean of all the variables
         chi2_red_min = sum(chi2_red) / nwalks
-
-        print *, 'Iter ',j,', Chi^2_red =', chi2_red_min
 
         !Create the 3D array to use the Gelman-Rubin test
         !The first elemets are the parameters for transit fit
@@ -453,6 +450,12 @@ implicit none
 
           n = 0
 
+          print *, '==========================='
+          print *, '     Chain statistics      '
+          print *, '==========================='
+          print *, ' best  : ',minval(chi2_red)
+          print *, ' worst : ',maxval(chi2_red)
+          print *, ' mean  : ', chi2_red_min
           print *, '==========================='
           print *, '  PERFOMING GELMAN-RUBIN'
           print *, '   TEST FOR CONVERGENCE'

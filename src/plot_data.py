@@ -158,8 +158,8 @@ if ( nplanets == 1 ):
 
                 #Let us save all the RV data in rv_dum
 		n = 5000
-		xmin = min(np.concatenate(time_all)) - 1
-		xmax = max(np.concatenate(time_all)) + 1
+		xmin = min(np.concatenate(time_all)) - 10
+		xmax = max(np.concatenate(time_all)) + 10
 		dn = (xmax - xmin) /  n
 		rvx = np.empty([n])
 		rvx[0] = xmin
@@ -180,6 +180,7 @@ if ( nplanets == 1 ):
                 plt.minorticks_on()
                 plt.xlabel("JD (days)")
                 plt.ylabel('RV (m/s)')
+	        plt.xlim(xmin,xmax)
                 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
                 for j in range(0,nt):
                   plt.errorbar(time_all[j],rv_dum[j],errs_all[j],\

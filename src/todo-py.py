@@ -386,9 +386,6 @@ def fit_joint():
 
   if ( method == 'sm' ):
 
-    min_phys_t0 = min_t0
-    max_phys_t0 = max_t0
-
     vec_rv0_limits = []
     for m in range(0,nt):
       vec_rv0_limits.append(min_rv0) 
