@@ -146,6 +146,9 @@ def smart_priors():
     #be between the smallest and larger RV datapoint
     min_rv0 = min(mega_rv)
     max_rv0 = max(mega_rv)
+    if ( fit_alpha or fit_beta ):
+      min_rv0 = min(min_rv0/2.,2.*min_rv0)
+      max_rv0 = max(max_rv0/2.,2.*max_rv0)
     v0 = [min_rv0]*nt
     #Estimate k priors and limits from data
     if ( P.__class__ == float  ):
@@ -609,12 +612,23 @@ def fit_radial_velocity():
         limits[(14+j*2)+(7+nt)*2*m] = min_rv0
         limits[(15+j*2)+(7+nt)*2*m] = max_rv0
 
+    vec_rv0_limits = []
+    for m in range(0,nt):
+      vec_rv0_limits.append(min_rv0) 
+      vec_rv0_limits.append(max_rv0) 
+	
+    dummy_lims_physical = \
+    [ min_t0, max_t0, min_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
+    min_phys_k,max_phys_k,  min_alpha, max_alpha, min_beta, max_beta]
+
+    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
+	
   if ( method == 'sm' ):
 
     pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-    params, limits, nwalkers, a_factor, maxi, thin_factor, \
+    params, limits,limits_p, nwalkers, a_factor, maxi, thin_factor, \
     what_fit,flag,nconv,datas=len(mega_time), \
-    nt=nt,npl=nplanets)
+    nt=nt,npl=nplanets,npars=7)
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'

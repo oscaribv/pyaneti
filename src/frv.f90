@@ -165,25 +165,28 @@ implicit none
 end subroutine
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,nwalks,a_factor,maxi, &
-thin_factor,wtf,flag,nconv,datas,nt,npl)
+subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,limits_physical,nwalks,a_factor,maxi, &
+thin_factor,wtf,flag,nconv,datas,nt,npl,npars)
+!Here the number of parameters is npars + nt
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv, npl
+  integer, intent(in) :: nwalks, maxi, thin_factor, datas, nt, nconv, npl, npars
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1)  :: tlab
-  double precision, intent(in), dimension(0:npl*(7+nt)-1) :: pars
-  double precision, intent(in), dimension(0:2*npl*(7+nt)-1) :: lims
-  integer, intent(in), dimension(0:8*npl-1) :: wtf
+  double precision, intent(in), dimension(0:npl*(npars+nt)-1) :: pars
+  double precision, intent(in), dimension(0:2*npl*(npars+nt)-1) :: lims
+  double precision, intent(inout), dimension(0:2*(npars+nt)-1) :: limits_physical
+  !f2py intent(in,out)  :: limits_physical
+  integer, intent(in), dimension(0:(npars+1)*npl-1) :: wtf
   double precision, intent(in) :: a_factor
   logical, intent(in) ::  flag(0:3)
 !Local variables
-  double precision, dimension(0:7+nt-1,0:npl-1) :: params
-  double precision, dimension(0:2*(7+nt)-1,0:npl-1) :: limits
+  double precision, dimension(0:npars+nt-1,0:npl-1) :: params
+  double precision, dimension(0:2*(npars+nt)-1,0:npl-1) :: limits
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
-  double precision, dimension(0:6+nt,0:npl-1,0:nwalks-1) :: params_old, params_new
-  double precision, dimension(0:6+nt,0:npl-1,0:nwalks-1,0:nconv-1) :: params_chains
+  double precision, dimension(0:npars+nt-1,0:npl-1,0:nwalks-1) :: params_old, params_new
+  double precision, dimension(0:npars+nt-1,0:npl-1,0:nwalks-1,0:nconv-1) :: params_chains
   double precision  :: q
   double precision  :: esin(0:npl-1), ecos(0:npl-1), aa, chi2_red_min
   integer :: l,o,m, j, n, nu, nk, n_burn, spar, new_thin_factor
@@ -191,26 +194,26 @@ implicit none
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
   double precision, dimension(0:npl-1) :: t0_mean, P_mean
-  integer, dimension(0:7+nt-1,0:npl-1) :: wtf_all 
+  integer, dimension(0:npars+nt-1,0:npl-1) :: wtf_all 
   double precision :: r_real, sigma_t0(0:npl-1), sigma_P(0:npl-1)
   !character(len=11), dimension(0:npl-1) :: output_files
   character(len=11), dimension(0:1) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
 
-!I have to do this automatically
+  !I have to do this automatically
   output_files(0) = 'planet1.dat'
   output_files(1) = 'planet2.dat'
 
   !Let us convert all the big arrays to 
   !matrix form 
   do m = 0, npl - 1
-    params(:,m) = pars(m*(7+nt):(m+1)*(7+nt)-1)
-    limits(:,m) = lims(m*2*(7+nt):(m+1)*2*(7+nt)-1)
+    params(:,m) = pars(m*(npars+nt):(m+1)*(npars+nt)-1)
+    limits(:,m) = lims(m*2*(npars+nt):(m+1)*2*(npars+nt)-1)
     t0_mean(m) = params(0,m)
     P_mean(m) = params(1,m)
-    wtf_all(0:6,m) = wtf(m*6:(m+1)*6-1)
-    wtf_all(7:7+nt-1,m) = wtf(7*(m+1))
+    wtf_all(0:npars-1,m) = wtf(m*(npars-1):(m+1)*(npars-1)-1)
+    wtf_all(npars:npars+nt-1,m) = wtf(npars*(m+1))
   end do
 
   !size of parameters (only parameters to fit!)
@@ -228,6 +231,7 @@ implicit none
   if ( flag(0) )  then
     params(1,:)   = log10(params(1,:))
     limits(2:3,:) = log10(limits(2:3,:))
+    limits_physical(2:3) = log10(limits_physical(2:3))
   end if
   sigma_P = 0.5*(limits(3,:) - limits(2,:))
   ! e and w
@@ -240,16 +244,22 @@ implicit none
     limits(5,:) =   sqrt(limits(5,:))
     limits(6,:) = limits(4,:)
     limits(7,:) = limits(5,:)
+    limits_physical(4) = - sqrt(limits_physical(5))
+    limits_physical(5) =   sqrt(limits_physical(5))
+    limits_physical(6) = limits_physical(4)
+    limits_physical(7) = limits_physical(5)
   end if
   !k
   if ( flag(2) ) then
     params(4,:)  = log10(params(4,:))
     limits(8:9,:) = log10(limits(8:9,:))
+    limits_physical(8:9) = log10(limits_physical(8:9))
   end if
   !rv0's
   if ( flag(3) ) then
-    params(5:4+nt,:) = log10(params(5:4+nt,:))
-    limits(10:2*(5+nt)-1,:) = log10(limits(10:2*(5+nt)-1,:))
+    params(npars:npars+nt-1,:) = log10(params(npars:npars+nt-1,:))
+    limits(npars*2:2*(npars+nt)-1,:) = log10(limits(npars:2*(npars+nt)-1,:))
+    limits_physical(2*npars:2*(npars+nt)-1) = log10(limits_physical(2*npars:2*(npars+nt)-1))
   end if
 
   print *, 'CREATING RANDOM SEED'
@@ -258,13 +268,10 @@ implicit none
   print *, 'CREATING RANDOM (UNIFORM) UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
   do nk = 0, nwalks - 1
-
     do m = 0, npl - 1
-
       !Counter for the limits
       j = 0
-
-      do n = 0, 6 + nt
+      do n = 0, npars + nt - 1
         if ( wtf_all(n,m) == 0 ) then
           !this parameter does not change for the planet m
           params_old(n,m,nk) = params(n,m)
@@ -272,19 +279,13 @@ implicit none
           call random_number(r_real)
           params_old(n,m,nk) = limits(j+1,m) - limits(j,m)
           params_old(n,m,nk) = limits(j,m) + r_real*params_old(n,m,nk) 
-          !print *,n, params_old(n,m,nk), limits(j+1,m) - limits(j,m)
-          !print *, params_old(2,m,nk)
         end if
-          !print *, params_old(2,m,nk), limits(5,m) - limits(4,m)
         j = j + 2 !two limits for each parameter
-
       end do
-
       !Check that e < 1 for ew
       if ( flag(1) ) then
           is_limit_good = .false.
           do while ( .not. is_limit_good )
-            !print *, params_old(2,m,nk), params_old(3,m,nk)
             call check_e(params_old(2,m,nk),params_old(3,m,nk),is_limit_good)
             if ( .not. is_limit_good  ) then
               params_old(2,m,nk) = params_old(2,m,nk) * params_old(2,m,nk)
@@ -292,9 +293,7 @@ implicit none
             end if
         end do
       end if
-
     end do
- 
     !Each walker is a point in a parameter space
     !Each point contains the information of all the planets
     !Let us estimate our first chi_2 value for each walker
@@ -340,12 +339,6 @@ implicit none
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
 
-    !Let us vary aa randomlly
-    if ( a_factor < 1.0d0 ) then
-      call random_number(aa)
-      aa = 1.0d0 + thin_factor * aa 
-    end if
-
     do m = 0, npl - 1
       if( wtf_all(0,m) == 0 ) then !T0
         call gauss_random_bm(t0_mean(m),sigma_t0(m),params_old(0,m,:),nwalks)
@@ -376,8 +369,8 @@ implicit none
                            ( params_old(:,m,nk) - params_new(:,m,nk) )
 
         !Let us check the limits
-        call check_limits(params_new(:,m,nk),limits(:,m), &
-                          is_limit_good,7+nt)
+        call check_limits(params_new(:,m,nk),limits_physical(:), &
+                          is_limit_good,npars+nt)
 
         !Check that e < 1 for ew
         if ( flag(1) ) then
@@ -420,11 +413,7 @@ implicit none
 
      if ( is_burn ) then
 
-        if ( mod(j,new_thin_factor) == 0 ) then
-            !print *, 'Iter ',j
-            n_burn = n_burn + 1
-        end if
-
+        if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
         if ( n_burn > nconv ) get_out = .false.
 
      else
@@ -461,7 +450,7 @@ implicit none
 
           !Let us check convergence for all the parameters
           is_cvg = .true.
-          do o = 0, 6 + nt !For all parameters 
+          do o = 0, npars + nt - 1 !For all parameters 
             do l = 0, npl - 1 !for all planets
             !Do the test to the parameters that we are fitting
               if ( wtf_all(o,l) == 1 ) then
@@ -589,10 +578,10 @@ implicit none
     limits(5) =  sqrt(limits(5))
     limits(6) = limits(4)
     limits(7) = limits(5)
-    limits_physical(4) = -sqrt(limits_physical(5))
-    limits_physical(5) =  sqrt(limits_physical(5))
-    limits_physical(6) = limits_physical(4)
-    limits_physical(7) = limits_physical(5)
+    limits_physical(4) = - 1.d0
+    limits_physical(5) = 1.d0
+    limits_physical(6) = -1.d0
+    limits_physical(7) = 1.d0
   end if
  !i
   if ( flag(2) ) then
@@ -628,6 +617,8 @@ implicit none
     limits(20:2*(10+nt)-1) = log10(limits(20:2*(10+nt)-1))
     limits_physical(20:2*(10+nt)-1) = log10(limits_physical(20:2*(10+nt)-1))
   end if
+
+
 
   !Call a random seed 
   print *, 'CREATING RANDOM SEED'

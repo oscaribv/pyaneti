@@ -134,10 +134,10 @@ max_pz  = 0.99	       # a really big planet
 #rv fit
 min_k   = 1.e-6	       # m/s amplitudes
 max_k   = 30.	       # a really big planet
-min_alpha = -100       
-max_alpha = 100       
-min_beta = -100       
-max_beta = 100       
+min_alpha = -1     
+max_alpha = 1      
+min_beta = -1       
+max_beta = 1       
 min_rv0 = 1.	       #Systemic velocities
 max_rv0 = 100.	       #systemic velocities
 
