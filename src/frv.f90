@@ -187,16 +187,14 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:npars+nt-1,0:npl-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:npars+nt-1,0:npl-1,0:nwalks-1,0:nconv-1) :: params_chains
-  double precision  :: q
-  double precision  :: esin(0:npl-1), ecos(0:npl-1), aa, chi2_red_min
+  double precision  :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
+  double precision  :: q, esin(0:npl-1), ecos(0:npl-1), aa, chi2_red_min
+  double precision, dimension(0:npl-1) :: t0_mean, P_mean
+  double precision :: r_real, sigma_t0(0:npl-1), sigma_P(0:npl-1)
+  integer, dimension(0:nwalks-1) :: r_int
+  integer, dimension(0:npars+nt-1,0:npl-1) :: wtf_all 
   integer :: l,o,m, j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: get_out, is_burn, is_limit_good, is_cvg
-  double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
-  integer, dimension(0:nwalks-1) :: r_int
-  double precision, dimension(0:npl-1) :: t0_mean, P_mean
-  integer, dimension(0:npars+nt-1,0:npl-1) :: wtf_all 
-  double precision :: r_real, sigma_t0(0:npl-1), sigma_P(0:npl-1)
-  !character(len=11), dimension(0:npl-1) :: output_files
   character(len=11), dimension(0:1) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
@@ -216,24 +214,24 @@ implicit none
     wtf_all(npars:npars+nt-1,m) = wtf(npars*(m+1))
   end do
 
-  !size of parameters (only parameters to fit!)
+  !spar: size of parameters (only parameters to fit!)
   !The telescopes are the same for all the planets
   spar = nt
   do m = 0, npl - 1
     !what parameters are we fitting?
-    spar = spar + sum(wtf_all(0:4,m))
+    spar = spar + sum(wtf_all(0:npars-1,m))
   end do
 
-  !Check if there are flags to evolve modified parameters
-
+  !Let us obtain the error bars for T0 and P
   sigma_t0 = 0.5*(limits(1,:) - limits(0,:))
+  sigma_P = 0.5*(limits(3,:) - limits(2,:))
+  !Check if there are flags to evolve modified parameters
   !Period
   if ( flag(0) )  then
     params(1,:)   = log10(params(1,:))
     limits(2:3,:) = log10(limits(2:3,:))
     limits_physical(2:3) = log10(limits_physical(2:3))
   end if
-  sigma_P = 0.5*(limits(3,:) - limits(2,:))
   ! e and w
   if ( flag(1) ) then
     esin(:) = sqrt(params(2,:)) * sin(params(3,:))
@@ -284,13 +282,13 @@ implicit none
       end do
       !Check that e < 1 for ew
       if ( flag(1) ) then
-          is_limit_good = .false.
-          do while ( .not. is_limit_good )
-            call check_e(params_old(2,m,nk),params_old(3,m,nk),is_limit_good)
-            if ( .not. is_limit_good  ) then
-              params_old(2,m,nk) = params_old(2,m,nk) * params_old(2,m,nk)
-              params_old(3,m,nk) = params_old(3,m,nk) * params_old(3,m,nk)
-            end if
+        is_limit_good = .false.
+        do while ( .not. is_limit_good )
+          call check_e(params_old(2,m,nk),params_old(3,m,nk),is_limit_good)
+          if ( .not. is_limit_good  ) then
+            params_old(2,m,nk) = params_old(2,m,nk) * params_old(2,m,nk)
+            params_old(3,m,nk) = params_old(3,m,nk) * params_old(3,m,nk)
+          end if
         end do
       end if
     end do
@@ -313,7 +311,10 @@ implicit none
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', sum(chi2_red) / nwalks ,'DOF =', nu
+  print *, '       INITIAL CONFIGURATION '
+  print *, '      Degrees of freedom  = ', nu
+  print *, ''
+  call print_chain_data(chi2_red,nwalks)
 
   !Let us start the otput files
   do m = 0, npl - 1 
@@ -423,8 +424,6 @@ implicit none
         !Obtain the chi2 mean of all the variables
         chi2_red_min = sum(chi2_red) / nwalks
 
-!        print *, 'Iter ',j,', Chi^2_red =', chi2_red_min
-
         !Create the 4D array to use the Gelman-Rubin test
         !The first two elemets are the parameters for mp fit
         !third is the information of all chains
@@ -437,12 +436,7 @@ implicit none
 
           n = 0
 
-          print *, '==========================='
-          print *, '     Chain statistics      '
-          print *, '==========================='
-          print *, ' best  : ',minval(chi2_red)
-          print *, ' worst : ',maxval(chi2_red)
-          print *, ' mean  : ', chi2_red_min
+          call print_chain_data(chi2_red,nwalks)
           print *, '==========================='
           print *, '  PERFOMING GELMAN-RUBIN'
           print *, '   TEST FOR CONVERGENCE'

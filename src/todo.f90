@@ -225,7 +225,8 @@ implicit none
   if ( R < 1.d0 + delta ) then
       is_cvg = .true. 
   else
-      print *,  'R = ', R,' delta = ', 1.d0 + delta
+      print *, 'R     = ', R
+      print *, 'delta = ', 1.d0 + delta
   end if
 
 end subroutine
@@ -373,3 +374,18 @@ implicit none
 
 end subroutine
 
+subroutine print_chain_data(chi2,n)
+implicit none
+  integer, intent(in) :: n
+  double precision, intent(in) :: chi2(0:n-1)
+
+  print *, '==========================='
+  print *, '     Chain statistics      '
+  print *, '==========================='
+  print *, ' best  : ',minval(chi2)
+  print *, ' worst : ',maxval(chi2)
+  print *, ' mean  : ', sum(chi2) / n
+  print *, '==========================='
+
+
+end subroutine
