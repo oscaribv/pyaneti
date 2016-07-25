@@ -101,11 +101,17 @@ def planet_mass(mstar,k,P,ecc,i=np.pi/2.):
 # rho -> stellar density
 #-----------------------------------------------------------
 def get_rhostar(P,a):
-
   P = P * 24. * 3600. # s
   rho = 3. * np.pi * a**3 / ( G_cgs * P * P)
-
   return rho
+
+
+#-----------------------------------------------------------
+
+def get_teq(Tstar,albedo,rstar,a):
+  Tp = Tstar*( 1.0 - albedo)**(0.25)
+  Tp = (rstar/2.0/a)**(0.5) * Tp
+  return Tp
 
 #-----------------------------------------------------------
 # check if we force a circular orbit
