@@ -3,6 +3,10 @@
 from matplotlib import gridspec
 from matplotlib.colors import LogNorm
 
+#The size of our plots follow an aurea rectangle 
+fsx = 8
+fsy = 4.944
+
 def plot_chains():
   plt.xlabel('iteration')
   plt.ylabel('$\chi^2$')
@@ -10,7 +14,7 @@ def plot_chains():
   plt.show()
 
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
-  plt.figure(3,figsize=(7,6))
+  plt.figure(3,figsize=(fsx,fsy))
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
   gs.update(hspace=0.00) 
   ax0 = plt.subplot(gs[0])
@@ -113,7 +117,7 @@ if ( nplanets == 1 ):
 
 	  #Do the plot
           tfc = 24. # time factor conversion to hours
-	  plt.figure(1,figsize=(7,6))
+	  plt.figure(1,figsize=(fsx,fsy))
 	  #Plot the transit light curve
 	  gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3.0, 1.])
           gs.update(hspace=0.00) 
