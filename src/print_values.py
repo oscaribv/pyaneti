@@ -6,6 +6,7 @@ minchi2_index = np.argmin(chi2)
 #Create the stellar data
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=new_nwalkers*nconv)
+tstar = np.random.normal(loc=tstar_mean,scale=tstar_sigma,size=new_nwalkers*nconv)
 inclination = np.random.normal(loc=inclination_mean,scale=inclination_sigma,size=new_nwalkers*nconv)
 
 if ( nplanets == 1 ):
@@ -27,6 +28,11 @@ if ( nplanets == 1 ):
     inclination = io
     if (is_log_a):
       ao = np.power(10.,ao)
+
+
+    #Calculate equilibrium temperature
+    #assuming albedo=0
+    Teqo = get_teq(tstar,0.0,1.0,ao)
 
     #Take back the u1 and u2 values, Kipping 2013
     u1o = 2*np.sqrt(q1o)*q2o
@@ -79,12 +85,15 @@ if ( nplanets == 1 ):
   #Change to earth or jupiter parameters
   #based on IAU resolution http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1605.09788
 
+  usymbol = '{\odot}'
   if ( unit_mass == 'earth'):
+    usymbol = '{\oplus}'
     if ( fit_rv ):
       masso = masso * S_GM_SI / E_GM_SI
     if ( fit_tr ):
       rpo = rpo * S_radius_SI / E_radius_e_SI
   elif ( unit_mass == 'jupiter'):
+    usymbol = '\mathrm{J}'
     if ( fit_rv ):
       masso = masso * S_GM_SI / J_GM_SI
     if ( fit_tr ):
@@ -132,6 +141,7 @@ if ( nplanets == 1 ):
         ms_val, ms_errl, ms_errr = find_vals_perc(mstar,1.0)
       if ( fit_tr ):
         rs_val, rs_errl, rs_errr = find_vals_perc(rstar,1.0)
+        ts_val, ts_errl, ts_errr = find_vals_perc(tstar,1.0)
 
 
     t0_val, t0_errl, t0_errr = find_vals_perc(t0o,s_factor)
@@ -160,6 +170,7 @@ if ( nplanets == 1 ):
       tt_val , tt_errl, tt_errr  = find_vals_perc(tto,s_factor)
       tf_val , tf_errl, tf_errr  = find_vals_perc(tfo,s_factor)
       rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,s_factor)
+      Teq_val,Teq_errl, Teq_errr = find_vals_perc(Teqo,s_factor)
       if ( fit_rv ):
         rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,s_factor)
         gp_val,gp_errl, gp_errr = find_vals_perc(gpo,s_factor)
@@ -208,6 +219,7 @@ if ( nplanets == 1 ):
       print ('M_*     = %4.7f + %4.7f - %4.7f solar masses'%(ms_val,ms_errr,ms_errl))
     if ( fit_tr ):
       print ('R_*     = %4.7f + %4.7f - %4.7f solar radii'%(rs_val, rs_errr , rs_errl))
+      print ('T_*     = %4.7f + %4.7f - %4.7f solar radii'%(ts_val, ts_errr , ts_errl))
     if ( fit_rv and not fit_tr ):
       print ('i       = %4.7f + %4.7f - %4.7f deg'%(iinp_val, iinp_errr , iinp_errl))
     print ('')
@@ -216,9 +228,8 @@ if ( nplanets == 1 ):
     print ('P     = %4.7f + %4.7f - %4.7f days'%(P_val, P_errr , P_errl))
     print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
     print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
-    if ( fit_rv and not fit_tr ):
-      print ('alpha = %4.4e + %4.4e - %4.4e     '%(alpha_val, alpha_errr , alpha_errl))
-      print ('beta  = %4.4e + %4.4e - %4.4e     '%(beta_val, beta_errr , beta_errl))
+    print ('alpha = %4.4e + %4.4e - %4.4e     '%(alpha_val, alpha_errr , alpha_errl))
+    print ('beta  = %4.4e + %4.4e - %4.4e     '%(beta_val, beta_errr , beta_errl))
     if (fit_tr):
       print ('Transit fit parameters:')
       print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))
@@ -244,12 +255,66 @@ if ( nplanets == 1 ):
       print ('rho_* = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rho_val,rho_errr, rho_errl))
       print ('u_1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr, u1_errl))
       print ('u_2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr, u2_errl))
+      print ('T_eq   = %4.4f + %4.4f - %4.4fK   '               %(Teq_val,Teq_errr, Teq_errl))
     if (fit_rv):
       print ('Tp    = %4.4f + %4.4f - %4.4f days' 		%(tp_val,tp_errr, tp_errl))
       print ('mp    = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
       if ( fit_tr ):
         print ('rho_p = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rhop_val,rhop_errr, rhop_errl))
         print ('g_p = %4.4f + %4.4f - %4.4f cm/s^2' 		%(gp_val,gp_errr, gp_errl))
+    
+    if ( latex_values ):
+      print '%LaTeX commands of the parameters'
+      if ( fit_rv ):
+        print ('\\newcommand{\smass}[1][$ %s $]{$ %4.7f ^{+ %4.7f}_{ - %4.7f}$ #1}'%('M_{\odot}',ms_val,ms_errr,ms_errl))
+      if ( fit_tr ):
+        print ('\\newcommand{\sradius}[1][$ %s $]{$ %4.7f ^{+ %4.7f} _{ - %4.7f} $ #1}'%('R_{\odot}',rs_val, rs_errr , rs_errl))
+        print ('\\newcommand{\stemp}[1][K]{$ %4.2f ^{+ %4.2f} _{ - %4.2f} $ #1}'%(ts_val, ts_errr , ts_errl))
+      if ( fit_rv and not fit_tr ):
+        print ('\\newcommand{\inclination}[1][deg]{$%4.7f^{+%4.7f }_{- %4.7f} $ #1}'%(iinp_val, iinp_errr , iinp_errl))
+      print ('%')
+      print ('%The best fit planet parameters are:')
+      print ('\\newcommand{\\tzero}[1][days]{ $%4.7f^{ + %4.7f}_{ - %4.7f}$ #1}'%(t0_val,t0_errr,t0_errl))
+      print ('\\newcommand{\porb}[1][days]{$%4.7f^{ + %4.7f}_{ - %4.7f}$ #1}'%(P_val, P_errr , P_errl))
+      print ('\\newcommand{\ec}[1][]{ $%4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }'%(e_val, e_errr , e_errl))
+      print ('\\newcommand{\periastron}[1][deg]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1} '%(w_deg,w_deg_errr, w_deg_errl))
+      if (fit_tr):
+        print ('%Transit fit parameters:')
+        print ('\\newcommand{\inclination}[1][deg]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}' %(i_deg,i_deg_errr, i_deg_errl))
+        print ('\\newcommand{\saxis}[1][]{$ %4.4f^{+ %4.4f}_{ - %4.4f}$ #1} '%(a_val, a_errr , a_errl))
+        print ('\\newcommand{\spradius}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1} '%(pz_val,pz_errr, pz_errl))
+        print ('\\newcommand{\qone}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}    '%(q1_val,q1_errr, q1_errl))
+        print ('\\newcommand{\qtwo}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}    '%(q2_val,q2_errr, q2_errl))
+      if (fit_rv):
+        print ('%RV fit parameters:')
+        print ('\\newcommand{\krv}[1][m\, s$^{-2}$]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}'%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
+        print ('\\newcommand{\\alpha}[1][]{%4.4e^{ + %4.4e }_{- %4.4e} #1}    '%(alpha_val, alpha_errr , alpha_errl))
+        print ('\\newcommand{\\beta}[1][]{%4.4e^{ + %4.4e }_{- %4.4e} #1}     '%(beta_val, beta_errr , beta_errl))
+        for i in range(0,nt):
+          print ('\\newcommand{\\vel%s}[1][km\, s$^{-2}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}'%(telescopes[i], \
+                v_val[i],v_errr[i],v_errl[i]))
+      print ('')
+    
+      print ('%Derived parameters:')
+      if (fit_tr):
+        if (unit_mass == 'earth'):
+          print ('\\newcommand{\pradius}[1][$R_{%s}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}' 	        %(usymbol,rp_val,rp_errr, rp_errl))
+        print ('\\newcommand{\\axis}[1][AU]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1} ' 		%(aphy_val, aphy_errr , aphy_errl))  
+        print ('\\newcommand{\impactp}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1} ' 	         	%(b_val,b_errr, b_errl))
+        print ('\\newcommand{\\ttotal}[1][hours] {$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }' 		%(tt_val,tt_errr, tt_errl))
+        print ('\\newcommand{\\tineg }[1][hours] {$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }' 		%(tf_val,tf_errr, tf_errl))
+        print ('\\newcommand{\sden }[1][g\, cm$^{-3}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}' 		%(rho_val,rho_errr, rho_errl))
+        print ('\\newcommand{\uone}[1][]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1 } ' 		%(u1_val,u1_errr, u1_errl))
+        print ('\\newcommand{\utwo}[1][]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1 }  ' 		%(u2_val,u2_errr, u2_errl))
+        print ('\\newcommand{\\tequi}[1][K]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}  ' 		%(Teq_val,Teq_errr, Teq_errl))
+      if (fit_rv):
+        print ('\\newcommand{\\tp}[1][days]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }' 		%(tp_val,tp_errr, tp_errl))
+        print ('\\newcommand{\pmass}[1][$M_{%s}$]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}' 		%(usymbol,m_val,m_errr, m_errl))
+        if ( fit_tr ):
+          print ('\\newcommand{\pden}[1][g\, cm$^{-3}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}' 		%(rhop_val,rhop_errr, rhop_errl))
+          print ('\\newcommand{\pg}[1][cm\, s$^-2$]{$  %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}' 		%(gp_val,gp_errr, gp_errl))
+
+
 
 
 #Multiplanet fit

@@ -21,7 +21,7 @@ n_cad = 1
 t_cad = 30. / 60. / 24.
 
 method = 'sm'
-#method = 'plot'
+method = 'plot'
 
 #Output controls
 unit_mass = 'earth'
@@ -38,7 +38,7 @@ a_from_kepler = True
 
 #We want to fit transit and RV 
 fit_rv = True
-fit_tr = False
+fit_tr = True
 
 #What do we want to fit?
 fit_t0 = True

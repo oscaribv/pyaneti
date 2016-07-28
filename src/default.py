@@ -34,8 +34,10 @@ AU_SI = 1.4960e11 # m
 #Default stellar parameters
 mstar_mean = 1.0
 rstar_mean = 1.0
+tstar_mean = 5600
 mstar_sigma = 1e-10
 rstar_sigma = 1e-10
+tstar_sigma = 100
 
 #Default transit data cadence
 n_cad = 1
@@ -60,6 +62,7 @@ scale_error_bars = True
 a_factor = 2.0
 is_plot_histogram = True
 is_plot_correlations = True
+latex_values = True
 textra = 0.0
 #The defaul number of planets is 1
 nplanets = 1
