@@ -136,7 +136,7 @@ if ( nplanets == 1 ):
 	  plt.plot((smegax-T0)*tfc,np.zeros(len(smegax)),'k--',linewidth=1.0)
 	  plt.errorbar((megax-T0)*tfc,res_res,megae,fmt='r.',alpha=1.0)
           yylims = dplot.get_ylim()
-          plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/5.))
+          plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
           plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
 	  plt.xlim(x_lim,-x_lim)
 	  #plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)

@@ -502,22 +502,22 @@ end subroutine
 
 !-----------------------------------------------------------
 subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params,pstar, lpstar, &
-limits,limits_physical,nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,afk,nconv,drv,dtr,nt)
+limits,limits_physical,nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,afk,nconv,drv,dtr,nt,npars)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: nwalks, maxi, thin_factor,n_cad, drv, dtr, nt, nconv
+  integer, intent(in) :: nwalks, maxi, thin_factor,n_cad, drv, dtr, nt, nconv, npars
   double precision, intent(in), dimension(0:drv-1)  :: xd_rv, yd_rv, errs_rv
   double precision, intent(in), dimension(0:dtr-1)  :: xd_tr, yd_tr, errs_tr
   double precision, intent(in), dimension(0:1)  :: pstar, lpstar
   integer, intent(in), dimension(0:drv-1)  :: tlab
-  double precision, intent(inout), dimension(0:10+nt-1) :: params
+  double precision, intent(inout), dimension(0:npars+nt-1) :: params
   !f2py intent(in,out)  :: params
-  double precision, intent(inout), dimension(0:2*(10+nt)-1) :: limits
+  double precision, intent(inout), dimension(0:2*(npars+nt)-1) :: limits
   !f2py intent(in,out)  :: limits
-  double precision, intent(inout), dimension(0:2*(10+nt)-1) :: limits_physical
+  double precision, intent(inout), dimension(0:2*(npars+nt)-1) :: limits_physical
   !f2py intent(in,out)  :: limits_physical
-  integer, intent(in), dimension(0:10) :: wtf
+  integer, intent(in), dimension(0:12) :: wtf
   double precision, intent(in)  :: a_factor, t_cad
   logical, intent(in) :: flag(0:5)
   logical, intent(in) :: afk
@@ -526,10 +526,10 @@ implicit none
   chi2_new_rv, chi2_old_tr, chi2_new_tr, &
   chi2_old_total, chi2_new_total, chi2_red
   double precision, dimension(0:dtr-1)  :: zr
-  double precision, dimension(0:4+nt) :: params_rv
+  double precision, dimension(0:6+nt) :: params_rv
   double precision, dimension(0:8) :: params_tr
-  double precision, dimension(0:10+nt-1,0:nwalks-1,0:nconv-1) :: params_chains
-  double precision, dimension(0:10+nt-1,0:nwalks-1) :: params_old, params_new
+  double precision, dimension(0:npars+nt-1,0:nwalks-1,0:nconv-1) :: params_chains
+  double precision, dimension(0:npars+nt-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nwalks-1) :: mstar, rstar
   double precision  :: q
   double precision  :: esin, ecos, aa, chi2_red_min
@@ -538,7 +538,7 @@ implicit none
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   integer, dimension(0:nwalks-1) :: r_int
-  integer, dimension(0:10+nt-1) :: wtf_all 
+  integer, dimension(0:npars+nt-1) :: wtf_all 
   real :: r_real
   character (len=11) :: output_files
 !external calls
@@ -547,8 +547,8 @@ implicit none
   output_files = 'mh_fit.dat'
 
   !What are we going to fit?
-  wtf_all(0:9) = wtf(0:9)
-  wtf_all(10:10+nt-1) = wtf(10)
+  wtf_all(0:npars-1) = wtf(0:npars-1)
+  wtf_all(npars:npars+nt-1) = wtf(npars)
 
   flag_tr(:)   = flag(0:3)
   flag_rv(0:1) = flag(0:1)
@@ -607,17 +607,14 @@ implicit none
   end if
   !rv0's
   if ( flag(5) ) then
-    params(10:10+nt-1) = log10(params(10:10+nt-1))
-    limits(20:2*(10+nt)-1) = log10(limits(20:2*(10+nt)-1))
-    limits_physical(20:2*(10+nt)-1) = log10(limits_physical(20:2*(10+nt)-1))
+    params(npars:npars+nt-1) = log10(params(npars:npars+nt-1))
+    limits(2*npars:2*(npars+nt)-1) = log10(limits(2*npars:2*(npars+nt)-1))
+    limits_physical(2*npars:2*(npars+nt)-1) = log10(limits_physical(2*npars:2*(npars+nt)-1))
   end if
-
-
 
   !Call a random seed 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
-
 
   print *, 'CREATING RANDOM UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
@@ -627,11 +624,9 @@ implicit none
   nk = 0
   do while ( nk < nwalks )
 
-!    print *, 'creating walker ', nk + 1
-
     j = 0
 
-    do n = 0, 10 + nt - 1
+    do n = 0, npars + nt - 1
 
       if ( wtf_all(n) == 0 ) then
         !this parameter does not change
@@ -658,7 +653,7 @@ implicit none
 
     params_tr = params_old(0:8,nk)
     params_rv(0:3) = params_old(0:3,nk)
-    params_rv(4:4+nt) = params_old(9:9+nt,nk)
+    params_rv(4:6+nt) = params_old(9:npars+nt-1,nk)
 
     !Let us find z
     call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
@@ -668,7 +663,6 @@ implicit none
 
     if ( .not. is_eclipse ) then
       nk = nk
-!      print *, "Recalculating walker ", nk + 1
     else
       call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
       call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
@@ -766,7 +760,7 @@ implicit none
         !Obtain the new chi square 
         params_tr = params_new(0:8,nk)
         params_rv(0:3) = params_new(0:3,nk)
-        params_rv(4:4+nt) = params_new(9:9+nt,nk)
+        params_rv(4:6+nt) = params_new(9:npars+nt-1,nk)
 
         !Find the chi2 for each case
         call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
