@@ -4,8 +4,8 @@ from matplotlib import gridspec
 from matplotlib.colors import LogNorm
 
 #The size of our plots follow an aurea rectangle 
-fsx = 8
-fsy = 4.944
+fsx = 6
+fsy = 3.708
 
 def plot_chains():
   plt.xlabel('iteration')
@@ -385,24 +385,28 @@ def plot_histogram(rf=1):
 			dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],ko[0::rf],alphao[0::rf],betao[0::rf]]
 			dplabs = ['$T0$','$P$','$e$','$\omega$','$k$','alpha','beta']
 		else:
-			dparams = [None]*5*nplanets
-			dplabs = [None]*5*nplanets
+			dparams = [None]*(7*nplanets)
+			dplabs = [None]*(7*nplanets)
 			for i in range(0,nplanets):
-				dparams[0+5*nplanets] = t0o[i][0::rf]
-				dparams[1+5*nplanets] = Po[i][0::rf]
-				dparams[2+5*nplanets] = eo[i][0::rf]
-				dparams[3+5*nplanets] = wo[i][0::rf]
-				dparams[4+5*nplanets] = ko[i][0::rf]
-				dplabs[0+5*nplanets] = 'T0'+str(i)
-				dplabs[1+5*nplanets] = 'P'+str(i)
-				dplabs[2+5*nplanets] = 'e'+str(i)
-				dplabs[3+5*nplanets] = '$\omega$'+str(i)
-				dplabs[4+5*nplanets] = 'k'+str(i)
+				dparams[0+7*i] = t0o[i][0::rf]
+				dparams[1+7*i] = Po[i][0::rf]
+				dparams[2+7*i] = eo[i][0::rf]
+				dparams[3+7*i] = wo[i][0::rf]
+				dparams[4+7*i] = ko[i][0::rf]
+				dparams[5+7*i] = alphao[i][0::rf]
+				dparams[6+7*i] = betao[i][0::rf]
+				dplabs[0+7*i] = 'T0'+plabels[i]
+				dplabs[1+7*i] = 'P'+plabels[i]
+				dplabs[2+7*i] = 'e'+plabels[i]
+				dplabs[3+7*i] = '$\omega$'+plabels[i]
+				dplabs[4+7*i] = 'k'+plabels[i]
+				dplabs[5+7*i] = '$\\alpha$'+plabels[i]
+				dplabs[6+7*i] = '$\\beta$'+plabels[i]
 
 		vlabs = [None]*nt
 		dvo = [None]*nt
 		for i in range(0,nt):
-			vlabs[i] = 'rv0 ' + telescopes_labels[i]
+			vlabs[i] = 'rv0 ' + telescopes_labels[i] + plabels[i]
 			dvo[i] = vo[i][0::rf]
 
 
@@ -411,52 +415,6 @@ def plot_histogram(rf=1):
 	
 		create_plot_histogram(params,labs)
 
-
-def hist_mp_rv(cbars='red',nb=50):
-
-	for l in range(0,nplanets):
-		plt.figure(1,figsize=(10,3*(5+nt)/2))
-		gs = gridspec.GridSpec(nrows=int((5+nt)/2.+0.5),ncols=2)
-		ax0 = plt.subplot(gs[0])
-		ax0 = plt.axvline(x=t0_val[l],c=cbars)
-		ax0 = plt.axvline(x=t0_val[l]-t0_errl[l],c=cbars,ls='--')
-		ax0 = plt.axvline(x=t0_val[l]+t0_errr[l],c=cbars,ls='--')
-		ax0 = plt.xlabel('T0')
-		ax0 = plt.axvline(x=t0_val[l])
-		ax0 = plt.hist(t0o[l],normed=True,bins=nb)
-		ax1 = plt.subplot(gs[1])
-		ax1 = plt.axvline(x=P_val[l],c=cbars)
-		ax1 = plt.axvline(x=P_val[l]-P_errl[l],c=cbars,ls='--')
-		ax1 = plt.axvline(x=P_val[l]+P_errr[l],c=cbars,ls='--')
-		ax1 = plt.xlabel('P')
-		ax1 = plt.hist(Po[l],normed=True,bins=nb)
-		ax2 = plt.subplot(gs[2])
-		ax2 = plt.axvline(x=e_val[l],c=cbars)
-		ax2 = plt.axvline(x=e_val[l]-e_errl[l],c=cbars,ls='--')
-		ax2 = plt.axvline(x=e_val[l]+e_errr[l],c=cbars,ls='--')
-		ax2 = plt.xlabel('$e$')
-		ax2 = plt.hist(eo[l],normed=True,bins=nb)
-		ax3 = plt.subplot(gs[3])
-		ax3 = plt.axvline(x=w_val[l],c=cbars)
-		ax3 = plt.axvline(x=w_val[l]-w_errl[l],c=cbars,ls='--')
-		ax3 = plt.axvline(x=w_val[l]+w_errr[l],c=cbars,ls='--')
-		ax3 = plt.xlabel('$\omega$')
-		ax3 = plt.hist(wo[l],normed=True,bins=nb)
-		ax4 = plt.subplot(gs[4])
-		ax4 = plt.axvline(x=k_val[l],c=cbars)
-		ax4 = plt.axvline(x=k_val[l]-k_errl[l],c=cbars,ls='--')
-		ax4 = plt.axvline(x=k_val[l]+k_errr[l],c=cbars,ls='--')
-		ax4 = plt.xlabel('k')
-		ax4 = plt.hist(ko[l],normed=True,bins=nb)
-		for m in range(0,nt):
-			plt.subplot(gs[5+m])
-			plt.axvline(x=v_val[m],c=cbars)
-			plt.axvline(x=v_val[m]-v_errl[m],c=cbars,ls='--')
-			plt.axvline(x=v_val[m]+v_errr[m],c=cbars,ls='--')
-			plt.xlabel('%s rv0'%(telescopes_labels[m]))
-			plt.hist(vo[m],normed=True,bins=nb)
-		plt.savefig(outdir+'/'+star+'_hist_params'+str(l)+'.pdf',format='pdf',bbox_inches='tight')
-		plt.show()
 
 #===========================================================
 #                   Correlation plots
@@ -517,19 +475,23 @@ def plot_correlations(rf=1):
 			dparams = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],ko[1::rf],alphao[1::rf],betao[1::rf]]
 			dplabs = ['$T0$','$P$','$e$','$\omega$','$k$','alpha','beta']
 		else:
-			dparams = [None]*5*nplanets
-			dplabs = [None]*5*nplanets
+			dparams = [None]*(7*nplanets)
+			dplabs = [None]*(7*nplanets)
 			for i in range(0,nplanets):
-				dparams[0+5*nplanets] = t0o[i][1::rf]
-				dparams[1+5*nplanets] = Po[i][1::rf]
-				dparams[2+5*nplanets] = eo[i][1::rf]
-				dparams[3+5*nplanets] = wo[i][1::rf]
-				dparams[4+5*nplanets] = ko[i][1::rf]
-				dplabs[0+5*nplanets] = 'T0'
-				dplabs[1+5*nplanets] = 'P'
-				dplabs[2+5*nplanets] = 'e'
-				dplabs[3+5*nplanets] = '$\omega$'
-				dplabs[4+5*nplanets] = 'k'
+				dparams[0+7*i] = t0o[i][1::rf]
+				dparams[1+7*i] = Po[i][1::rf]
+				dparams[2+7*i] = eo[i][1::rf]
+				dparams[3+7*i] = wo[i][1::rf]
+				dparams[4+7*i] = ko[i][1::rf]
+				dparams[5+7*i] = alphao[i][1::rf]
+				dparams[6+7*i] = betao[i][1::rf]
+				dplabs[0+7*i] = 'T0'+ plabels[i]
+				dplabs[1+7*i] = 'P'+ plabels[i]
+				dplabs[2+7*i] = 'e'+ plabels[i]
+				dplabs[3+7*i] = '$\omega$'+ plabels[i]
+				dplabs[4+7*i] = '$k$'+ plabels[i]
+				dplabs[5+7*i] = '$\\alpha$'+ plabels[i]
+				dplabs[6+7*i] = '$\\beta$'+ plabels[i]
 
 		vlabs = [None]*nt
 		dvo = [None]*nt

@@ -10,7 +10,7 @@ telescopes_labels = ['Telescope']
 fname_rv = 'two_planets.dat'
 
 #chain parameters
-thin_factor = 10
+thin_factor = 50
 nconv = 500
 nwalkers = 100
 
