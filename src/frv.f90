@@ -121,7 +121,7 @@ implicit none
   integer, intent(in) :: datas, nt, npl
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1) :: tlab
-  double precision, intent(in), dimension(0:4+nt,0:npl-1) :: params
+  double precision, intent(in), dimension(0:6+nt,0:npl-1) :: params
   logical, intent(in)  :: flag(0:3)
   double precision, intent(out) :: chi2
 !Local variables
@@ -210,8 +210,9 @@ implicit none
     limits(:,m) = lims(m*2*(npars+nt):(m+1)*2*(npars+nt)-1)
     t0_mean(m) = params(0,m)
     P_mean(m) = params(1,m)
-    wtf_all(0:npars-1,m) = wtf(m*(npars-1):(m+1)*(npars-1)-1)
-    wtf_all(npars:npars+nt-1,m) = wtf(npars*(m+1))
+    l = m*(npars+nt)
+    wtf_all(0:npars-1,m) = wtf(l:l+(npars-1))
+    wtf_all(npars:npars+nt-1,m) = wtf(l+npars:l+npars+nt-1)
   end do
 
   !spar: size of parameters (only parameters to fit!)
@@ -315,6 +316,7 @@ implicit none
   print *, '      Degrees of freedom  = ', nu
   print *, ''
   call print_chain_data(chi2_red,nwalks)
+
 
   !Let us start the otput files
   do m = 0, npl - 1 

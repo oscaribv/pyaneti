@@ -351,6 +351,12 @@ else:
   k_val = [None]*nplanets
   k_errr = [None]*nplanets
   k_errl = [None]*nplanets
+  alpha_val = [None]*nplanets
+  alpha_errr = [None]*nplanets
+  alpha_errl = [None]*nplanets
+  beta_val = [None]*nplanets
+  beta_errr = [None]*nplanets
+  beta_errl = [None]*nplanets
   v_val = [None]*nt
   v_errr = [None]*nt
   v_errl = [None]*nt
@@ -449,6 +455,8 @@ else:
         w_deg_errr[l] = w_errr[l] * 180. / np.pi
         if ( fit_rv ):
           k_val[l], k_errl[l], k_errr[l]  = find_vals_perc(ko[l],s_factor)
+          alpha_val[l], alpha_errl[l], alpha_errr[l]  = find_vals_perc(alphao[l],s_factor)
+          beta_val[l], beta_val[l], beta_val[l]  = find_vals_perc(betao[l],s_factor)
           for j in range(0,nt):
             v_val[j], v_errl[j], v_errr[j] = find_vals_perc(vo[j],s_factor)
             inc_deg = inclination * 180 / np.pi

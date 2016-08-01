@@ -88,6 +88,7 @@ execfile('src/plot_data.py')
 
 plot_chains()
 
+
 if ( nplanets == 1):
 
   if ( is_plot_histogram ):

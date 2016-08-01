@@ -10,7 +10,10 @@ fsy = 4.944
 def plot_chains():
   plt.xlabel('iteration')
   plt.ylabel('$\chi^2$')
-  plt.plot(vari,chi2red,'b.')
+  if (nplanets == 1):
+   plt.plot(vari,chi2red,'b.')
+  else:
+   plt.plot(vari[0],chi2red[0],'b.')
   plt.show()
 
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
@@ -258,6 +261,7 @@ if ( nplanets == 1 ):
 else:
 	#Plot RV for multiplanet
 	def plot_rv_mp():
+		cfactor = np.float(1.e3)
 		rvy = [None]*nplanets
 		p_rv = [None]*nplanets
 		k_dum = [None]*nplanets
@@ -284,7 +288,8 @@ else:
 			for j in range(1,n):
 				rvx[j] = rvx[j-1] + dn
 			rvy[i] = pti.rv_curve_mp(rvx,0.0,t0_val[i],\
-						k_dum[i],P_val[i],e_val[i],w_val[i])
+				k_dum[i],P_val[i],e_val[i],w_val[i],alpha_val[i]*cfactor \
+                                , beta_val[i]*cfactor)
 
 			dt0_val = []
 			dk_dum = []
@@ -308,10 +313,14 @@ else:
 			for j in range(0,nt):
 				#This is the model of the actual planet
 				res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val[i],k_dum[i],\
-	      	         P_val[i],e_val[i],w_val[i])
+	      	         P_val[i],e_val[i],w_val[i], cfactor*alpha_val[i], cfactor*beta_val[i])
+
 				#This variable has all the others planets 
 				drvy[j] = pti.rv_curve_mp(time_all[j],0.0,dt0_val,dk_dum \
-									,dP_val,de_val,dw_val)
+									,dP_val,de_val,dw_val,
+                                          alpha_val[i]*cfactor \
+                                          ,beta_val[i]*cfactor)
+
 				#the actual value, minus the systemic velocity, minus the other planets
 				rv_dum[j] = rv_dum[j] - v_val[j] - drvy[j]
 				res[j] = rv_dum[j] - res[j]
