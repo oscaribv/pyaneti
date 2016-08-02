@@ -124,7 +124,7 @@ if ( nplanets == 1 ):
 	  #Plot the transit light curve
 	  gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3.0, 1.])
           gs.update(hspace=0.00) 
-	  plt.subplot(gs[0])
+	  ax1 = plt.subplot(gs[0])
 	  x_lim = (min(xt[0])-T0)*tfc
 	  plt.xlim(x_lim,-x_lim)
           min_val_model = max(fd_reb) -  min(fd_reb)
@@ -133,6 +133,7 @@ if ( nplanets == 1 ):
           plt.ylabel('Relative flux')
           plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
           plt.minorticks_on()
+          plt.ticklabel_format(useOffset=False, axis='y')
           plt.tick_params( axis='x',which='both',labelbottom='off') 
 	  #Plot the residuals
 	  dplot = plt.subplot(gs[1])
@@ -142,7 +143,6 @@ if ( nplanets == 1 ):
           plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
           plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
 	  plt.xlim(x_lim,-x_lim)
-	  #plt.errorbar(megax,res,megae,fmt='o',alpha=0.8)
 	  #Plot the residuals
           plt.ylabel('Residuals')
           plt.xlabel("T - T0 (hours)")
