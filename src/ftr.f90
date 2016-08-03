@@ -40,8 +40,8 @@ implicit none
     e = pars(2) * pars(2) + pars(3) * pars(3)
     w = atan2(pars(2),pars(3))
   end if
-  if (flag(2)) i = asin(pars(4))
-  if (flag(3)) a = 1.d0**pars(5)
+  if (flag(3)) a = 10.0**a
+  if (flag(2)) i = acos(i/a)
 
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)

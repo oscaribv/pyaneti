@@ -23,11 +23,11 @@ if ( nplanets == 1 ):
 
   if ( fit_tr ):
 
-    if (is_sini):
-      io = np.arcsin(io)
-    inclination = io
     if (is_log_a):
-      ao = np.power(10.,ao)
+      ao = np.power(10.0,ao)
+    if (is_sini):
+      io = np.arccos(io/ao)
+    inclination = io
 
 
     #Calculate equilibrium temperature

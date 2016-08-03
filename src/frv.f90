@@ -581,9 +581,12 @@ implicit none
   end if
  !i
   if ( flag(2) ) then
-    params(4) = sin(params(4))
-    limits(8:9) = sin(limits(8:9))
-    limits_physical(8:9) = sin(limits_physical(8:9))
+    params(4) = params(5) * cos(params(4))
+    limits(8:9) = limits(10:11)*cos(limits(8:9))
+    limits(8) = 0.0
+    limits(9) = limits(11) * cos(limits(9))
+    limits_physical(8) = 0.d0
+    limits_physical(9) = 1.d0
   end if
   !a = rp/r*
   if ( flag(3) ) then
@@ -693,7 +696,8 @@ implicit none
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', sum(chi2_red) / nwalks,'DOF =', nu
+  print *, 'DOF =', nu
+  call print_chain_data(chi2_red,nwalks)
 
   !Let us start the otput file
   open(unit=101,file='mh_fit.dat',status='unknown')
@@ -834,12 +838,7 @@ implicit none
 
           n = 0
 
-          print *, '==========================='
-          print *, '     Chain statistics      '
-          print *, '==========================='
-          print *, ' best  : ',minval(chi2_red)
-          print *, ' worst : ',maxval(chi2_red)
-          print *, ' mean  : ', chi2_red_min
+          call print_chain_data(chi2_red,nwalks)
           print *, '==========================='
           print *, '  PERFOMING GELMAN-RUBIN'
           print *, '   TEST FOR CONVERGENCE'

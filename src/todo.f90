@@ -378,14 +378,16 @@ subroutine print_chain_data(chi2,n)
 implicit none
   integer, intent(in) :: n
   double precision, intent(in) :: chi2(0:n-1)
+  character(LEN=20) :: fto = "(A,F10.2)"
 
-  print *, '==========================='
-  print *, '     Chain statistics      '
-  print *, '==========================='
-  print *, ' best  : ',minval(chi2)
-  print *, ' worst : ',maxval(chi2)
-  print *, ' mean  : ', sum(chi2) / n
-  print *, '==========================='
+  write(*,*), '==========================='
+  write(*,*), '     Chain statistics      '
+  write(*,*), '==========================='
+  write(*,*), 'chain |  reduced chi2^2 '
+  write(*,fto), ' best  : ',minval(chi2)
+  write(*,fto), ' worst : ',maxval(chi2)
+  write(*,fto), ' mean  : ', sum(chi2) / n
+  write(*,*), '==========================='
 
 
 end subroutine
