@@ -228,8 +228,6 @@ if ( nplanets == 1 ):
     print ('P     = %4.7f + %4.7f - %4.7f days'%(P_val, P_errr , P_errl))
     print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
     print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
-    print ('alpha = %4.4e + %4.4e - %4.4e     '%(alpha_val, alpha_errr , alpha_errl))
-    print ('beta  = %4.4e + %4.4e - %4.4e     '%(beta_val, beta_errr , beta_errl))
     if (fit_tr):
       print ('Transit fit parameters:')
       print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))
@@ -239,6 +237,8 @@ if ( nplanets == 1 ):
       print ('q_2    = %4.4f + %4.4f - %4.4f    '%(q2_val,q2_errr, q2_errl))
     if (fit_rv):
       print ('RV fit parameters:')
+      print ('alpha = %4.4e + %4.4e - %4.4e     '%(alpha_val, alpha_errr , alpha_errl))
+      print ('beta  = %4.4e + %4.4e - %4.4e     '%(beta_val, beta_errr , beta_errl))
       print ('K     = %4.4f + %4.4f - %4.4f m/s'%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
       for i in range(0,nt):
         print ('%s v0  = %4.4f + %4.4f - %4.4f km/s'%(telescopes[i], \

@@ -229,11 +229,11 @@ def smart_priors():
 #          two values, the first and last transit datapoint
 # ntr   -> number of transits
 #-----------------------------------------------------------
-def get_transit_ranges(times):
+def get_transit_ranges(times,gap=10):
 
   xlimits = []
   xlimits.append(times[0])
-  dx = times[3] - times[0] #At lest a gap of 4
+  dx = times[gap] - times[0] #the between transit gap
   for i in range(1,len(times)-1):
     if ( times[i+1] - times[i] > dx ): 
       # We are in other transit

@@ -383,7 +383,7 @@ implicit none
   write(*,*), '==========================='
   write(*,*), '     Chain statistics      '
   write(*,*), '==========================='
-  write(*,*), 'chain |  reduced chi2^2 '
+  write(*,*), 'chain |  reduced chi^2 '
   write(*,fto), ' best  : ',minval(chi2)
   write(*,fto), ' worst : ',maxval(chi2)
   write(*,fto), ' mean  : ', sum(chi2) / n

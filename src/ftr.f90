@@ -225,18 +225,21 @@ implicit none
     limits_physical(6) = limits_physical(4)
     limits_physical(7) = limits_physical(5)
   end if
-  !i
-  if ( flag(2) ) then
-    params(4) = sin(params(4))
-    limits(8:9) = sin(limits(8:9))
-    limits_physical(8:9) = sin(limits_physical(8:9))
-  end if
   !a = rp/r*
   if ( flag(3) ) then
     params(5) = log10(params(5))
     limits(10:11) = log10(limits(10:11))
     limits_physical(10:11) = log10(limits_physical(10:11))
   end if
+  !i
+  if ( flag(2) ) then
+    params(4) = params(5) * cos(params(4))
+    limits(8) = 0.0
+    limits(9) = limits(11) * cos(limits(8))
+    limits_physical(8) = 0.d0
+    limits_physical(9) = 1.d0
+  end if
+
   !q1 and q2
   limits(12) = 0.0
   limits_physical(12) = 0.0
@@ -256,7 +259,6 @@ implicit none
   nk = 0
   do while (nk < nwalks )
 
-      print *, 'creating walker ', nk + 1
       !Counter for the limits
       j = 0
 
@@ -268,25 +270,12 @@ implicit none
           call random_number(r_real)
           params_old(n,nk) = limits(j+1) - limits(j)
           params_old(n,nk) = limits(j) + r_real*params_old(n,nk) 
-          !print *,n, params_old(n,m,nk), limits(j+1,m) - limits(j,m)
-          !print *, params_old(2,m,nk)
         end if
-          !print *, params_old(2,m,nk), limits(5,m) - limits(4,m)
         j = j + 2 !two limits for each parameter
 
       end do
 
-      !Check that u1 + u2 < 1 for ew
-!          is_limit_good = .false.
-!          do while ( .not. is_limit_good )
-!            call check_us(params_old(6,nk),params_old(7,nk),is_limit_good)
-!            if ( .not. is_limit_good  ) then
-!              params_old(6,nk) = params_old(6,nk) * params_old(6,nk)
-!              params_old(7,nk) = params_old(7,nk) * params_old(7,nk)
-!            end if
-!        end do
-
-       !Check that e < 1 for ew
+    !Check that e < 1 for ew
    if ( flag(1) ) then
      is_limit_good = .false.
      do while ( .not. is_limit_good )
@@ -329,8 +318,9 @@ implicit none
   !Print the initial cofiguration
   print *, ''
   print *, 'Starting stretch move MCMC calculation'
-  print *, 'Initial Chi2_red= ', sum(chi2_red) / nwalks ,'DOF =', nu
+  print *, 'DOF =', nu
 
+  call print_chain_data(chi2_red,nwalks)
   !Let us start the otput files
   open(unit=123,file=output_files,status='unknown')
 
@@ -352,11 +342,6 @@ implicit none
     !Create random integers to be the index of the walks
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
-
-    if ( a_factor <= 1.d0 ) then
-      call random_number(aa)
-      aa = 1.d0 + abs(aa*a_factor)
-    end if
 
     do nk = 0, nwalks - 1 !walkers
         params_new(:,nk) = params_old(:,r_int(nk))

@@ -105,7 +105,7 @@ if (fit_tr):
 
         #Get the transit ranges
         #This assumes that the input file has the different transits separated
-	tls, ntr = get_transit_ranges(hdate)
+	tls, ntr = get_transit_ranges(hdate,gap_between_transits)
 	#print tls
 	#sys.exit()
 

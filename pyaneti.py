@@ -47,7 +47,8 @@ if not os.path.exists(outdir):
   os.makedirs(outdir)
 
 #Obtain smart priors based on iput data
-smart_priors()
+if (is_smart_priors ):
+  smart_priors()
 
 #if is_circular is turned on, we ensure a circular orbit
 check_circular()

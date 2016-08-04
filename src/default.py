@@ -62,8 +62,10 @@ scale_error_bars = True
 a_factor = 2.0
 is_plot_histogram = True
 is_plot_correlations = True
+is_smart_priors = True
 latex_values = True
 textra = 0.0
+gap_between_transits = 10
 #The defaul number of planets is 1
 nplanets = 1
 plabels = ['b','c','d','e','f','g']
