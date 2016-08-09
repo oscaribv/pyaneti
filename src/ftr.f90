@@ -322,7 +322,6 @@ implicit none
 
   call print_chain_data(chi2_red,nwalks)
   !Let us start the otput files
-  open(unit=123,file=output_files,status='unknown')
 
   !Initialize the values
   j = 1
@@ -473,6 +472,7 @@ implicit none
             is_burn = .True.
             new_thin_factor = thin_factor
             print *, 'Creating ', output_files
+            open(unit=123,file=output_files,status='unknown')
           end if
 
           if ( j > maxi ) then

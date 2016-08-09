@@ -318,10 +318,6 @@ implicit none
   call print_chain_data(chi2_red,nwalks)
 
 
-  !Let us start the otput files
-  do m = 0, npl - 1 
-    open(unit=m,file=output_files(m),status='unknown')
-  end do
 
   !Initialize the values
   j = 1
@@ -476,6 +472,12 @@ implicit none
             do m = 0, npl - 1
               print *, 'Creating ', output_files(m)
             end do
+
+            !Let us start the otput files
+            do m = 0, npl - 1 
+              open(unit=m,file=output_files(m),status='unknown')
+            end do
+
           end if
 
           if ( j > maxi ) then
@@ -699,8 +701,6 @@ implicit none
   print *, 'DOF =', nu
   call print_chain_data(chi2_red,nwalks)
 
-  !Let us start the otput file
-  open(unit=101,file='mh_fit.dat',status='unknown')
   !Initialize the values
 
   j = 1
@@ -879,6 +879,8 @@ implicit none
             is_burn = .True.
             new_thin_factor = thin_factor
             print *, 'Creating ', output_files
+            !Let us start the otput file
+            open(unit=101,file='mh_fit.dat',status='unknown')
           end if
 
           if ( j > maxi ) then
