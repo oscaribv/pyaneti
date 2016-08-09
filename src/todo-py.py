@@ -360,7 +360,7 @@ def clustering(par,good_index,nconv):
 def fit_joint():
 
   global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
-  global is_log_P, is_ew, is_sini_is_log_a, is_log_k, is_log_rv0
+  global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
   global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_pz, fit_k,fit_v0
   global T0,P,e,w,ii,a,q1,q2,pz,k0,alpha,beta, v0
   global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
@@ -384,7 +384,7 @@ def fit_joint():
   pstar = [mstar_mean,rstar_mean]
   lpstar = [mstar_sigma,rstar_sigma]
 
-  flag = [is_log_P,is_ew,is_sini,k_log_a,is_log_k,is_log_rv0]
+  flag = [is_log_P,is_ew,is_b_factor,k_log_a,is_log_k,is_log_rv0]
 
   what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
               int(fit_i),int(fit_a),int(fit_q1),int(fit_q2),\
@@ -473,7 +473,7 @@ def fit_joint():
 def fit_transit():
 
   global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
-  global is_log_P, is_ew, is_sini_is_log_a
+  global is_log_P, is_ew, is_b_factor, _is_log_a
   global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_pz
   global T0,P,e,w,ii,a,q1,q2,pz
   global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
@@ -485,7 +485,7 @@ def fit_transit():
   global new_nwalkers, good_index
 
 
-  flag = [is_log_P, is_ew, is_sini, is_log_a]
+  flag = [is_log_P, is_ew, is_b_factor, is_log_a]
 
   what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
                 int(fit_i),int(fit_a), int(fit_q1),int(fit_q2),\

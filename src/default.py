@@ -112,7 +112,7 @@ fit_v0  = True
 #flags
 is_log_P     = False
 is_ew        = False
-is_sini      = False
+is_b_factor  = True
 is_log_a     = False
 is_log_k     = False
 is_log_rv0   = False

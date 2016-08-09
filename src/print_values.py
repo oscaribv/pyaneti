@@ -25,7 +25,7 @@ if ( nplanets == 1 ):
 
     if (is_log_a):
       ao = np.power(10.0,ao)
-    if (is_sini):
+    if (is_b_factor):
       io = np.arccos(io/ao)
     inclination = io
 
