@@ -41,7 +41,7 @@ implicit none
     w = atan2(pars(2),pars(3))
   end if
   if (flag(3)) a = 10.0**a
-  if (flag(2)) i = acos(i/a)
+  if (flag(2)) i = acos(i/a*(1.d0+e*sin(w))/(1.d0-e*e))
 
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)
@@ -66,7 +66,6 @@ implicit none
   integer :: i
   double precision :: limit
 
-  !This works only for not grazing transits
   limit = 1.d0 + pz
   is_good = .false.
   !At least we have to have one eclipse condition
@@ -153,7 +152,7 @@ implicit none
 
   end do
 
-    !Let us calculate the residuals
+  !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
   !Here I am assuming that we want limb darkening
   !If this is not true, use mu 
@@ -183,7 +182,7 @@ implicit none
   double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains
   double precision  :: q, esin, ecos, aa, chi2_red_min
   integer :: o, j, n, nu, nk, n_burn, spar, new_thin_factor
-  logical :: get_out, is_burn, is_limit_good, is_cvg, is_eclipse
+  logical :: continua, is_burn, is_limit_good, is_cvg, is_eclipse
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:8) :: wtf_all 
@@ -239,16 +238,6 @@ implicit none
     limits_physical(8) = 0.d0
     limits_physical(9) = 1.d0
   end if
-
-  !q1 and q2
-  limits(12) = 0.0
-  limits_physical(12) = 0.0
-  limits(13) = 1.0
-  limits_physical(13) = 1.0
-  limits(14) = 0.0
-  limits_physical(14) = 0.0
-  limits(15) = 1.0
-  limits_physical(15) = 1.0
 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -306,7 +295,6 @@ implicit none
   end do
 !  stop
   
-
   !Calculate the degrees of freedom
   nu = datas - spar
   if ( nu <= 0 ) then
@@ -321,19 +309,18 @@ implicit none
   print *, 'DOF =', nu
 
   call print_chain_data(chi2_red,nwalks)
-  !Let us start the otput files
 
   !Initialize the values
   j = 1
   n = 0
-  get_out = .TRUE.
+  continua = .TRUE.
   is_burn = .FALSE.
   aa = a_factor 
   n_burn = 1
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
-  do while ( get_out )
+  do while ( continua )
 
     !Do the work for all the walkers
     call random_number(z_rand)
@@ -375,7 +362,6 @@ implicit none
       if ( is_limit_good ) then !evaluate chi2
         !Let us find z
         call find_z(xd,params_new(0:5,nk),flag,zr,datas) 
-        !HERE I HAVE TO WRITE THE CHECK ECLIPSE ROUTINE
         call check_eclipse(zr,params_new(8,nk),is_eclipse,datas)
         !find chi2
         if ( is_eclipse ) then
@@ -413,7 +399,7 @@ implicit none
         if ( mod(j,new_thin_factor) == 0 ) then
           n_burn = n_burn + 1
         end if
-        if ( n_burn > nconv ) get_out = .false.
+        if ( n_burn > nconv ) continua = .false.
 
      else
 
@@ -434,12 +420,7 @@ implicit none
 
           n = 0
 
-          print *, '==========================='
-          print *, '     Chain statistics      '
-          print *, '==========================='
-          print *, ' best  : ',minval(chi2_red)
-          print *, ' worst : ',maxval(chi2_red)
-          print *, ' mean  : ', chi2_red_min
+          call print_chain_data(chi2_red,nwalks)
           print *, '==========================='
           print *, '  PERFOMING GELMAN-RUBIN'
           print *, '   TEST FOR CONVERGENCE'
@@ -461,7 +442,7 @@ implicit none
           if ( .not. is_cvg  ) then
             print *, '=================================='
             print *, 'CHAINS HAVE NOT CONVERGED YET!'
-            print *,  nconv,' ITERATIONS MORE!'
+            print *,  nconv*thin_factor,' ITERATIONS MORE!'
             print *, '=================================='
           else
             print *, '==========================='
@@ -477,7 +458,7 @@ implicit none
 
           if ( j > maxi ) then
             print *, 'Maximum number of iteration reached!'
-            get_out = .FALSE.
+            continua = .FALSE.
           end if
 
         end if

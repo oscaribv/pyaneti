@@ -380,14 +380,14 @@ implicit none
   double precision, intent(in) :: chi2(0:n-1)
   character(LEN=20) :: fto = "(A,F10.2)"
 
-  write(*,*), '==========================='
-  write(*,*), '     Chain statistics      '
-  write(*,*), '==========================='
-  write(*,*), 'chain |  reduced chi^2 '
-  write(*,fto), ' best  : ',minval(chi2)
-  write(*,fto), ' worst : ',maxval(chi2)
-  write(*,fto), ' mean  : ', sum(chi2) / n
-  write(*,*), '==========================='
+  write(*,*) '==========================='
+  write(*,*) '     Chain statistics      '
+  write(*,*) '==========================='
+  write(*,*) 'chain |  reduced chi^2 '
+  write(*,fto) ' best  : ',minval(chi2)
+  write(*,fto) ' worst : ',maxval(chi2)
+  write(*,fto) ' mean  : ', sum(chi2) / n
+  write(*,*) '==========================='
 
 
 end subroutine

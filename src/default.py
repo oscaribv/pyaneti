@@ -34,14 +34,14 @@ AU_SI = 1.4960e11 # m
 #Default stellar parameters
 mstar_mean = 1.0
 rstar_mean = 1.0
-tstar_mean = 5600
+tstar_mean = 5600.
 mstar_sigma = 1e-10
 rstar_sigma = 1e-10
-tstar_sigma = 100
+tstar_sigma = 100.
 
 #Default transit data cadence
-n_cad = 1
-t_cad = 30 / 60. / 24.
+n_cad = 1.
+t_cad = 30. / 60. / 24.
 #Default input columns for transit fit
 columns_tr = [0,1,2]
 
@@ -69,10 +69,11 @@ textra = 0.0
 gap_between_transits = 10
 #The defaul number of planets is 1
 nplanets = 1
-plabels = ['b','c','d','e','f','g']
+#The default planet labels
+plabels = ['b','c','d','e','f','g','h','i']
 
 #Default priors
-P = 365
+P = 365.0
 e = 1e-8
 w = np.pi / 2.0
 ii = np.pi / 2.0
@@ -111,7 +112,7 @@ fit_v0  = True
 
 #flags
 is_log_P     = False
-is_ew        = False
+is_ew        = True
 is_b_factor  = True
 is_log_a     = False
 is_log_k     = False
@@ -140,10 +141,10 @@ max_pz  = 0.99	       # a really big planet
 #rv fit
 min_k   = 1.e-6	       # m/s amplitudes
 max_k   = 30.	       # a really big planet
-min_alpha = -1     
-max_alpha = 1      
-min_beta = -1       
-max_beta = 1       
+min_alpha = -1.0
+max_alpha = 1.0
+min_beta = -1.0
+max_beta = 1.0
 min_rv0 = 1.	       #Systemic velocities
 max_rv0 = 100.	       #systemic velocities
 
@@ -155,7 +156,7 @@ max_phys_P   = 1e4 	       #days
 min_phys_e   = 0.0             #zero
 max_phys_e   = 0.99999	       #one
 min_phys_w   = 0.0	       #rad
-max_phys_w   = 2*np.pi      #rad
+max_phys_w   = 2.*np.pi      #rad
 #transit fit
 min_phys_i   = 1.22173      # 70 degrees
 max_phys_i   = np.pi / 2.0  # 90 degrees
@@ -170,7 +171,7 @@ max_phys_pz  = 0.99	       # a really big planet
 #rv fit
 min_phys_k   = 1.e-6           # m/s amplitudes
 max_phys_k   = 30.	       # a really big planet
-min_phys_alpha = -100       
-max_phys_alpha = 100       
-min_phys_beta = -100       
-max_phys_beta = 100       
+min_phys_alpha = -100.
+max_phys_alpha = 100.
+min_phys_beta = -100.
+max_phys_beta = 100.       

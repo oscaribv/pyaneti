@@ -194,14 +194,21 @@ implicit none
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:npars+nt-1,0:npl-1) :: wtf_all 
   integer :: l,o,m, j, n, nu, nk, n_burn, spar, new_thin_factor
-  logical :: get_out, is_burn, is_limit_good, is_cvg
-  character(len=11), dimension(0:1) :: output_files
+  logical :: continua, is_burn, is_limit_good, is_cvg
+  character(len=11), dimension(0:8) :: output_files
 !external calls
   external :: init_random_seed, find_chi2_rv
 
-  !I have to do this automatically
+  !output file names
   output_files(0) = 'planet1.dat'
   output_files(1) = 'planet2.dat'
+  output_files(2) = 'planet3.dat'
+  output_files(3) = 'planet4.dat'
+  output_files(4) = 'planet5.dat'
+  output_files(5) = 'planet6.dat'
+  output_files(6) = 'planet7.dat'
+  output_files(7) = 'planet8.dat'
+  output_files(8) = 'planet9.dat'
 
   !Let us convert all the big arrays to 
   !matrix form 
@@ -317,19 +324,17 @@ implicit none
   print *, ''
   call print_chain_data(chi2_red,nwalks)
 
-
-
   !Initialize the values
   j = 1
   n = 0
   aa = a_factor
-  get_out = .TRUE.
+  continua = .TRUE.
   is_burn = .FALSE.
   n_burn = 1
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
-  do while ( get_out )
+  do while ( continua )
 
     !Do the work for all the walkers
     call random_number(z_rand)
@@ -363,7 +368,6 @@ implicit none
 
       !Evolve for all the planets for all the parameters
       do m = 0, npl - 1
-!        params_new(:,m,nk) = params_old(:,m,r_int(nk))
         params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
                            ( params_old(:,m,nk) - params_new(:,m,nk) )
 
@@ -413,7 +417,7 @@ implicit none
      if ( is_burn ) then
 
         if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
-        if ( n_burn > nconv ) get_out = .false.
+        if ( n_burn > nconv ) continua = .false.
 
      else
 
@@ -482,7 +486,7 @@ implicit none
 
           if ( j > maxi ) then
             print *, 'Maximum number of iteration reached!'
-            get_out = .FALSE.
+            continua = .FALSE.
           end if
 
         end if
@@ -538,7 +542,7 @@ implicit none
   double precision  :: q
   double precision  :: esin, ecos, aa, chi2_red_min
   integer :: o,j, n, nu, nk, n_burn, spar, new_thin_factor
-  logical :: get_out, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg, is_eclipse
+  logical :: continua, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg, is_eclipse
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   integer, dimension(0:nwalks-1) :: r_int
@@ -596,16 +600,6 @@ implicit none
     limits(10:11) = log10(limits(10:11))
     limits_physical(10:11) = log10(limits_physical(10:11))
   end if
-  !u1 and u2
-  !Change the  u1 and u2 limb darkening coefficints following Kipping 2013
-  limits(12) = 0.0
-  limits_physical(12) = 0.0
-  limits(13) = 1.0
-  limits_physical(13) = 1.0
-  limits(14) = 0.0
-  limits_physical(14) = 0.0
-  limits(15) = 1.0
-  limits_physical(15) = 1.0
   !k
   if ( flag(4) ) then
     params(9) = log10(params(9))
@@ -705,14 +699,14 @@ implicit none
 
   j = 1
   n = 0
-  get_out = .TRUE.
+  continua = .TRUE.
   is_burn = .FALSE.
   aa = a_factor
   n_burn = 1
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
-  do while ( get_out )
+  do while ( continua )
 
     !Do the work for all the walkers
     call random_number(z_rand)
@@ -825,7 +819,7 @@ implicit none
         if ( mod(j,new_thin_factor) == 0 ) then
            n_burn = n_burn + 1
         end if
-        if ( n_burn > nconv ) get_out = .false.
+        if ( n_burn > nconv ) continua = .false.
 
      else
 
@@ -885,7 +879,7 @@ implicit none
 
           if ( j > maxi ) then
             print *, 'Maximum number of iteration reached!'
-            get_out = .FALSE.
+            continua = .FALSE.
           end if
 
         end if
@@ -902,4 +896,3 @@ implicit none
   close(101)
 
 end subroutine
-
