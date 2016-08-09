@@ -264,57 +264,57 @@ if ( nplanets == 1 ):
         print ('g_p = %4.4f + %4.4f - %4.4f cm/s^2' 		%(gp_val,gp_errr, gp_errl))
     
     if ( latex_values ):
-      print '%LaTeX commands of the parameters'
+      out_tex_file = outdir+'/'+star+plabels[0]+'.tex'
+      otex = open(out_tex_file,'w')
+      otex.write('%LaTeX commands of the parameters \n')
       if ( fit_rv ):
-        print ('\\newcommand{\smass}[1][$ %s $]{$ %4.7f ^{+ %4.7f}_{ - %4.7f}$ #1}'%('M_{\odot}',ms_val,ms_errr,ms_errl))
+        otex.write('\\newcommand{\smass}[1][$ %s $]{$ %4.7f ^{+ %4.7f}_{ - %4.7f}$ #1} \n'%('M_{\odot}',ms_val,ms_errr,ms_errl))
       if ( fit_tr ):
-        print ('\\newcommand{\sradius}[1][$ %s $]{$ %4.7f ^{+ %4.7f} _{ - %4.7f} $ #1}'%('R_{\odot}',rs_val, rs_errr , rs_errl))
-        print ('\\newcommand{\stemp}[1][K]{$ %4.2f ^{+ %4.2f} _{ - %4.2f} $ #1}'%(ts_val, ts_errr , ts_errl))
+        otex.write('\\newcommand{\sradius}[1][$ %s $]{$ %4.7f ^{+ %4.7f} _{ - %4.7f} $ #1} \n'%('R_{\odot}',rs_val, rs_errr , rs_errl))
+        otex.write('\\newcommand{\stemp}[1][K]{$ %4.2f ^{+ %4.2f} _{ - %4.2f} $ #1} \n'%(ts_val, ts_errr , ts_errl))
       if ( fit_rv and not fit_tr ):
-        print ('\\newcommand{\inclination}[1][deg]{$%4.7f^{+%4.7f }_{- %4.7f} $ #1}'%(iinp_val, iinp_errr , iinp_errl))
-      print ('%')
-      print ('%The best fit planet parameters are:')
-      print ('\\newcommand{\\tzero}[1][days]{ $%4.7f^{ + %4.7f}_{ - %4.7f}$ #1}'%(t0_val,t0_errr,t0_errl))
-      print ('\\newcommand{\porb}[1][days]{$%4.7f^{ + %4.7f}_{ - %4.7f}$ #1}'%(P_val, P_errr , P_errl))
-      print ('\\newcommand{\ec}[1][]{ $%4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }'%(e_val, e_errr , e_errl))
-      print ('\\newcommand{\periastron}[1][deg]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1} '%(w_deg,w_deg_errr, w_deg_errl))
+        otex.write('\\newcommand{\inclination}[1][deg]{$%4.7f^{+%4.7f }_{- %4.7f} $ #1} \n'%(iinp_val, iinp_errr , iinp_errl))
+      otex.write('% \n')
+      otex.write('%The best fit planet parameters are: \n')
+      otex.write('\\newcommand{\\tzero}[1][days]{ $%4.7f^{ + %4.7f}_{ - %4.7f}$ #1} \n'%(t0_val,t0_errr,t0_errl))
+      otex.write('\\newcommand{\porb}[1][days]{$%4.7f^{ + %4.7f}_{ - %4.7f}$ #1} \n'%(P_val, P_errr , P_errl))
+      otex.write('\\newcommand{\ec}[1][]{ $%4.4f^{ + %4.4f}_{ - %4.4f}$ #1 } \n'%(e_val, e_errr , e_errl))
+      otex.write('\\newcommand{\periastron}[1][deg]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}  \n'%(w_deg,w_deg_errr, w_deg_errl))
       if (fit_tr):
-        print ('%Transit fit parameters:')
-        print ('\\newcommand{\inclination}[1][deg]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}' %(i_deg,i_deg_errr, i_deg_errl))
-        print ('\\newcommand{\saxis}[1][]{$ %4.4f^{+ %4.4f}_{ - %4.4f}$ #1} '%(a_val, a_errr , a_errl))
-        print ('\\newcommand{\spradius}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1} '%(pz_val,pz_errr, pz_errl))
-        print ('\\newcommand{\qone}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}    '%(q1_val,q1_errr, q1_errl))
-        print ('\\newcommand{\qtwo}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}    '%(q2_val,q2_errr, q2_errl))
+        otex.write('%Transit fit parameters: \n')
+        otex.write('\\newcommand{\inclination}[1][deg]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1} \n' %(i_deg,i_deg_errr, i_deg_errl))
+        otex.write('\\newcommand{\saxis}[1][]{$ %4.4f^{+ %4.4f}_{ - %4.4f}$ #1}  \n'%(a_val, a_errr , a_errl))
+        otex.write('\\newcommand{\spradius}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}  \n'%(pz_val,pz_errr, pz_errl))
+        otex.write('\\newcommand{\qone}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}     \n'%(q1_val,q1_errr, q1_errl))
+        otex.write('\\newcommand{\qtwo}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}     \n'%(q2_val,q2_errr, q2_errl))
       if (fit_rv):
-        print ('%RV fit parameters:')
-        print ('\\newcommand{\krv}[1][m\, s$^{-2}$]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}'%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
-        print ('\\newcommand{\\alpha}[1][]{%4.4e^{ + %4.4e }_{- %4.4e} #1}    '%(alpha_val, alpha_errr , alpha_errl))
-        print ('\\newcommand{\\beta}[1][]{%4.4e^{ + %4.4e }_{- %4.4e} #1}     '%(beta_val, beta_errr , beta_errl))
+        otex.write('%RV fit parameters: \n')
+        otex.write('\\newcommand{\krv}[1][m\, s$^{-2}$]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1} \n'%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
+        otex.write('\\newcommand{\\alpha}[1][]{$ %4.4e^{ + %4.4e }_{- %4.4e}$ #1}     \n'%(alpha_val, alpha_errr , alpha_errl))
+        otex.write('\\newcommand{\\beta}[1][]{$%4.4e^{ + %4.4e }_{- %4.4e}$ #1}      \n'%(beta_val, beta_errr , beta_errl))
         for i in range(0,nt):
-          print ('\\newcommand{\\vel%s}[1][km\, s$^{-2}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}'%(telescopes[i], \
+          otex.write('\\newcommand{\\vel%s}[1][km\, s$^{-2}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1} \n'%(telescopes[i], \
                 v_val[i],v_errr[i],v_errl[i]))
-      print ('')
+      otex.write(' \n')
     
-      print ('%Derived parameters:')
+      otex.write('%Derived parameters: \n')
       if (fit_tr):
-        if (unit_mass == 'earth'):
-          print ('\\newcommand{\pradius}[1][$R_{%s}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}' 	        %(usymbol,rp_val,rp_errr, rp_errl))
-        print ('\\newcommand{\\axis}[1][AU]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1} ' 		%(aphy_val, aphy_errr , aphy_errl))  
-        print ('\\newcommand{\impactp}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1} ' 	         	%(b_val,b_errr, b_errl))
-        print ('\\newcommand{\\ttotal}[1][hours] {$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }' 		%(tt_val,tt_errr, tt_errl))
-        print ('\\newcommand{\\tineg }[1][hours] {$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }' 		%(tf_val,tf_errr, tf_errl))
-        print ('\\newcommand{\sden }[1][g\, cm$^{-3}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}' 		%(rho_val,rho_errr, rho_errl))
-        print ('\\newcommand{\uone}[1][]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1 } ' 		%(u1_val,u1_errr, u1_errl))
-        print ('\\newcommand{\utwo}[1][]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1 }  ' 		%(u2_val,u2_errr, u2_errl))
-        print ('\\newcommand{\\tequi}[1][K]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}  ' 		%(Teq_val,Teq_errr, Teq_errl))
+        otex.write('\\newcommand{\pradius}[1][$R_{%s}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}\n' 	        %(usymbol,rp_val,rp_errr, rp_errl))
+        otex.write('\\newcommand{\\axis}[1][AU]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}\n ' 		%(aphy_val, aphy_errr , aphy_errl))
+        otex.write('\\newcommand{\impactp}[1][]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}\n ' 	         	%(b_val,b_errr, b_errl))
+        otex.write('\\newcommand{\\ttotal}[1][hours] {$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }\n' 		%(tt_val,tt_errr, tt_errl))
+        otex.write('\\newcommand{\\tineg }[1][hours] {$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }\n' 		%(tf_val,tf_errr, tf_errl))
+        otex.write('\\newcommand{\sden }[1][g\, cm$^{-3}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}\n' 		%(rho_val,rho_errr, rho_errl))
+        otex.write('\\newcommand{\uone}[1][]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1 }\n ' 		%(u1_val,u1_errr, u1_errl))
+        otex.write('\\newcommand{\utwo}[1][]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1 } \n ' 		%(u2_val,u2_errr, u2_errl))
+        otex.write('\\newcommand{\\tequi}[1][K]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}\n  ' 		%(Teq_val,Teq_errr, Teq_errl))
       if (fit_rv):
-        print ('\\newcommand{\\tp}[1][days]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }' 		%(tp_val,tp_errr, tp_errl))
-        print ('\\newcommand{\pmass}[1][$M_{%s}$]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}' 		%(usymbol,m_val,m_errr, m_errl))
+        otex.write('\\newcommand{\\tp}[1][days]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1 }\n' 		%(tp_val,tp_errr, tp_errl))
+        otex.write('\\newcommand{\pmass}[1][$M_{%s}$]{ $ %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}\n' 		%(usymbol,m_val,m_errr, m_errl))
         if ( fit_tr ):
-          print ('\\newcommand{\pden}[1][g\, cm$^{-3}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}' 		%(rhop_val,rhop_errr, rhop_errl))
-          print ('\\newcommand{\pg}[1][cm\, s$^-2$]{$  %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}' 		%(gp_val,gp_errr, gp_errl))
-
-
+          otex.write('\\newcommand{\pden}[1][g\, cm$^{-3}$]{$ %4.4f^{ + %4.4f}_{ - %4.4f}$ #1}\n' 		%(rhop_val,rhop_errr, rhop_errl))
+          otex.write('\\newcommand{\pg}[1][cm\, s$^-2$]{$  %4.4f^{ + %4.4f}_{ - %4.4f} $ #1}\n' 		%(gp_val,gp_errr, gp_errl))
+      otex.close()
 
 
 #Multiplanet fit
