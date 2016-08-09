@@ -202,67 +202,75 @@ if ( nplanets == 1 ):
     bic2 = get_BIC(chi2tot_val)
 
     #Print the best fit values values
-    print ('')
-    print 'Summary:'
-    print 'N_chains    = ', nwalkers
-    print 'N_conv      = ', nconv
-    print 'thin_factor = ', thin_factor
-    print 'N_data      = ', ndata
-    print 'N_pars      = ', npars
-    print ('chi2       = %1.4f' %(chi2tot_val))
-    print 'DOF         = ', ndata - npars
-    print ('chi2_red   = %1.4f' %(chi2_val))
-    print 'scale factor= ', s_factor
-    print ('BIC        = %1.4f' %(bic2))
-    print 'Input parameters'
+    out_params_file = outdir+'/'+star+plabels[0]+'.dat'
+    opars = open(out_params_file,'w')
+    opars.write('\n')
+    opars.write('Summary:\n')
+    opars.write('N_chains    = %8i \n'%nwalkers)
+    opars.write( 'N_conv     = %8i \n'%nconv)
+    opars.write('thin_factor = %8i \n'%thin_factor)
+    opars.write('N_data      = %8i \n'%ndata)
+    opars.write('N_pars      = %8i \n'%npars)
+    opars.write(('chi2       = %4.4f\n' %(chi2tot_val)))
+    opars.write('DOF         = %8i \n' %(ndata - npars))
+    opars.write('chi2_red    = %4.4f \n' %chi2_val)
+    opars.write('scale factor= %4.4f\n' %s_factor)
+    opars.write(('BIC        = %4.4f\n' %(bic2)))
+    opars.write('Input parameters\n')
     if ( fit_rv ):
-      print ('M_*     = %4.7f + %4.7f - %4.7f solar masses'%(ms_val,ms_errr,ms_errl))
+      opars.write('M_*     = %4.7f + %4.7f - %4.7f solar masses\n'%(ms_val,ms_errr,ms_errl))
     if ( fit_tr ):
-      print ('R_*     = %4.7f + %4.7f - %4.7f solar radii'%(rs_val, rs_errr , rs_errl))
-      print ('T_*     = %4.7f + %4.7f - %4.7f solar radii'%(ts_val, ts_errr , ts_errl))
+      opars.write('R_*     = %4.7f + %4.7f - %4.7f solar radii\n'%(rs_val, rs_errr , rs_errl))
+      opars.write('T_*     = %4.7f + %4.7f - %4.7f solar radii\n'%(ts_val, ts_errr , ts_errl))
     if ( fit_rv and not fit_tr ):
-      print ('i       = %4.7f + %4.7f - %4.7f deg'%(iinp_val, iinp_errr , iinp_errl))
-    print ('')
-    print ('The best fit planet parameters are:')
-    print ('T0    = %4.7f + %4.7f - %4.7f days'%(t0_val,t0_errr,t0_errl))
-    print ('P     = %4.7f + %4.7f - %4.7f days'%(P_val, P_errr , P_errl))
-    print ('e     = %4.4f + %4.4f - %4.4f     '%(e_val, e_errr , e_errl))
-    print ('w     = %4.4f + %4.4f - %4.4f deg '%(w_deg,w_deg_errr, w_deg_errl))
+      opars.write('i       = %4.7f + %4.7f - %4.7f deg\n'%(iinp_val, iinp_errr , iinp_errl))
+    opars.write('')
+    opars.write('The best fit planet parameters are:\n')
+    opars.write('T0    = %4.7f + %4.7f - %4.7f days\n'%(t0_val,t0_errr,t0_errl))
+    opars.write('P     = %4.7f + %4.7f - %4.7f days\n'%(P_val, P_errr , P_errl))
+    opars.write('e     = %4.4f + %4.4f - %4.4f     \n'%(e_val, e_errr , e_errl))
+    opars.write('w     = %4.4f + %4.4f - %4.4f deg \n'%(w_deg,w_deg_errr, w_deg_errl))
     if (fit_tr):
-      print ('Transit fit parameters:')
-      print ('i     = %4.4f + %4.4f - %4.4f deg' %(i_deg,i_deg_errr, i_deg_errl))
-      print ('a/r*  = %4.4f + %4.4f - %4.4f    '%(a_val, a_errr , a_errl))
-      print ('rp/r* = %4.4f + %4.4f - %4.4f    '%(pz_val,pz_errr, pz_errl))
-      print ('q_1    = %4.4f + %4.4f - %4.4f    '%(q1_val,q1_errr, q1_errl))
-      print ('q_2    = %4.4f + %4.4f - %4.4f    '%(q2_val,q2_errr, q2_errl))
+      opars.write('Transit fit parameters:\n')
+      opars.write('i     = %4.4f + %4.4f - %4.4f deg\n' %(i_deg,i_deg_errr, i_deg_errl))
+      opars.write('a/r*  = %4.4f + %4.4f - %4.4f    \n'%(a_val, a_errr , a_errl))
+      opars.write('rp/r* = %4.4f + %4.4f - %4.4f    \n'%(pz_val,pz_errr, pz_errl))
+      opars.write('q_1    = %4.4f + %4.4f - %4.4f    \n'%(q1_val,q1_errr, q1_errl))
+      opars.write('q_2    = %4.4f + %4.4f - %4.4f    \n'%(q2_val,q2_errr, q2_errl))
     if (fit_rv):
-      print ('RV fit parameters:')
-      print ('alpha = %4.4e + %4.4e - %4.4e     '%(alpha_val, alpha_errr , alpha_errl))
-      print ('beta  = %4.4e + %4.4e - %4.4e     '%(beta_val, beta_errr , beta_errl))
-      print ('K     = %4.4f + %4.4f - %4.4f m/s'%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
+      opars.write('RV fit parameters:')
+      opars.write('alpha = %4.4e + %4.4e - %4.4e     \n'%(alpha_val, alpha_errr , alpha_errl))
+      opars.write('beta  = %4.4e + %4.4e - %4.4e     \n'%(beta_val, beta_errr , beta_errl))
+      opars.write('K     = %4.4f + %4.4f - %4.4f m/s\n'%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
       for i in range(0,nt):
-        print ('%s v0  = %4.4f + %4.4f - %4.4f km/s'%(telescopes[i], \
+        opars.write('%s v0  = %4.4f + %4.4f - %4.4f km/s\n'%(telescopes[i], \
               v_val[i],v_errr[i],v_errl[i]))
-      print ('')
-    
-    print ('Derived parameters:')
+
+    opars.write('Derived parameters:\n')
     if (fit_tr):
-      print ('r_p   = %4.4f + %4.4f - %4.4f R_%s' 	        %(rp_val,rp_errr, rp_errl,unit_mass))
-      print ('a   = %4.4f + %4.4f - %4.4f  AU ' 		%(aphy_val, aphy_errr , aphy_errl))  
-      print ('b r*  = %4.4f + %4.4f - %4.4f' 	         	%(b_val,b_errr, b_errl))
-      print ('t_total = %4.4f + %4.4f - %4.4f hours' 		%(tt_val,tt_errr, tt_errl))
-      print ('t_in/eg = %4.4f + %4.4f - %4.4f hours' 		%(tf_val,tf_errr, tf_errl))
-      print ('rho_* = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rho_val,rho_errr, rho_errl))
-      print ('u_1    = %4.4f + %4.4f - %4.4f    ' 		%(u1_val,u1_errr, u1_errl))
-      print ('u_2    = %4.4f + %4.4f - %4.4f    ' 		%(u2_val,u2_errr, u2_errl))
-      print ('T_eq   = %4.4f + %4.4f - %4.4fK   '               %(Teq_val,Teq_errr, Teq_errl))
+      opars.write('r_p   = %4.4f + %4.4f - %4.4f R_%s\n' 	        %(rp_val,rp_errr, rp_errl,unit_mass))
+      opars.write('a   = %4.4f + %4.4f - %4.4f  AU \n' 		%(aphy_val, aphy_errr , aphy_errl))
+      opars.write('b r*  = %4.4f + %4.4f - %4.4f\n' 	         	%(b_val,b_errr, b_errl))
+      opars.write('t_total = %4.4f + %4.4f - %4.4f hours\n' 		%(tt_val,tt_errr, tt_errl))
+      opars.write('t_in/eg = %4.4f + %4.4f - %4.4f hours\n' 		%(tf_val,tf_errr, tf_errl))
+      opars.write('rho_* = %4.4f + %4.4f - %4.4f g/cm^3\n' 		%(rho_val,rho_errr, rho_errl))
+      opars.write('u_1    = %4.4f + %4.4f - %4.4f    \n' 		%(u1_val,u1_errr, u1_errl))
+      opars.write('u_2    = %4.4f + %4.4f - %4.4f    \n' 		%(u2_val,u2_errr, u2_errl))
+      opars.write('T_eq   = %4.4f + %4.4f - %4.4fK   \n'               %(Teq_val,Teq_errr, Teq_errl))
     if (fit_rv):
-      print ('Tp    = %4.4f + %4.4f - %4.4f days' 		%(tp_val,tp_errr, tp_errl))
-      print ('mp    = %4.4f + %4.4f - %4.4f %s masses' 		%(m_val,m_errr, m_errl,unit_mass))
+      opars.write('Tp    = %4.4f + %4.4f - %4.4f days\n' 		%(tp_val,tp_errr, tp_errl))
+      opars.write('mp    = %4.4f + %4.4f - %4.4f %s masses\n' 		%(m_val,m_errr, m_errl,unit_mass))
       if ( fit_tr ):
-        print ('rho_p = %4.4f + %4.4f - %4.4f g/cm^3' 		%(rhop_val,rhop_errr, rhop_errl))
-        print ('g_p = %4.4f + %4.4f - %4.4f cm/s^2' 		%(gp_val,gp_errr, gp_errl))
+        opars.write('rho_p = %4.4f + %4.4f - %4.4f g/cm^3\n' 		%(rhop_val,rhop_errr, rhop_errl))
+        opars.write('g_p = %4.4f + %4.4f - %4.4f cm/s^2\n' 		%(gp_val,gp_errr, gp_errl))
     
+      opars.write('\n')
+      opars.close()
+      dummy_file = open(out_params_file)
+      for line in dummy_file:
+        print line,
+      dummy_file.close()
+
     if ( latex_values ):
       out_tex_file = outdir+'/'+star+plabels[0]+'.tex'
       otex = open(out_tex_file,'w')
