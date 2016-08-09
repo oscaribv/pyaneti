@@ -731,6 +731,14 @@ implicit none
       aa = 1.0d0 + thin_factor * aa 
     end if
 
+   !Let us set a gaussian distribution for the limb darkening coefficents
+   if( wtf_all(6) == 0 ) then !q1
+     call gauss_random_bm(params(6),0.05d0,params_old(6,:),nwalks)
+   end if
+   if( wtf_all(7) == 0 ) then !q2
+     call gauss_random_bm(params(7),0.05d0,params_old(7,:),nwalks)
+   end if
+
     if ( afk ) then
       wtf_all(5) = 0
       !Fill mass and radius 

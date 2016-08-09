@@ -59,6 +59,7 @@ errores='perc'
 nwalkers = 100
 unit_mass = 'solar'
 scale_error_bars = True
+a_from_kepler = False
 a_factor = 2.0
 is_plot_histogram = True
 is_plot_correlations = True
