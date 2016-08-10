@@ -327,7 +327,7 @@ def good_clustering(chi2,nconv,nwalkers):
   good_index = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < 3*total_min ):
+    if ( chi2_mean[i] < 2*total_min ):
       good_index.append(i)
 
   new_nwalkers = len(good_index)
@@ -485,6 +485,16 @@ def fit_transit():
   global new_nwalkers, good_index
 
 
+  if ( a_from_kepler ):
+    k_log_a = False
+    fit_a = False
+  else:
+    k_log_a = is_log_a
+    fit_a = fit_a
+ 
+  pstar = [mstar_mean,rstar_mean]
+  lpstar = [mstar_sigma,rstar_sigma]
+
   flag = [is_log_P, is_ew, is_b_factor, is_log_a]
 
   what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
@@ -506,7 +516,8 @@ def fit_transit():
     max_phys_q1, min_phys_pz, max_phys_pz]
 
     pti.stretch_move_tr(megax, megay, megae,  \
-    params,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor,n_cad,t_cad, what_fit,flag,nconv)
+    params,pstar,lpstar,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor,n_cad,t_cad, what_fit \
+    ,flag,a_from_kepler,nconv)
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'
