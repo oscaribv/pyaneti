@@ -161,18 +161,20 @@ implicit none
 
 end subroutine
 !-----------------------------------------------------------
-subroutine stretch_move_tr(xd,yd,errs,pars,lims,limits_physical, &
-nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,nconv,datas)
+subroutine stretch_move_tr(xd,yd,errs,pars,pstar, lpstar,lims,limits_physical, &
+nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,afk,nconv,datas)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: nwalks, maxi, thin_factor, n_cad, datas, nconv
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   double precision, intent(in), dimension(0:8) :: pars
+  double precision, intent(in), dimension(0:1)  :: pstar, lpstar
   double precision, intent(in), dimension(0:(2*9)-1) :: lims
   double precision, intent(in) :: a_factor, t_cad
   integer, intent(in), dimension(0:8) :: wtf
   logical, intent(in) :: flag(0:3)
+  logical, intent(in) :: afk
 !Local variables
   double precision, dimension(0:8) :: params
   double precision, dimension(0:datas-1) :: zr
@@ -180,6 +182,7 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains
+  double precision, dimension(0:nwalks-1) :: mstar, rstar
   double precision  :: q, esin, ecos, aa, chi2_red_min
   integer :: o, j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: continua, is_burn, is_limit_good, is_cvg, is_eclipse
@@ -332,6 +335,27 @@ implicit none
     do nk = 0, nwalks - 1 !walkers
         params_new(:,nk) = params_old(:,r_int(nk))
     end do
+
+
+   !Let us set a gaussian distribution for the limb darkening coefficents
+   if( wtf_all(6) == 0 ) then !q1
+     call gauss_random_bm(params(6),0.05d0,params_old(6,:),nwalks)
+   end if
+   if( wtf_all(7) == 0 ) then !q2
+     call gauss_random_bm(params(7),0.05d0,params_old(7,:),nwalks)
+   end if
+
+
+    if ( afk ) then
+      wtf_all(5) = 0
+      !Fill mass and radius 
+      call gauss_random_bm(pstar(0),lpstar(0),mstar,nwalks)
+      call gauss_random_bm(pstar(1),lpstar(1),rstar,nwalks)
+      !The a parameter comes from 3rd kepler law
+      !params_old(1) is the period
+      call get_a_scaled(mstar,rstar,params_old(1,:),params_old(5,:),nwalks)
+    end if
+
 
     do nk = 0, nwalks - 1 !walkers
 
