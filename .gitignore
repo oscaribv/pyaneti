@@ -6,6 +6,7 @@
 *.pdf
 *.o
 *.so
+*.tex
 input_rv.py
 *.tbl
 input*.py

@@ -264,12 +264,12 @@ if ( nplanets == 1 ):
         opars.write('rho_p = %4.4f + %4.4f - %4.4f g/cm^3\n' 		%(rhop_val,rhop_errr, rhop_errl))
         opars.write('g_p = %4.4f + %4.4f - %4.4f cm/s^2\n' 		%(gp_val,gp_errr, gp_errl))
     
-      opars.write('\n')
-      opars.close()
-      dummy_file = open(out_params_file)
-      for line in dummy_file:
-        print line,
-      dummy_file.close()
+    opars.write('\n')
+    opars.close()
+    dummy_file = open(out_params_file)
+    for line in dummy_file:
+      print line,
+    dummy_file.close()
 
     if ( latex_values ):
       out_tex_file = outdir+'/'+star+plabels[0]+'.tex'
