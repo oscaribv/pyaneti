@@ -220,7 +220,10 @@ implicit none
     l = m*(npars+nt)
     wtf_all(0:npars-1,m) = wtf(l:l+(npars-1))
     wtf_all(npars:npars+nt-1,m) = wtf(l+npars)
+    print *, m
+    print *, wtf_all(:,m)
   end do
+  stop
 
   !spar: size of parameters (only parameters to fit!)
   !The telescopes are the same for all the planets
