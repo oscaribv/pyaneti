@@ -45,10 +45,12 @@ implicit none
 
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)
-  swt = sin(w+ta)
+  !swt = sin(w+ta)
+  swt = sin(w+ta) * sin(i)
 
-  si = sin(i)
-  z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
+  !si = sin(i)
+  !z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
+  z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt**2 ) &
       / ( 1.d0 + e * cos(ta) ) 
   !z has been calculated
   

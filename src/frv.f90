@@ -219,7 +219,7 @@ implicit none
     P_mean(m) = params(1,m)
     l = m*(npars+nt)
     wtf_all(0:npars-1,m) = wtf(l:l+(npars-1))
-    wtf_all(npars:npars+nt-1,m) = wtf(l+npars:l+npars+nt-1)
+    wtf_all(npars:npars+nt-1,m) = wtf(l+npars)
   end do
 
   !spar: size of parameters (only parameters to fit!)
@@ -352,6 +352,7 @@ implicit none
       end if
     end do
 
+
     do nk = 0, nwalks - 1 !walkers
       do m = 0, npl - 1
         params_new(:,m,nk) = params_old(:,m,r_int(nk))
@@ -366,7 +367,7 @@ implicit none
       !The gz function to mantain the affine variance codition in the walks
       call find_gz(z_rand(nk),aa) 
 
-      !Evolve for all the planets for all the parameters
+            !Evolve for all the planets for all the parameters
       do m = 0, npl - 1
         params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
                            ( params_old(:,m,nk) - params_new(:,m,nk) )

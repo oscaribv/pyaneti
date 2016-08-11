@@ -142,7 +142,7 @@ def smart_priors():
   global min_rv0, max_rv0, v0, min_k, max_k, min_phys_k, max_phys_k
   global min_P, max_P, min_phys_P, max_phys_P, min_t0, max_t0, \
          min_phys_t0, max_phys_t0, min_pz, max_pz, min_phys_pz, \
-         max_phys_z, min_i, max_i, min_phys_i, max_phys_i
+         max_phys_z, min_i, max_i, min_phys_i, max_phys_i, min_phys_rv0, max_phys_rv0
 
   #Let us try to do a guess for the init values
   if (fit_rv):
@@ -152,6 +152,8 @@ def smart_priors():
     #be between the smallest and larger RV datapoint
     min_rv0 = min(mega_rv)
     max_rv0 = max(mega_rv)
+    min_phys_rv0 = min(mega_rv)
+    max_phys_rv0 = max(mega_rv)
     v0 = [min_rv0]*nt
     #Estimate k priors and limits from data
     if ( P.__class__ == float  ):
@@ -369,7 +371,7 @@ def fit_joint():
   global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
          min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
          max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, \
-         min_phys_beta, max_phys_beta
+         min_phys_beta, max_phys_beta, min_phys_rv0, max_phys_rv0
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko,alphao,betao,vo, what_fit
   global new_nwalkers, good_index
   
@@ -398,9 +400,12 @@ def fit_joint():
   if ( method == 'sm' ):
 
     vec_rv0_limits = []
+    vec_rv0_phys_limits = []
     for m in range(0,nt):
       vec_rv0_limits.append(min_rv0) 
       vec_rv0_limits.append(max_rv0) 
+      vec_rv0_phys_limits.append(min_phys_rv0) 
+      vec_rv0_phys_limits.append(max_phys_rv0) 
 
     dummy_lims = \
     [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
@@ -415,7 +420,7 @@ def fit_joint():
          min_phys_beta, max_phys_beta ]
 
     limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
-    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
+    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_phys_limits)) 
 
 
     pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
@@ -562,7 +567,7 @@ def fit_radial_velocity():
   global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w,\
          min_k, max_k, min_alpha, max_alpha, min_beta, max_beta
   global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
-         min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, min_phys_beta, max_phys_beta
+         min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, min_phys_beta, max_phys_beta, min_phys_rv0, max_phys_rv0
   global vari,chi2,chi2red,t0o,Po,eo,wo,ko,alphao,betao,vo, what_fit
   global new_nwalkers, good_index
 
@@ -574,9 +579,12 @@ def fit_radial_velocity():
     params = np.concatenate((dparams,v0))
 	
     vec_rv0_limits = []
+    vec_rv0_phys_limits = []
     for m in range(0,nt):
       vec_rv0_limits.append(min_rv0) 
       vec_rv0_limits.append(max_rv0) 
+      vec_rv0_phys_limits.append(min_phys_rv0) 
+      vec_rv0_phys_limits.append(max_phys_rv0) 
 	
     dummy_lims = \
     [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, \
@@ -587,7 +595,7 @@ def fit_radial_velocity():
     min_phys_k,max_phys_k,  min_alpha, max_alpha, min_beta, max_beta]
 
     limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
-    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
+    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_phys_limits)) 
 		
   else:
     what_fit = [None]*(8*nplanets)
@@ -636,15 +644,18 @@ def fit_radial_velocity():
         limits[(15+j*2)+(7+nt)*2*m] = max_rv0
 
     vec_rv0_limits = []
+    vec_rv0_phys_limits = []
     for m in range(0,nt):
       vec_rv0_limits.append(min_rv0) 
       vec_rv0_limits.append(max_rv0) 
+      vec_rv0_phys_limits.append(min_phys_rv0) 
+      vec_rv0_phys_limits.append(max_phys_rv0) 
 	
     dummy_lims_physical = \
     [ min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
     min_phys_k,max_phys_k,  min_phys_alpha, max_phys_alpha, min_phys_beta, max_phys_beta]
 
-    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_limits)) 
+    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_phys_limits)) 
 	
   if ( method == 'sm' ):
 
@@ -819,6 +830,6 @@ def print_init():
       print ('q2 = [ %4.4f , %4.4f ]' %(min_phys_q2,max_phys_q2))
     if (fit_rv):
       print ('K  = [ %4.4f , %4.4f ]' %(min_phys_k,max_phys_k))
-      print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0,max_rv0))
+      print ('rv0= [ %4.4f , %4.4f ]' %(min_phys_rv0,max_phys_rv0))
   print '------------------------------'
   print '=============================='

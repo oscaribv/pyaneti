@@ -175,3 +175,5 @@ min_phys_alpha = -100.
 max_phys_alpha = 100.
 min_phys_beta = -100.
 max_phys_beta = 100.       
+min_phys_rv0 = -1.e3	       #Systemic velocities
+max_phys_rv0 = 1.e3	       #systemic velocities

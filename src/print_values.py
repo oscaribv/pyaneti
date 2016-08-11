@@ -238,7 +238,7 @@ if ( nplanets == 1 ):
       opars.write('q_1    = %4.4f + %4.4f - %4.4f    \n'%(q1_val,q1_errr, q1_errl))
       opars.write('q_2    = %4.4f + %4.4f - %4.4f    \n'%(q2_val,q2_errr, q2_errl))
     if (fit_rv):
-      opars.write('RV fit parameters:')
+      opars.write('RV fit parameters: \n')
       opars.write('alpha = %4.4e + %4.4e - %4.4e     \n'%(alpha_val, alpha_errr , alpha_errl))
       opars.write('beta  = %4.4e + %4.4e - %4.4e     \n'%(beta_val, beta_errr , beta_errl))
       opars.write('K     = %4.4f + %4.4f - %4.4f m/s\n'%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
