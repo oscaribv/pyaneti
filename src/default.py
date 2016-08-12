@@ -65,6 +65,7 @@ is_plot_histogram = True
 is_plot_correlations = True
 is_smart_priors = True
 latex_values = True
+plot_all_transits = False
 textra = 0.0
 gap_between_transits = 10
 #The defaul number of planets is 1

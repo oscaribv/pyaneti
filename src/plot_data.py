@@ -330,8 +330,8 @@ else:
       for j in range(0,nt):
         p_all[j] = scale_period(time_all[j],t0_val[i],P_val[i])
 
-    fname = outdir+'/'+star+plabels[i]+'_rv.pdf'
-    plot_rv_fancy(p_rv[i],rvy[i],p_all,rv_dum,errs_all,res,telescopes_labels,fname)
+      fname = outdir+'/'+star+plabels[i]+'_rv.pdf'
+      plot_rv_fancy(p_rv[i],rvy[i],p_all,rv_dum,errs_all,res,telescopes_labels,fname)
 
 #===========================================================
 #                   Histogram plots
@@ -403,7 +403,7 @@ def plot_histogram(rf=1):
     vlabs = [None]*nt
     dvo = [None]*nt
     for i in range(0,nt):
-      vlabs[i] = 'rv0 ' + telescopes_labels[i] + plabels[i]
+      vlabs[i] = 'rv0 ' + telescopes_labels[i]
       dvo[i] = vo[i][0::rf]
 
     params = np.concatenate([dparams,dvo])

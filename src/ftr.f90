@@ -23,7 +23,6 @@ implicit none
 !Local variables
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: t0, P, e, w, i, a
-  double precision :: si
 !External function
   external :: find_anomaly
 !
@@ -48,8 +47,6 @@ implicit none
   !swt = sin(w+ta)
   swt = sin(w+ta) * sin(i)
 
-  !si = sin(i)
-  !z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
   z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt**2 ) &
       / ( 1.d0 + e * cos(ta) ) 
   !z has been calculated
