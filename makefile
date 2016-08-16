@@ -3,10 +3,10 @@ fc=gnu95
 cc=unix 
 
 FLAGS= -c -m
-SOURCES= 	src/ftr.f90\
-					src/frv.f90\
-					src/quad.f90\
-					src/todo.f90
+SOURCES= src/ftr.f90\
+	src/frv.f90\
+	src/quad.f90\
+	src/todo.f90
 
 EXECUTABLE=pyaneti
 

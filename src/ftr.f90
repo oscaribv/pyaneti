@@ -23,6 +23,7 @@ implicit none
 !Local variables
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: t0, P, e, w, i, a
+  double precision :: si
 !External function
   external :: find_anomaly
 !
@@ -44,10 +45,10 @@ implicit none
 
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)
-  !swt = sin(w+ta)
-  swt = sin(w+ta) * sin(i)
+  swt = sin(w+ta)
 
-  z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt**2 ) &
+  si = sin(i)
+  z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
       / ( 1.d0 + e * cos(ta) ) 
   !z has been calculated
   

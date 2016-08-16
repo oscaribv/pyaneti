@@ -122,7 +122,7 @@ if ( nplanets == 1 ):
     plt.tick_params( axis='x',which='both',labelbottom='off')
     #Plot the residuals
     dplot = plt.subplot(gs[1])
-    plt.plot((xmodel_res-local_T0)*tfc,np.zeros(len(xmodel_res)),'k--',linewidth=1.0)
+    plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0)
     plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='r.',alpha=1.0)
     yylims = dplot.get_ylim()
     plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))

@@ -11,7 +11,7 @@ fname_rv = 'earth_rv.dat'
 fname_tr = 'earth_lc.dat'
 
 #chain parameters
-thin_factor = 1
+thin_factor = 10
 nconv = 500
 nwalkers = 50
 
@@ -21,19 +21,12 @@ n_cad = 1
 t_cad = 30. / 60. / 24.
 
 method = 'sm'
-method = 'plot'
+#method = 'plot'
 
 #Output controls
 unit_mass = 'earth'
-#is_plot_histogram = False
-#is_plot_correlations = False
 
 #Star parameters
-mstar_mean = 1.0
-rstar_mean = 1.0
-mstar_sigma = 5e-2
-rstar_sigma = 5e-2
-inclination = np.pi/2
 a_from_kepler = True
 
 #We want to fit transit and RV 
@@ -45,8 +38,8 @@ fit_t0 = True
 fit_P  = True
 fit_e  = False
 fit_w  = False
-fit_i  = False
-fit_a  = False
+fit_i  = True
+fit_a  = True
 fit_q1 = True
 fit_q2 = True
 fit_pz = True
@@ -75,7 +68,9 @@ max_w   = 2*np.pi
 min_i   = 85*np.pi/180
 max_i   = np.pi/2
 min_a   = 200
+min_phys_a = 200
 max_a   = 250
+max_phys_a = 250
 min_k   = 1e-5
 min_pz  = 0.0085
 max_pz  = 0.0095

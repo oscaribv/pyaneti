@@ -10,12 +10,12 @@ telescopes_labels = ['Telescope']
 fname_rv = 'two_planets.dat'
 
 #chain parameters
-thin_factor = 50
+thin_factor = 10
 nconv = 500
-nwalkers = 100
+nwalkers = 250
 
 method = 'sm'
-method = 'plot'
+#method = 'plot'
 
 #Output controls
 unit_mass = 'jupiter'

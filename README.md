@@ -85,50 +85,53 @@ The program will start. You will see a lot of things appearing on your screen, i
 
 ```
 Summary:
-N_chains    =  50
-N_conv      =  500
-thin_factor =  1
-N_data      =  174
-N_pars      =  7
-chi2       = 168.4746
-DOF         =  167
-chi2_red   = 1.0088
-scale factor=  0.995614042083
-BIC        = 204.5880
+N_chains    =       50
+N_conv      =      500
+thin_factor =       10
+N_data      =      174
+N_pars      =        8
+chi2        = 170.0005
+DOF         =      166
+chi2_red    = 1.0241
+scale factor= 0.9882
+BIC         = 211.2729
 Input parameters
-M_*     = 1.0005287 + 0.0498459 - 0.0501476 solar masses
-R_*     = 0.9996468 + 0.0502219 - 0.0496047 solar radii
-
+M_*     = 1.0000000 + 0.0000000 - 0.0000000 solar masses
+R_*     = 1.0000000 + 0.0000000 - 0.0000000 solar radii
+T_*     = 5599.9977502 + 99.6288025 - 99.0780787 K
 The best fit planet parameters are:
-T0    = 2448285.0956823 + 0.0017752 - 0.0019077 days
-P     = 365.2533004 + 0.0014328 - 0.0014945 days
+T0    = 2448285.0915491 + 0.0008446 - 0.0007696 days
+P     = 365.2553268 + 0.0006308 - 0.0006627 days
 e     = 0.0000 + 0.0000 - 0.0000     
 w     = 90.0000 + 0.0000 - 0.0000 deg
 Transit fit parameters:
-i     = 89.9999 + 0.0000 - 0.0000 deg
-a/r*  = 213.9276 + 11.9416 - 9.1588    
-rp/r* = 0.0090 + 0.0000 - 0.0000    
-q_1    = 0.5510 + 0.0821 - 0.0759    
-q_2    = 0.3672 + 0.0792 - 0.0945    
+i     = 89.9858 + 0.0082 - 0.0093 deg
+a/r*  = 215.0315 + 0.0002 - 0.0003
+rp/r* = 0.0092 + 0.0000 - 0.0000
+q_1    = 0.3464 + 0.0200 - 0.0220
+q_2    = 0.2839 + 0.0288 - 0.0288
 RV fit parameters:
-K     = 0.0896 + 0.0007 - 0.0007 m/s
+alpha = 0.0000e+00 + 0.0000e+00 - 0.0000e+00
+beta  = 0.0000e+00 + 0.0000e+00 - 0.0000e+00
+K     = 0.0893 + 0.0008 - 0.0008 m/s
 S v0  = 22.0720 + 0.0000 - 0.0000 km/s
-
 Derived parameters:
-r_p   = 0.9821 + 0.0498 - 0.0491 R_earth
-a   = 0.9976 + 0.0732 - 0.0676  AU
-b r*  = 0.0003 + 0.0000 - 0.0000
-t_total = 13.1609 + 0.5886 - 0.6962 hours
-t_in/eg = 0.1175 + 0.0053 - 0.0062 hours
-rho_* = 1.3882 + 0.2457 - 0.1708 g/cm^3
-u_1    = 0.5471 + 0.0727 - 0.1145    
-u_2    = 0.1969 + 0.1628 - 0.1210    
-Tp    = 2448285.0957 + 0.0018 - 0.0019 days
-mp    = 1.0017 + 0.0347 - 0.0352 earth masses
-rho_p = 5.8022 + 0.9945 - 0.8179 g/cm^3
-g_p = 1006.6511 + 115.7284 - 85.6492 cm/s^2
+r_p   = 1.0018 + 0.0017 - 0.0016 R_earth
+a   = 1.0000 + 0.0000 - 0.0000  AU
+b r*  = 0.0533 + 0.0348 - 0.0306
+t_total = 13.0772 + 0.0150 - 0.0315 hours
+t_in/eg = 0.1193 + 0.0005 - 0.0003 hours
+rho_* = 1.4098 + 0.0000 - 0.0000 g/cm^3
+u_1    = 0.3336 + 0.0254 - 0.0271
+u_2    = 0.2545 + 0.0407 - 0.0405
+T_eq   = 270.0361 + 4.8617 - 4.8350K
+Tp    = 2448285.0915 + 0.0008 - 0.0008 days
+mp    = 0.9981 + 0.0091 - 0.0087 earth masses
+rho_p = 5.4540 + 0.0571 - 0.0534 g/cm^3
+g_p = 974.3174 + 9.4863 - 8.9293 cm/s^2
 ```
 Once see this, you will see some plots similar to
+
 
 ![Transit first fit](./outpy/test_out/transit_test.png)
 ![Radial-Velocity first fit](./outpy/test_out/rv_test.png)
@@ -158,3 +161,11 @@ _Work in progress!_
 
 ## ** Science  with pyaneti **
 * Nespral et al., 2016, _Mass determination of K2-19b and K2-19c from radial velocities and transit timing variations_, A&A, submitted, (http://arxiv.org/abs/1604.01265)
+* Barragán et al, 2016, _EPIC 211391664b: A 32-M⊕ Neptune-sized planet in a 10-day orbit transiting an F8 star_, AAS, submitted, (http://arxiv.org/abs/1608.01165)
+
+## ** Acknowledgements **
+* to Davide Gandolfi, for his support and motivation to create this code.
+* to Hannu Parviainen, to help me to interpret the first result of the PDF of the MCMC chains. I learned a lot!
+* to Mabel Valerdi, to help me with as the first pyaneti user, to detect bugs and errors in this manual.
+
+**THANKS!**

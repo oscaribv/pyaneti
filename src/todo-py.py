@@ -160,6 +160,8 @@ def smart_priors():
       if ( fit_alpha or fit_beta ):
         min_rv0 = min(min_rv0/2.,2.*min_rv0)
         max_rv0 = max(max_rv0/2.,2.*max_rv0)
+        min_phys_rv0 = min(min_rv0/2.,2.*min_rv0)
+        max_phys_rv0 = max(max_rv0/2.,2.*max_rv0)
       max_phys_k = 0.0
       for i in range(0,nt):
         # The maximum value ok K should be 
@@ -329,7 +331,7 @@ def good_clustering(chi2,nconv,nwalkers):
   good_index = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < 2*total_min ):
+    if ( chi2_mean[i] < 2.005*total_min ):
       good_index.append(i)
 
   new_nwalkers = len(good_index)
