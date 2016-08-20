@@ -104,8 +104,8 @@ if ( fit_tr ):
 #PLOT RV CURVE
 if ( fit_rv ):
   if ( nplanets == 1 ):
+    plot_rv_all_data()
     plot_rv_one()
-    #plot_rv_all_data()
   else:
   #PLOT THE RV curves
     plot_rv_mp()

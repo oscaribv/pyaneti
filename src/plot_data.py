@@ -166,8 +166,11 @@ if ( nplanets == 1 ):
   #Plot without fold the data
   def plot_rv_all_data():
     cfactor = np.float(1.e3)
-    rv_datas = list(rv_all)
-    errs_datas = list(errs_all)
+    rv_datas = [None]*nt
+    errs_datas = [None]*nt
+    for i in range(0,nt):
+      rv_datas[i] = list(rv_all[i])
+      errs_datas[i] = list(errs_all[i])
     for i in range(0,nt):
       for j in range(0,len(rv_all[i])):
         rv_datas[i][j] = cfactor*rv_datas[i][j]
@@ -212,10 +215,13 @@ if ( nplanets == 1 ):
 #Plot RV for one planet
   def plot_rv_one():
     cfactor = np.float(1.e3)
-    rv_dat2 = list(rv_all)
-    errs_dat2 = list(errs_all)
+    rv_dat2 = [None]*len(rv_all)
+    errs_dat2 = [None]*len(errs_all)
     for i in range(0,nt):
-      for j in range(0,len(rv_all[i])):
+      rv_dat2[i] = list(rv_all[i])
+      errs_dat2[i] = list(errs_all[i])
+    for i in range(0,nt):
+      for j in range(0,len(rv_dat2[i])):
         rv_dat2[i][j] = cfactor*rv_dat2[i][j]
         errs_dat2[i][j] = cfactor*errs_dat2[i][j]
 
