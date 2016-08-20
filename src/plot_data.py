@@ -4,8 +4,8 @@ from matplotlib import gridspec
 from matplotlib.colors import LogNorm
 
 #The size of our plots follow an aurea rectangle 
-fsx = 6
-fsy = 3.708
+fsx = 10
+fsy = fsx/1.618
 
 def plot_chains():
   plt.xlabel('iteration')
@@ -24,10 +24,10 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.minorticks_on()
   #plt.subplot(311)
   ax0 = plt.xlabel("")
-  ax0 = plt.ylabel("RV (m/s)")
+  ax0 = plt.ylabel("RV (m/s)",fontsize=18)
   ax0 = plt.plot([0.,1.],[0.,0.],'k--')
   ax0 = plt.plot(p_rv,rvy,'k',linewidth=1.0)
-  mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
+  mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'v','h', 'H', 'D','+']
   for j in range(0,nt):
     ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
     label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
@@ -36,10 +36,10 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.tick_params( axis='x',which='both',labelbottom='off') 
   #plt.subplot(312)
   ax1 = plt.subplot(gs[1])
-  plt.xlabel("Orbital phase")
+  plt.xlabel("Orbital phase",fontsize=18)
   plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on') 
   plt.xticks(np.arange(0.,1.01,0.1)) 
-  plt.ylabel('Residuals (m/s)')
+  plt.ylabel('Residuals (m/s)',fontsize=14)
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
     plt.errorbar(p_all[j],res[j],errs_all[j],\
@@ -115,7 +115,7 @@ if ( nplanets == 1 ):
     min_val_model = max(fd_reb) -  min(fd_reb)
     plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='r.',alpha=1.0)
     plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0)
-    plt.ylabel('Relative flux')
+    plt.ylabel('Relative flux',fontsize=18)
     plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
     plt.minorticks_on()
     plt.ticklabel_format(useOffset=False, axis='y')
@@ -129,8 +129,8 @@ if ( nplanets == 1 ):
     plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
     plt.xlim(x_lim,-x_lim)
     #Plot the residuals
-    plt.ylabel('Residuals')
-    plt.xlabel("T - T0 (hours)")
+    plt.ylabel('Residuals',fontsize=14)
+    plt.xlabel("T - T0 (hours)",fontsize=18)
     plt.minorticks_on()
     plt.savefig(fname,format='pdf',bbox_inches='tight')
     plt.show()
@@ -192,11 +192,11 @@ if ( nplanets == 1 ):
       #the actual value, minus the systemic velocity
       rv_dum[j] = rv_datas[j] - v_val[j]*cfactor
 
-    plt.figure(1,figsize=(7,6))
+    plt.figure(1,figsize=(fsx,fsy))
     plt.plot(rvx,rvy,'k')
     plt.minorticks_on()
-    plt.xlabel("JD (days)")
-    plt.ylabel('RV (m/s)')
+    plt.xlabel("JD (days)",fontsize=18)
+    plt.ylabel('RV (m/s)',fontsize=18)
     plt.xlim(xmin,xmax)
     mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
     for j in range(0,nt):

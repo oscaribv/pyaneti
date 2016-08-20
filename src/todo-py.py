@@ -172,16 +172,17 @@ def smart_priors():
       max_k = min( [max_k,max_phys_k] )
     else:
       # The maximum value ok K should be 
-      max_phys_k = (max_rv0 - min_rv0) 
+    #  max_phys_k = (max_rv0 - min_rv0) 
       # if we gave a worst prior for k, let us take a better
-      max_k = [(max_rv0 - min_rv0) ]*nplanets
+    #  max_k = [(max_rv0 - min_rv0) ]*nplanets
     #P
+      ppp = 0
     #The period should not be larger than our obsrvational run
-    max_phys_P = max(mega_time) - min(mega_time)
+    #max_phys_P = max(mega_time) - min(mega_time)
     #T0
     #The T0 should not be larger than our obsrvational run
     #min_phys_t0 = min(mega_time)
-    max_phys_t0 = max(mega_time)
+    #max_phys_t0 = max(mega_time)
 
   if (fit_tr):
 
@@ -331,7 +332,7 @@ def good_clustering(chi2,nconv,nwalkers):
   good_index = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < 2.005*total_min ):
+    if ( chi2_mean[i] < 1.05*total_min ):
       good_index.append(i)
 
   new_nwalkers = len(good_index)
@@ -731,22 +732,33 @@ def fit_radial_velocity():
     alphao = [[]]*nplanets
     betao = [[]]*nplanets
     #each l index is for a different planet
-    print 'Reading file'
+
+
     for l in range(0,nplanets):
-      vari[l],chi2[l],chi2red[l],t0o[l],Po[l],eo[l], \
-      wo[l],ko[l], alphao[l], betao[l] = np.loadtxt(newfile[l], comments='#', \
+      vari[l],chi2[l],chi2red[l],dt0o,dPo,deo, \
+      dwo,dko, dalphao, dbetao = np.loadtxt(newfile[l], comments='#', \
       unpack=True, usecols=range(0,10))
+    #Cluster variables
+      good_index, new_nwalkers = good_clustering(chi2[0],nconv,nwalkers)
+      t0o[l] = clustering(dt0o,good_index,nconv)
+      Po[l] = clustering(dPo,good_index,nconv)
+      eo[l] = clustering(deo,good_index,nconv)
+      wo[l] = clustering(dwo,good_index,nconv)
+      ko[l] = clustering(dko,good_index,nconv)
+      alphao[l] = clustering(dalphao,good_index,nconv)
+      betao[l] = clustering(dbetao,good_index,nconv)
+
     #The  systemic velocities are the same for all the planets
+    dvo = [None]*nt
     vo = [None]*nt
     for j in range(0,nt):
       n = [10+j]
       a = np.loadtxt(newfile[0], comments='#', \
       unpack=True, usecols=(n))
-      vo[j] = a
+      dvo[j] = a
 
-
-   
-
+    for j in range(0,nt):
+      vo[j] = clustering(dvo[j],good_index,nconv)
 
 #-----------------------------------------------------------
 # PRINT INITIAL CONFIGURATION

@@ -7,10 +7,10 @@ minchi2_index = np.argmin(chi2)
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=new_nwalkers*nconv)
 tstar = np.random.normal(loc=tstar_mean,scale=tstar_sigma,size=new_nwalkers*nconv)
-inclination = np.random.normal(loc=inclination_mean,scale=inclination_sigma,size=new_nwalkers*nconv)
 
 if ( nplanets == 1 ):
 
+  inclination = np.random.normal(loc=inclination_mean,scale=inclination_sigma,size=new_nwalkers*nconv)
   #If some parameters are transformed let us go back
 
   if (is_log_P):
@@ -332,6 +332,9 @@ else:
   mass_val = [None]*nplanets
   mass_errr = [None]*nplanets
   mass_errl = [None]*nplanets
+  mass_sin_val = [None]*nplanets
+  mass_sin_errr = [None]*nplanets
+  mass_sin_errl = [None]*nplanets
   chi2_val = [None]*nplanets
   chi2_errr = [None]*nplanets
   chi2_errl = [None]*nplanets
@@ -382,6 +385,8 @@ else:
         vo[j] = np.power(10.,vo[j])
 
     for l in range(0,nplanets):
+      
+      inclination = np.random.normal(loc=inclination_mean[l],scale=inclination_sigma[l],size=new_nwalkers*nconv)
 
       if (is_log_P):
         Po[l] = np.power(10.,Po[l])
@@ -405,15 +410,18 @@ else:
       #based on IAU resolution http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1605.09788
 
       masso = planet_mass(mstar,ko[l]*1.e3,Po[l],eo[l],inclination)
+      masso_sin = planet_mass(mstar,ko[l]*1.e3,Po[l],eo[l],np.pi/2.0)
 
       if ( unit_mass == 'earth'):
         if ( fit_rv ):
           masso = masso * S_GM_SI / E_GM_SI
+          masso_sin = masso_sin * S_GM_SI / E_GM_SI
         if ( fit_tr ):
           rpo = rpo * S_radius_SI / E_radius_e_SI
       elif ( unit_mass == 'jupiter'):
         if ( fit_rv ):
           masso = masso * S_GM_SI / J_GM_SI
+          masso_sin = masso_sin * S_GM_SI / J_GM_SI
         if ( fit_tr ):
           rpo = rpo * S_radius_SI / J_radius_e_SI
 	
@@ -452,6 +460,7 @@ else:
 	
         t0_val[l], t0_errl[l], t0_errr[l] = find_vals_perc(t0o[l],s_factor)
         mass_val[l], mass_errl[l], mass_errr[l] = find_vals_perc(masso,s_factor)
+        mass_sin_val[l], mass_sin_errl[l], mass_sin_errr[l] = find_vals_perc(masso_sin,s_factor)
         tp_val[l], tp_errl[l], tp_errr[l] = find_vals_perc(tpo,s_factor)
         P_val[l], P_errl[l], P_errr[l]  = find_vals_perc(Po[l],s_factor)
         e_val[l],e_errl[l], e_errr[l] 	= find_vals_perc(eo[l],s_factor)
@@ -494,8 +503,8 @@ else:
             print ('M_*     = %4.7f + %4.7f - %4.7f solar masses'%(ms_val,ms_errr,ms_errl))
           if ( fit_tr ):
             print ('R_*     = %4.7f + %4.7f - %4.7f solar radii'%(rs_val, rs_errr , rs_errl))
-          if ( fit_rv and not fit_tr ):
-            print ('i       = %4.7f + %4.7f - %4.7f deg'%(iinp_val, iinp_errr , iinp_errl))
+#          if ( fit_rv and not fit_tr ):
+#            print ('i       = %4.7f + %4.7f - %4.7f deg'%(iinp_val, iinp_errr , iinp_errl))
         print ('')
         print ('The best fit planet parameters are:')
         print ('T0    = %4.4f + %4.4f - %4.4f days'%(t0_val[l],t0_errr[l],t0_errl[l]))
@@ -505,7 +514,9 @@ else:
         print ('w     = %4.4f + %4.4f - %4.4f deg ' %(w_deg[l],w_deg_errr[l], w_deg_errl[l]))
         if (fit_rv):
           print ('K     = %4.4f + %4.4f - %4.4f m/s'%(k_val[l]/1.e-3,(k_errr[l])/1.e-3, (k_errl[l])/1e-3))
-          print ('mpsin = %4.4f + %4.4f - %4.4f (%s masses) '%(mass_val[l],mass_errr[l], mass_errl[l], unit_mass))
+          print ('i     = %4.7f + %4.7f - %4.7f deg'%(iinp_val, iinp_errr , iinp_errl))
+          print ('mpsin = %4.4f + %4.4f - %4.4f (%s masses) '%(mass_sin_val[l],mass_sin_errr[l], mass_sin_errl[l], unit_mass))
+          print ('mp    = %4.4f + %4.4f - %4.4f (%s masses) '%(mass_val[l],mass_errr[l], mass_errl[l], unit_mass))
           for i in range(0,nt):
             print ('%s v0  = %4.4f + %4.4f - %4.4f km/s'%(telescopes[i], \
           v_val[i],v_errr[i],v_errl[i]))
