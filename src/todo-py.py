@@ -446,7 +446,7 @@ def fit_joint():
     os.rename('mh_fit.dat',newfile)
         
   #Read the data
-  vari,chi2,chi2red,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo,dko, dalphao, dbetao =  \
+  dvari,dchi2,dchi2red,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo,dko, dalphao, dbetao =  \
   np.loadtxt(newfile, comments='#',unpack=True, \
   usecols=range(0,15))
   dvo = [None]*nt
@@ -457,7 +457,10 @@ def fit_joint():
     dvo[j] = a
 
   #Starting clustering
-  good_index, new_nwalkers = good_clustering(chi2,nconv,nwalkers)
+  good_index, new_nwalkers = good_clustering(dchi2,nconv,nwalkers)
+  vari = clustering(dvari,good_index,nconv)
+  chi2 = clustering(dchi2,good_index,nconv)
+  chi2red = clustering(dchi2red,good_index,nconv)
   t0o = clustering(dt0o,good_index,nconv)
   Po = clustering(dPo,good_index,nconv)
   eo = clustering(deo,good_index,nconv)
