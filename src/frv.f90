@@ -114,7 +114,7 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_rv(xd,yd,errs,tlab,params,flag,chi2,datas,nt,npl)
+subroutine find_chi2_rv(xd,yd,errs,tlab,params,jitter,flag,chi2,datas,nt,npl)
 implicit none
 
 !In/Out variables
@@ -122,6 +122,7 @@ implicit none
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1) :: tlab
   double precision, intent(in), dimension(0:6+nt,0:npl-1) :: params
+  double precision, intent(in) :: jitter
   logical, intent(in)  :: flag(0:3)
   double precision, intent(out) :: chi2
 !Local variables
@@ -159,8 +160,8 @@ implicit none
   end do
 
   !Let us obtain chi^2
-  res(:) = ( model(:) - yd(:) ) / errs(:) 
-  chi2 = dot_product(res,res)
+  res(:) = ( model(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 ) 
+  chi2 = dot_product(res,res) 
 
 end subroutine
 
@@ -184,13 +185,14 @@ implicit none
 !Local variables
   double precision, dimension(0:npars+nt-1,0:npl-1) :: params
   double precision, dimension(0:2*(npars+nt)-1,0:npl-1) :: limits
-  double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
+  double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red, jitter_old, jitter_new
   double precision, dimension(0:npars+nt-1,0:npl-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:npars+nt-1,0:npl-1,0:nwalks-1,0:nconv-1) :: params_chains
   double precision  :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   double precision  :: q, esin(0:npl-1), ecos(0:npl-1), aa, chi2_red_min
   double precision, dimension(0:npl-1) :: t0_mean, P_mean
   double precision :: r_real, sigma_t0(0:npl-1), sigma_P(0:npl-1)
+  double precision, dimension(0:nwalks-1) :: mult_old, mult_new
   integer, dimension(0:nwalks-1) :: r_int
   integer, dimension(0:npars+nt-1,0:npl-1) :: wtf_all 
   integer :: l,o,m, j, n, nu, nk, n_burn, spar, new_thin_factor
@@ -267,6 +269,14 @@ implicit none
     limits(npars*2:2*(npars+nt)-1,:) = log10(limits(npars:2*(npars+nt)-1,:))
     limits_physical(2*npars:2*(npars+nt)-1) = log10(limits_physical(2*npars:2*(npars+nt)-1))
   end if
+  !The jitter term starts with jitter=0
+  call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
+  mult_old(:) = 1.0d0
+  do nk = 0, nwalks - 1
+    do j = 0, datas-1
+      mult_old(nk) = mult_old(nk)/sqrt( errs(j)**2 + jitter_old(nk)**2  )
+    end do
+  end do
 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -303,7 +313,7 @@ implicit none
     !Each walker is a point in a parameter space
     !Each point contains the information of all the planets
     !Let us estimate our first chi_2 value for each walker
-    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,:,nk), &
+    call find_chi2_rv(xd,yd,errs,tlab,params_old(:,:,nk), jitter_old(nk), &
                       flag,chi2_old(nk),datas,nt,npl)
   end do
 
@@ -357,6 +367,7 @@ implicit none
       do m = 0, npl - 1
         params_new(:,m,nk) = params_old(:,m,r_int(nk))
       end do
+      jitter_new(nk) = jitter_old(r_int(nk))
     end do
 
     do nk = 0, nwalks - 1 !walkers
@@ -371,6 +382,8 @@ implicit none
       do m = 0, npl - 1
         params_new(:,m,nk) = params_new(:,m,nk) + wtf_all(:,m) * z_rand(nk) * &
                            ( params_old(:,m,nk) - params_new(:,m,nk) )
+        jitter_new(nk) = jitter_new(nk) + z_rand(nk) * &
+                         ( jitter_old(nk) - jitter_new(nk) )
 
         !Let us check the limits
         call check_limits(params_new(:,m,nk),limits_physical(:), &
@@ -387,18 +400,27 @@ implicit none
       end do !number of planets loop
 
       if ( is_limit_good ) then !evaluate chi2
-        call find_chi2_rv(xd,yd,errs,tlab,params_new(:,:,nk),flag,chi2_new(nk),datas,nt,npl)
+        call find_chi2_rv(xd,yd,errs,tlab,params_new(:,:,nk),jitter_new(nk),flag,chi2_new(nk),datas,nt,npl)
       else !we do not have a good model
         chi2_new(nk) = huge(dble(0.0)) !a really big number
       end if
 
+     mult_new(nk) = 1.0d0
+     do m = 0, datas-1
+       mult_new(nk) = mult_new(nk)/sqrt( errs(m)**2 + jitter_new(nk)**2  )
+     end do
+
+      !If jitter exists, q != 1
+      q = mult_new(nk) / mult_old(nk)
       !Compare the models 
-      q = z_rand(nk)**(spar - 1) * &
-          exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
+      q = q * z_rand(nk)**(spar - 1) * &
+          exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  ) 
 
       if ( q >= r_rand(nk) ) then !is the new model better?
           chi2_old(nk) = chi2_new(nk)
           params_old(:,:,nk) = params_new(:,:,nk)
+          jitter_old(nk) = jitter_new(nk)
+          mult_old(nk) = mult_new(nk)
       end if
 
       chi2_red(nk) = chi2_old(nk) / nu
@@ -407,7 +429,7 @@ implicit none
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
           do m = 0, npl - 1 !Print a file with data of each planet 
-            write(m,*) j, chi2_old(nk), chi2_red(nk), params_old(:,m,nk)
+            write(m,*) j, chi2_old(nk), chi2_red(nk),jitter_old(nk),params_old(:,m,nk)
           end do
         end if
       end if

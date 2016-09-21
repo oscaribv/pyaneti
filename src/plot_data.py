@@ -4,8 +4,9 @@ from matplotlib import gridspec
 from matplotlib.colors import LogNorm
 
 #The size of our plots follow an aurea rectangle 
-fsx = 10
-fsy = fsx/1.618
+fsx = figure_size_x
+fsy = figure_size_y
+fos = font_size_label
 
 def plot_chains():
   plt.xlabel('iteration')
@@ -24,30 +25,30 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.minorticks_on()
   #plt.subplot(311)
   ax0 = plt.xlabel("")
-  ax0 = plt.ylabel("RV (m/s)",fontsize=18)
+  ax0 = plt.ylabel("RV (m/s)",fontsize=fos)
   ax0 = plt.plot([0.,1.],[0.,0.],'k--')
   ax0 = plt.plot(p_rv,rvy,'k',linewidth=1.0)
-  mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'v','h', 'H', 'D','+']
   for j in range(0,nt):
     ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
-    label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
+    label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=4)
   plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
   plt.xticks(np.arange(0.,1.01,0.1)) 
   plt.tick_params( axis='x',which='both',labelbottom='off') 
   #plt.subplot(312)
   ax1 = plt.subplot(gs[1])
-  plt.xlabel("Orbital phase",fontsize=18)
+  plt.xlabel("Orbital phase",fontsize=fos)
   plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on') 
   plt.xticks(np.arange(0.,1.01,0.1)) 
-  plt.ylabel('Residuals (m/s)',fontsize=14)
+  plt.ylabel('Residuals (m/s)',fontsize=fos*0.75)
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
     plt.errorbar(p_all[j],res[j],errs_all[j],\
-    label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
+    label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=4)
   yylims = ax1.get_ylim()
   plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.minorticks_on()
   plt.savefig(fname,format='pdf',bbox_inches='tight')
+  plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
   plt.show()
 
 #===========================================================
@@ -115,7 +116,7 @@ if ( nplanets == 1 ):
     min_val_model = max(fd_reb) -  min(fd_reb)
     plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='r.',alpha=1.0)
     plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0)
-    plt.ylabel('Relative flux',fontsize=18)
+    plt.ylabel('Relative flux',fontsize=fos)
     plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
     plt.minorticks_on()
     plt.ticklabel_format(useOffset=False, axis='y')
@@ -129,10 +130,11 @@ if ( nplanets == 1 ):
     plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
     plt.xlim(x_lim,-x_lim)
     #Plot the residuals
-    plt.ylabel('Residuals',fontsize=14)
-    plt.xlabel("T - T0 (hours)",fontsize=18)
+    plt.ylabel('Residuals',fontsize=fos*0.75)
+    plt.xlabel("T - T0 (hours)",fontsize=fos)
     plt.minorticks_on()
     plt.savefig(fname,format='pdf',bbox_inches='tight')
+    plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
     plt.show()
 
 
@@ -198,10 +200,9 @@ if ( nplanets == 1 ):
     plt.figure(1,figsize=(fsx,fsy))
     plt.plot(rvx,rvy,'k')
     plt.minorticks_on()
-    plt.xlabel("JD (days)",fontsize=18)
-    plt.ylabel('RV (m/s)',fontsize=18)
+    plt.xlabel("JD (days)",fontsize=fos)
+    plt.ylabel('RV (m/s)',fontsize=fos)
     plt.xlim(xmin,xmax)
-    mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*']
     for j in range(0,nt):
       plt.errorbar(time_all[j],rv_dum[j],errs_datas[j],\
       label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
@@ -350,8 +351,8 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
   for i in range(0,n):
     plt.subplot(gs[i])
     vpar, lpar, rpar = find_vals_perc(params[i],1.0)
-    best_val = params[i][minchi2_index]
-    plt.axvline(x=best_val,c='yellow')
+    #best_val = params[i][minchi2_index]
+    #plt.axvline(x=best_val,c='yellow')
     plt.axvline(x=vpar,c=cbars)
     plt.axvline(x=vpar-lpar,c=cbars,ls='--')
     plt.axvline(x=vpar+rpar,c=cbars,ls='--')

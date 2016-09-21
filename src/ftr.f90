@@ -131,7 +131,7 @@ implicit none
     !Are we generating an eclipse?
     call find_z(xd(j),pars,flag,zdum,1) 
 
-    if ( zdum(0) > 1.0 + pz ) then
+    if ( zdum(0) > 1.0 + 5*pz ) then
 
       muld(j) = 1.d0 !This is not eclipse
 

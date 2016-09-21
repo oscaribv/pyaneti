@@ -332,7 +332,7 @@ def good_clustering(chi2,nconv,nwalkers):
   good_index = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < 1.05*total_min ):
+    if ( chi2_mean[i] < 1.5*total_min ):
       good_index.append(i)
 
   new_nwalkers = len(good_index)
@@ -574,7 +574,7 @@ def fit_radial_velocity():
          min_k, max_k, min_alpha, max_alpha, min_beta, max_beta
   global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
          min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, min_phys_beta, max_phys_beta, min_phys_rv0, max_phys_rv0
-  global vari,chi2,chi2red,t0o,Po,eo,wo,ko,alphao,betao,vo, what_fit
+  global vari,chi2,chi2red,jito,t0o,Po,eo,wo,ko,alphao,betao,vo, what_fit
   global new_nwalkers, good_index
 
   flag = [is_log_P,is_ew,is_log_k,is_log_rv0]
@@ -696,19 +696,20 @@ def fit_radial_velocity():
         os.rename(out_file[m],newfile[m])
 
   if ( nplanets == 1 ):
-    vari,chi2,chi2red,dt0o,dPo,deo,dwo,dko,dalphao, dbetao = \
+    vari,chi2,chi2red,djito,dt0o,dPo,deo,dwo,dko,dalphao, dbetao = \
     np.loadtxt(newfile, comments='#', unpack=True,\
-    usecols=range(0,10))
+    usecols=range(0,11))
     #Read the systemic velocities
     dvo = [None]*nt
     for j in range(0,nt):
-      n = [10+j]
+      n = [11+j]
       a = np.loadtxt(newfile, comments='#',unpack=True,\
       usecols=(n))
       dvo[j] = a
 
     #Cluster variables
     good_index, new_nwalkers = good_clustering(chi2,nconv,nwalkers)
+    jito = clustering(djito,good_index,nconv)
     t0o = clustering(dt0o,good_index,nconv)
     Po = clustering(dPo,good_index,nconv)
     eo = clustering(deo,good_index,nconv)

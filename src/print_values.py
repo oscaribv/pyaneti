@@ -116,7 +116,7 @@ if ( nplanets == 1 ):
   if ( errores == 'perc' ):
 
     #Obtain the minimin chi2 and calculate the reduced chi2
-    chi2tot_val  = np.amin(chi2)
+    chi2tot_val  = np.median(chi2)
     chi2_val = chi2tot_val / ( ndata - npars )
 
     if ( scale_error_bars ):
@@ -181,6 +181,7 @@ if ( nplanets == 1 ):
       k_val, k_errl, k_errr = find_vals_perc(ko,s_factor)
       alpha_val, alpha_errl, alpha_errr = find_vals_perc(alphao,s_factor)
       beta_val, beta_errl, beta_errr = find_vals_perc(betao,s_factor)
+      jitter_val, jitter_errl, jitter_errr = find_vals_perc(jito,s_factor)
       m_val, m_errl, m_errr  	= find_vals_perc(masso,s_factor)
       tp_val, tp_errl, tp_errr= find_vals_perc(tpo,s_factor)
       #Systemic velocities are stored in v_val
@@ -241,6 +242,7 @@ if ( nplanets == 1 ):
       opars.write('RV fit parameters: \n')
       opars.write('alpha = %4.4e + %4.4e - %4.4e     \n'%(alpha_val, alpha_errr , alpha_errl))
       opars.write('beta  = %4.4e + %4.4e - %4.4e     \n'%(beta_val, beta_errr , beta_errl))
+      opars.write('jitter= %4.4e + %4.4e - %4.4e m/s \n'%(jitter_val/1.e-3, jitter_errr/1.e-3 , jitter_errl/1.e-3))
       opars.write('K     = %4.4f + %4.4f - %4.4f m/s\n'%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
       for i in range(0,nt):
         opars.write('%s v0  = %4.4f + %4.4f - %4.4f km/s\n'%(telescopes[i], \

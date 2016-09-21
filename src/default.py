@@ -72,6 +72,12 @@ gap_between_transits = 10
 nplanets = 1
 #The default planet labels
 plabels = ['b','c','d','e','f','g','h','i']
+#Figure size default
+figure_size_x = 6
+figure_size_y = 6/1.618
+font_size_label = 13
+#mark for plots
+mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'v','h','.', 'H', 'D','+']
 
 #Default priors
 P = 365.0
