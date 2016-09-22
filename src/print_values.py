@@ -10,7 +10,10 @@ tstar = np.random.normal(loc=tstar_mean,scale=tstar_sigma,size=new_nwalkers*ncon
 
 if ( nplanets == 1 ):
 
-  inclination = np.random.normal(loc=inclination_mean,scale=inclination_sigma,size=new_nwalkers*nconv)
+  if ( inclination_mean.__class__ == float ):
+     inclination = np.random.normal(loc=inclination_mean,scale=inclination_sigma,size=new_nwalkers*nconv)
+  else:
+     inclination = np.random.normal(loc=inclination_mean[0],scale=inclination_sigma[0],size=new_nwalkers*nconv)
   #If some parameters are transformed let us go back
 
   if (is_log_P):

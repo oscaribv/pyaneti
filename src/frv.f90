@@ -270,7 +270,8 @@ implicit none
     limits_physical(2*npars:2*(npars+nt)-1) = log10(limits_physical(2*npars:2*(npars+nt)-1))
   end if
   !The jitter term starts with jitter=0
-  call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
+  !call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
+  call gauss_random_bm(0.000d0,0.000d0,jitter_old,nwalks)
   mult_old(:) = 1.0d0
   do nk = 0, nwalks - 1
     do j = 0, datas-1
@@ -428,9 +429,15 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
+        if ( npl == 1 ) then
           do m = 0, npl - 1 !Print a file with data of each planet 
             write(m,*) j, chi2_old(nk), chi2_red(nk),jitter_old(nk),params_old(:,m,nk)
           end do
+        else
+          do m = 0, npl - 1 !Print a file with data of each planet 
+            write(m,*) j, chi2_old(nk), chi2_red(nk),params_old(:,m,nk)
+          end do
+        end if
         end if
       end if
       !End burn-in
