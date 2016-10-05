@@ -119,7 +119,7 @@ if ( nplanets == 1 ):
   if ( errores == 'perc' ):
 
     #Obtain the minimin chi2 and calculate the reduced chi2
-    chi2tot_val  = np.median(chi2)
+    chi2tot_val  = np.min(chi2)
     chi2_val = chi2tot_val / ( ndata - npars )
 
     if ( scale_error_bars ):

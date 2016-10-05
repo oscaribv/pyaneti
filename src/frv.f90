@@ -371,6 +371,9 @@ implicit none
       jitter_new(nk) = jitter_old(r_int(nk))
     end do
 
+    !$call OMP_SET_NUM_THREADS(2)
+    !$OMP PARALLEL 
+    !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1 !walkers
 
     !Draw the random walker nk, from the complemetary walkers
@@ -443,6 +446,7 @@ implicit none
       !End burn-in
 
     end do !walkers
+    !$OMP END PARALLEL
 
      if ( is_burn ) then
 

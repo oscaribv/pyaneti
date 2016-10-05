@@ -835,19 +835,18 @@ def print_init():
   print '------------------------------'
   print '     PHYSICAL LIMITS          '
   print '------------------------------'
-  if ( min_t0.__class__ == float ):
-    print ('T0 = [ %4.4f , %4.4f ]' %(min_phys_t0,max_phys_t0))
-    print ('P  = [ %4.4f , %4.4f ]' %(min_phys_P,max_phys_P))
-    print ('e  = [ %4.4f , %4.4f ]' %(min_phys_e,max_phys_e))
-    print ('w  = [ %4.4f , %4.4f ]' %(min_phys_w,max_phys_w))
-    if (fit_tr):
-      print ('i  = [ %4.4f , %4.4f ]' %(min_phys_i,max_phys_i))
-      print ('a  = [ %4.4f , %4.4f ]' %(min_phys_a,max_phys_a))
-      print ('pz = [ %4.4f , %4.4f ]' %(min_phys_pz,max_phys_pz))
-      print ('q1 = [ %4.4f , %4.4f ]' %(min_phys_q1,max_phys_q1))
-      print ('q2 = [ %4.4f , %4.4f ]' %(min_phys_q2,max_phys_q2))
-    if (fit_rv):
-      print ('K  = [ %4.4f , %4.4f ]' %(min_phys_k,max_phys_k))
-      print ('rv0= [ %4.4f , %4.4f ]' %(min_phys_rv0,max_phys_rv0))
+  print ('T0 = [ %4.4f , %4.4f ]' %(min_phys_t0,max_phys_t0))
+  print ('P  = [ %4.4f , %4.4f ]' %(min_phys_P,max_phys_P))
+  print ('e  = [ %4.4f , %4.4f ]' %(min_phys_e,max_phys_e))
+  print ('w  = [ %4.4f , %4.4f ]' %(min_phys_w,max_phys_w))
+  if (fit_tr):
+    print ('i  = [ %4.4f , %4.4f ]' %(min_phys_i,max_phys_i))
+    print ('a  = [ %4.4f , %4.4f ]' %(min_phys_a,max_phys_a))
+    print ('pz = [ %4.4f , %4.4f ]' %(min_phys_pz,max_phys_pz))
+    print ('q1 = [ %4.4f , %4.4f ]' %(min_phys_q1,max_phys_q1))
+    print ('q2 = [ %4.4f , %4.4f ]' %(min_phys_q2,max_phys_q2))
+  if (fit_rv):
+    print ('K  = [ %4.4f , %4.4f ]' %(min_phys_k,max_phys_k))
+    print ('rv0= [ %4.4f , %4.4f ]' %(min_phys_rv0,max_phys_rv0))
   print '------------------------------'
   print '=============================='
