@@ -573,9 +573,10 @@ implicit none
   double precision, dimension(0:npars+nt-1,0:nwalks-1,0:nconv-1) :: params_chains
   double precision, dimension(0:npars+nt-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nwalks-1) :: mstar, rstar
+  double precision, dimension(0:nwalks-1) :: jitter_rv_old, jitter_rv_new, jitter_tr_old, jitter_tr_new, mult_old, mult_new
   double precision  :: q
   double precision  :: esin, ecos, aa, chi2_red_min
-  integer :: o,j, n, nu, nk, n_burn, spar, new_thin_factor
+  integer :: o,j, n,m, nu, nk, n_burn, spar, new_thin_factor
   logical :: continua, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg, is_eclipse
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
@@ -646,6 +647,20 @@ implicit none
     limits(2*npars:2*(npars+nt)-1) = log10(limits(2*npars:2*(npars+nt)-1))
     limits_physical(2*npars:2*(npars+nt)-1) = log10(limits_physical(2*npars:2*(npars+nt)-1))
   end if
+  !The jitter term starts with jitter=0
+  !call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
+  call gauss_random_bm(0.500d0,0.010d0,jitter_rv_old,nwalks)
+  call gauss_random_bm(0.500d0,0.010d0,jitter_tr_old,nwalks)
+  mult_old(:) = 1.0d0
+  do nk = 0, nwalks - 1
+    do j = 0, drv-1
+      mult_old(nk) = mult_old(nk)/sqrt( errs_rv(j)**2 + jitter_rv_old(nk)**2  )
+    end do
+    do j = 0, dtr-1
+      mult_old(nk) = mult_old(nk)/sqrt( errs_tr(j)**2 + jitter_tr_old(nk)**2  )
+    end do
+  end do
+
 
   !Call a random seed 
   print *, 'CREATING RANDOM SEED'
@@ -700,7 +715,7 @@ implicit none
       nk = nk
     else
       call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
-      call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_old_rv(nk),drv,nt,1)
+      call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,jitter_rv_old(nk),flag_rv,chi2_old_rv(nk),drv,nt,1)
       chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
       nk = nk + 1
     end if
@@ -750,14 +765,11 @@ implicit none
     call random_int(r_int,nwalks)
 
     do nk = 0, nwalks - 1 !walkers
-        params_new(:,nk) = params_old(:,r_int(nk))
+      params_new(:,nk) = params_old(:,r_int(nk))
+      !evolve jitter term
+      jitter_rv_new(nk) = jitter_rv_old(r_int(nk))
+      jitter_tr_new(nk) = jitter_tr_old(r_int(nk))
     end do
-
-    !Let us vary aa randomlly
-    if ( a_factor < 1.0d0 ) then
-      call random_number(aa)
-      aa = 1.0d0 + thin_factor * aa 
-    end if
 
    !Let us set a gaussian distribution for the limb darkening coefficents
    if( wtf_all(6) == 0 ) then !q1
@@ -787,6 +799,10 @@ implicit none
       !Now we can have the evolved walker
       params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
                        ( params_old(:,nk) - params_new(:,nk) )
+      jitter_rv_new(nk) = jitter_rv_new(nk) + z_rand(nk) * &
+                         ( jitter_rv_old(nk) - jitter_rv_new(nk) )
+      jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) * &
+                         ( jitter_tr_old(nk) - jitter_tr_new(nk) )
 
         !Let us check the limits
         call check_limits(params_new(:,nk),limits_physical(:),is_limit_good,10+nt)
@@ -814,7 +830,7 @@ implicit none
         !THINK ABOUT IT OSCAR!
         if ( is_eclipse ) then
           call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_new_tr(nk),dtr)
-          call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,flag_rv,chi2_new_rv(nk),drv,nt,1)
+          call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,jitter_rv_new(nk),flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
         else
           chi2_new_total(nk) = huge(dble(0.0))
@@ -826,13 +842,25 @@ implicit none
 
       end if
 
-      !Is the new model better? 
-      q = z_rand(nk)**( int(spar - 1) ) * &
+     mult_new(:) = 1.0d0
+     do m = 0, drv-1
+      mult_new(nk) = mult_new(nk)/sqrt( errs_rv(m)**2 + jitter_rv_new(nk)**2  )
+     end do
+     do m = 0, dtr-1
+       mult_new(nk) = mult_new(nk)/sqrt( errs_tr(m)**2 + jitter_tr_new(nk)**2  )
+     end do
+
+     !Is the new model better? 
+      q = mult_new(nk) / mult_old(nk)
+      q = q * z_rand(nk)**( int(spar - 1) ) * &
           exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
         chi2_old_total(nk) = chi2_new_total(nk)
         params_old(:,nk) = params_new(:,nk)
+        jitter_rv_old(nk) = jitter_rv_new(nk)
+        jitter_tr_old(nk) = jitter_tr_new(nk)
+        mult_old(nk) = mult_new(nk)
       end if
 
       chi2_red(nk) = chi2_old_total(nk) / nu
@@ -840,7 +868,7 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
-         write(101,*) j, chi2_old_total(nk), chi2_red(nk), params_old(:,nk)
+         write(101,*) j, chi2_old_total(nk), chi2_red(nk),jitter_rv_old(nk),jitter_tr_old(nk), params_old(:,nk)
         end if
       end if
       !End burn-in
