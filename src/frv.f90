@@ -76,7 +76,7 @@ implicit none
   double precision, intent(in), dimension(0:ts-1)  :: t
   double precision, intent(out), dimension(0:ts-1) :: rv
   double precision, intent(in), dimension(0:npl-1) :: k, t0, P, e, w
-  !Here rv0 depends on the telescope systemic not the planets
+  !Here rv0, alpha and beta depend on the telescope systemic not the planets
   double precision, intent(in) :: rv0, alpha, beta
 !Local variables
   double precision, dimension(0:ts-1) :: ta
@@ -87,7 +87,7 @@ implicit none
 
   !Added systemic velocity and linear and quadratic trends
   rv(:) = rv0 + (t(:)-t0(0))*alpha + (t(:)-t0(0))**2*beta
-  !rv(:) = rv0 + (t(:))*alpha + (t(:))**2*beta
+
   !Now add the planet influence on the star
   do i = 0, npl-1
    !Obtain the true anomaly by using find_anomaly
@@ -166,8 +166,8 @@ implicit none
 end subroutine
 
 !-----------------------------------------------------------
-subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,limits_physical,nwalks,a_factor,maxi, &
-thin_factor,wtf,flag,nconv,datas,nt,npl,npars)
+subroutine stretch_move_rv(xd,yd,errs,tlab,pars,lims,limits_physical,nwalks, &
+    a_factor,maxi,thin_factor,wtf,flag,nconv,datas,nt,npl,npars)
 !Here the number of parameters is npars + nt
 implicit none
 
@@ -654,7 +654,7 @@ implicit none
 
   !call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
   call gauss_random_bm(0.005d0,0.001d0,jitter_rv_old,nwalks)
-  call gauss_random_bm(0.000d0,0.000d0,jitter_tr_old,nwalks)
+  call gauss_random_bm(5.d-6,1.d-6,jitter_tr_old,nwalks)
 
   mult_old(:) = 1.0d0
   mult_new(:) = 1.0d0
@@ -662,9 +662,9 @@ implicit none
     do j = 0, drv-1
       mult_old(nk) = mult_old(nk)/sqrt( errs_rv(j)**2 + jitter_rv_old(nk)**2  )
     end do
-!    do j = 0, dtr-1
-!      mult_old(nk) = mult_old(nk)/sqrt( errs_tr(j)**2 + jitter_tr_old(nk)**2  )
-!    end do
+    do j = 0, dtr-1
+      mult_old(nk) = mult_old(nk)/sqrt( errs_tr(j)**2 + jitter_tr_old(nk)**2  )
+    end do
   end do
 
 !  print *, mult_old(10)
@@ -723,8 +723,8 @@ implicit none
     if ( .not. is_eclipse ) then
       nk = nk
     else
-      call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,& 
-           params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
+      call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),jitter_tr_old(nk), & 
+           flag_tr, params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
       call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,jitter_rv_old(nk),&
            flag_rv,chi2_old_rv(nk),drv,nt,1)
       chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
@@ -837,8 +837,10 @@ implicit none
         !NOW THIS IS CALCULATING TWO TIMES Z, 
         !THINK ABOUT IT OSCAR!
 !        if ( is_eclipse ) then
-          call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_new_tr(nk),dtr)
-          call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,jitter_rv_new(nk),flag_rv,chi2_new_rv(nk),drv,nt,1)
+          call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),jitter_tr_new(nk),&
+               flag_tr,params_tr(6:8),n_cad,t_cad,chi2_new_tr(nk),dtr)
+          call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,jitter_rv_new(nk),&
+               flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
 !        else
 !          chi2_new_total(nk) = huge(dble(0.0))
@@ -854,9 +856,9 @@ implicit none
      do m = 0, drv-1
       mult_new(nk) = mult_new(nk)/sqrt( errs_rv(m)**2 + jitter_rv_new(nk)**2  )
      end do
-!     do m = 0, dtr-1
-!       mult_new(nk) = mult_new(nk)/sqrt( errs_tr(m)**2 + jitter_tr_new(nk)**2  )
-!     end do
+     do m = 0, dtr-1
+       mult_new(nk) = mult_new(nk)/sqrt( errs_tr(m)**2 + jitter_tr_new(nk)**2  )
+     end do
 
      !Is the new model better? 
 !      if ( 1 == 1 ) then

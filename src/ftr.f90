@@ -98,7 +98,7 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_tr(xd,yd,errs,pars,flag,params,n_cad,t_cad,chi2,datas)
+subroutine find_chi2_tr(xd,yd,errs,pars,jitter,flag,params,n_cad,t_cad,chi2,datas)
 !subroutine find_chi2_tr(yd,errs,z,params,chi2,datas)
 implicit none
 
@@ -107,6 +107,7 @@ implicit none
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   double precision, intent(in), dimension(0:5) :: pars
   double precision, intent(in) :: t_cad
+  double precision, intent(in) :: jitter
   logical, intent(in), dimension(0:3) :: flag 
   double precision, intent(in), dimension (0:2) :: params
   double precision, intent(out) :: chi2
@@ -158,7 +159,7 @@ implicit none
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
   !Here I am assuming that we want limb darkening
   !If this is not true, use mu 
-  res(:) = ( muld(:) - yd(:) ) / errs(:) 
+  res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
   chi2 = dot_product(res,res)
 
 end subroutine
@@ -184,7 +185,7 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains
-  double precision, dimension(0:nwalks-1) :: mstar, rstar
+  double precision, dimension(0:nwalks-1) :: mstar, rstar, jitter
   double precision  :: q, esin, ecos, aa, chi2_red_min
   integer :: o, j, n, nu, nk, n_burn, spar, new_thin_factor
   logical :: continua, is_burn, is_limit_good, is_cvg, is_eclipse
@@ -243,6 +244,8 @@ implicit none
     limits_physical(8) = 0.d0
     limits_physical(9) = 1.d0
   end if
+  call gauss_random_bm(0.d-6,0.d-6,jitter,nwalks)
+
 
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -292,7 +295,7 @@ implicit none
     else
     !Each walker is a point in a parameter space
     !Let us estimate our first chi_2 value for each walker
-    call find_chi2_tr(xd,yd,errs,params_old(0:5,nk),flag,params_old(6:8,nk), &
+    call find_chi2_tr(xd,yd,errs,params_old(0:5,nk),jitter(nk),flag,params_old(6:8,nk), &
                       n_cad, t_cad, chi2_old(nk),datas)
       nk = nk + 1
     end if
@@ -391,7 +394,7 @@ implicit none
         call check_eclipse(zr,params_new(8,nk),is_eclipse,datas)
         !find chi2
         if ( is_eclipse ) then
-        call find_chi2_tr(xd,yd,errs,params_new(0:5,nk),flag,params_new(6:8,nk),n_cad,t_cad,chi2_new(nk),datas)
+        call find_chi2_tr(xd,yd,errs,params_new(0:5,nk),jitter(nk),flag,params_new(6:8,nk),n_cad,t_cad,chi2_new(nk),datas)
         else
           chi2_new(nk) = huge(0.0d0)
         end if
