@@ -371,9 +371,6 @@ implicit none
       jitter_new(nk) = jitter_old(r_int(nk))
     end do
 
-    !$call OMP_SET_NUM_THREADS(2)
-    !$OMP PARALLEL 
-    !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1 !walkers
 
     !Draw the random walker nk, from the complemetary walkers
@@ -446,7 +443,6 @@ implicit none
       !End burn-in
 
     end do !walkers
-    !$OMP END PARALLEL
 
      if ( is_burn ) then
 
@@ -543,8 +539,9 @@ end subroutine
 
 
 !-----------------------------------------------------------
-subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params,pstar, lpstar, &
-limits,limits_physical,nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,afk,nconv,drv,dtr,nt,npars)
+subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params, &
+   pstar,lpstar,limits,limits_physical,nwalks,a_factor,maxi,thin_factor, &
+   n_cad,t_cad,wtf,flag,afk,nconv,drv,dtr,nt,npars)
 implicit none
 
 !In/Out variables
@@ -625,8 +622,9 @@ implicit none
     params(4) = params(5) * cos(params(4))
     limits(8:9) = limits(10:11)*cos(limits(8:9))
     limits(8) = 0.0
-    limits(9) = limits(11) * cos(limits(9))
-    limits_physical(8) = 0.d0
+    !limits(9) = limits(11) * cos(limits(9))
+    limits(9) = 1.0
+    limits_physical(8) = 0.0d0
     limits_physical(9) = 1.d0
   end if
   !a = rp/r*
@@ -647,19 +645,30 @@ implicit none
     limits(2*npars:2*(npars+nt)-1) = log10(limits(2*npars:2*(npars+nt)-1))
     limits_physical(2*npars:2*(npars+nt)-1) = log10(limits_physical(2*npars:2*(npars+nt)-1))
   end if
+
   !The jitter term starts with jitter=0
+  jitter_rv_old(:) = 0.0d0
+  jitter_tr_old(:) = 0.0d0
+  jitter_rv_new(:) = 0.0d0
+  jitter_tr_new(:) = 0.0d0
+
   !call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
-  call gauss_random_bm(0.500d0,0.010d0,jitter_rv_old,nwalks)
-  call gauss_random_bm(0.500d0,0.010d0,jitter_tr_old,nwalks)
+  call gauss_random_bm(0.005d0,0.001d0,jitter_rv_old,nwalks)
+  call gauss_random_bm(0.000d0,0.000d0,jitter_tr_old,nwalks)
+
   mult_old(:) = 1.0d0
+  mult_new(:) = 1.0d0
   do nk = 0, nwalks - 1
     do j = 0, drv-1
       mult_old(nk) = mult_old(nk)/sqrt( errs_rv(j)**2 + jitter_rv_old(nk)**2  )
     end do
-    do j = 0, dtr-1
-      mult_old(nk) = mult_old(nk)/sqrt( errs_tr(j)**2 + jitter_tr_old(nk)**2  )
-    end do
+!    do j = 0, dtr-1
+!      mult_old(nk) = mult_old(nk)/sqrt( errs_tr(j)**2 + jitter_tr_old(nk)**2  )
+!    end do
   end do
+
+!  print *, mult_old(10)
+!  stop
 
 
   !Call a random seed 
@@ -714,8 +723,10 @@ implicit none
     if ( .not. is_eclipse ) then
       nk = nk
     else
-      call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
-      call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,jitter_rv_old(nk),flag_rv,chi2_old_rv(nk),drv,nt,1)
+      call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,& 
+           params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),dtr)
+      call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,jitter_rv_old(nk),&
+           flag_rv,chi2_old_rv(nk),drv,nt,1)
       chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
       nk = nk + 1
     end if
@@ -724,9 +735,6 @@ implicit none
   
   aa = sum(chi2_old_total)/nwalks
   print *, 'mean chi2 =', aa
-
-
-  !stop
 
   !Calculate the degrees of freedom
   nu = drv + dtr - spar
@@ -773,10 +781,10 @@ implicit none
 
    !Let us set a gaussian distribution for the limb darkening coefficents
    if( wtf_all(6) == 0 ) then !q1
-     call gauss_random_bm(params(6),0.05d0,params_old(6,:),nwalks)
+     call gauss_random_bm(params(6),params(6)*0.1,params_old(6,:),nwalks)
    end if
    if( wtf_all(7) == 0 ) then !q2
-     call gauss_random_bm(params(7),0.05d0,params_old(7,:),nwalks)
+     call gauss_random_bm(params(7),params(7)*0.1,params_old(7,:),nwalks)
    end if
 
     if ( afk ) then
@@ -821,20 +829,20 @@ implicit none
         params_rv(4:6+nt) = params_new(9:npars+nt-1,nk)
 
         !Find the chi2 for each case
-        call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
+!        call find_z(xd_tr,params_tr(0:5),flag,zr,dtr)
         !Let us check if there is an eclipse
-        call check_eclipse(zr,params_tr(8),is_eclipse,dtr)
+!        call check_eclipse(zr,params_tr(8),is_eclipse,dtr)
         !if we do not have an eclipse
 
         !NOW THIS IS CALCULATING TWO TIMES Z, 
         !THINK ABOUT IT OSCAR!
-        if ( is_eclipse ) then
+!        if ( is_eclipse ) then
           call find_chi2_tr(xd_tr,yd_tr,errs_tr,params_tr(0:5),flag_tr,params_tr(6:8),n_cad,t_cad,chi2_new_tr(nk),dtr)
           call find_chi2_rv(xd_rv,yd_rv,errs_rv,tlab,params_rv,jitter_rv_new(nk),flag_rv,chi2_new_rv(nk),drv,nt,1)
         chi2_new_total(nk) = chi2_new_tr(nk) + chi2_new_rv(nk)
-        else
-          chi2_new_total(nk) = huge(dble(0.0))
-        end if
+!        else
+!          chi2_new_total(nk) = huge(dble(0.0))
+!        end if
 
       else !we do not have a good model
 
@@ -846,12 +854,16 @@ implicit none
      do m = 0, drv-1
       mult_new(nk) = mult_new(nk)/sqrt( errs_rv(m)**2 + jitter_rv_new(nk)**2  )
      end do
-     do m = 0, dtr-1
-       mult_new(nk) = mult_new(nk)/sqrt( errs_tr(m)**2 + jitter_tr_new(nk)**2  )
-     end do
+!     do m = 0, dtr-1
+!       mult_new(nk) = mult_new(nk)/sqrt( errs_tr(m)**2 + jitter_tr_new(nk)**2  )
+!     end do
 
      !Is the new model better? 
-      q = mult_new(nk) / mult_old(nk)
+!      if ( 1 == 1 ) then
+        q = mult_new(nk) / mult_old(nk)
+!      else
+!        q = 1.0d0
+!      end if
       q = q * z_rand(nk)**( int(spar - 1) ) * &
           exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
 

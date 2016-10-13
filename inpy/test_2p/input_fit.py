@@ -15,7 +15,7 @@ nconv = 500
 nwalkers = 250
 
 method = 'sm'
-#method = 'plot'
+method = 'plot'
 
 #Output controls
 unit_mass = 'jupiter'
@@ -23,7 +23,8 @@ unit_mass = 'jupiter'
 #Star parameters
 mstar_mean = 1.0
 rstar_mean = 1.0
-inclination = np.pi/2
+inclination_mean = [np.pi/2.,np.pi/2.]
+inclination_sigma = [np.pi/2.*1e-5,np.pi/2.*1e-5]
 
 #We want to fit transit and RV 
 fit_rv = True

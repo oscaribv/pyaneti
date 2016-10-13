@@ -46,9 +46,10 @@ if ( nplanets == 1 ):
     rpo = pzo * rstar
     
     #calculate the impact parameter (eq. 7 Winn 2014)
-    bo =  ao * np.cos(io) * ( ( 1. - eo*eo ) / ( 1.0 + eo*np.sin(wo)))
+    #wo is the star periastron, add pi to have the planet one
+    bo =  ao * np.cos(io) * ( ( 1. - eo*eo ) / ( 1.0 + eo*np.sin(wo + np.pi )))
     #Transit durations aproximations (eq. 14, 15, 16 from Winn 2014)
-    ec_factor = np.sqrt(( 1. - eo*eo )) / ( 1.0 + eo*np.sin(wo))
+    ec_factor = np.sqrt(( 1. - eo*eo )) / ( 1.0 + eo*np.sin(wo + np.pi ))
     tto = np.sqrt( (1. + pzo)**2 - bo**2 ) / ( ao * np.sin(io))
     tto = Po / np.pi * np.arcsin(tto) * ec_factor * 24.0
     tfo = np.sqrt( (1. - pzo)**2 - bo**2 ) / ( ao * np.sin(io))
@@ -237,7 +238,7 @@ if ( nplanets == 1 ):
     opars.write('w     = %4.4f + %4.4f - %4.4f deg \n'%(w_deg,w_deg_errr, w_deg_errl))
     if (fit_tr):
       opars.write('Transit fit parameters:\n')
-      opars.write('i     = %4.4f + %4.4f - %4.4f deg\n' %(i_deg,i_deg_errr, i_deg_errl))
+      opars.write('b     = %4.4f + %4.4f - %4.4f    \n'%(b_val,b_errr, b_errl))
       opars.write('a/r*  = %4.4f + %4.4f - %4.4f    \n'%(a_val, a_errr , a_errl))
       opars.write('rp/r* = %4.4f + %4.4f - %4.4f    \n'%(pz_val,pz_errr, pz_errl))
       opars.write('q_1    = %4.4f + %4.4f - %4.4f    \n'%(q1_val,q1_errr, q1_errl))
@@ -257,7 +258,7 @@ if ( nplanets == 1 ):
     if (fit_tr):
       opars.write('r_p   = %4.4f + %4.4f - %4.4f R_%s\n' 	        %(rp_val,rp_errr, rp_errl,unit_mass))
       opars.write('a   = %4.4f + %4.4f - %4.4f  AU \n' 		%(aphy_val, aphy_errr , aphy_errl))
-      opars.write('b r*  = %4.4f + %4.4f - %4.4f\n' 	         	%(b_val,b_errr, b_errl))
+      opars.write('i     = %4.4f + %4.4f - %4.4f deg\n' %(i_deg,i_deg_errr, i_deg_errl))
       opars.write('t_total = %4.4f + %4.4f - %4.4f hours\n' 		%(tt_val,tt_errr, tt_errl))
       opars.write('t_in/eg = %4.4f + %4.4f - %4.4f hours\n' 		%(tf_val,tf_errr, tf_errl))
       opars.write('rho_* = %4.4f + %4.4f - %4.4f g/cm^3\n' 		%(rho_val,rho_errr, rho_errl))

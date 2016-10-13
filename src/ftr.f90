@@ -42,6 +42,8 @@ implicit none
   end if
   if (flag(3)) a = 10.0**a
   if (flag(2)) i = acos(i/a*(1.d0+e*sin(w))/(1.d0-e*e))
+  !Let us get the w of the planet
+  w = w + 3.1415926535d0
 
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)

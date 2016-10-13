@@ -31,7 +31,7 @@ a_from_kepler = True
 
 #We want to fit transit and RV 
 fit_rv = True
-fit_tr = True
+#fit_tr = True
 
 #What do we want to fit?
 fit_t0 = True

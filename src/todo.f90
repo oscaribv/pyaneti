@@ -383,6 +383,7 @@ implicit none
   double precision, dimension(0:2*n-1) :: r_real
   double precision  :: two_pi = 2*3.1415926535897932384626d0
 
+  call init_random_seed()
   call random_number(r_real)
 
   valor(:) = sqrt( - 2.d0 * log(r_real(0:n-1)) ) * &
