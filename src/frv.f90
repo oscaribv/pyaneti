@@ -371,6 +371,12 @@ implicit none
       jitter_new(nk) = jitter_old(r_int(nk))
     end do
 
+    !$OMP PARALLEL &
+    !$OMP SHARED(z_rand,aa,params_new,wtf_all,params_old,jitter_new,jitter_old,limits_physical, &
+    !$OMP npars,nt,flag,xd,yd,errs,tlab,chi2_new,chi2_old,datas,mult_new,mult_old,spar,r_rand, &
+    !$OMP nu,is_burn,j,new_thin_factor,npl) &
+    !$OMP PRIVATE(is_limit_good,q,m)
+    !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1 !walkers
 
     !Draw the random walker nk, from the complemetary walkers
@@ -443,6 +449,7 @@ implicit none
       !End burn-in
 
     end do !walkers
+    !$OMP END PARALLEL
 
      if ( is_burn ) then
 

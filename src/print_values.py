@@ -175,6 +175,7 @@ if ( nplanets == 1 ):
       tf_val , tf_errl, tf_errr  = find_vals_perc(tfo,s_factor)
       rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,s_factor)
       Teq_val,Teq_errl, Teq_errr = find_vals_perc(Teqo,s_factor)
+      jitter_tr_val, jitter_tr_errl, jitter_tr_errr = find_vals_perc(jtro,s_factor)
       if ( fit_rv ):
         rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,s_factor)
         gp_val,gp_errl, gp_errr = find_vals_perc(gpo,s_factor)
@@ -186,7 +187,6 @@ if ( nplanets == 1 ):
       alpha_val, alpha_errl, alpha_errr = find_vals_perc(alphao,s_factor)
       beta_val, beta_errl, beta_errr = find_vals_perc(betao,s_factor)
       jitter_rv_val, jitter_rv_errl, jitter_rv_errr = find_vals_perc(jrvo,s_factor)
-      jitter_tr_val, jitter_tr_errl, jitter_tr_errr = find_vals_perc(jtro,s_factor)
       m_val, m_errl, m_errr  	= find_vals_perc(masso,s_factor)
       tp_val, tp_errl, tp_errr= find_vals_perc(tpo,s_factor)
       #Systemic velocities are stored in v_val

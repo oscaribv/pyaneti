@@ -13,7 +13,7 @@ fname_tr = 'earth_lc.dat'
 #chain parameters
 thin_factor = 10
 nconv = 500
-nwalkers = 50
+nwalkers = 500
 
 #photometric data
 lc_data = 'free'
