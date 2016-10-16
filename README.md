@@ -6,7 +6,7 @@
 ### __Introduction__
 
 * _Pianeti_ is the Italian word for planets.
-* It is a _python/fortran_ software suite which finds the best fitting solution  by $\chi^2$ minimization using Marcov Chain Monte Carlo (MCMC) methods.
+* It is a _python/fortran_ software suite which finds the best fitting solution using Marcov Chain Monte Carlo (MCMC) methods.
 * Ensemble sampler with affine invariance algorithm
 for a major coverage of the parameter space
 ([Godman & Weare, 2010](http://msp.org/camcos/2010/5-1/p04.xhtml)).
@@ -136,10 +136,10 @@ Once see this, you will see some plots similar to
 ![Transit first fit](./outpy/test_out/transit_test.png)
 ![Radial-Velocity first fit](./outpy/test_out/rv_test.png)
 
-Let me explain you briefly what this is:  
+Let me explain you briefly what this is:
 > If you were an advanced alien civilization with really high technology, and "lucky" enough to see the Earth crossing in front of the Sun, **this is how the Earth would look like to you**.
 
-Look at those well known parameters:    
+Look at those well known parameters:
 * 1 Earth Mass
 * 1 Earth radii
 * Period of 365 days
@@ -166,6 +166,7 @@ _Work in progress!_
 ## ** Acknowledgements **
 * to Davide Gandolfi, for his support and motivation to create this code.
 * to Hannu Parviainen, to help me to interpret the first result of the PDF of the MCMC chains. I learned a lot!
-* to Mabel Valerdi, to help me with as the first pyaneti user, to detect bugs and errors in this manual.
+* to Mabel Valerdi, to help me with as the first pyaneti user, to detect bugs and errors in this manual. As well for its idea for the pyaneti's logo.
+* to Salvador Curiel, for his suggestions to parallelize the code.
 
 **THANKS!**
