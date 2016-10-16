@@ -435,6 +435,7 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
+        !OMP CRITICAL
         if ( npl == 1 ) then
           do m = 0, npl - 1 !Print a file with data of each planet 
             write(m,*) j, chi2_old(nk), chi2_red(nk),jitter_old(nk),params_old(:,m,nk)
@@ -444,6 +445,7 @@ implicit none
             write(m,*) j, chi2_old(nk), chi2_red(nk),params_old(:,m,nk)
           end do
         end if
+        !OMP END CRITICAL
         end if
       end if
       !End burn-in
@@ -660,8 +662,8 @@ implicit none
   jitter_tr_new(:) = 0.0d0
 
   !call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
-  call gauss_random_bm(0.005d0,0.001d0,jitter_rv_old,nwalks)
-  call gauss_random_bm(5.d-6,1.d-6,jitter_tr_old,nwalks)
+  call gauss_random_bm(0.000d0,0.000d0,jitter_rv_old,nwalks)
+  call gauss_random_bm(0.d-6,0.d-6,jitter_tr_old,nwalks)
 
   mult_old(:) = 1.0d0
   mult_new(:) = 1.0d0
@@ -804,7 +806,9 @@ implicit none
       call get_a_scaled(mstar,rstar,params_old(1,:),params_old(5,:),nwalks)
     end if
 
-
+    !$OMP PARALLEL &
+    !$OMP PRIVATE(is_limit_good,q,m,params_tr,params_rv)
+    !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1
 
       !Let us generate a random step
@@ -867,11 +871,11 @@ implicit none
        mult_new(nk) = mult_new(nk)/sqrt( errs_tr(m)**2 + jitter_tr_new(nk)**2  )
      end do
 
-     !Is the new model better? 
+     !Is the new model better?
 !      if ( 1 == 1 ) then
-        q = mult_new(nk) / mult_old(nk)
+!        q = mult_new(nk) / mult_old(nk)
 !      else
-!        q = 1.0d0
+        q = 1.0d0
 !      end if
       q = q * z_rand(nk)**( int(spar - 1) ) * &
           exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
@@ -889,12 +893,15 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
+         !$OMP CRITICAL
          write(101,*) j, chi2_old_total(nk), chi2_red(nk),jitter_rv_old(nk),jitter_tr_old(nk), params_old(:,nk)
+         !$OMP END CRITICAL
         end if
       end if
       !End burn-in
 
     end do !walkers
+    !$OMP END PARALLEL
 
 
      if ( is_burn ) then

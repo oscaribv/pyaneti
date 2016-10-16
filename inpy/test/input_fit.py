@@ -13,7 +13,7 @@ fname_tr = 'earth_lc.dat'
 #chain parameters
 thin_factor = 10
 nconv = 500
-nwalkers = 500
+nwalkers = 100
 
 #photometric data
 lc_data = 'free'
@@ -23,6 +23,11 @@ t_cad = 30. / 60. / 24.
 method = 'sm'
 #method = 'plot'
 
+mstar_mean = 1.0
+mstar_sigma = 0.1
+rstar_mean = 1.0
+rstar_sigma = 0.1
+
 #Output controls
 unit_mass = 'earth'
 
@@ -31,7 +36,7 @@ a_from_kepler = True
 
 #We want to fit transit and RV 
 fit_rv = True
-#fit_tr = True
+fit_tr = True
 
 #What do we want to fit?
 fit_t0 = True
