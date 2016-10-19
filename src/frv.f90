@@ -435,7 +435,7 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
-        !OMP CRITICAL
+        !$OMP CRITICAL
         if ( npl == 1 ) then
           do m = 0, npl - 1 !Print a file with data of each planet 
             write(m,*) j, chi2_old(nk), chi2_red(nk),jitter_old(nk),params_old(:,m,nk)
@@ -445,7 +445,7 @@ implicit none
             write(m,*) j, chi2_old(nk), chi2_red(nk),params_old(:,m,nk)
           end do
         end if
-        !OMP END CRITICAL
+        !$OMP END CRITICAL
         end if
       end if
       !End burn-in

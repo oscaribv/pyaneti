@@ -332,7 +332,7 @@ def good_clustering(chi2,nconv,nwalkers):
   good_index = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < 1.5*total_min ):
+    if ( chi2_mean[i] < (1.0 + clustering_delta)*total_min ):
       good_index.append(i)
 
   new_nwalkers = len(good_index)
