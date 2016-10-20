@@ -11,7 +11,7 @@
 !-----------------------------------------------------------
 !                     find_z
 !  This suborutine finds the projected distance between
-!  the star and planet centers. Eq. (5), (r_sky) from
+!  the star and planet centers. Eq. (5), ( z = r_sky) from
 !  Winn, 2010, Transit and Occultations.
 !------------------------------------------------------------
 subroutine find_z(t,pars,flag,z,ts)

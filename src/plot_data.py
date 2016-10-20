@@ -16,11 +16,12 @@ def plot_chains():
   else:
    plt.plot(vari[0],chi2red[0],'b.')
   fname = outdir+'/'+star+plabels[0]+'_chains.pdf'
+  print 'Creating ', fname
   plt.savefig(fname,bbox_inches='tight')
-  #plt.show()
   plt.close()
 
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
+  print 'Creating ', fname
   plt.figure(3,figsize=(fsx,fsy))
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
   gs.update(hspace=0.00) 
@@ -52,7 +53,6 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.minorticks_on()
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
-  #plt.show()
   plt.close()
 
 #===========================================================
@@ -68,6 +68,7 @@ if ( nplanets == 1 ):
   #Ntransit is the number of the transit that we want to plot
   def fancy_tr_plot(xtime,yflux,errors,flag,fname):
 
+    print 'Creating ', fname
     #Let us create the model
     xmodel_res = list(xtime)
     xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1.e3 )
@@ -139,7 +140,6 @@ if ( nplanets == 1 ):
     plt.minorticks_on()
     plt.savefig(fname,format='pdf',bbox_inches='tight')
     plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
-    #plt.show()
     plt.close()
 
 
@@ -213,8 +213,8 @@ if ( nplanets == 1 ):
       label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
     plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
     fname = outdir+'/'+star+plabels[0]+'_rv_all.pdf'
+    print 'Creating ', fname
     plt.savefig(fname,format='pdf',bbox_inches='tight')
-    #plt.show()
     plt.close()
 
 #===========================================================
@@ -365,8 +365,9 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
     plt.xlabel(plabs[i])
     plt.hist(params[i],normed=True,bins=nb)
 
-  plt.savefig(outdir+'/'+star+plabels[0]+'_histogram.pdf',format='pdf',bbox_inches='tight')
-  #plt.show()
+  fname = outdir+'/'+star+plabels[0]+'_histogram.pdf'
+  print 'Creating ', fname
+  plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
 
 def plot_histogram(rf=1):
@@ -452,8 +453,9 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 
       plt.hist2d(params[j],params[i],bins=100,norm=LogNorm())
 
-  plt.savefig(outdir+'/'+star+plabels[0]+'_correlations.pdf',format='pdf',bbox_inches='tight')
-  #plt.show()
+  fname = outdir+'/'+star+plabels[0]+'_correlations.pdf'
+  print 'Creating ', fname
+  plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
 
 def plot_correlations(rf=1):
