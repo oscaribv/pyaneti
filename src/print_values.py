@@ -28,8 +28,15 @@ if ( nplanets == 1 ):
 
     if (is_log_a):
       ao = np.power(10.0,ao)
+
     if (is_b_factor):
-      io = np.arccos(io/ao)
+      bo = io
+      io = np.arccos(io / ao * (1.0 + eo * np.sin(wo+np.pi) / (1.0 - eo*eo ) ) )
+    else:
+      #calculate the impact parameter (eq. 7 Winn 2014)
+      #wo is the star periastron, add pi to have the planet one
+      bo =  ao * np.cos(io) * ( ( 1. - eo*eo ) / ( 1.0 + eo*np.sin(wo + np.pi )))
+
     inclination = io
 
 
@@ -39,15 +46,12 @@ if ( nplanets == 1 ):
 
     #Take back the u1 and u2 values, Kipping 2013
     u1o = 2*np.sqrt(q1o)*q2o
-    u2o = np.sqrt(q1o)*(1.-2.*q2o) 
- 
+    u2o = np.sqrt(q1o)*(1.-2.*q2o)
+
     #Calculate the planet size in solar radii
     #rstar must be given in solar radius           
     rpo = pzo * rstar
     
-    #calculate the impact parameter (eq. 7 Winn 2014)
-    #wo is the star periastron, add pi to have the planet one
-    bo =  ao * np.cos(io) * ( ( 1. - eo*eo ) / ( 1.0 + eo*np.sin(wo + np.pi )))
     #Transit durations aproximations (eq. 14, 15, 16 from Winn 2014)
     ec_factor = np.sqrt(( 1. - eo*eo )) / ( 1.0 + eo*np.sin(wo + np.pi ))
     tto = np.sqrt( (1. + pzo)**2 - bo**2 ) / ( ao * np.sin(io))

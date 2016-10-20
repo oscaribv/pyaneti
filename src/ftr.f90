@@ -9,7 +9,10 @@
 !------------------------------------------------------------
 
 !-----------------------------------------------------------
-!  Find z suborutine
+!                     find_z
+!  This suborutine finds the projected distance between
+!  the star and planet centers. Eq. (5), (r_sky) from
+!  Winn, 2010, Transit and Occultations.
 !------------------------------------------------------------
 subroutine find_z(t,pars,flag,z,ts)
 implicit none
@@ -24,6 +27,7 @@ implicit none
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: t0, P, e, w, i, a
   double precision :: si
+  double precision :: pi = 3.1415926535897932384626d0
 !External function
   external :: find_anomaly
 !
@@ -41,9 +45,9 @@ implicit none
     w = atan2(pars(2),pars(3))
   end if
   !Let us get the w of the planet
-  w = w + 3.1415926535d0
+  w = w + pi
   if (flag(3)) a = 10.0**a
-  if (flag(2)) i = acos(i/a)
+  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(w) ) / ( 1.d0 - e*e ) )
 
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)

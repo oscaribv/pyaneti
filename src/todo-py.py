@@ -287,7 +287,7 @@ def separate_transits(x,y,err,limits):
 
 #-----------------------------------------------------------
 # find_vals_perc -> find the median and the errors within
-#  a 68% confidence interval
+#  a 68% credible interval
 #input: 
 #       x -> vector with a minimum size nconv
 #   nconv -> the last nconv points to be taken account
