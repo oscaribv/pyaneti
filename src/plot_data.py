@@ -15,7 +15,10 @@ def plot_chains():
    plt.plot(vari,chi2red,'b.')
   else:
    plt.plot(vari[0],chi2red[0],'b.')
-  plt.show()
+  fname = outdir+'/'+star+plabels[0]+'_chains.pdf'
+  plt.savefig(fname,bbox_inches='tight')
+  #plt.show()
+  plt.close()
 
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.figure(3,figsize=(fsx,fsy))
@@ -49,7 +52,8 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.minorticks_on()
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
-  plt.show()
+  #plt.show()
+  plt.close()
 
 #===========================================================
 #                   One planet plots
@@ -135,7 +139,8 @@ if ( nplanets == 1 ):
     plt.minorticks_on()
     plt.savefig(fname,format='pdf',bbox_inches='tight')
     plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
-    plt.show()
+    #plt.show()
+    plt.close()
 
 
   def plot_transit_nice():
@@ -209,7 +214,8 @@ if ( nplanets == 1 ):
     plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
     fname = outdir+'/'+star+plabels[0]+'_rv_all.pdf'
     plt.savefig(fname,format='pdf',bbox_inches='tight')
-    plt.show()
+    #plt.show()
+    plt.close()
 
 #===========================================================
 
@@ -360,7 +366,8 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
     plt.hist(params[i],normed=True,bins=nb)
 
   plt.savefig(outdir+'/'+star+plabels[0]+'_histogram.pdf',format='pdf',bbox_inches='tight')
-  plt.show()
+  #plt.show()
+  plt.close()
 
 def plot_histogram(rf=1):
 
@@ -446,7 +453,8 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
       plt.hist2d(params[j],params[i],bins=100,norm=LogNorm())
 
   plt.savefig(outdir+'/'+star+plabels[0]+'_correlations.pdf',format='pdf',bbox_inches='tight')
-  plt.show()
+  #plt.show()
+  plt.close()
 
 def plot_correlations(rf=1):
 
