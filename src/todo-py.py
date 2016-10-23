@@ -324,6 +324,7 @@ def good_clustering(chi2,chain_lab,nconv,nwalkers):
       if (chain_lab[j] == i ):
         walk_dummy.append(chi2[j])
     chi2_walkers[i] = walk_dummy
+    walk_dummy = []
 
 
   #The mean of each walker
@@ -359,8 +360,9 @@ def good_clustering(chi2,chain_lab,nconv,nwalkers):
 def clustering(par,good_index):
 
   cluster_par = np.zeros(len(good_index))
-  for i in good_index:
-    cluster_par[i] = par[i]
+  for i in range(0,len(good_index)):
+    n = good_index[i]
+    cluster_par[i] = par[n]
 
   return cluster_par
     

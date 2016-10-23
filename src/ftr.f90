@@ -121,6 +121,7 @@ implicit none
   !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
   double precision, dimension(0:n_cad-1)  :: xd_ub, z, flux_ub
   integer ::  j, k
+  logical :: is_good
 !External function
   external :: occultquad
 
@@ -131,6 +132,11 @@ implicit none
   u1 = sqrt(q1k)
   u2 = u1*( 1.d0 - 2.d0*q2k)
   u1 = 2.d0*u1*q2k
+
+  !are the u1 and u2 within a physical solution
+  call check_us(u1,u2,is_good)
+
+  if ( is_good ) then
 
   !Selective re-sampling
   do j = 0, datas - 1
@@ -165,6 +171,12 @@ implicit none
   !If this is not true, use mu 
   res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
   chi2 = dot_product(res,res)
+
+  else
+
+    chi2 = huge(0.d0)
+
+  end if
 
 end subroutine
 !-----------------------------------------------------------
