@@ -894,7 +894,7 @@ implicit none
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
          !$OMP CRITICAL
-         write(101,*) j, chi2_old_total(nk), chi2_red(nk),jitter_rv_old(nk),jitter_tr_old(nk), params_old(:,nk)
+         write(101,*) j, nk, chi2_old_total(nk),jitter_rv_old(nk),jitter_tr_old(nk), params_old(:,nk)
          !$OMP END CRITICAL
         end if
       end if

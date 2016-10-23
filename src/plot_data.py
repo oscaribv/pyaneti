@@ -12,9 +12,9 @@ def plot_chains():
   plt.xlabel('iteration')
   plt.ylabel('$\chi^2$')
   if (nplanets == 1):
-   plt.plot(vari,chi2red,'b.')
+   plt.plot(vari,chi2,'b.')
   else:
-   plt.plot(vari[0],chi2red[0],'b.')
+   plt.plot(vari[0],chi2[0],'b.')
   fname = outdir+'/'+star+plabels[0]+'_chains.pdf'
   print 'Creating ', fname
   plt.savefig(fname,bbox_inches='tight')

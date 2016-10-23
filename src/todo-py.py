@@ -308,18 +308,22 @@ def find_vals_perc(x,sf=1.0):
 
 #-----------------------------------------------------------
 
-def good_clustering(chi2,nconv,nwalkers):
+def good_clustering(chi2,chain_lab,nconv,nwalkers):
   #Let us find the good indixes for the cluster
   #We have n walkers
 
   print 'STARTING CHAIN CLUSTERING'
   print 'Initial number of chains:', nwalkers
 
-  #This variable will have each walker information
+  #Extract all the chains
   chi2_walkers = [None]*nwalkers
   chi2_mean = [None]*nwalkers
-  for i in range (0,nwalkers):
-   chi2_walkers[i] = chi2[i::nconv]
+  walk_dummy = []
+  for i in range(0,nwalkers):
+    for j in range (0,len(chain_lab)):
+      if (chain_lab[j] == i ):
+        walk_dummy.append(chi2[j])
+    chi2_walkers[i] = walk_dummy
 
 
   #The mean of each walker
@@ -329,36 +333,37 @@ def good_clustering(chi2,nconv,nwalkers):
   #get the minimum chi2
   total_min = min(chi2_mean)
 
-  good_index = []
+  good_chain = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < (1.0 + clustering_delta)*total_min ):
-      good_index.append(i)
+    if ( chi2_mean[i] < clustering_delta + total_min ):
+      #We are saving the good chain labels
+      good_chain.append(i)
 
-  new_nwalkers = len(good_index)
- 
+  #Now we know how many good chains we have
+  new_nwalkers = len(good_chain)
+
   print 'Final number of chains:', new_nwalkers
+
+  #Let us save the good index
+  good_index = []
+  for i in range(0, len(chain_lab)):
+      for j in range(0,len(good_chain)):
+          if ( chain_lab[i] == good_chain[j] ):
+              good_index.append(i)
+
   return good_index, new_nwalkers
 
 #-----------------------------------------------------------
 
-def clustering(par,good_index,nconv):
+def clustering(par,good_index):
 
-  dummy_par = []
+  cluster_par = np.zeros(len(good_index))
   for i in good_index:
-    dummy_par.append(par[i::nwalkers])
-
-  cluster_par = np.ndarray(len(good_index)*nconv)
-
-  n = 0
-  for i in range(0,len(dummy_par)):
-    for j in range(0,len(dummy_par[i])):
-      cluster_par[n] = dummy_par[i][j]
-      n = n + 1
+    cluster_par[i] = par[i]
 
   return cluster_par
     
-
 #-----------------------------------------------------------
 #         FIT JOINT RV-TRANSIT DATA
 #-----------------------------------------------------------
@@ -447,7 +452,7 @@ def fit_joint():
     os.rename('mh_fit.dat',newfile)
         
   #Read the data
-  dvari,dchi2,dchi2red,djrvo,djtro,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo,dko, dalphao, dbetao =  \
+  dvari,dchain_lab,dchi2,djrvo,djtro,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo,dko, dalphao, dbetao =  \
   np.loadtxt(newfile, comments='#',unpack=True, \
   usecols=range(0,17))
   dvo = [None]*nt
@@ -458,27 +463,26 @@ def fit_joint():
     dvo[j] = a
 
   #Starting clustering
-  good_index, new_nwalkers = good_clustering(dchi2,nconv,nwalkers)
-  vari = clustering(dvari,good_index,nconv)
-  chi2 = clustering(dchi2,good_index,nconv)
-  chi2red = clustering(dchi2red,good_index,nconv)
-  jrvo = clustering(djrvo,good_index,nconv)
-  jtro = clustering(djtro,good_index,nconv)
-  t0o = clustering(dt0o,good_index,nconv)
-  Po = clustering(dPo,good_index,nconv)
-  eo = clustering(deo,good_index,nconv)
-  wo = clustering(dwo,good_index,nconv)
-  io = clustering(dio,good_index,nconv)
-  ao = clustering(dao,good_index,nconv)
-  q1o = clustering(dq1o,good_index,nconv)
-  q2o = clustering(dq2o,good_index,nconv)
-  pzo = clustering(dpzo,good_index,nconv)
-  ko = clustering(dko,good_index,nconv)
-  alphao = clustering(dalphao,good_index,nconv)
-  betao = clustering(dbetao,good_index,nconv)
+  good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
+  vari = clustering(dvari,good_index)
+  chi2 = clustering(dchi2,good_index)
+  jrvo = clustering(djrvo,good_index)
+  jtro = clustering(djtro,good_index)
+  t0o = clustering(dt0o,good_index)
+  Po = clustering(dPo,good_index)
+  eo = clustering(deo,good_index)
+  wo = clustering(dwo,good_index)
+  io = clustering(dio,good_index)
+  ao = clustering(dao,good_index)
+  q1o = clustering(dq1o,good_index)
+  q2o = clustering(dq2o,good_index)
+  pzo = clustering(dpzo,good_index)
+  ko = clustering(dko,good_index)
+  alphao = clustering(dalphao,good_index)
+  betao = clustering(dbetao,good_index)
   vo = [None]*nt
   for j in range(0,nt):
-    vo[j] = clustering(dvo[j],good_index,nconv)
+    vo[j] = clustering(dvo[j],good_index)
 
 
 #-----------------------------------------------------------
