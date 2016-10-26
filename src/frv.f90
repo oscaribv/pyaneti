@@ -579,7 +579,8 @@ implicit none
   double precision, dimension(0:npars+nt-1,0:nwalks-1,0:nconv-1) :: params_chains
   double precision, dimension(0:npars+nt-1,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:nwalks-1) :: mstar, rstar
-  double precision, dimension(0:nwalks-1) :: jitter_rv_old, jitter_rv_new, jitter_tr_old, jitter_tr_new, mult_old, mult_new
+  double precision, dimension(0:nwalks-1) :: jitter_rv_old, jitter_rv_new, jitter_tr_old, jitter_tr_new
+  double precision, dimension(0:nwalks-1,0:drv+dtr-1) :: mult_old, mult_new, mult_total
   double precision  :: q
   double precision  :: esin, ecos, aa, chi2_red_min
   integer :: o,j, n,m, nu, nk, n_burn, spar, new_thin_factor
@@ -661,26 +662,21 @@ implicit none
   jitter_rv_new(:) = 0.0d0
   jitter_tr_new(:) = 0.0d0
 
-  !call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
-  call gauss_random_bm(0.000d0,0.000d0,jitter_rv_old,nwalks)
-  call gauss_random_bm(0.d-6,0.d-6,jitter_tr_old,nwalks)
+  call gauss_random_bm(0.00050,0.001d0,jitter_rv_old,nwalks)
+  call gauss_random_bm(errs_tr(0),errs_tr(0)*0.25,jitter_tr_old,nwalks)
 
-  mult_old(:) = 1.0d0
-  mult_new(:) = 1.0d0
+  mult_old(:,:) = 1.0d0
+  mult_new(:,:) = 1.0d0
   do nk = 0, nwalks - 1
     do j = 0, drv-1
-      mult_old(nk) = mult_old(nk)/sqrt( errs_rv(j)**2 + jitter_rv_old(nk)**2  )
+      mult_old(nk,j) = 1.0d0/sqrt( errs_rv(j)**2 + jitter_rv_old(nk)**2  )
     end do
-    do j = 0, dtr-1
-      mult_old(nk) = mult_old(nk)/sqrt( errs_tr(j)**2 + jitter_tr_old(nk)**2  )
+    do j = drv, drv+dtr-1
+      mult_old(nk,j) = 1.0d0/sqrt( errs_tr(j)**2 + jitter_tr_old(nk)**2  )
     end do
   end do
 
-!  print *, mult_old(10)
-!  stop
-
-
-  !Call a random seed 
+  !Call a random seed
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
 
@@ -863,20 +859,21 @@ implicit none
 
       end if
 
-     mult_new(:) = 1.0d0
+     mult_new(nk,:) = 1.0d0
      do m = 0, drv-1
-      mult_new(nk) = mult_new(nk)/sqrt( errs_rv(m)**2 + jitter_rv_new(nk)**2  )
+      mult_new(nk,m) = 1.0d0/sqrt( errs_rv(m)**2 + jitter_rv_new(nk)**2  )
      end do
-     do m = 0, dtr-1
-       mult_new(nk) = mult_new(nk)/sqrt( errs_tr(m)**2 + jitter_tr_new(nk)**2  )
+     do m = drv, drv+dtr-1
+       mult_new(nk,m) = 1.0d0/sqrt( errs_tr(m)**2 + jitter_tr_new(nk)**2  )
      end do
 
-     !Is the new model better?
-!      if ( 1 == 1 ) then
-!        q = mult_new(nk) / mult_old(nk)
-!      else
-        q = 1.0d0
-!      end if
+     mult_total(nk,:) = mult_new(nk,:) / mult_old(nk,:)
+
+     q = 1.0d0
+     do m = 0, drv+dtr-1
+       q = q * mult_total(nk,m)
+     end do
+
       q = q * z_rand(nk)**( int(spar - 1) ) * &
           exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
 
@@ -885,7 +882,7 @@ implicit none
         params_old(:,nk) = params_new(:,nk)
         jitter_rv_old(nk) = jitter_rv_new(nk)
         jitter_tr_old(nk) = jitter_tr_new(nk)
-        mult_old(nk) = mult_new(nk)
+        mult_old(nk,:) = mult_new(nk,:)
       end if
 
       chi2_red(nk) = chi2_old_total(nk) / nu

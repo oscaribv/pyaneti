@@ -337,7 +337,7 @@ def good_clustering(chi2,chain_lab,nconv,nwalkers):
   good_chain = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( chi2_mean[i] < clustering_delta + total_min ):
+    if ( chi2_mean[i]/total_min < 1.0 + clustering_delta ):
       #We are saving the good chain labels
       good_chain.append(i)
 

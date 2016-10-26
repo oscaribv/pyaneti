@@ -78,7 +78,7 @@ if ( nplanets == 1 ):
     tpo = [None]*len(t0o) 
     masso = [None]*len(t0o) 
     for m in range(0,len(t0o)):
-      tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m],Po[m])
+      tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m]+np.pi,Po[m])
 
     masso = planet_mass(mstar,ko*1.e3,Po,eo,inclination)
 
@@ -239,7 +239,7 @@ if ( nplanets == 1 ):
     opars.write('T0    = %4.7f + %4.7f - %4.7f days\n'%(t0_val,t0_errr,t0_errl))
     opars.write('P     = %4.7f + %4.7f - %4.7f days\n'%(P_val, P_errr , P_errl))
     opars.write('e     = %4.4f + %4.4f - %4.4f     \n'%(e_val, e_errr , e_errl))
-    opars.write('w     = %4.4f + %4.4f - %4.4f deg \n'%(w_deg,w_deg_errr, w_deg_errl))
+    opars.write('w_*   = %4.4f + %4.4f - %4.4f deg \n'%(w_deg,w_deg_errr, w_deg_errl))
     if (fit_tr):
       opars.write('Transit fit parameters:\n')
       opars.write('b     = %4.4f + %4.4f - %4.4f    \n'%(b_val,b_errr, b_errl))
@@ -270,6 +270,7 @@ if ( nplanets == 1 ):
       opars.write('u_2    = %4.4f + %4.4f - %4.4f    \n' 		%(u2_val,u2_errr, u2_errl))
       opars.write('T_eq   = %4.4f + %4.4f - %4.4fK   \n'               %(Teq_val,Teq_errr, Teq_errl))
     if (fit_rv):
+      opars.write('w_p   = %4.4f + %4.4f - %4.4f deg \n'%((w_deg+180.)%360.0,w_deg_errr, w_deg_errl))
       opars.write('Tp    = %4.4f + %4.4f - %4.4f days\n' 		%(tp_val,tp_errr, tp_errl))
       opars.write('mp    = %4.4f + %4.4f - %4.4f %s masses\n' 		%(m_val,m_errr, m_errl,unit_mass))
       if ( fit_tr ):

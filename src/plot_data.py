@@ -71,7 +71,7 @@ if ( nplanets == 1 ):
     print 'Creating ', fname
     #Let us create the model
     xmodel_res = list(xtime)
-    xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1.e3 )
+    xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1.e2 )
 
     xd_ub = np.ndarray(shape=(n_cad,len(xmodel)))
     xd_ub_res = np.ndarray(shape=(n_cad,len(xmodel)))
