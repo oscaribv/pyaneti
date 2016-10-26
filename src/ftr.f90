@@ -390,14 +390,16 @@ implicit none
       call get_a_scaled(mstar,rstar,params_old(1,:),params_old(5,:),nwalks)
     end if
 
-
+    !$OMP PARALLEL &
+    !$OMP PRIVATE(is_limit_good,q,m)
+    !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1 !walkers
 
     !Draw the random walker nk, from the complemetary walkers
       z_rand(nk) = z_rand(nk) * aa
 
       !The gz function to mantain the affine variance codition in the walks
-      call find_gz(z_rand(nk),aa) 
+      call find_gz(z_rand(nk),aa)
 
       !Evolve for all the planets for all the parameters
       params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
@@ -459,12 +461,15 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
+            !$OMP CRITICAL
             write(123,*) j, nk, chi2_old(nk), jitter_old(nk), params_old(:,nk)
+            !$OMP END CRITICAL
         end if
       end if
       !End burn-in
 
     end do !walkers
+    !$OMP END PARALLEL
 
      if ( is_burn ) then
 
