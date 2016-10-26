@@ -201,9 +201,11 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
   double precision, dimension(0:8,0:nwalks-1) :: params_old, params_new
   double precision, dimension(0:8,0:nwalks-1,0:nconv-1) :: params_chains
-  double precision, dimension(0:nwalks-1) :: mstar, rstar, jitter
+  double precision, dimension(0:nwalks-1) :: mstar, rstar
+  double precision, dimension(0:nwalks-1) :: jitter_old, jitter_new
+  double precision, dimension(0:nwalks-1,0:datas-1) :: mult_old, mult_new, mult_total
   double precision  :: q, esin, ecos, aa, chi2_red_min
-  integer :: o, j, n, nu, nk, n_burn, spar, new_thin_factor
+  integer :: o, j, n, m, nu, nk, n_burn, spar, new_thin_factor
   logical :: continua, is_burn, is_limit_good, is_cvg, is_eclipse
   double precision :: r_rand(0:nwalks-1), z_rand(0:nwalks-1)
   integer, dimension(0:nwalks-1) :: r_int
@@ -256,11 +258,21 @@ implicit none
   if ( flag(2) ) then
     params(4) = params(5) * cos(params(4))
     limits(8) = 0.0
-    limits(9) = limits(11) * cos(limits(8))
+    limits(9) = 1.0
     limits_physical(8) = 0.d0
     limits_physical(9) = 1.d0
   end if
-  call gauss_random_bm(0.d-6,0.d-6,jitter,nwalks)
+
+
+  !Let us create the jitter from the error bars
+  call gauss_random_bm(errs(0),errs(0)*0.1,jitter_old,nwalks)
+  mult_old(:,:) = 1.0d0
+  mult_new(:,:) = 1.0d0
+  do nk = 0, nwalks - 1
+    do j = 0, datas-1
+      mult_old(nk,j) = 1.0d0/sqrt( errs(j)**2 + jitter_old(nk)**2  )
+    end do
+  end do
 
 
   print *, 'CREATING RANDOM SEED'
@@ -301,20 +313,20 @@ implicit none
    end if
 
     !Let us find z
-    call find_z(xd,params_old(0:5,nk),flag,zr,datas) 
+!    call find_z(xd,params_old(0:5,nk),flag,zr,datas)
 
     !Let us check if there is an eclipse
-    call check_eclipse(zr,params_old(8,nk),is_eclipse,datas)
+!    call check_eclipse(zr,params_old(8,nk),is_eclipse,datas)
     !if we do not have an eclipse, let us recalculate this wlaker
-    if ( .not. is_eclipse ) then 
-      nk = nk
-    else
+!    if ( .not. is_eclipse ) then
+!      nk = nk
+!    else
     !Each walker is a point in a parameter space
     !Let us estimate our first chi_2 value for each walker
-    call find_chi2_tr(xd,yd,errs,params_old(0:5,nk),jitter(nk),flag,params_old(6:8,nk), &
+    call find_chi2_tr(xd,yd,errs,params_old(0:5,nk),jitter_old(nk),flag,params_old(6:8,nk), &
                       n_cad, t_cad, chi2_old(nk),datas)
       nk = nk + 1
-    end if
+!    end if
 
   end do
 !  stop
@@ -355,6 +367,7 @@ implicit none
 
     do nk = 0, nwalks - 1 !walkers
         params_new(:,nk) = params_old(:,r_int(nk))
+        jitter_new(nk) = jitter_old(r_int(nk))
     end do
 
 
@@ -381,7 +394,7 @@ implicit none
     do nk = 0, nwalks - 1 !walkers
 
     !Draw the random walker nk, from the complemetary walkers
-      z_rand(nk) = z_rand(nk) * aa 
+      z_rand(nk) = z_rand(nk) * aa
 
       !The gz function to mantain the affine variance codition in the walks
       call find_gz(z_rand(nk),aa) 
@@ -389,42 +402,56 @@ implicit none
       !Evolve for all the planets for all the parameters
       params_new(:,nk) = params_new(:,nk) + wtf_all(:) * z_rand(nk) * &
                            ( params_old(:,nk) - params_new(:,nk) )
+      jitter_new(nk) = jitter_new(nk) + z_rand(nk) * &
+                           ( jitter_old(nk) - jitter_new(nk) )
 
         !Let us check the limits
         call check_limits(params_new(:,nk),limits_physical(:), &
                           is_limit_good,9)
         if ( is_limit_good ) then
-          ! u1 + u2 < 1 limit
-          call check_us(params_new(6,nk),params_new(7,nk),is_limit_good)
-          if (is_limit_good ) then
             !Check that e < 1 for ew
-            if ( flag(1) ) then
-              call check_e(params_new(2,nk),params_new(3,nk),dble(0.9d0),is_limit_good)
-            end if          
+          if ( flag(1) ) then
+            call check_e(params_new(2,nk),params_new(3,nk),0.9d0,is_limit_good)
           end if
         end if
 
       if ( is_limit_good ) then !evaluate chi2
         !Let us find z
-        call find_z(xd,params_new(0:5,nk),flag,zr,datas) 
-        call check_eclipse(zr,params_new(8,nk),is_eclipse,datas)
+        !call find_z(xd,params_new(0:5,nk),flag,zr,datas)
+        !call check_eclipse(zr,params_new(8,nk),is_eclipse,datas)
         !find chi2
-        if ( is_eclipse ) then
-        call find_chi2_tr(xd,yd,errs,params_new(0:5,nk),jitter(nk),flag,params_new(6:8,nk),n_cad,t_cad,chi2_new(nk),datas)
-        else
-          chi2_new(nk) = huge(0.0d0)
-        end if
+        !if ( is_eclipse ) then
+          call find_chi2_tr(xd,yd,errs,params_new(0:5,nk),jitter_new(nk), &
+               flag,params_new(6:8,nk),n_cad,t_cad,chi2_new(nk),datas)
+        !else
+        !  chi2_new(nk) = huge(0.0d0)
+        !end if
       else !we do not have a good model
         chi2_new(nk) = huge(dble(0.0)) !a really big number
       end if
 
-      !Compare the models 
-      q = z_rand(nk)**(spar - 1) * &
+
+     mult_new(nk,:) = 1.0d0
+     do m = 0, datas-1
+       mult_new(nk,m) = 1.0d0/sqrt( errs(m)**2 + jitter_new(nk)**2  )
+     end do
+
+     mult_total(nk,:) = mult_new(nk,:) / mult_old(nk,:)
+
+     q = 1.0d0
+     do m = 0, datas-1
+       q = q * mult_total(nk,m)
+     end do
+
+      !Compare the models
+      q = q * z_rand(nk)**(spar - 1) * &
           exp( ( chi2_old(nk) - chi2_new(nk) ) * 0.5  )
 
       if ( q >= r_rand(nk) ) then !is the new model better?
           chi2_old(nk) = chi2_new(nk)
           params_old(:,nk) = params_new(:,nk)
+          jitter_old(nk) = jitter_new(nk)
+          mult_old(nk,:) = mult_new(nk,:)
       end if
 
       chi2_red(nk) = chi2_old(nk) / nu
