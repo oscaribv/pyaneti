@@ -180,6 +180,10 @@ if ( nplanets == 1 ):
       rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,s_factor)
       Teq_val,Teq_errl, Teq_errr = find_vals_perc(Teqo,s_factor)
       jitter_tr_val, jitter_tr_errl, jitter_tr_errr = find_vals_perc(jtro,s_factor)
+
+      #Reestimate the error bar size of the transit data
+      megae = np.sqrt(megae**2 + jitter_tr_val**2)
+
       if ( fit_rv ):
         rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,s_factor)
         gp_val,gp_errl, gp_errr = find_vals_perc(gpo,s_factor)

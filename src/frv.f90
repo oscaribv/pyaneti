@@ -827,6 +827,9 @@ implicit none
               call check_e(params_new(2,nk),params_new(3,nk), is_limit_good )
             end if          
         end if
+
+      !Jitter term must be positive
+      if (jitter_tr_new(nk) < 0.0 .or.  jitter_rv_new(nk) < 0.0 ) is_limit_good = .false.
  
 
       if ( is_limit_good ) then !evaluate chi2
