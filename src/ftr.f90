@@ -459,7 +459,7 @@ implicit none
       !Start to burn-in 
       if ( is_burn ) then
         if ( mod(j,new_thin_factor) == 0 ) then
-            write(123,*) j, chi2_old(nk), chi2_red(nk), params_old(:,nk)
+            write(123,*) j, nk, chi2_old(nk), jitter_old(nk), params_old(:,nk)
         end if
       end if
       !End burn-in

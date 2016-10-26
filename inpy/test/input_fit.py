@@ -11,7 +11,7 @@ fname_rv = 'earth_rv.dat'
 fname_tr = 'earth_lc.dat'
 
 #chain parameters
-thin_factor = 10
+thin_factor = 1
 nconv = 500
 nwalkers = 100
 
@@ -21,7 +21,7 @@ n_cad = 1
 t_cad = 30. / 60. / 24.
 
 method = 'sm'
-#method = 'plot'
+method = 'plot'
 
 mstar_mean = 1.0
 mstar_sigma = 0.1
@@ -31,11 +31,12 @@ rstar_sigma = 0.1
 #Output controls
 unit_mass = 'earth'
 
+is_ew = False
 #Star parameters
 a_from_kepler = True
 
 #We want to fit transit and RV 
-fit_rv = True
+#fit_rv = True
 fit_tr = True
 
 #What do we want to fit?

@@ -501,7 +501,7 @@ def fit_transit():
   global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
          min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
          max_phys_q1, min_phys_pz, max_phys_pz
-  global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo, what_fit
+  global vari,chi2,jtro,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo, what_fit
   global new_nwalkers, good_index
 
 
@@ -554,20 +554,22 @@ def fit_transit():
   if ( os.path.isfile('mh_trfit.dat') ):
     os.rename('mh_trfit.dat',newfile)
   #Read the data
-  vari, chi2,chi2red,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo = \
+  vari,dchain_lab,dchi2,djtro,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo = \
   np.loadtxt(newfile, comments='#',unpack=True)
 
   #Starting clustering
-  good_index, new_nwalkers = good_clustering(chi2,nconv,nwalkers)
-  t0o = clustering(dt0o,good_index,nconv)
-  Po = clustering(dPo,good_index,nconv)
-  eo = clustering(deo,good_index,nconv)
-  wo = clustering(dwo,good_index,nconv)
-  io = clustering(dio,good_index,nconv)
-  ao = clustering(dao,good_index,nconv)
-  q1o = clustering(dq1o,good_index,nconv)
-  q2o = clustering(dq2o,good_index,nconv)
-  pzo = clustering(dpzo,good_index,nconv)
+  good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
+  jtro = clustering(djtro,good_index)
+  chi2 = clustering(dchi2,good_index)
+  t0o = clustering(dt0o,good_index)
+  Po = clustering(dPo,good_index)
+  eo = clustering(deo,good_index)
+  wo = clustering(dwo,good_index)
+  io = clustering(dio,good_index)
+  ao = clustering(dao,good_index)
+  q1o = clustering(dq1o,good_index)
+  q2o = clustering(dq2o,good_index)
+  pzo = clustering(dpzo,good_index)
 
 
 #-----------------------------------------------------------
