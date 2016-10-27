@@ -234,7 +234,7 @@ def smart_priors():
 #          two values, the first and last transit datapoint
 # ntr   -> number of transits
 #-----------------------------------------------------------
-def get_transit_ranges(times,gap=10):
+def get_transit_ranges(times,gap):
 
   xlimits = []
   xlimits.append(times[0])
@@ -254,6 +254,9 @@ def get_transit_ranges(times,gap=10):
     lims[i/2] = [xlimits[i],xlimits[i+1]]
 
   ntr = len(lims)
+  print 'Number of transits = ', ntr
+  print 'Transit limits ='
+  print lims
 
   return lims, ntr
 

@@ -77,6 +77,7 @@ figure_size_x = 6
 figure_size_y = 6/1.618
 font_size_label = 13
 clustering_delta = 0.5
+my_tr_ranges = False
 #mark for plots
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'v','h','.', 'H', 'D','+']
 

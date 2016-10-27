@@ -174,7 +174,7 @@ implicit none
 
   else
 
-    chi2 = huge(0.d0)
+    chi2 = huge(dble(0.d0))
 
   end if
 
@@ -313,20 +313,20 @@ implicit none
    end if
 
     !Let us find z
-!    call find_z(xd,params_old(0:5,nk),flag,zr,datas)
+    call find_z(xd,params_old(0:5,nk),flag,zr,datas)
 
     !Let us check if there is an eclipse
-!    call check_eclipse(zr,params_old(8,nk),is_eclipse,datas)
+    call check_eclipse(zr,params_old(8,nk),is_eclipse,datas)
     !if we do not have an eclipse, let us recalculate this wlaker
-!    if ( .not. is_eclipse ) then
-!      nk = nk
-!    else
+    if ( .not. is_eclipse ) then
+      nk = nk
+    else
     !Each walker is a point in a parameter space
     !Let us estimate our first chi_2 value for each walker
     call find_chi2_tr(xd,yd,errs,params_old(0:5,nk),jitter_old(nk),flag,params_old(6:8,nk), &
                       n_cad, t_cad, chi2_old(nk),datas)
       nk = nk + 1
-!    end if
+    end if
 
   end do
 !  stop

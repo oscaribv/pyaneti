@@ -147,7 +147,10 @@ if ( nplanets == 1 ):
   #Move all the points to T0
     xt_dummy = list(xt)
     for i in range(0,ntr):
-      xt_dummy[i] = xt_dummy[i] - P_val * i
+      n = xt_dummy[i][len(xt_dummy[i])-1] - xt_dummy[0][0]
+      n = int(n/P_val)
+      print n
+      xt_dummy[i] = xt_dummy[i] - P_val * n
 
     #Redefine megax with the new xt values
     xtime = np.concatenate(xt_dummy)
@@ -357,8 +360,8 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
   for i in range(0,n):
     plt.subplot(gs[i])
     vpar, lpar, rpar = find_vals_perc(params[i],1.0)
-    best_val = params[i][minchi2_index]
-    plt.axvline(x=best_val,c='yellow')
+    #best_val = params[i][minchi2_index]
+    #plt.axvline(x=best_val,c='yellow')
     plt.axvline(x=vpar,c=cbars)
     plt.axvline(x=vpar-lpar,c=cbars,ls='--')
     plt.axvline(x=vpar+rpar,c=cbars,ls='--')
@@ -389,8 +392,8 @@ def plot_histogram(rf=1):
 
 
   if ( fit_tr and not fit_rv ):
-    params = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],io[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf]]
-    labs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$']
+    params = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],bo[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf]]
+    labs = ['$T0$','$P$','$e$','$\omega$','$b$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$']
 
     create_plot_histogram(params,labs)
 

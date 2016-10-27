@@ -93,46 +93,50 @@ if (fit_rv):
 
 if (fit_tr):
 
-	#Read the data file
-	dummyd,dummyf, dummye = np.loadtxt('inpy/'+star+'/'+fname_tr,usecols=columns_tr, \
-	comments='#',unpack=True)
+  #Read the data file
+  dummyd,dummyf, dummye = np.loadtxt('inpy/'+star+'/'+fname_tr,usecols=columns_tr, \
+  comments='#',unpack=True)
 
-        dummyd = dummyd + textra
+  dummyd = dummyd + textra
 
-	hdate = dummyd
-	wflux = dummyf
-	errs  = dummye
+  hdate = dummyd
+  wflux = dummyf
+  errs  = dummye
 
+  if ( my_tr_ranges == True ):
+    if (ntr < 2 or len(tls) < 2 ):
+      print 'You selected my_tr_ranges = True\n'
+      print 'Please, define ntr and ranges'
         #Get the transit ranges
-        #This assumes that the input file has the different transits separated
-	tls, ntr = get_transit_ranges(hdate,gap_between_transits)
-	#print tls
-	#sys.exit()
+  else:      #This assumes that the input file has the different transits separated
+    tls, ntr = get_transit_ranges(hdate,gap_between_transits)
+  #print tls
+  #sys.exit()
 
 
-	#crash if you do not have more than one transit
-	if ( ntr < 2):
-		print "you do not have enought transit data!"
-		sys.exit("I crashed because I want more data!")
-	
-	#Each element of these lists will have the information
-	#of a given transit
-	xt= [None]*ntr	
-	yt= [None]*ntr	
-	et= [None]*ntr	
+  #crash if you do not have more than one transit
+  if ( ntr < 2):
+    print "you do not have enought transit data!"
+    sys.exit("I crashed because I want more data!")
 
-	#Normalize all the transit independently
-	#the transit data is inside the limits tls
-	for i in range(0,ntr):
-		xt[i],yt[i],et[i] = separate_transits(hdate,wflux,errs,tls[i])
-                
+  #Each element of these lists will have the information
+  #of a given transit
+  xt= [None]*ntr
+  yt= [None]*ntr
+  et= [None]*ntr
 
-	#Let us put together the information of all the arrays
-	#the mega* lists have the data of all the transits
-	#in 1D array
-	megax = np.concatenate(xt)
-	megay = np.concatenate(yt)
-	megae = np.concatenate(et)
+  #Normalize all the transit independently
+  #the transit data is inside the limits tls
+  for i in range(0,ntr):
+    xt[i],yt[i],et[i] = separate_transits(hdate,wflux,errs,tls[i])
+
+
+  #Let us put together the information of all the arrays
+  #the mega* lists have the data of all the transits
+  #in 1D array
+  megax = np.concatenate(xt)
+  megay = np.concatenate(yt)
+  megae = np.concatenate(et)
 
 #TRANSIT DATA READY
 
