@@ -151,7 +151,6 @@ if ( nplanets == 1 ):
     for i in range(0,ntr):
       n = xt_dummy[i][len(xt_dummy[i])-1] - xt_dummy[0][0]
       n = int(n/P_val)
-      print n
       xt_dummy[i] = xt_dummy[i] - P_val * n
 
     #Redefine megax with the new xt values
@@ -176,7 +175,7 @@ if ( nplanets == 1 ):
   #=========================#
 
   #Plot without fold the data
-  def plot_rv_all_data():
+  de plot_rv_all_data():
     cfactor = np.float(1.e3)
     rv_datas = [None]*nt
     errs_datas = [None]*nt
@@ -482,8 +481,8 @@ def plot_correlations(rf=1):
 
   if ( fit_tr and not fit_rv ):
 
-    params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],io[1::rf],ao[1::rf],q1o[1::rf],q2o[1::rf],pzo[1::rf]]
-    labs = ['$T0$','$P$','$e$','$\omega$','$i$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$']
+    params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],bo[1::rf],ao[1::rf],q1o[1::rf],q2o[1::rf],pzo[1::rf]]
+    labs = ['$T0$','$P$','$e$','$\omega$','$b$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$']
 
     create_plot_correlation(params,labs,col='blue')
 

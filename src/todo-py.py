@@ -557,13 +557,14 @@ def fit_transit():
   if ( os.path.isfile('mh_trfit.dat') ):
     os.rename('mh_trfit.dat',newfile)
   #Read the data
-  vari,dchain_lab,dchi2,djtro,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo = \
+  dvari,dchain_lab,dchi2,djtro,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo = \
   np.loadtxt(newfile, comments='#',unpack=True)
 
   #Starting clustering
   good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
   jtro = clustering(djtro,good_index)
   chi2 = clustering(dchi2,good_index)
+  vari = clustering(dvari,good_index)
   t0o = clustering(dt0o,good_index)
   Po = clustering(dPo,good_index)
   eo = clustering(deo,good_index)

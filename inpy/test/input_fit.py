@@ -11,7 +11,7 @@ fname_rv = 'earth_rv.dat'
 fname_tr = 'earth_lc.dat'
 
 #chain parameters
-thin_factor = 1
+thin_factor = 10
 nconv = 500
 nwalkers = 100
 
@@ -21,7 +21,7 @@ n_cad = 1
 t_cad = 30. / 60. / 24.
 
 method = 'sm'
-method = 'plot'
+#method = 'plot'
 
 mstar_mean = 1.0
 mstar_sigma = 0.1
