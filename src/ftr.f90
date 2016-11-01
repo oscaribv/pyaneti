@@ -265,7 +265,7 @@ implicit none
 
 
   !Let us create the jitter from the error bars
-  call gauss_random_bm(errs(0),errs(0)*0.1,jitter_old,nwalks)
+  call gauss_random_bm(errs(0)*1.d-2,errs(0)*1.d-3,jitter_old,nwalks)
   mult_old(:,:) = 1.0d0
   mult_new(:,:) = 1.0d0
   do nk = 0, nwalks - 1

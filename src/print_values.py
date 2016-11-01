@@ -39,6 +39,9 @@ if ( nplanets == 1 ):
 
     inclination = io
 
+    #Calcualate the new error bar for transit fit
+    newe_tro = np.sqrt(jtro**2 + megae[0]**2)
+
 
     #Calculate equilibrium temperature
     #assuming albedo=0
@@ -180,6 +183,7 @@ if ( nplanets == 1 ):
       rho_val , rho_errl, rho_errr  = find_vals_perc(rhoo,s_factor)
       Teq_val,Teq_errl, Teq_errr = find_vals_perc(Teqo,s_factor)
       jitter_tr_val, jitter_tr_errl, jitter_tr_errr = find_vals_perc(jtro,s_factor)
+      newe_tr_val, newe_tr_errl, newe_tr_errr = find_vals_perc(newe_tro,s_factor)
 
       #Reestimate the error bar size of the transit data
       megae = np.sqrt(megae**2 + jitter_tr_val**2)
@@ -252,6 +256,8 @@ if ( nplanets == 1 ):
       opars.write('q_1    = %4.4f + %4.4f - %4.4f    \n'%(q1_val,q1_errr, q1_errl))
       opars.write('q_2    = %4.4f + %4.4f - %4.4f    \n'%(q2_val,q2_errr, q2_errl))
       opars.write('jitter= %4.4e + %4.4e - %4.4e [flux] \n'%(jitter_tr_val, jitter_tr_errr, jitter_tr_errl))
+      opars.write('old error bar = %4.4e  [flux] \n'%(megae[0]))
+      opars.write('new error bar = %4.4e  [flux] \n'%(newe_tr_val))
     if (fit_rv):
       opars.write('RV fit parameters: \n')
       opars.write('alpha = %4.4e + %4.4e - %4.4e     \n'%(alpha_val, alpha_errr , alpha_errl))

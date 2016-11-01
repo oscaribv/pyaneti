@@ -712,7 +712,7 @@ def fit_radial_velocity():
         os.rename(out_file[m],newfile[m])
 
   if ( nplanets == 1 ):
-    vari,chi2,chi2red,djrvo,dt0o,dPo,deo,dwo,dko,dalphao, dbetao = \
+    dvari,dchain_lab,dchi2,djrvo,dt0o,dPo,deo,dwo,dko,dalphao, dbetao = \
     np.loadtxt(newfile, comments='#', unpack=True,\
     usecols=range(0,11))
     #Read the systemic velocities
@@ -724,18 +724,20 @@ def fit_radial_velocity():
       dvo[j] = a
 
     #Cluster variables
-    good_index, new_nwalkers = good_clustering(chi2,nconv,nwalkers)
-    jrvo = clustering(djrvo,good_index,nconv)
-    t0o = clustering(dt0o,good_index,nconv)
-    Po = clustering(dPo,good_index,nconv)
-    eo = clustering(deo,good_index,nconv)
-    wo = clustering(dwo,good_index,nconv)
-    ko = clustering(dko,good_index,nconv)
-    alphao = clustering(dalphao,good_index,nconv)
-    betao = clustering(dbetao,good_index,nconv)
+    good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
+    vari = clustering(dvari,good_index)
+    chi2 = clustering(dchi2,good_index)
+    jrvo = clustering(djrvo,good_index)
+    t0o = clustering(dt0o,good_index)
+    Po = clustering(dPo,good_index)
+    eo = clustering(deo,good_index)
+    wo = clustering(dwo,good_index)
+    ko = clustering(dko,good_index)
+    alphao = clustering(dalphao,good_index)
+    betao = clustering(dbetao,good_index)
     vo = [None]*nt
     for j in range(0,nt):
-      vo[j] = clustering(dvo[j],good_index,nconv)
+      vo[j] = clustering(dvo[j],good_index)
 
    
   else:
@@ -743,7 +745,7 @@ def fit_radial_velocity():
     #Create all the variables, list of lists
     vari = [[]]*nplanets
     chi2 = [[]]*nplanets
-    chi2red = [[]]*nplanets
+    dvari = [[]]*nplanets
     t0o = [[]]*nplanets
     Po = [[]]*nplanets
     eo = [[]]*nplanets
@@ -755,18 +757,20 @@ def fit_radial_velocity():
 
 
     for l in range(0,nplanets):
-      vari[l],chi2[l],chi2red[l],dt0o,dPo,deo, \
+      dvari,dchain_lab,dchi2,dt0o,dPo,deo, \
       dwo,dko, dalphao, dbetao = np.loadtxt(newfile[l], comments='#', \
       unpack=True, usecols=range(0,10))
     #Cluster variables
-      good_index, new_nwalkers = good_clustering(chi2[0],nconv,nwalkers)
-      t0o[l] = clustering(dt0o,good_index,nconv)
-      Po[l] = clustering(dPo,good_index,nconv)
-      eo[l] = clustering(deo,good_index,nconv)
-      wo[l] = clustering(dwo,good_index,nconv)
-      ko[l] = clustering(dko,good_index,nconv)
-      alphao[l] = clustering(dalphao,good_index,nconv)
-      betao[l] = clustering(dbetao,good_index,nconv)
+      good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
+      vari[l] = clustering(dvari,good_index)
+      chi2[l] = clustering(dchi2,good_index)
+      t0o[l] = clustering(dt0o,good_index)
+      Po[l] = clustering(dPo,good_index)
+      eo[l] = clustering(deo,good_index)
+      wo[l] = clustering(dwo,good_index)
+      ko[l] = clustering(dko,good_index)
+      alphao[l] = clustering(dalphao,good_index)
+      betao[l] = clustering(dbetao,good_index)
 
     #The  systemic velocities are the same for all the planets
     dvo = [None]*nt
@@ -778,7 +782,7 @@ def fit_radial_velocity():
       dvo[j] = a
 
     for j in range(0,nt):
-      vo[j] = clustering(dvo[j],good_index,nconv)
+      vo[j] = clustering(dvo[j],good_index)
 
 #-----------------------------------------------------------
 # PRINT INITIAL CONFIGURATION

@@ -1,73 +1,34 @@
-!------------------------------------------------------------
-!                         frv.f90
-! This file contains subroutines to calculate Marcov Chain 
-! Monte Carlo simulations in order to obtain planet parameters
-! The subroutines can be called from python by using f2py
-! They also can be used in a fortran program
+!-------------------------------------------------------------------------------
+!                                    frv.f90
+!       This file contains subroutines to calculate Marcov Chain
+!     Monte Carlo simulations in order to obtain planet parameters
+!      The subroutines can be called from python by using f2py
+!             They also can be used in a fortran program
 !              Date --> Feb  2016, Oscar Barragán
-!------------------------------------------------------------
+!-------------------------------------------------------------------------------
 
-!-----------------------------------------------------------
-! This subroutine computes the circular radial velocity 
-! curve for a set of values t. The subroutine returns 
-! a vector (rv of the same size that t) by solving:
-!  $ rv = rv0 - k [ sin ( 2* \pi ( t - t_0) / P ) ] $
-! Where the parameters are the typical for a RV curve
-!------------------------------------------------------------
-subroutine rv_circular(t,rv0,t0,k,P,rv,ts)
-implicit none
-
-!In/Out variables
-  integer, intent(in) :: ts
-  double precision, intent(in), dimension(0:ts-1)  :: t
-  double precision, intent(out), dimension(0:ts-1) :: rv
-  double precision, intent(in) :: k, rv0, t0, P
-!Local variables
-  double precision :: pi = 3.1415926535897932384626d0
-!
-  rv(:) = rv0 - k * sin( 2.d0*pi*( t(:) - t0) / P )
-
-end subroutine
-
-!-----------------------------------------------------------
-! This subroutine computes the radial velocity 
-! curve for an eccentric orbit, given a set of values t. 
-!The subroutine returns  a vector (rv of the same size that t)
-! by solving:
-!  $ rv = rv0 + k [ cos ( \theta + \omega ) 
-!             + e * cos ( \omega ) ] $
-!  Where the parameters are the typical for a RV curve
-!------------------------------------------------------------
-subroutine rv_curve(t,rv0,t0,k,P,e,w,rv,ts)
-implicit none
-
-!In/Out variables
-  integer, intent(in) :: ts
-  double precision, intent(in), dimension(0:ts-1)  :: t
-  double precision, intent(in) :: rv0, t0, k, P, e, w
-  double precision, intent(out), dimension(0:ts-1) :: rv
-!Local variables
-  double precision, dimension(0:ts-1) :: ta
-!External function
-  external :: find_anomaly
-!
-  !Obtain the eccentric anomaly by using find_anomaly
-  call find_anomaly(t,t0,e,w,P,ta,ts)
-
-  rv(:) = rv0 + k * ( cos( ta(:) + w ) + e * cos(w) )
-  
-end subroutine
-
-!-----------------------------------------------------------
-!CHANGE THIS HEADER
+!-------------------------------------------------------------------------------
 ! This subroutine computes the radial velocity for a multiplanet system
-! curve for an eccentric orbit, given a set of values t. 
+! for a given set of values t.
 !The subroutine returns  a vector (rv of the same size that t)
 ! by solving:
-!  $ rv = rv0 + k [ cos ( \theta + \omega ) 
-!             + e * cos ( \omega ) ] $
+!  rv = rv0 + k [ cos ( theta + w ) + e * cos ( w ) ]
 !  Where the parameters are the typical for a RV curve
-!------------------------------------------------------------
+! Input parameters:
+! t(:)   -> time vector
+! rv0    -> systemic velocity of a given instrument
+! t0(:)  -> Transit epoch (for not transit planets is when the planet
+!           is at 90 deg with respect to the sky)
+! k(:)   -> RV semi-amplitude for each planet
+! P(:)   -> Period of each planet
+! e(:)   -> eccentricity of each planet
+! w(:)   -> periastron passage of each planet
+!alpha   -> linear trend
+!beta    -> quadratic trend
+!rv(:)   -> set of RV meassurements
+!ts      -> size of t
+!npl     -> numper of planets
+!-------------------------------------------------------------------------------
 subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,alpha,beta,rv,ts,npl)
 implicit none
 
@@ -76,7 +37,6 @@ implicit none
   double precision, intent(in), dimension(0:ts-1)  :: t
   double precision, intent(out), dimension(0:ts-1) :: rv
   double precision, intent(in), dimension(0:npl-1) :: k, t0, P, e, w
-  !Here rv0, alpha and beta depend on the telescope systemic not the planets
   double precision, intent(in) :: rv0, alpha, beta
 !Local variables
   double precision, dimension(0:ts-1) :: ta
@@ -89,17 +49,18 @@ implicit none
   rv(:) = rv0 + (t(:)-t0(0))*alpha + (t(:)-t0(0))**2*beta
 
   !Now add the planet influence on the star
+  !each i is for a different planet
   do i = 0, npl-1
    !Obtain the true anomaly by using find_anomaly
-   !each i is for a different planet
    call find_anomaly(t,t0(i),e(i),w(i),P(i),ta,ts)
+   !Now compute the RV for the planet i
    rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
-   ta(:) = 0.0d0
   end do
- 
+  !The final RV induced by all planets
+
 end subroutine
 
-!-----------------------------------------------------------
+!-------------------------------------------------------------------------------
 ! This routine calculates the chi square for a RV curve
 ! given a set of xd-yd data points
 ! It takes into acount the possible difference in systematic
@@ -132,7 +93,7 @@ implicit none
   double precision, dimension(0:datas-1) :: model, res
   integer :: i, tel
 !External function
-  external :: rv_circular, rv_curve_mp
+  external :: rv_curve_mp
 
   t0(:)  = params(0,:)
   P(:)   = params(1,:)
@@ -438,11 +399,11 @@ implicit none
         !$OMP CRITICAL
         if ( npl == 1 ) then
           do m = 0, npl - 1 !Print a file with data of each planet 
-            write(m,*) j, chi2_old(nk), chi2_red(nk),jitter_old(nk),params_old(:,m,nk)
+            write(m,*) j, nk, chi2_old(nk),jitter_old(nk),params_old(:,m,nk)
           end do
         else
           do m = 0, npl - 1 !Print a file with data of each planet 
-            write(m,*) j, chi2_old(nk), chi2_red(nk),params_old(:,m,nk)
+            write(m,*) j,nk,chi2_old(nk),params_old(:,m,nk)
           end do
         end if
         !$OMP END CRITICAL

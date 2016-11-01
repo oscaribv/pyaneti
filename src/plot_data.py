@@ -175,7 +175,7 @@ if ( nplanets == 1 ):
   #=========================#
 
   #Plot without fold the data
-  de plot_rv_all_data():
+  def plot_rv_all_data():
     cfactor = np.float(1.e3)
     rv_datas = [None]*nt
     errs_datas = [None]*nt
