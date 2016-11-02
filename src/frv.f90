@@ -231,8 +231,8 @@ implicit none
     limits_physical(2*npars:2*(npars+nt)-1) = log10(limits_physical(2*npars:2*(npars+nt)-1))
   end if
   !The jitter term starts with jitter=0
-  !call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
-  call gauss_random_bm(0.000d0,0.000d0,jitter_old,nwalks)
+  call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
+  !call gauss_random_bm(0.000d0,0.000d0,jitter_old,nwalks)
   mult_old(:) = 1.0d0
   do nk = 0, nwalks - 1
     do j = 0, datas-1
@@ -623,8 +623,8 @@ implicit none
   jitter_rv_new(:) = 0.0d0
   jitter_tr_new(:) = 0.0d0
 
-  call gauss_random_bm(0.00050,0.001d0,jitter_rv_old,nwalks)
-  call gauss_random_bm(errs_tr(0),errs_tr(0)*0.25,jitter_tr_old,nwalks)
+  call gauss_random_bm(5.0d-3,1.0d-3,jitter_rv_old(:),nwalks)
+  call gauss_random_bm(errs_tr(0)*1.0d-2,errs_tr(0)*1.0d-3,jitter_tr_old(:),nwalks)
 
   mult_old(:,:) = 1.0d0
   mult_new(:,:) = 1.0d0
@@ -633,7 +633,7 @@ implicit none
       mult_old(nk,j) = 1.0d0/sqrt( errs_rv(j)**2 + jitter_rv_old(nk)**2  )
     end do
     do j = drv, drv+dtr-1
-      mult_old(nk,j) = 1.0d0/sqrt( errs_tr(j)**2 + jitter_tr_old(nk)**2  )
+      mult_old(nk,j) = 1.0d0/sqrt( errs_tr(j-drv)**2 + jitter_tr_old(nk)**2  )
     end do
   end do
 
@@ -789,12 +789,9 @@ implicit none
             end if          
         end if
 
-      !Jitter term must be positive
-      if (jitter_tr_new(nk) < 0.0 .or.  jitter_rv_new(nk) < 0.0 ) is_limit_good = .false.
- 
 
       if ( is_limit_good ) then !evaluate chi2
-        !Obtain the new chi square 
+        !Obtain the new chi square
         params_tr = params_new(0:8,nk)
         params_rv(0:3) = params_new(0:3,nk)
         params_rv(4:6+nt) = params_new(9:npars+nt-1,nk)
@@ -828,7 +825,7 @@ implicit none
       mult_new(nk,m) = 1.0d0/sqrt( errs_rv(m)**2 + jitter_rv_new(nk)**2  )
      end do
      do m = drv, drv+dtr-1
-       mult_new(nk,m) = 1.0d0/sqrt( errs_tr(m)**2 + jitter_tr_new(nk)**2  )
+       mult_new(nk,m) = 1.0d0/sqrt( errs_tr(m-drv)**2 + jitter_tr_new(nk)**2  )
      end do
 
      mult_total(nk,:) = mult_new(nk,:) / mult_old(nk,:)

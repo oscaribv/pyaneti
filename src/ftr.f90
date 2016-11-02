@@ -266,6 +266,7 @@ implicit none
 
   !Let us create the jitter from the error bars
   call gauss_random_bm(errs(0)*1.d-2,errs(0)*1.d-3,jitter_old,nwalks)
+  !call gauss_random_bm(0.0d0,0.0d0,jitter_old,nwalks)
   mult_old(:,:) = 1.0d0
   mult_new(:,:) = 1.0d0
   do nk = 0, nwalks - 1
@@ -413,7 +414,7 @@ implicit none
         if ( is_limit_good ) then
             !Check that e < 1 for ew
           if ( flag(1) ) then
-            call check_e(params_new(2,nk),params_new(3,nk),0.9d0,is_limit_good)
+            call check_e(params_new(2,nk),params_new(3,nk),1.0d0,is_limit_good)
           end if
         end if
 

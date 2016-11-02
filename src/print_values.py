@@ -185,8 +185,6 @@ if ( nplanets == 1 ):
       jitter_tr_val, jitter_tr_errl, jitter_tr_errr = find_vals_perc(jtro,s_factor)
       newe_tr_val, newe_tr_errl, newe_tr_errr = find_vals_perc(newe_tro,s_factor)
 
-      #Reestimate the error bar size of the transit data
-      megae = np.sqrt(megae**2 + jitter_tr_val**2)
 
       if ( fit_rv ):
         rhop_val,rhop_errl, rhop_errr = find_vals_perc(rho_p,s_factor)
@@ -258,6 +256,8 @@ if ( nplanets == 1 ):
       opars.write('jitter= %4.4e + %4.4e - %4.4e [flux] \n'%(jitter_tr_val, jitter_tr_errr, jitter_tr_errl))
       opars.write('old error bar = %4.4e  [flux] \n'%(megae[0]))
       opars.write('new error bar = %4.4e  [flux] \n'%(newe_tr_val))
+      #Reestimate the error bar size of the transit data
+      megae = np.sqrt(megae**2 + jitter_tr_val**2)
     if (fit_rv):
       opars.write('RV fit parameters: \n')
       opars.write('alpha = %4.4e + %4.4e - %4.4e     \n'%(alpha_val, alpha_errr , alpha_errl))
