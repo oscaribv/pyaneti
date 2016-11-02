@@ -436,10 +436,11 @@ def fit_joint():
     limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
     limits_p = np.concatenate((dummy_lims_physical,vec_rv0_phys_limits)) 
 
+    is_jitter = [ is_jitter_rv, is_jitter_tr ]
 
     pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
     ,megax, megay, megae, params,pstar,lpstar,limits, limits_p , nwalkers,a_factor, maxi, thin_factor, \
-    n_cad,t_cad,what_fit, flag,a_from_kepler, nconv,nt=nt,npars=12)
+    n_cad,t_cad,what_fit, flag,is_jitter,a_from_kepler, nconv,nt=nt,npars=12)
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'

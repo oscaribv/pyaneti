@@ -511,7 +511,7 @@ end subroutine
 !-----------------------------------------------------------
 subroutine stretch_move(xd_rv,yd_rv,errs_rv,tlab,xd_tr,yd_tr,errs_tr,params, &
    pstar,lpstar,limits,limits_physical,nwalks,a_factor,maxi,thin_factor, &
-   n_cad,t_cad,wtf,flag,afk,nconv,drv,dtr,nt,npars)
+   n_cad,t_cad,wtf,flag,jit,afk,nconv,drv,dtr,nt,npars)
 implicit none
 
 !In/Out variables
@@ -529,7 +529,7 @@ implicit none
   integer, intent(in), dimension(0:12) :: wtf
   double precision, intent(in)  :: a_factor, t_cad
   logical, intent(in) :: flag(0:5)
-  logical, intent(in) :: afk
+  logical, intent(in) :: afk, jit(0:1)
 !Local variables
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, &
   chi2_new_rv, chi2_old_tr, chi2_new_tr, &
@@ -545,7 +545,7 @@ implicit none
   double precision  :: q
   double precision  :: esin, ecos, aa, chi2_red_min
   integer :: o,j, n,m, nu, nk, n_burn, spar, new_thin_factor
-  logical :: continua, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg, is_eclipse
+  logical :: continua, is_burn, is_limit_good, flag_rv(0:3), flag_tr(0:3), is_cvg, is_eclipse, is_jitter(0:1)
   !Let us add a plus random generator
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   integer, dimension(0:nwalks-1) :: r_int
@@ -622,10 +622,6 @@ implicit none
   jitter_tr_old(:) = 0.0d0
   jitter_rv_new(:) = 0.0d0
   jitter_tr_new(:) = 0.0d0
-
-  call gauss_random_bm(5.0d-3,1.0d-3,jitter_rv_old(:),nwalks)
-  call gauss_random_bm(errs_tr(0)*1.0d-2,errs_tr(0)*1.0d-3,jitter_tr_old(:),nwalks)
-
   mult_old(:,:) = 1.0d0
   mult_new(:,:) = 1.0d0
   do nk = 0, nwalks - 1
@@ -724,6 +720,7 @@ implicit none
   n = 0
   continua = .TRUE.
   is_burn = .FALSE.
+  is_jitter = jit
   aa = a_factor
   n_burn = 1
 
@@ -912,17 +909,45 @@ implicit none
             print *, 'CHAINS HAVE NOT CONVERGED YET!'
             print *,  nconv*thin_factor,' ITERATIONS MORE!'
             print *, '=================================='
+
           else
-            print *, '==========================='
-            print *, '  CHAINS HAVE CONVERGED'
-            print *, '==========================='
-            print *, 'STARTING BURNING-IN PHASE'
-            print *, '==========================='
-            is_burn = .True.
-            new_thin_factor = thin_factor
-            print *, 'Creating ', output_files
-            !Let us start the otput file
-            open(unit=101,file='mh_fit.dat',status='unknown')
+            if ( is_jitter(0) .or. is_jitter(1) ) then
+              print *, '==========================='
+              print *, '  CHAINS HAVE CONVERGED'
+              print *, '==========================='
+              print *, ' STARTING TO ADD JITTER'
+              print *, '==========================='
+              if ( is_jitter(0) ) then
+               call gauss_random_bm(errs_rv(0)*1.0d-2,errs_rv(0)*1.0d-3,jitter_rv_old(:),nwalks)
+              else
+               jitter_rv_old(:) = 0.0d0
+              end if
+              if ( is_jitter(1) ) then
+               call gauss_random_bm(errs_tr(0)*1.0d-2,errs_tr(0)*1.0d-3,jitter_tr_old(:),nwalks)
+              else
+               jitter_tr_old(:) = 0.0d0
+              end if
+              do nk = 0, nwalks - 1
+                do j = 0, drv-1
+                  mult_old(nk,j) = 1.0d0/sqrt( errs_rv(j)**2 + jitter_rv_old(nk)**2  )
+                end do
+                do j = drv, drv+dtr-1
+                  mult_old(nk,j) = 1.0d0/sqrt( errs_tr(j-drv)**2 + jitter_tr_old(nk)**2  )
+                end do
+              end do
+              is_jitter(:) = .false.
+            else
+              print *, '==========================='
+              print *, '  CHAINS HAVE CONVERGED'
+              print *, '==========================='
+              print *, 'STARTING BURNING-IN PHASE'
+              print *, '==========================='
+              is_burn = .True.
+              new_thin_factor = thin_factor
+              print *, 'Creating ', output_files
+              !Let us start the otput file
+              open(unit=101,file='mh_fit.dat',status='unknown')
+            end if
           end if
 
           if ( j > maxi ) then
