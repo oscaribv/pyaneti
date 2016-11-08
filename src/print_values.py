@@ -265,7 +265,7 @@ if ( nplanets == 1 ):
       opars.write('jitter= %4.4e + %4.4e - %4.4e m/s \n'%(jitter_rv_val/1.e-3, jitter_rv_errr/1.e-3 , jitter_rv_errl/1.e-3))
       opars.write('K     = %4.4f + %4.4f - %4.4f m/s\n'%(k_val/1.e-3,(k_errr)/1.e-3, (k_errl)/1.e-3))
       for i in range(0,nt):
-        opars.write('%s v0  = %4.4f + %4.4f - %4.4f km/s\n'%(telescopes[i], \
+        opars.write('%s v0  = %4.4f + %4.4f - %4.4f km/s\n'%(telescopes_labels[i], \
               v_val[i],v_errr[i],v_errl[i]))
 
     opars.write('Derived parameters:\n')
@@ -541,7 +541,7 @@ else:
           print ('mpsin = %4.4f + %4.4f - %4.4f (%s masses) '%(mass_sin_val[l],mass_sin_errr[l], mass_sin_errl[l], unit_mass))
           print ('mp    = %4.4f + %4.4f - %4.4f (%s masses) '%(mass_val[l],mass_errr[l], mass_errl[l], unit_mass))
           for i in range(0,nt):
-            print ('%s v0  = %4.4f + %4.4f - %4.4f km/s'%(telescopes[i], \
+            print ('%s v0  = %4.4f + %4.4f - %4.4f km/s'%(telescopes_labels[i], \
           v_val[i],v_errr[i],v_errl[i]))
 
 
