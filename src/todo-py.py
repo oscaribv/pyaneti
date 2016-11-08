@@ -211,17 +211,9 @@ def smart_priors():
     #T0 should be in the first transit data set
     min_phys_t0 = tls[0][0]
     max_phys_t0 = tls[0][1]
-    #i
-    #The minimum inclination should be
-    if ( fit_e == False ):
-      #for a circular orbit
-      #min_i = arccos [ (1 + max_pz) / min_a ]
-      min_phys_i = ( 1. + max_phys_pz ) / min_phys_a
-      min_phys_i = np.arccos(min_phys_i)
-      min_i = max(min_i,min_phys_i)
 
 #-----------------------------------------------------------
-#Get transit ranges, assumes that the consecutive 
+#Get transit ranges, assumes that the consecutive
 #data is almost equally spaced
 # it assumes the times vector has a gap between transit sets
 #   ----          ---       (GAP)      ----          ----

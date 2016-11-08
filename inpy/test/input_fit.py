@@ -36,7 +36,7 @@ is_ew = False
 a_from_kepler = True
 
 #We want to fit transit and RV 
-#fit_rv = True
+fit_rv = True
 fit_tr = True
 
 #What do we want to fit?

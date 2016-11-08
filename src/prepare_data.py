@@ -9,6 +9,24 @@
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=nwalkers*nconv)
 
+#Change limits accordingly
+if ( is_ew ):
+    min_e = min_ew
+    min_w = min_ew
+    max_e = max_ew
+    max_w = max_ew
+    min_phys_e = min_phys_ew
+    min_phys_w = min_phys_ew
+    max_phys_e = max_phys_ew
+    max_phys_w = max_phys_ew
+if ( is_b_factor ):
+    min_i = min_b
+    max_i = max_b
+    min_phys_i = min_phys_b
+    max_phys_i = max_phys_b
+
+
+
 #What transit data are we fitting
 if (fit_tr):
   if ( lc_data == 'kepler_lc' ):

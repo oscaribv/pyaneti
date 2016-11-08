@@ -350,3 +350,30 @@ implicit none
 
 
 end subroutine
+
+
+subroutine uniform_priors(pars,npars,wtf,lims,pars_out)
+implicit none
+
+  integer, intent(in) :: npars
+  integer, intent(in), dimension(0:npars-1) :: wtf
+  double precision, intent(in), dimension(0:2*npars-1) :: lims
+  double precision, intent(in), dimension(0:npars-1) :: pars
+  double precision, intent(out), dimension(0:npars-1) :: pars_out
+!Local
+  integer :: n, j
+  double precision :: r_real
+
+  j = 0
+  do n = 0,  npars - 1
+    if ( wtf(n) == 0 ) then
+      pars_out(n) = pars(n)
+    else
+      call random_number(r_real)
+      pars_out(n) = lims(j+1) - lims(j)
+      pars_out(n) = lims(j) + r_real * pars_out(n)
+    end if
+    j = j + 2
+  end do
+
+end subroutine
