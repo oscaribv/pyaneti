@@ -1,15 +1,15 @@
 subroutine multi_all_stretch_move( &
-                   x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, tlab, & !Data vars
-                   pars, rvs, ldc, &    !parameters vars
-                   flags, &                         !flags
-                   wtf_all, wtf_rvs, wtf_ldc, & !fitting controls
-                   nwalks, maxi, thin_factor, nconv, &     !
-                   lims, lims_rvs, lims_ldc, &
-                   lims_p, lims_p_rvs, lims_p_ldc, &
-                   n_cad, t_cad, &
-                   npl, n_tel, & !integers
-                   size_rv, size_tr &
-)
+           x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, & !Data vars
+           pars, rvs, ldc, &                      !parameters vars
+           flags, &                               !flags
+           wtf_all, wtf_rvs, wtf_ldc, &           !fitting controls
+           nwalks, maxi, thin_factor, nconv, &    !
+           lims, lims_rvs, lims_ldc, &            !prior limits
+           lims_p, lims_p_rvs, lims_p_ldc, &      !physical limits
+           n_cad, t_cad, &                        !cadence cotrols
+           npl, n_tel, & !integers                !planets and telescopes
+           size_rv, size_tr &                     !data sizes
+           )
 
 !In/Out variables
   integer, intent(in) :: size_rv, size_tr, npl, n_tel !size of RV and LC data

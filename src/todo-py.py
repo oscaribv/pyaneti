@@ -154,7 +154,8 @@ def smart_priors():
     max_rv0 = max(mega_rv)
     min_phys_rv0 = min(mega_rv)
     max_phys_rv0 = max(mega_rv)
-    v0 = [min_rv0]*nt
+    if ( fit_v0 ):
+      v0 = [min_rv0]*nt
     #Estimate k priors and limits from data
     if ( P.__class__ == float  ):
       if ( fit_alpha or fit_beta ):

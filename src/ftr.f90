@@ -180,6 +180,107 @@ implicit none
 
 end subroutine
 !-----------------------------------------------------------
+
+subroutine find_chi2_tr_new(xd,yd,errs,pars,jitter,flag,ldc,&
+           n_cad,t_cad,chi2,datas, npl)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: datas, n_cad, npl
+  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  double precision, intent(in), dimension(0:6,npl-1) :: pars
+  !pars = T0, P, e, w, b, a/R*, Rp/R*
+  double precision, intent(in) :: t_cad
+  double precision, intent(in) :: jitter
+  logical, intent(in), dimension(0:3) :: flag
+  double precision, intent(in), dimension (0:1) :: ldc
+  double precision, intent(out) :: chi2
+!Local variables
+  double precision, dimension(0:datas-1,0:npl-1) :: muld_npl
+  double precision, dimension(0:datas-1) :: res, muld, mu
+  double precision :: npl_dbl, small, dbl, u1, u2, pz(0:npl-1), q1k, q2k, zdum(0:0)
+  !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
+  double precision, dimension(0:n_cad-1)  :: xd_ub, z, flux_ub
+  integer :: n, j, k
+  logical :: is_good
+!External function
+  external :: occultquad
+
+  small = 1.d-5
+  npl_dbl = dble(npl)
+
+  q1k = ldc(0)
+  q2k = ldc(1)
+  !re-transform the parameters to u1 and u2
+  u1 = sqrt(q1k)
+  u2 = u1*( 1.d0 - 2.d0*q2k)
+  u1 = 2.d0*u1*q2k
+
+  !Get planet radius
+  pz = pars(6,:)
+
+  !are the u1 and u2 within a physical solution
+  call check_us(u1,u2,is_good)
+
+  if ( is_good ) then
+
+  !Selective re-sampling
+  do j = 0, datas - 1
+
+    do n = 0, npl - 1
+
+    !Are we generating an eclipse?
+    !Take care with the pars
+    call find_z(xd(j),pars(:,n),flag,zdum,1)
+
+    if ( zdum(0) > 1.0 + 2*pz(n) .or. pz(n) < small ) then
+
+      muld_npl(j,n) = 1.d0 !This is not eclipse
+
+    else
+
+      do k = 0, n_cad - 1
+        xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5*(n_cad+1.d0))/n_cad
+      end do
+
+      call find_z(xd_ub,pars,flag,z,n_cad)
+      !Now we have z, let us use Agol's routines
+      call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
+
+      !Re-bin the data
+      muld_npl(j,n) = sum(flux_ub) / n_cad
+
+    end if
+
+    end do !planets
+
+    !The final flux is F = (F1 + F2 + ... + Fn ) / n
+    muld(:) = 0.d0
+    do n = 0, npl - 1
+      muld(:) = muld(:) +  muld_npl(:,n)
+    end do
+    !This is the final flux for all the planets
+    muld(:) = muld / npl_dbl
+
+  end do
+
+  !Let us calculate the residuals
+  ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
+  !Here I am assuming that we want limb darkening
+  !If this is not true, use mu
+  res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
+  chi2 = dot_product(res,res)
+
+  else
+
+    chi2 = huge(dble(0.d0))
+
+  end if
+
+end subroutine
+
+!
+!-----------------------------------------------------------
 subroutine stretch_move_tr(xd,yd,errs,pars,pstar, lpstar,lims,limits_physical, &
 nwalks,a_factor,maxi,thin_factor,n_cad,t_cad,wtf,flag,afk,nconv,datas)
 implicit none
