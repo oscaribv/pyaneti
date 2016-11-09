@@ -1,3 +1,47 @@
+subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
+           t_cad,n_cad,pars,rvs,ldc,chi2,npl,n_tel,size_rv,size_tr)
+
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: size_rv, size_tr, npl, n_tel, n_cad !size of RV and LC data
+  double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
+  double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
+  double precision, intent(in), dimension(0:size_rv-1) :: tlab
+  double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
+  double precision, intent(in) :: t_cad
+  !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each parameter
+  !THIS DOES NOT ADD alpha and beta
+  double precision, intent(out) :: chi2
+!Local variables
+  double precision :: pars_tr(0:6,npl-1), pars_rv(0:7+n_tel-1,0:npl-1)
+  double precision :: chi2_rv, chi2_tr
+  logical :: flag_rv(0:3), flag_tr(0:3)
+  integer :: i, j
+
+  !Create the parameter variables for rv and tr
+  do i = 0, npl - 1
+    j = 8*i !the new data start point
+    pars_tr(:,i)   = pars(j:j+6)
+    pars_rv(0:3,i) = pars(j:j+3)
+    pars_rv(4,i) = pars(j+7)
+    pars_rv(5:6,i) = 0.d0
+    !ADD alpha and beta
+    pars_rv(7:7+n_tel-1,i) = rvs(:)
+  end do
+
+  flag_rv = (/ .false., .false., .false., .false. /)
+  flag_tr = (/ .false., .false., .true. , .false. /)
+
+  !Let us calculate chi2
+  call find_chi2_tr_new(x_tr,y_tr,e_tr,pars_tr,0.d0,flag_tr,&
+                        ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
+  call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,0.0d0,&
+                    flag_rv,chi2_rv,size_tr,n_tel,npl)
+
+
+end subroutine
+
 subroutine multi_all_stretch_move( &
            x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, & !Data vars
            pars, rvs, ldc, &                      !parameters vars
@@ -51,12 +95,10 @@ subroutine multi_all_stretch_move( &
     call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
     call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
     call uniform_priors(ldc,2,wtf_ldc,lims_ldc,ldc_old(nk,:))
-    !Let us calculate the initla chi2 values for each chain
-    !call find_chi2_rv(x_rv,y_rv,e_rv,tlab,params_rv,0.0d0, &
-    !     flag_rv,chi2_old_rv(nk),size_rv,n_tel,npl)
-    !call find_chi2_tr(x_tr,y_tr,e_tr,params_tr(0:5),0.0d0, &
-    !       flag_tr, params_tr(6:8),n_cad,t_cad,chi2_old_tr(nk),size_tr)
-    !chi2_old_total(nk) = chi2_old_tr(nk) + chi2_old_rv(nk)
+    !Compute total chi2
+    call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
+         t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:),ldc_old(nk,:), &
+         chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
   end do
 
  chi2_red(:) = chi2_old_total(:) / nu !nu = dof
@@ -120,7 +162,9 @@ subroutine multi_all_stretch_move( &
       !CHECK ALSO THE LIMITS FOR RV AND LDC
 
       if ( is_limit_good ) then
-        !CALCULATE THE CHI2
+        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
+             t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),ldc_new(nk,:), &
+             chi2_new_total(nk),npl,n_tel,size_rv,size_tr)
       else
          chi2_new_total(nk) = huge(0.0d0) !A really big number!
       end if

@@ -182,7 +182,7 @@ end subroutine
 !-----------------------------------------------------------
 
 subroutine find_chi2_tr_new(xd,yd,errs,pars,jitter,flag,ldc,&
-           n_cad,t_cad,chi2,datas, npl)
+           n_cad,t_cad,chi2,datas,npl)
 implicit none
 
 !In/Out variables
