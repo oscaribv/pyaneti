@@ -17,6 +17,7 @@ LGOMP=-L/usr/lib64/ -lgomp
 SOURCES= src/ftr.f90\
 	src/frv.f90\
 	src/quad.f90\
+	src/fit_all.f90\
 	src/todo.f90
 
 EXECUTABLE=pyaneti
