@@ -1,14 +1,169 @@
 from matplotlib import gridspec
 
 #what is the minimum chi2
-minchi2_index = np.argmin(chi2)
+#minchi2_index = np.argmin(chi2)
 
+#Read the data
+#Dummy params vector contains
+#[0] -> i
+#[1] -> chain label
+#[2] -> chi2
+#[3-8*nplanets] -> parameters
+#[8*nplanets-+2] -> ldc
+#[8*nplanets-+2] -> rvs
+newfile = outdir+'/'+star+'_all_data.dat'
+dparams = np.loadtxt(newfile, comments='#',unpack=True)
+
+#Starting clustering
+good_index, new_nwalkers = good_clustering(dparams[2],dparams[1],nconv,nwalkers)
+#Let us do the clustering
+params = [None]*len(dparams)
+for o in range(0,len(dparams)):
+    params[o] = clustering(dparams[o],good_index)
 #Create the stellar data
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=new_nwalkers*nconv)
 tstar = np.random.normal(loc=tstar_mean,scale=tstar_sigma,size=new_nwalkers*nconv)
 
-if ( nplanets == 1 ):
+
+#Calculate the BIC
+if (fit_rv and fit_tr ):
+  ndata = len(megax) + len(mega_rv)
+  npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
+elif(fit_rv and not fit_tr):
+  ndata = len(mega_rv)
+  npars = sum(what_fit) + nt - 1
+elif(not fit_rv and fit_tr):
+  ndata = len(megax)
+  npars = sum(what_fit)
+
+chi2tot_val  = np.min(params[2])
+chi2_val = chi2tot_val / ( ndata - npars )
+
+if ( scale_error_bars ):
+  s_factor = np.sqrt( chi2_val )
+  if ( chi2_val > 1.0 ):
+    s_factor = 1.0 / s_factor
+  else:
+    s_factor = 1.0
+
+
+if ( method == 'new' or method == 'plot' ):
+
+  minchi2_index = np.argmin(params[2])
+
+  base = 3 #Where do the parameters start?
+#Fitted parameters
+  T0_vec = [None]*nplanets
+  P_vec  = [None]*nplanets
+  e_vec  = [None]*nplanets
+  w_vec  = [None]*nplanets
+  b_vec  = [None]*nplanets
+  ar_vec = [None]*nplanets
+  rr_vec = [None]*nplanets
+  k_vec  = [None]*nplanets
+#Derived parameters
+  Teq_vec= [None]*nplanets #Planet temperature
+  r_vec  = [None]*nplanets #planet radius
+  a_vec  = [None]*nplanets #semi-major axis
+  m_vec  = [None]*nplanets #planet mass
+  i_vec  = [None]*nplanets #orbit inclination
+  ds_vec = [None]*nplanets #stellar density
+  dp_vec = [None]*nplanets #planet density
+  gp_vec = [None]*nplanets #planet surface gravity
+  trt_vec= [None]*nplanets #Total transit duration
+  tri_vec= [None]*nplanets #Ingress/egress duration
+
+  #Print the data for all the planets
+  for o in range(0,nplanets):
+    T0_vec[0] = params[base + 0]
+    P_vec[0]  = params[base + 1]
+    e_vec[0]  = params[base + 2]
+    w_vec[0]  = params[base + 3]
+    b_vec[0]  = params[base + 4]
+    ar_vec[0] = params[base + 5]
+    rr_vec[0] = params[base + 6]
+    k_vec[0]  = params[base + 7]
+
+#STARTING CALCULATIONS
+
+  #Change between b and i
+    if ( is_b_factor ):
+      i_vec[o] = list(b_vec[o])
+      i_vec[o] = np.arccos( b_vec[o] / ar_vec[o] * \
+              ( 1.0 + e_vec[o] * np.sin(w_vec[o] + np.pi) / ( 1.0 - e_vec[o]**2 ) ) )
+    else:
+      #calculate the impact parameter (eq. 7 Winn 2014)
+      #wo is the star periastron, add pi to have the planet one
+      i_vec[o] = list(b_vec[o])
+      b_vec[o] =  ar_vec[o] * np.cos(b_vec[o]) * ( ( 1. - e_vec[o]**2 ) \
+               / ( 1.0 + e_vec*np.sin(w_vec[o] + np.pi )))
+
+    #Calculate equilibrium temperature
+    #assuming albedo=0
+    Teq_vec[o] = get_teq(tstar,0.0,1.0,ar_vec[o])
+
+    #Get planet mass, radius and orbit semi-major axis in real units
+    r_vec[o] = rr_vec[o] * rstar
+    a_vec[o] = ar_vec[o] * rstar * S_radius_SI / AU_SI
+    m_vec[o] = planet_mass(mstar,k_vec[o]*1.e3,P_vec[o],e_vec[o],i_vec[o])
+    #Convert units
+    usymbol = '{\odot}'
+    if ( unit_mass == 'earth'):
+      usymbol = '{\oplus}'
+      if ( fit_rv ):
+        m_vec[o] = m_vec[o] * S_GM_SI / E_GM_SI
+      if ( fit_tr ):
+        r_vec[o] = r_vec[o] * S_radius_SI / E_radius_e_SI
+    elif ( unit_mass == 'jupiter'):
+      usymbol = '\mathrm{J}'
+      if ( fit_rv ):
+        m_vec[o] = m_vec[o] * S_GM_SI / J_GM_SI
+      if ( fit_tr ):
+        r_vec[o] = r_vec[o] * S_radius_SI / J_radius_e_SI
+
+
+    #Print the parameters
+    #Fitted parameters
+    print '--------------------------------------------------------------'
+    print '                   Parameters ', star + plabels[o]
+    print '--------------------------------------------------------------'
+    print '-------------------------Fitted-------------------------------'
+    print ('T0   = %4.7f + %4.7f - %4.7f  days \n'%(find_vals_perc(T0_vec[o],s_factor)))
+    print ('P    = %4.7f + %4.7f - %4.7f  days \n'%(find_vals_perc(P_vec[o],s_factor)))
+    print ('e    = %4.7f + %4.7f - %4.7f       \n'%(find_vals_perc(e_vec[o],s_factor)))
+    print ('w*   = %4.7f + %4.7f - %4.7f  deg  \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
+    print ('b    = %4.7f + %4.7f - %4.7f       \n'%(find_vals_perc(b_vec[o],s_factor)))
+    print ('a/R* = %4.7f + %4.7f - %4.7f       \n'%(find_vals_perc(ar_vec[o],s_factor)))
+    print ('Rp/R*= %4.7f + %4.7f - %4.7f       \n'%(find_vals_perc(rr_vec[o],s_factor)))
+    print ('K    = %4.7f + %4.7f - %4.7f  m/s  \n'%(find_vals_perc(k_vec[o]*1e3,s_factor)))
+    print '-------------------------Derived------------------------------'
+    print ('i    = %4.7f + %4.7f - %4.7f  deg  \n'%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
+    print ('a    = %4.7f + %4.7f - %4.7f  AU   \n'%(find_vals_perc(a_vec[o],s_factor)))
+    print ('Rp   = %4.7f + %4.7f - %4.7f   \n'%(find_vals_perc(r_vec[o],s_factor)))
+    print ('Mp   = %4.7f + %4.7f - %4.7f   \n'%(find_vals_perc(m_vec[o],s_factor)))
+    print ('Teq  = %4.7f + %4.7f - %4.7f  K    \n'%(find_vals_perc(Teq_vec[o],s_factor)))
+    print '--------------------------------------------------------------'
+
+    #Let us change to the next planet
+    base = base + 8
+
+#The other parameters
+q1_vec = params[base]
+q2_vec = params[base+1]
+
+rv_vec = [None]*nt
+for o in range(0,nt):
+  rv_vec[o] = params[base+2+o]
+
+print '--------------------  Other parameters -----------------------'
+print ('q1    = %4.7f + %4.7f - %4.7f    \n'%(find_vals_perc(q1_vec,s_factor)))
+print ('q2    = %4.7f + %4.7f - %4.7f    \n'%(find_vals_perc(q2_vec,s_factor)))
+for o in range(0,nt):
+  print ('gamma = %4.7f + %4.7f - %4.7f km/s\n'%(find_vals_perc(rv_vec[o],s_factor)))
+
+
+if ( nplanets == 0 ):
 
   if ( inclination_mean.__class__ == float ):
      inclination = np.random.normal(loc=inclination_mean,scale=inclination_sigma,size=new_nwalkers*nconv)
@@ -50,8 +205,6 @@ if ( nplanets == 1 ):
     #Take back the u1 and u2 values, Kipping 2013
     u1o = 2*np.sqrt(q1o)*q2o
     u2o = np.sqrt(q1o)*(1.-2.*q2o)
-
-    #Calculate the planet size in solar radii
     #rstar must be given in solar radius           
     rpo = pzo * rstar
     
@@ -96,19 +249,6 @@ if ( nplanets == 1 ):
   #Change to earth or jupiter parameters
   #based on IAU resolution http://adsabs.harvard.edu/cgi-bin/bib_query?arXiv:1605.09788
 
-  usymbol = '{\odot}'
-  if ( unit_mass == 'earth'):
-    usymbol = '{\oplus}'
-    if ( fit_rv ):
-      masso = masso * S_GM_SI / E_GM_SI
-    if ( fit_tr ):
-      rpo = rpo * S_radius_SI / E_radius_e_SI
-  elif ( unit_mass == 'jupiter'):
-    usymbol = '\mathrm{J}'
-    if ( fit_rv ):
-      masso = masso * S_GM_SI / J_GM_SI
-    if ( fit_tr ):
-      rpo = rpo * S_radius_SI / J_radius_e_SI
 	
 	
   #Calculate the BIC
@@ -349,7 +489,7 @@ if ( nplanets == 1 ):
 
 
 #Multiplanet fit
-else:
+elif (nplanets < 0):
 
   #Define global variables
   mass_val = [None]*nplanets
@@ -548,3 +688,4 @@ else:
   #Run the previous function
   print_errors_planets()	
 
+    #Calculate the planet size

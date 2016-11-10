@@ -366,7 +366,7 @@ def clustering(par,good_index):
 #         FIT JOINT RV-TRANSIT DATA
 #-----------------------------------------------------------
 def fit_new_method():
-
+  global wtf_all, wtf_ldc, wtf_rvs
   global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
   global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
   global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_pz, fit_k,fit_v0
@@ -391,6 +391,11 @@ def fit_new_method():
     fit_a = fit_a
 
 
+  wtf_all = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
+            int(fit_i),int(fit_a), int(fit_pz), int(fit_k) ]
+  wtf_rvs = [int(fit_v0)]*nplanets
+  wtf_ldc = [fit_q1, fit_q2]
+
   if ( method == 'new' ):
 
 
@@ -399,10 +404,6 @@ def fit_new_method():
     ldc   = [q1,q2]
     flags = [is_log_P,is_ew,is_b_factor,k_log_a,is_log_k,is_log_rv0]
 
-    wtf_all = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
-              int(fit_i),int(fit_a), int(fit_pz), int(fit_k) ]
-    wtf_rvs = [int(fit_v0)]*nplanets
-    wtf_ldc = [fit_q1, fit_q2]
 
     vec_rv0_limits = []
     vec_rv0_phys_limits = []
@@ -448,42 +449,11 @@ def fit_new_method():
 
   print 'Reading the data file, wait a bit!'
 
-  newfile = outdir+'/'+star+'_rv-tr.dat'
-  if ( os.path.isfile('mh_fit.dat') ):
-    os.rename('mh_fit.dat',newfile)
+  newfile = outdir+'/'+star+'_all_data.dat'
+  if ( os.path.isfile('all_data.dat') ):
+    os.rename('all_data.dat',newfile)
 
-  #Read the data
-  dvari,dchain_lab,dchi2,djrvo,djtro,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo,dko, dalphao, dbetao =  \
-  np.loadtxt(newfile, comments='#',unpack=True, \
-  usecols=range(0,17))
-  dvo = [None]*nt
-  for j in range(0,nt):
-    n = [17+j]
-    a = np.loadtxt(newfile, comments='#', \
-    unpack=True, usecols=(n))
-    dvo[j] = a
 
-  #Starting clustering
-  good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
-  vari = clustering(dvari,good_index)
-  chi2 = clustering(dchi2,good_index)
-  jrvo = clustering(djrvo,good_index)
-  jtro = clustering(djtro,good_index)
-  t0o = clustering(dt0o,good_index)
-  Po = clustering(dPo,good_index)
-  eo = clustering(deo,good_index)
-  wo = clustering(dwo,good_index)
-  io = clustering(dio,good_index)
-  ao = clustering(dao,good_index)
-  q1o = clustering(dq1o,good_index)
-  q2o = clustering(dq2o,good_index)
-  pzo = clustering(dpzo,good_index)
-  ko = clustering(dko,good_index)
-  alphao = clustering(dalphao,good_index)
-  betao = clustering(dbetao,good_index)
-  vo = [None]*nt
-  for j in range(0,nt):
-    vo[j] = clustering(dvo[j],good_index)
 
 #-----------------------------------------------------------
 #         FIT JOINT RV-TRANSIT DATA
@@ -504,7 +474,7 @@ def fit_joint():
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko,alphao,betao,vo, what_fit
   global new_nwalkers, good_index
   global jrvo, jtro
-  
+
 
   if ( a_from_kepler ):
     k_log_a = False
@@ -512,7 +482,7 @@ def fit_joint():
   else:
     k_log_a = is_log_a
     fit_a = fit_a
- 
+
   pstar = [mstar_mean,rstar_mean]
   lpstar = [mstar_sigma,rstar_sigma]
 
@@ -533,8 +503,8 @@ def fit_joint():
     vec_rv0_phys_limits = []
     for m in range(0,nt):
       vec_rv0_limits.append(min_rv0) 
-      vec_rv0_limits.append(max_rv0) 
-      vec_rv0_phys_limits.append(min_phys_rv0) 
+      vec_rv0_limits.append(max_rv0)
+      vec_rv0_phys_limits.append(min_phys_rv0)
       vec_rv0_phys_limits.append(max_phys_rv0) 
 
     dummy_lims = \

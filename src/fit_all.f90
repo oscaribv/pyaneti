@@ -89,17 +89,13 @@ implicit none
 !external calls
   external :: init_random_seed, find_chi2_tr, find_chi2_rv
 
-
+  !spar -> size of parameters, dof -> degrees of freedom
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
   dof  = size_rv + size_tr - spar
-
-  !print *, x_rv, y_rv, e_rv
-  !print *, x_tr, y_tr, e_tr
 
   !call the random seed
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
-
 
   print *, 'CREATING UNIFORM UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
@@ -114,16 +110,15 @@ implicit none
          chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
   end do
 
- chi2_red(:) = chi2_old_total(:) / dof !nu = dof
+ chi2_red(:) = chi2_old_total(:) / dof
 
   !Print the initial cofiguration
   print *, ''
-  print *, 'STARTING MCMC'
+  print *, 'STARTING MCMC CALCULATION'
   print *, 'dof = ', dof
   call print_chain_data(chi2_red,nwalks)
 
   !Initialize the values
-
   j = 1
   n = 0
   continua = .TRUE.
@@ -162,12 +157,12 @@ implicit none
       call find_gz(z_rand(nk),a_factor)
 
       !Perform the stretch move
-         !This evolves all the parameters at the same time
+      !Eq. (7), Goodman & Weare (2010)
       pars_new(nk,:) = pars_new(nk,:) + wtf_all(:) * z_rand(nk) * &
                      ( pars_old(nk,:) - pars_new(nk,:) )
-      rvs_new(nk,:) = rvs_new(nk,:) + wtf_rvs(:) * z_rand(nk) * &
-                    ( rvs_old(nk,:) - rvs_new(nk,:) )
-      ldc_new(nk,:) = ldc_new(nk,:) + wtf_ldc(:) * z_rand(nk) * &
+      rvs_new(nk,:)  = rvs_new(nk,:) + wtf_rvs(:) * z_rand(nk) * &
+                     ( rvs_old(nk,:) - rvs_new(nk,:) )
+      ldc_new(nk,:)  = ldc_new(nk,:) + wtf_ldc(:) * z_rand(nk) * &
                      ( ldc_old(nk,:) - ldc_new(nk,:) )
 
       !Let us check if the new parameters are inside the limits
@@ -176,7 +171,6 @@ implicit none
 
       is_limit_good = .true.
       if ( is_limit_good ) then
-        !print *, 'I am here'
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
              t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),ldc_new(nk,:), &
              chi2_new_total(nk),npl,n_tel,size_rv,size_tr)
@@ -201,11 +195,21 @@ implicit none
     end if
 
     !Compute the reduced chi square
-
     chi2_red(nk) = chi2_old_total(nk) / dof
 
-    !start to burn-in
-    !ONCE THE CHAINS HAVE CONVERGED, WRITE DATA HERE
+    !Start to burn-in
+    if ( is_burn ) then
+      if ( mod(j,new_thin_factor) == 0 ) then
+       ! !$OMP CRITICAL
+       !write(*,*)   j, nk, chi2_old_total(nk), pars_old(nk,:), &
+       !             ldc_old(nk,:), rvs_old(nk,:)
+       write(101,*) j, nk, chi2_old_total(nk), pars_old(nk,:), &
+                    ldc_old(nk,:), rvs_old(nk,:)
+       ! !$OMP END CRITICAL
+      end if
+    end if
+    !End burn-i
+
 
     end do !walkers
     ! !$OMP END PARALLEL
@@ -251,6 +255,9 @@ implicit none
           print *, '==========================='
           is_burn = .True.
           new_thin_factor = thin_factor
+          print *, 'CREATING BURNING-IN DATA FILE'
+          !Let us start the otput file
+          open(unit=101,file='all_data.dat',status='unknown')
         end if ! is_cvg
       end if !nconv
     end if !is_burn
@@ -265,5 +272,8 @@ implicit none
 
   end do !infinite loop
   !the MCMC part has ended
+
+  !Close file
+  close(101)
 
 end subroutine

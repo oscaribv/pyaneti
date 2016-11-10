@@ -56,30 +56,29 @@ check_circular()
 #Print intial configuration
 print_init()
 
-
 #-------------------------------------------------------------
 #                   FITTING ROUTINES
 #-------------------------------------------------------------
 
-if (method == 'new'):
-  fit_new_method()
+#if (method == 'new'):
+fit_new_method()
 
 #Joint fit
-elif (fit_rv and fit_tr ):
-  fit_joint()
+#elif (fit_rv and fit_tr ):
+#  fit_joint()
 
-#Transit fit
-elif ( not fit_rv and fit_tr ):
-  fit_transit()
+##Transit fit
+#elif ( not fit_rv and fit_tr ):
+#  fit_transit()
 
-#Radial velocity fit
-elif ( fit_rv and not fit_tr ):
-  fit_radial_velocity()
+##Radial velocity fit
+#elif ( fit_rv and not fit_tr ):
+#  fit_radial_velocity()
 
 
 #Nothing to fit!
-else:
-  sys.exit("Nothing to fit!")
+#else:
+#  sys.exit("Nothing to fit!")
 
 #-------------------------------------------------------------
 #             	PRINT AND PLOT ROUTINES
