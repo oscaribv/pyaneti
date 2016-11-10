@@ -365,6 +365,129 @@ def clustering(par,good_index):
 #-----------------------------------------------------------
 #         FIT JOINT RV-TRANSIT DATA
 #-----------------------------------------------------------
+def fit_new_method():
+
+  global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
+  global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
+  global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_pz, fit_k,fit_v0
+  global T0,P,e,w,ii,a,q1,q2,pz,k0,alpha,beta, v0
+  global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
+         max_a, min_q1, max_q1, min_q1, max_q1, min_pz, max_pz, min_k, max_k, min_alpha, max_alpha, \
+         min_beta, max_beta
+  global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
+         min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
+         max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, \
+         min_phys_beta, max_phys_beta, min_phys_rv0, max_phys_rv0
+  global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko,alphao,betao,vo, what_fit
+  global new_nwalkers, good_index
+  global jrvo, jtro
+
+
+  if ( a_from_kepler ):
+    k_log_a = False
+    fit_a = False
+  else:
+    k_log_a = is_log_a
+    fit_a = fit_a
+
+
+  if ( method == 'new' ):
+
+
+    pars  = [T0,P,e,w,ii,a,pz,k0]
+    rvs   = v0
+    ldc   = [q1,q2]
+    flags = [is_log_P,is_ew,is_b_factor,k_log_a,is_log_k,is_log_rv0]
+
+    wtf_all = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
+              int(fit_i),int(fit_a), int(fit_pz), int(fit_k) ]
+    wtf_rvs = [int(fit_v0)]*nplanets
+    wtf_ldc = [fit_q1, fit_q2]
+
+    vec_rv0_limits = []
+    vec_rv0_phys_limits = []
+    for m in range(0,nt):
+      vec_rv0_limits.append(min_rv0)
+      vec_rv0_limits.append(max_rv0)
+      vec_rv0_phys_limits.append(min_phys_rv0)
+      vec_rv0_phys_limits.append(max_phys_rv0)
+
+    dummy_lims = \
+    [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
+    , min_i, max_i, min_a, max_a, min_pz, max_pz, min_k, max_k ]
+
+    dummy_lims_physical = \
+    [min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w \
+    , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k ]
+
+    limits = dummy_lims
+    limits_p = dummy_lims_physical
+
+    limits_rvs = vec_rv0_limits
+    limits_p_rvs = vec_rv0_phys_limits
+
+    limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
+    limits_p_ldc = [ min_q1, max_q1, min_q2, max_q2]
+
+    pti.multi_all_stretch_move(\
+                      mega_time,mega_rv,megax,megay,mega_err,megae, \
+                      tlab,pars,rvs,ldc,flags,wtf_all,wtf_rvs,wtf_ldc, \
+                      nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
+                      limits_ldc,limits_p, limits_p_rvs, limits_p_ldc, \
+                      n_cad, t_cad, nplanets, nt)
+
+
+  elif ( method == 'plot' ):
+    print 'I will only print the values and generate the plot'
+
+  else:
+    print 'You did not choose a method!'
+    print 'method = sm   -> Stretch move'
+    print 'method = plot -> Plot of a previous run'
+    sys.exit('choose your favorite.')
+
+  print 'Reading the data file, wait a bit!'
+
+  newfile = outdir+'/'+star+'_rv-tr.dat'
+  if ( os.path.isfile('mh_fit.dat') ):
+    os.rename('mh_fit.dat',newfile)
+
+  #Read the data
+  dvari,dchain_lab,dchi2,djrvo,djtro,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo,dko, dalphao, dbetao =  \
+  np.loadtxt(newfile, comments='#',unpack=True, \
+  usecols=range(0,17))
+  dvo = [None]*nt
+  for j in range(0,nt):
+    n = [17+j]
+    a = np.loadtxt(newfile, comments='#', \
+    unpack=True, usecols=(n))
+    dvo[j] = a
+
+  #Starting clustering
+  good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
+  vari = clustering(dvari,good_index)
+  chi2 = clustering(dchi2,good_index)
+  jrvo = clustering(djrvo,good_index)
+  jtro = clustering(djtro,good_index)
+  t0o = clustering(dt0o,good_index)
+  Po = clustering(dPo,good_index)
+  eo = clustering(deo,good_index)
+  wo = clustering(dwo,good_index)
+  io = clustering(dio,good_index)
+  ao = clustering(dao,good_index)
+  q1o = clustering(dq1o,good_index)
+  q2o = clustering(dq2o,good_index)
+  pzo = clustering(dpzo,good_index)
+  ko = clustering(dko,good_index)
+  alphao = clustering(dalphao,good_index)
+  betao = clustering(dbetao,good_index)
+  vo = [None]*nt
+  for j in range(0,nt):
+    vo[j] = clustering(dvo[j],good_index)
+
+#-----------------------------------------------------------
+#         FIT JOINT RV-TRANSIT DATA
+#-----------------------------------------------------------
 def fit_joint():
 
   global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma

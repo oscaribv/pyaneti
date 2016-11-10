@@ -232,7 +232,7 @@ implicit none
   end if
   !The jitter term starts with jitter=0
   call gauss_random_bm(0.005d0,0.001d0,jitter_old,nwalks)
-  !call gauss_random_bm(0.000d0,0.000d0,jitter_old,nwalks)
+  call gauss_random_bm(0.000d0,0.000d0,jitter_old,nwalks)
   mult_old(:) = 1.0d0
   do nk = 0, nwalks - 1
     do j = 0, datas-1

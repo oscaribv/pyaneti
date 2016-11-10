@@ -45,7 +45,7 @@ if (fit_tr):
 #                         RV DATA
 #-----------------------------------------------------------
 
-if (fit_rv):
+if (fit_rv or method == 'new' ):
 
 	#Read the data file
 	#time, RV, errors, and Telescope label
@@ -109,7 +109,7 @@ if (fit_rv):
 #                     TRANSIT DATA
 #-----------------------------------------------------------
 
-if (fit_tr):
+if (fit_tr or method == 'new'):
 
   #Read the data file
   dummyd,dummyf, dummye = np.loadtxt('inpy/'+star+'/'+fname_tr,usecols=columns_tr, \

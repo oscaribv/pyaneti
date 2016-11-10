@@ -81,7 +81,7 @@ if ( nplanets == 1 ):
     tpo = [None]*len(t0o) 
     masso = [None]*len(t0o) 
     for m in range(0,len(t0o)):
-      tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m]+np.pi,Po[m])
+      tpo[m] = pti.find_tp(t0o[m],eo[m],wo[m],Po[m])
 
     masso = planet_mass(mstar,ko*1.e3,Po,eo,inclination)
 

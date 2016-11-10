@@ -188,7 +188,7 @@ implicit none
 !In/Out variables
   integer, intent(in) :: datas, n_cad, npl
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  double precision, intent(in), dimension(0:6,npl-1) :: pars
+  double precision, intent(in), dimension(0:6,0:npl-1) :: pars
   !pars = T0, P, e, w, b, a/R*, Rp/R*
   double precision, intent(in) :: t_cad
   double precision, intent(in) :: jitter
@@ -206,7 +206,7 @@ implicit none
 !External function
   external :: occultquad
 
-  small = 1.d-5
+  small = 1.d-10
   npl_dbl = dble(npl)
 
   q1k = ldc(0)
@@ -231,7 +231,7 @@ implicit none
 
     !Are we generating an eclipse?
     !Take care with the pars
-    call find_z(xd(j),pars(:,n),flag,zdum,1)
+    call find_z(xd(j),pars(0:5,n),flag,zdum,1)
 
     if ( zdum(0) > 1.0 + 2*pz(n) .or. pz(n) < small ) then
 
@@ -260,7 +260,7 @@ implicit none
       muld(:) = muld(:) +  muld_npl(:,n)
     end do
     !This is the final flux for all the planets
-    muld(:) = muld / npl_dbl
+    muld(:) = muld(:) / npl_dbl
 
   end do
 

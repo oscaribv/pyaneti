@@ -10,14 +10,16 @@ implicit none
   double precision, intent(in), dimension(0:size_rv-1) :: tlab
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
+  double precision, intent(out) :: chi2
   !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each parameter
   !THIS DOES NOT ADD alpha and beta
-  double precision, intent(out) :: chi2
 !Local variables
-  double precision :: pars_tr(0:6,npl-1), pars_rv(0:7+n_tel-1,0:npl-1)
+  double precision :: pars_rv(0:7+n_tel-1,0:npl-1)
+  double precision :: pars_tr(0:6,0:npl-1)
   double precision :: chi2_rv, chi2_tr
   logical :: flag_rv(0:3), flag_tr(0:3)
   integer :: i, j
+
 
   !Create the parameter variables for rv and tr
   do i = 0, npl - 1
@@ -36,9 +38,11 @@ implicit none
   !Let us calculate chi2
   call find_chi2_tr_new(x_tr,y_tr,e_tr,pars_tr,0.d0,flag_tr,&
                         ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
-  call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,0.0d0,&
-                    flag_rv,chi2_rv,size_tr,n_tel,npl)
+  call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,0.d0,&
+                    flag_rv,chi2_rv,size_rv,n_tel,npl)
 
+
+  chi2 = chi2_rv + chi2_tr
 
 end subroutine
 
@@ -54,27 +58,29 @@ subroutine multi_all_stretch_move( &
            npl, n_tel, & !integers                !planets and telescopes
            size_rv, size_tr &                     !data sizes
            )
+implicit none
 
 !In/Out variables
   integer, intent(in) :: size_rv, size_tr, npl, n_tel !size of RV and LC data
-  integer, intent(in) :: nwalks, maxi, thin_factor, n_cad
+  integer, intent(in) :: nwalks, maxi, thin_factor, nconv, n_cad
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
-  double precision, intent(in), dimension(0:8*npl - 1) :: pars, lims, lims_p
   double precision, intent(in), dimension(0:size_rv-1) :: tlab
-  double precision, intent(in), dimension(0:n_tel - 1) :: rvs, lims_rvs, lims_p_rvs
-  double precision, intent(in), dimension(0:1) :: ldc, lims_ldc, lims_p_ldc
+  double precision, intent(in), dimension(0:8*npl - 1) :: pars
+  double precision, intent(in), dimension(0:2*8*npl - 1):: lims, lims_p
+  double precision, intent(in), dimension(0:n_tel - 1) :: rvs
+  double precision, intent(in), dimension(0:1) :: ldc
+  double precision, intent(in), dimension(0:2*n_tel - 1) :: lims_rvs, lims_p_rvs
+  double precision, intent(in), dimension(0:3) :: lims_ldc, lims_p_ldc
   double precision, intent(in) ::  t_cad
   integer, intent(in) :: wtf_all(0:8*npl-1), wtf_rvs(0:n_tel-1), wtf_ldc(0:1)
-  logical, intent(in) :: flags(0:3) !CHECK THE SIZE
+  logical, intent(in) :: flags(0:5) !CHECK THE SIZE
 !Local variables
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: pars_old, pars_new
   double precision, dimension(0:nwalks-1,0:n_tel - 1) :: rvs_old, rvs_new
   double precision, dimension(0:nwalks-1,0:1) :: ldc_old, ldc_new
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   double precision, dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
-  double precision, dimension(0:nwalks-1) :: chi2_old_rv, chi2_new_rv
-  double precision, dimension(0:nwalks-1) :: chi2_old_tr, chi2_new_tr
   double precision, dimension(0:nwalks-1,0:8*npl-1,0:nconv-1) :: pars_chains
   integer, dimension(0:nwalks-1) :: r_int
   double precision  :: q, spar, a_factor, dof
@@ -84,9 +90,16 @@ subroutine multi_all_stretch_move( &
   external :: init_random_seed, find_chi2_tr, find_chi2_rv
 
 
+  spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
+  dof  = size_rv + size_tr - spar
+
+  !print *, x_rv, y_rv, e_rv
+  !print *, x_tr, y_tr, e_tr
+
   !call the random seed
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
+
 
   print *, 'CREATING UNIFORM UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
@@ -101,12 +114,12 @@ subroutine multi_all_stretch_move( &
          chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
   end do
 
- chi2_red(:) = chi2_old_total(:) / nu !nu = dof
+ chi2_red(:) = chi2_old_total(:) / dof !nu = dof
 
   !Print the initial cofiguration
   print *, ''
   print *, 'STARTING MCMC'
-  print *, 'dof = ', nu
+  print *, 'dof = ', dof
   call print_chain_data(chi2_red,nwalks)
 
   !Initialize the values
@@ -115,8 +128,8 @@ subroutine multi_all_stretch_move( &
   n = 0
   continua = .TRUE.
   is_burn = .FALSE.
-  is_jitter = jit
-  aa = a_factor
+  !is_jitter = jit
+  a_factor = 2.d0
   n_burn = 1
 
   !The infinite cycle starts!
@@ -145,23 +158,25 @@ subroutine multi_all_stretch_move( &
     do nk = 0, nwalks - 1
 
       !Generate the random step to perform the stretch move
-      z_rand(nk) = z_rand(nk) * aa
-      call find_gz(z_rand(nk),aa)
+      z_rand(nk) = z_rand(nk) * a_factor
+      call find_gz(z_rand(nk),a_factor)
 
       !Perform the stretch move
          !This evolves all the parameters at the same time
       pars_new(nk,:) = pars_new(nk,:) + wtf_all(:) * z_rand(nk) * &
                      ( pars_old(nk,:) - pars_new(nk,:) )
-      rvs_new(nk,:) = rvs_new(nk,:) + wtf_all(:) * z_rand(nk) * &
+      rvs_new(nk,:) = rvs_new(nk,:) + wtf_rvs(:) * z_rand(nk) * &
                     ( rvs_old(nk,:) - rvs_new(nk,:) )
-      ldc_new(nk,:) = ldc_new(nk,:) + wtf_all(:) * z_rand(nk) * &
+      ldc_new(nk,:) = ldc_new(nk,:) + wtf_ldc(:) * z_rand(nk) * &
                      ( ldc_old(nk,:) - ldc_new(nk,:) )
 
       !Let us check if the new parameters are inside the limits
-      call check_limits(pars_new,lims_p,is_limit_good,8*npl)
+      !call check_limits(pars_new,lims_p,is_limit_good,8*npl)
       !CHECK ALSO THE LIMITS FOR RV AND LDC
 
+      is_limit_good = .true.
       if ( is_limit_good ) then
+        !print *, 'I am here'
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
              t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),ldc_new(nk,:), &
              chi2_new_total(nk),npl,n_tel,size_rv,size_tr)
@@ -187,7 +202,7 @@ subroutine multi_all_stretch_move( &
 
     !Compute the reduced chi square
 
-    chi2_red(nk) = chi2_old_total(nk) / nu
+    chi2_red(nk) = chi2_old_total(nk) / dof
 
     !start to burn-in
     !ONCE THE CHAINS HAVE CONVERGED, WRITE DATA HERE
@@ -236,9 +251,6 @@ subroutine multi_all_stretch_move( &
           print *, '==========================='
           is_burn = .True.
           new_thin_factor = thin_factor
-!          print *, 'Creating ', output_files
-!          !Let us start the otput file
-!          open(unit=101,file='mh_fit.dat',status='unknown')
         end if ! is_cvg
       end if !nconv
     end if !is_burn
@@ -249,8 +261,9 @@ subroutine multi_all_stretch_move( &
       continua = .FALSE.
     end if
 
+  j = j + 1
+
   end do !infinite loop
   !the MCMC part has ended
-
 
 end subroutine

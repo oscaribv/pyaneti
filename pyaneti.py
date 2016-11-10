@@ -61,8 +61,11 @@ print_init()
 #                   FITTING ROUTINES
 #-------------------------------------------------------------
 
+if (method == 'new'):
+  fit_new_method()
+
 #Joint fit
-if (fit_rv and fit_tr ):
+elif (fit_rv and fit_tr ):
   fit_joint()
 
 #Transit fit
@@ -72,6 +75,7 @@ elif ( not fit_rv and fit_tr ):
 #Radial velocity fit
 elif ( fit_rv and not fit_tr ):
   fit_radial_velocity()
+
 
 #Nothing to fit!
 else:
