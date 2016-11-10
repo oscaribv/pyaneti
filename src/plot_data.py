@@ -8,6 +8,9 @@ fsx = figure_size_x
 fsy = figure_size_y
 fos = font_size_label
 
+vari = params[0]
+chi2 = params[2]
+
 def plot_chains():
   plt.xlabel('iteration')
   plt.ylabel('$\chi^2$')
@@ -22,11 +25,140 @@ def plot_chains():
   plt.savefig(fname,bbox_inches='tight')
   plt.close()
 
+  #=========================#
+  #       Transit plot      #
+  #=========================#
+
+#Ntransit is the number of the transit that we want to plot
+def fancy_tr_plot(xtime,yflux,errors,pars,ldc,flag,fname):
+
+  t0_val = pars[0]
+  P_val  = pars[1]
+  e_val = pars[2]
+  w_val = pars[3]
+  i_val = pars[4]
+  a_val = pars[5]
+  pz_val = pars[6]
+
+  q1_val = ldc[0]
+  q2_val = ldc[1]
+
+  print 'Creating ', fname
+  #Let us create the model
+  xmodel_res = list(xtime)
+  xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1.e3 )
+
+  xd_ub = np.ndarray(shape=(n_cad,len(xmodel)))
+  xd_ub_res = np.ndarray(shape=(n_cad,len(xmodel)))
+  zd_ub = [None]*n_cad
+  zd_ub_res = [None]*n_cad
+  fd_ub = [None]*n_cad
+  fd_ub_res = [None]*n_cad
+  #Use the long cadence data
+  for m in range(0,n_cad):
+    #This vector has the model fit
+    for n in range(0,len(xmodel)):
+      xd_ub[m][n] = xmodel[n] + t_cad * ( (m+1) - 0.5 * (n_cad + 1 ))/n_cad
+    #This vector has the residuals
+    for n in range(0,len(xmodel_res)):
+      xd_ub_res[m][n] = xmodel_res[n] + t_cad * ( (m+1) - 0.5 * (n_cad + 1))/n_cad
+
+  #Calculate the transit curve for all the data
+  for m in range(0,n_cad):
+    zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
+    fd_ub[m], dummm = pti.occultquad(zd_ub[m],q1_val,q2_val,pz_val)
+    zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
+    fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],q1_val,q2_val,pz_val)
+
+  #Bin the data
+  fd_reb = [0.0]*len(xmodel)
+  fd_reb_res = [0.0]*len(xmodel_res)
+  for m in range(0,len(xmodel)):
+    for n in range(0,n_cad):
+      fd_reb[m] = fd_reb[m] + fd_ub[n][m]/n_cad
+  for m in range(0,len(xmodel_res)):
+    for n in range(0,n_cad):
+      fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[n][m]/n_cad
+
+  #Residuals
+  res_res = yflux - fd_reb_res
+
+  #Do the plot
+  tfc = 24. # time factor conversion to hours
+  local_T0 = t0_val
+  plt.figure(1,figsize=(fsx,fsy))
+  #Plot the transit light curve
+  gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3.0, 1.])
+  gs.update(hspace=0.00)
+  ax1 = plt.subplot(gs[0])
+  x_lim = (min(xtime)-local_T0)*tfc
+  plt.xlim(x_lim,-x_lim)
+  min_val_model = max(fd_reb) -  min(fd_reb)
+  plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='r.',alpha=1.0)
+  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0)
+  plt.ylabel('Relative flux',fontsize=fos)
+  plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
+  plt.minorticks_on()
+  plt.ticklabel_format(useOffset=False, axis='y')
+  plt.tick_params( axis='x',which='both',labelbottom='off')
+  #Plot the residuals
+  dplot = plt.subplot(gs[1])
+  plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0)
+  plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='r.',alpha=1.0)
+  yylims = dplot.get_ylim()
+  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
+  plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
+  plt.xlim(x_lim,-x_lim)
+  #Plot the residuals
+  plt.ylabel('Residuals',fontsize=fos*0.75)
+  plt.xlabel("T - T0 (hours)",fontsize=fos)
+  plt.minorticks_on()
+  plt.savefig(fname,format='pdf',bbox_inches='tight')
+  plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
+  plt.close()
+
+
+def plot_transit_nice():
+#Move all the points to T0
+  base = 3
+  for o in range(0,nplanets):
+
+    pars_vec = params[base:base+7]
+    pars = [None]*7
+    for m in range(0,7):
+      pars[m] = np.median(pars_vec[m])
+
+    ldc = [ np.mean(params[3+8*nplanets]), np.median(params[3+9*nplanets]) ]
+
+    xt_dummy = list(xt)
+    for i in range(0,ntr):
+      P_val = pars[1]
+      n = xt_dummy[i][len(xt_dummy[i])-1] - xt_dummy[0][0]
+      n = int(n/P_val)
+      xt_dummy[i] = xt_dummy[i] - P_val * n
+
+    #Redefine megax with the new xt values
+    xtime = np.concatenate(xt_dummy)
+    flag = [False, False, is_b_factor, False]
+    fname = outdir+'/'+star+plabels[o]+'_tr.pdf'
+    fancy_tr_plot(xtime, megay, megae,pars,ldc,flag, fname)
+    base = base + 8
+
+
+def plot_all_transits():
+  flag = [False, False, False, False]
+  xt_dummy = list(xt)
+  for i in range(0,ntr):
+    xt_dummy[i] = xt_dummy[i] - P_val * i
+  for i in range(0,ntr):
+    fname = outdir+'/'+star+plabels[0]+'_transit'+str(i)+'.pdf'
+    fancy_tr_plot(np.array(xt_dummy[i]),np.array(yt[i]),np.array(et[i]),flag,fname)
+
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   print 'Creating ', fname
   plt.figure(3,figsize=(fsx,fsy))
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
-  gs.update(hspace=0.00) 
+  gs.update(hspace=0.00)
   ax0 = plt.subplot(gs[0])
   plt.minorticks_on()
   #plt.subplot(311)
@@ -36,15 +168,18 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   ax0 = plt.plot(p_rv,rvy,'k',linewidth=1.0)
   for j in range(0,nt):
     ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
-    label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=4)
+    label=telescopes_labels[j],\
+    fmt=mark[j],\
+    alpha=1.0 ,\
+    markersize=4)
   plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
-  plt.xticks(np.arange(0.,1.01,0.1)) 
-  plt.tick_params( axis='x',which='both',labelbottom='off') 
+  plt.xticks(np.arange(0.,1.01,0.1))
+  plt.tick_params( axis='x',which='both',labelbottom='off')
   #plt.subplot(312)
   ax1 = plt.subplot(gs[1])
   plt.xlabel("Orbital phase",fontsize=fos)
-  plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on') 
-  plt.xticks(np.arange(0.,1.01,0.1)) 
+  plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on')
+  plt.xticks(np.arange(0.,1.01,0.1))
   plt.ylabel('Residuals (m/s)',fontsize=fos*0.75)
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
@@ -57,122 +192,38 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
   plt.close()
 
+  #=========================#
+  #        RV plot          #
+  #=========================#
+
 #===========================================================
 #                   One planet plots
 #===========================================================
 
-if ( nplanets == 1 ):
+v_vec_val = [None]*nt
+v_val = [None]*nt
+#3 + npars + ldc
+v_vec_val[:] = params[3+10*nplanets:3+10*nplanets+nt]
+for o in range(0,nt):
+  v_val[o] = np.median(v_vec_val[o])
 
-  #=========================#
-  #       Transit plot      #
-  #=========================#
+base = 3
+t0_val = np.ndarray(nplanets)
+P_val  = np.ndarray(nplanets)
+e_val  = np.ndarray(nplanets)
+w_val  = np.ndarray(nplanets)
+k_val  = np.ndarray(nplanets)
+alpha_val = 0.0
+beta_val = 0.0
 
-  #Ntransit is the number of the transit that we want to plot
-  def fancy_tr_plot(xtime,yflux,errors,flag,fname):
+for o in range(0,nt):
+  t0_val[o] = np.median(params[base + 0])
+  P_val[o]  = np.median(params[base + 1])
+  e_val[o]  = np.median(params[base + 2])
+  w_val[o]  = np.median(params[base + 3])
+  k_val[o]  = np.median(params[base + 7])
 
-    print 'Creating ', fname
-    #Let us create the model
-    xmodel_res = list(xtime)
-    xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1.e3 )
-
-    xd_ub = np.ndarray(shape=(n_cad,len(xmodel)))
-    xd_ub_res = np.ndarray(shape=(n_cad,len(xmodel)))
-    zd_ub = [None]*n_cad
-    zd_ub_res = [None]*n_cad
-    fd_ub = [None]*n_cad
-    fd_ub_res = [None]*n_cad
-    #Use the long cadence data
-    for m in range(0,n_cad):
-      #This vector has the model fit
-      for n in range(0,len(xmodel)):
-        xd_ub[m][n] = xmodel[n] + t_cad * ( (m+1) - 0.5 * (n_cad + 1 ))/n_cad
-      #This vector has the residuals
-      for n in range(0,len(xmodel_res)):
-        xd_ub_res[m][n] = xmodel_res[n] + t_cad * ( (m+1) - 0.5 * (n_cad + 1))/n_cad
-
-    #Calculate the transit curve for all the data
-    for m in range(0,n_cad):
-      zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
-      fd_ub[m], dummm = pti.occultquad(zd_ub[m],q1_val,q2_val,pz_val)
-      zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
-      fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],q1_val,q2_val,pz_val)
-
-    #Bin the data
-    fd_reb = [0.0]*len(xmodel)
-    fd_reb_res = [0.0]*len(xmodel_res)
-    for m in range(0,len(xmodel)):
-      for n in range(0,n_cad):
-        fd_reb[m] = fd_reb[m] + fd_ub[n][m]/n_cad
-    for m in range(0,len(xmodel_res)):
-      for n in range(0,n_cad):
-        fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[n][m]/n_cad
-
-    #Residuals
-    res_res = yflux - fd_reb_res
-
-    #Do the plot
-    tfc = 24. # time factor conversion to hours
-    local_T0 = t0_val
-    plt.figure(1,figsize=(fsx,fsy))
-    #Plot the transit light curve
-    gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3.0, 1.])
-    gs.update(hspace=0.00)
-    ax1 = plt.subplot(gs[0])
-    x_lim = (min(xtime)-local_T0)*tfc
-    plt.xlim(x_lim,-x_lim)
-    min_val_model = max(fd_reb) -  min(fd_reb)
-    plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='r.',alpha=1.0)
-    plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0)
-    plt.ylabel('Relative flux',fontsize=fos)
-    plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
-    plt.minorticks_on()
-    plt.ticklabel_format(useOffset=False, axis='y')
-    plt.tick_params( axis='x',which='both',labelbottom='off')
-    #Plot the residuals
-    dplot = plt.subplot(gs[1])
-    plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0)
-    plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='r.',alpha=1.0)
-    yylims = dplot.get_ylim()
-    plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
-    plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
-    plt.xlim(x_lim,-x_lim)
-    #Plot the residuals
-    plt.ylabel('Residuals',fontsize=fos*0.75)
-    plt.xlabel("T - T0 (hours)",fontsize=fos)
-    plt.minorticks_on()
-    plt.savefig(fname,format='pdf',bbox_inches='tight')
-    plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
-    plt.close()
-
-
-  def plot_transit_nice():
-  #Move all the points to T0
-    xt_dummy = list(xt)
-    for i in range(0,ntr):
-      n = xt_dummy[i][len(xt_dummy[i])-1] - xt_dummy[0][0]
-      n = int(n/P_val)
-      xt_dummy[i] = xt_dummy[i] - P_val * n
-
-    #Redefine megax with the new xt values
-    xtime = np.concatenate(xt_dummy)
-    flag = [False, False, False, False]
-    fname = outdir+'/'+star+plabels[0]+'_tr.pdf'
-    fancy_tr_plot(xtime, megay, megae, flag, fname)
-
-
-  def plot_all_transits():
-    flag = [False, False, False, False]
-    xt_dummy = list(xt)
-    for i in range(0,ntr):
-      xt_dummy[i] = xt_dummy[i] - P_val * i
-    for i in range(0,ntr):
-      fname = outdir+'/'+star+plabels[0]+'_transit'+str(i)+'.pdf'
-      fancy_tr_plot(np.array(xt_dummy[i]),np.array(yt[i]),np.array(et[i]),flag,fname)
-
-
-  #=========================#
-  #        RV plot          #
-  #=========================#
+if ( nplanets > 0 ):
 
   #Plot without fold the data
   def plot_rv_all_data():
@@ -189,8 +240,12 @@ if ( nplanets == 1 ):
 
     #Let us save all the RV data in rv_dum
     n = 5000
-    xmin = min(np.concatenate(time_all)) - 10
-    xmax = max(np.concatenate(time_all)) + 10
+    xmin = min(np.concatenate(time_all))
+    xmax = max(np.concatenate(time_all))
+    total_tt = xmax - xmin
+    agregar = total_tt*0.1
+    xmax = xmax + agregar
+    xmin = xmin - agregar
     dn = (xmax - xmin) /  n
     rvx = np.empty([n])
     rvx[0] = xmin
@@ -239,7 +294,7 @@ if ( nplanets == 1 ):
     #Let us save all the RV data in rv_dum
     n = 5000
     xmin = t0_val
-    xmax = t0_val + P_val
+    xmax = t0_val + P_val[0]
     dn = (xmax - xmin) /  n
     rvx = np.empty([n])
     rvx[0] = xmin
@@ -247,19 +302,19 @@ if ( nplanets == 1 ):
       rvx[j] = rvx[j-1] + dn
 
     #Model curve
-    rvy = pti.rv_curve_mp(rvx,0.0,t0_val,\
-                          k_val*cfactor,P_val,e_val,w_val,0.0,0.0)
+    rvy = pti.rv_curve_mp(rvx,0.0,t0_val[0],\
+                          k_val[0]*cfactor,P_val[0],e_val[0],w_val[0],0.0,0.0)
     res = [None]*nt
     rv_dum = [None]*nt
     for j in range(0,nt):
         #This is the model of the actual planet
-        res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val,k_val*cfactor,\
-                                 P_val,e_val,w_val,0.0,0.0)
+        res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val[0],k_val[0]*cfactor,\
+                                 P_val[0],e_val[0],w_val[0],0.0,0.0)
         alpha_time = [None]*len(time_all[j])
         beta_time = [None]*len(time_all[j])
         for m in range(0,len(time_all[j])):
-            alpha_time[m] = (time_all[j][m]-t0_val)**1 * alpha_val * cfactor
-            beta_time[m]  = (time_all[j][m]-t0_val)**2 * beta_val  * cfactor
+            alpha_time[m] = (time_all[j][m]-t0_val)**1 * alpha_val[0] * cfactor
+            beta_time[m]  = (time_all[j][m]-t0_val)**2 * beta_val[0]  * cfactor
 
         rv_dum[j] = rv_dat2[j] - v_val[j]*cfactor - alpha_time - beta_time
         res[j] = rv_dum[j] - res[j]
@@ -277,7 +332,7 @@ if ( nplanets == 1 ):
 #                   Multi-planet plots
 #===========================================================
 
-else:
+#else:
   #Plot RV for multiplanet
   def plot_rv_mp():
     cfactor = np.float(1.e3)
@@ -306,8 +361,8 @@ else:
       for j in range(1,n):
         rvx[j] = rvx[j-1] + dn
       rvy[i] = pti.rv_curve_mp(rvx,0.0,t0_val[i],\
-      k_dum[i],P_val[i],e_val[i],w_val[i],alpha_val[i]*cfactor \
-      , beta_val[i]*cfactor)
+      k_dum[i],P_val[i],e_val[i],w_val[i],alpha_val*cfactor \
+      , beta_val*cfactor)
 
       dt0_val = []
       dk_dum = []
@@ -317,7 +372,7 @@ else:
 
       j = 0
       while ( j < nplanets ):
-        if ( j != i ):
+        if ( j != i and nplanets>1 ):
           dt0_val.append(t0_val[j])
           dk_dum.append(k_dum[j])
           dP_val.append(P_val[j])
@@ -331,12 +386,15 @@ else:
       for j in range(0,nt):
         #This is the model of the actual planet
         res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val[i],k_dum[i],\
-        P_val[i],e_val[i],w_val[i], cfactor*alpha_val[i], cfactor*beta_val[i])
+        P_val[i],e_val[i],w_val[i], cfactor*alpha_val, cfactor*beta_val)
 
         #This variable has all the others planets
-        drvy[j] = pti.rv_curve_mp(time_all[j],0.0,dt0_val,dk_dum \
-        ,dP_val,de_val,dw_val, alpha_val[i]*cfactor \
-        ,beta_val[i]*cfactor)
+        if ( nplanets > 1 ):
+          drvy[j] = pti.rv_curve_mp(time_all[j],0.0,dt0_val,dk_dum \
+          ,dP_val,de_val,dw_val, alpha_val*cfactor \
+          ,beta_val*cfactor)
+        else:
+          drvy[j] = 0.0
 
         #the actual value, minus the systemic velocity, minus the other planets
         rv_dum[j] = rv_dum[j] - v_val[j] - drvy[j]
@@ -373,6 +431,11 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
+
+
+def plot_histogram_2():
+    plabs = ['dummy']*len(params[3:])
+    create_plot_histogram(params[3:], plabs, cbars='red', nb=50)
 
 def plot_histogram(rf=1):
 
@@ -461,6 +524,10 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
+
+def plot_correlations_2():
+  labs = ['dummy']*len(params[3:])
+  create_plot_correlation(params[3:],labs,col='blue')
 
 def plot_correlations(rf=1):
 
