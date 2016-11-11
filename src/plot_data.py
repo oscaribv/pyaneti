@@ -433,68 +433,17 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
 
-
 def plot_histogram_2():
-    plabs = ['dummy']*len(params[3:])
-    create_plot_histogram(params[3:], plabs, cbars='red', nb=50)
-
-def plot_histogram(rf=1):
-
-  if ( fit_tr and fit_rv ):
-    dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],bo[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf],ko[0::rf]]
-    dplabs = ['$T0$','$P$','$e$','$\omega$','$b$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$','$k$']
-
-    vlabs = [None]*nt
-    dumvo = [None]*nt
-    for i in range(0,nt):
-      vlabs[i] = 'rv0 ' + telescopes_labels[i]
-      dumvo[i] = vo[i][0::rf]
-
-    params = np.concatenate([dparams,dumvo])
-    labs = np.concatenate([dplabs,vlabs])
-
-    create_plot_histogram(params,labs)
-
-
-  if ( fit_tr and not fit_rv ):
-    params = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],bo[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf]]
-    labs = ['$T0$','$P$','$e$','$\omega$','$b$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$']
-
-    create_plot_histogram(params,labs)
-
-  if ( not fit_tr and fit_rv ):
-    if (nplanets == 1 ):
-      dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],ko[0::rf],alphao[0::rf],betao[0::rf]]
-      dplabs = ['$T0$','$P$','$e$','$\omega$','$k$','alpha','beta']
-    else:
-      dparams = [None]*(7*nplanets)
-      dplabs = [None]*(7*nplanets)
-      for i in range(0,nplanets):
-        dparams[0+7*i] = t0o[i][0::rf]
-        dparams[1+7*i] = Po[i][0::rf]
-        dparams[2+7*i] = eo[i][0::rf]
-        dparams[3+7*i] = wo[i][0::rf]
-        dparams[4+7*i] = ko[i][0::rf]
-        dparams[5+7*i] = alphao[i][0::rf]
-        dparams[6+7*i] = betao[i][0::rf]
-        dplabs[0+7*i] = 'T0'+plabels[i]
-        dplabs[1+7*i] = 'P'+plabels[i]
-        dplabs[2+7*i] = 'e'+plabels[i]
-        dplabs[3+7*i] = '$\omega$'+plabels[i]
-        dplabs[4+7*i] = 'k'+plabels[i]
-        dplabs[5+7*i] = '$\\alpha$'+plabels[i]
-        dplabs[6+7*i] = '$\\beta$'+plabels[i]
-
-    vlabs = [None]*nt
-    dvo = [None]*nt
-    for i in range(0,nt):
-      vlabs[i] = 'rv0 ' + telescopes_labels[i]
-      dvo[i] = vo[i][0::rf]
-
-    params = np.concatenate([dparams,dvo])
-    labs = np.concatenate([dplabs,vlabs])
-
-    create_plot_histogram(params,labs)
+    labs = []
+    for o in range(0,nplanets):
+      etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \
+                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_*$'+plabels[o], \
+                 '$R_p/R_*$'+plabels[o],'$k$'+plabels[o]]
+    labs.append(etiquetas)
+    labs.append(['$q_1$','$q_2$'])
+    labs.append(telescopes_labels)
+    labels = np.concatenate(labs)
+    create_plot_histogram(params[3:],labels, cbars='red', nb=50)
 
 #===========================================================
 #                   Correlation plots
@@ -527,65 +476,14 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
   plt.close()
 
 def plot_correlations_2():
-  labs = ['dummy']*len(params[3:])
-  create_plot_correlation(params[3:],labs,col='blue')
-
-def plot_correlations(rf=1):
-
-  if ( fit_tr and fit_rv ):
-    dparams = [t0o[0::rf],Po[0::rf],eo[0::rf],wo[0::rf],bo[0::rf],ao[0::rf],q1o[0::rf],q2o[0::rf],pzo[0::rf],ko[0::rf]]
-    dplabs = ['$T0$','$P$','$e$','$\omega$','$b$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$','$k$']
-
-    vlabs = [None]*nt
-    dvo = [None]*nt
-    for i in range(0,nt):
-      vlabs[i] = 'rv0 ' + telescopes_labels[i]
-      dvo[i] = vo[i][0::rf]
-
-    params = np.concatenate([dparams,dvo])
-    labs = np.concatenate([dplabs,vlabs])
-
-    create_plot_correlation(params,labs,col='blue')
-
-  if ( fit_tr and not fit_rv ):
-
-    params = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],bo[1::rf],ao[1::rf],q1o[1::rf],q2o[1::rf],pzo[1::rf]]
-    labs = ['$T0$','$P$','$e$','$\omega$','$b$','$a/R_*$','$q_1$','$q_2$','$R_p/R_*$']
-
-    create_plot_correlation(params,labs,col='blue')
-
-  #Now it works only for RV fit
-  if ( not fit_tr and fit_rv ):
-    if ( nplanets == 1 ):
-      dparams = [t0o[1::rf],Po[1::rf],eo[1::rf],wo[1::rf],ko[1::rf],alphao[1::rf],betao[1::rf]]
-      dplabs = ['$T0$','$P$','$e$','$\omega$','$k$','alpha','beta']
-    else:
-      dparams = [None]*(7*nplanets)
-      dplabs = [None]*(7*nplanets)
-      for i in range(0,nplanets):
-        dparams[0+7*i] = t0o[i][1::rf]
-        dparams[1+7*i] = Po[i][1::rf]
-        dparams[2+7*i] = eo[i][1::rf]
-        dparams[3+7*i] = wo[i][1::rf]
-        dparams[4+7*i] = ko[i][1::rf]
-        dparams[5+7*i] = alphao[i][1::rf]
-        dparams[6+7*i] = betao[i][1::rf]
-        dplabs[0+7*i] = 'T0'+ plabels[i]
-        dplabs[1+7*i] = 'P'+ plabels[i]
-        dplabs[2+7*i] = 'e'+ plabels[i]
-        dplabs[3+7*i] = '$\omega$'+ plabels[i]
-        dplabs[4+7*i] = '$k$'+ plabels[i]
-        dplabs[5+7*i] = '$\\alpha$'+ plabels[i]
-        dplabs[6+7*i] = '$\\beta$'+ plabels[i]
-
-    vlabs = [None]*nt
-    dvo = [None]*nt
-    for i in range(0,nt):
-      vlabs[i] = 'rv0 ' + telescopes_labels[i]
-      dvo[i] = vo[i][1::rf]
-
-    params = np.concatenate([dparams,dvo])
-    labs = np.concatenate([dplabs,vlabs])
-
-    create_plot_correlation(params,labs,col='blue')
+  labs = []
+  for o in range(0,nplanets):
+    etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \
+                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_*$'+plabels[o], \
+                 '$R_p/R_*$'+plabels[o],'$k$'+plabels[o]]
+    labs.append(etiquetas)
+  labs.append(['$q_1$','$q_2$'])
+  labs.append(telescopes_labels)
+  labels = np.concatenate(labs)
+  create_plot_correlation(params[3:],labels,col='blue')
 

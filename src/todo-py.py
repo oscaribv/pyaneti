@@ -18,15 +18,19 @@ import sys
 def get_BIC(chi2tot_val):
 
   #Get the number of data and parameters
-  if (fit_rv and fit_tr ):
-    ndata = len(megax) + len(mega_rv)
-    npars = sum(what_fit) + nt - 1
-  elif(fit_rv and not fit_tr):
-    ndata = len(mega_rv)
-    npars = sum(what_fit) + nt - nplanets
-  elif(not fit_rv and fit_tr):
-    ndata = len(megax)
-    npars = sum(what_fit)
+#  if (fit_rv and fit_tr ):
+#    ndata = len(megax) + len(mega_rv)
+###    npars = sum(what_fit) + nt - 1
+#  elif(fit_rv and not fit_tr):
+#    ndata = len(mega_rv)
+#    npars = sum(what_fit) + nt - nplanets
+#  elif(not fit_rv and fit_tr):
+#    ndata = len(megax)
+#    npars = sum(what_fit)
+#
+
+  npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
+  ndata = len(megax) + len(mega_rv)
 
   BIC = chi2tot_val + npars * np.log(ndata)  
 
@@ -148,7 +152,7 @@ def smart_priors():
   if (fit_rv):
 
     #Estimate systemic velocity priors and limits from data
-    #The systemic velocity value of all the telescope should 
+    #The systemic velocity value of all the telescope should
     #be between the smallest and larger RV datapoint
     #min_rv0 = min(mega_rv)
     #max_rv0 = max(mega_rv)

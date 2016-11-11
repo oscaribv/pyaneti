@@ -39,6 +39,7 @@ elif(not fit_rv and fit_tr):
 
 chi2tot_val  = np.min(params[2])
 chi2_val = chi2tot_val / ( ndata - npars )
+bic2 = get_BIC(chi2tot_val)
 
 if ( scale_error_bars ):
   s_factor = np.sqrt( chi2_val )
@@ -68,12 +69,33 @@ if ( method == 'new' or method == 'plot' ):
   a_vec  = [None]*nplanets #semi-major axis
   m_vec  = [None]*nplanets #planet mass
   i_vec  = [None]*nplanets #orbit inclination
+  Tpe_vec= [None]*nplanets #Periastron passage time
   ds_vec = [None]*nplanets #stellar density
   dp_vec = [None]*nplanets #planet density
   gp_vec = [None]*nplanets #planet surface gravity
   trt_vec= [None]*nplanets #Total transit duration
   tri_vec= [None]*nplanets #Ingress/egress duration
 
+
+#Print the summary
+  print '--------------------------------------------------------------'
+  print('Summary:')
+  print('N_chains    = %8i '%nwalkers)
+  print('N_conv      = %8i '%nconv)
+  print('thin_factor = %8i '%thin_factor)
+  print('N_data      = %8i '%ndata)
+  print('N_pars      = %8i '%npars)
+  print('chi2        = %4.4f' %(chi2tot_val))
+  print('DOF         = %8i ' %(ndata - npars))
+  print('chi2_red    = %4.4f ' %chi2_val)
+  print('scale factor= %4.4f' %s_factor)
+  print('BIC         = %4.4f' %(bic2))
+  print '--------------------------------------------------------------'
+  print '             INPUT STELLAR PARAMETERS'
+  print '--------------------------------------------------------------'
+  print ('M_*     = %4.7f + %4.7f - %4.7f solar masses'%(find_vals_perc(mstar)))
+  print ('R_*     = %4.7f + %4.7f - %4.7f solar radii'%(find_vals_perc(rstar)))
+  print ('T_*     = %4.7f + %4.7f - %4.7f K'%(find_vals_perc(tstar)))
   #Print the data for all the planets
   for o in range(0,nplanets):
     T0_vec[0] = params[base + 0]
@@ -103,6 +125,28 @@ if ( method == 'new' or method == 'plot' ):
     #assuming albedo=0
     Teq_vec[o] = get_teq(tstar,0.0,1.0,ar_vec[o])
 
+    #Get the star periastron pasage
+    w_s_deg, w_s_deg_l, w_s_deg_r = find_vals_perc(w_vec[o]*180./np.pi,s_factor)
+    #planet periastron passage
+    w_p_deg = (w_s_deg + 180.) % 360
+
+  #Transit durations aproximations (eq. 14, 15, 16 from Winn 2014)
+    ec_factor = np.sqrt(( 1. - e_vec[o] )) / ( 1.0 + e_vec[o]*np.sin(w_vec[o] + np.pi ))
+    trt_vec[o] = np.sqrt( (1. + rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
+    trt_vec[o] = P_vec[o] / np.pi * np.arcsin(trt_vec[o]) * ec_factor * 24.0
+    tri_vec[o] = np.sqrt( (1. - rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
+    tri_vec[o] = P_vec[o] / np.pi * np.arcsin(tri_vec[o]) * ec_factor * 24.0
+    tri_vec[o] = ( trt_vec[o] - tri_vec[o] ) / 2.0 #ingress egress time
+    #Calculate the star density from transit data
+    #Eq. (30) Winn 2014
+    ds_vec[o] = get_rhostar(P_vec[o],ar_vec[o]) #cgs
+
+
+    #Time of periastron passage
+    Tpe_vec[o] = list(T0_vec[o])
+    for m in range(0,len(Tpe_vec[o])):
+      Tpe_vec[o][m] = pti.find_tp(T0_vec[o][m],e_vec[o][m],w_vec[o][m],P_vec[o][m])
+
     #Get planet mass, radius and orbit semi-major axis in real units
     r_vec[o] = rr_vec[o] * rstar
     a_vec[o] = ar_vec[o] * rstar * S_radius_SI / AU_SI
@@ -129,20 +173,25 @@ if ( method == 'new' or method == 'plot' ):
     print '                   Parameters ', star + plabels[o]
     print '--------------------------------------------------------------'
     print '-------------------------Fitted-------------------------------'
-    print ('T0   = %4.7f + %4.7f - %4.7f  days \n'%(find_vals_perc(T0_vec[o],s_factor)))
-    print ('P    = %4.7f + %4.7f - %4.7f  days \n'%(find_vals_perc(P_vec[o],s_factor)))
-    print ('e    = %4.7f + %4.7f - %4.7f       \n'%(find_vals_perc(e_vec[o],s_factor)))
-    print ('w*   = %4.7f + %4.7f - %4.7f  deg  \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
-    print ('b    = %4.7f + %4.7f - %4.7f       \n'%(find_vals_perc(b_vec[o],s_factor)))
-    print ('a/R* = %4.7f + %4.7f - %4.7f       \n'%(find_vals_perc(ar_vec[o],s_factor)))
-    print ('Rp/R*= %4.7f + %4.7f - %4.7f       \n'%(find_vals_perc(rr_vec[o],s_factor)))
-    print ('K    = %4.7f + %4.7f - %4.7f  m/s  \n'%(find_vals_perc(k_vec[o]*1e3,s_factor)))
+    print ('T0   = %4.7f + %4.7f - %4.7f  days '%(find_vals_perc(T0_vec[o],s_factor)))
+    print ('P    = %4.7f + %4.7f - %4.7f  days '%(find_vals_perc(P_vec[o],s_factor)))
+    print ('e    = %4.7f + %4.7f - %4.7f       '%(find_vals_perc(e_vec[o],s_factor)))
+    print ('w*   = %4.7f + %4.7f - %4.7f  deg  '%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
+    print ('b    = %4.7f + %4.7f - %4.7f       '%(find_vals_perc(b_vec[o],s_factor)))
+    print ('a/R* = %4.7f + %4.7f - %4.7f       '%(find_vals_perc(ar_vec[o],s_factor)))
+    print ('Rp/R*= %4.7f + %4.7f - %4.7f       '%(find_vals_perc(rr_vec[o],s_factor)))
+    print ('K    = %4.7f + %4.7f - %4.7f  m/s  '%(find_vals_perc(k_vec[o]*1e3,s_factor)))
     print '-------------------------Derived------------------------------'
-    print ('i    = %4.7f + %4.7f - %4.7f  deg  \n'%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
-    print ('a    = %4.7f + %4.7f - %4.7f  AU   \n'%(find_vals_perc(a_vec[o],s_factor)))
-    print ('Rp   = %4.7f + %4.7f - %4.7f   \n'%(find_vals_perc(r_vec[o],s_factor)))
-    print ('Mp   = %4.7f + %4.7f - %4.7f   \n'%(find_vals_perc(m_vec[o],s_factor)))
-    print ('Teq  = %4.7f + %4.7f - %4.7f  K    \n'%(find_vals_perc(Teq_vec[o],s_factor)))
+    print ('i    = %4.7f + %4.7f - %4.7f  deg  '%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
+    print ('a    = %4.7f + %4.7f - %4.7f  AU   '%(find_vals_perc(a_vec[o],s_factor)))
+    print ('rho* = %4.7f + %4.7f - %4.7f  g/cm^3'%(find_vals_perc(ds_vec[o],s_factor)))
+    print ('Rp   = %4.7f + %4.7f - %4.7f   '%(find_vals_perc(r_vec[o],s_factor)))
+    print ('Mp   = %4.7f + %4.7f - %4.7f   '%(find_vals_perc(m_vec[o],s_factor)))
+    print ('wp   = %4.7f + %4.7f - %4.7f  deg  '%(w_p_deg,w_s_deg_l,w_s_deg_r))
+    print ('Tperi= %4.7f + %4.7f - %4.7f  days '%(find_vals_perc(Tpe_vec[o],s_factor)))
+    print ('Teq  = %4.7f + %4.7f - %4.7f  K    '%(find_vals_perc(Teq_vec[o],s_factor)))
+    print ('T_tot= %4.7f + %4.7f - %4.7f  hours'%(find_vals_perc(trt_vec[o],s_factor)))
+    print ('T_i/e= %4.7f + %4.7f - %4.7f  hours'%(find_vals_perc(tri_vec[o],s_factor)))
     print '--------------------------------------------------------------'
 
     #Let us change to the next planet
@@ -157,11 +206,12 @@ for o in range(0,nt):
   rv_vec[o] = params[base+2+o]
 
 print '--------------------  Other parameters -----------------------'
-print ('q1    = %4.7f + %4.7f - %4.7f    \n'%(find_vals_perc(q1_vec,s_factor)))
-print ('q2    = %4.7f + %4.7f - %4.7f    \n'%(find_vals_perc(q2_vec,s_factor)))
+print ('q1    = %4.7f + %4.7f - %4.7f    '%(find_vals_perc(q1_vec,s_factor)))
+print ('q2    = %4.7f + %4.7f - %4.7f    '%(find_vals_perc(q2_vec,s_factor)))
 for o in range(0,nt):
-  print ('gamma = %4.7f + %4.7f - %4.7f km/s\n'%(find_vals_perc(rv_vec[o],s_factor)))
-
+  print ('gamma = %4.7f + %4.7f - %4.7f km/s'%(find_vals_perc(rv_vec[o],s_factor)))
+print '--------------------------------------------------------------'
+print ''
 
 if ( nplanets == 0 ):
 
