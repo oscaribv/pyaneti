@@ -130,7 +130,7 @@ def plot_transit_nice():
 
     ldc = [ np.mean(params[3+8*nplanets]), np.median(params[3+9*nplanets]) ]
 
-    xt_dummy = list(xt)
+    xt_dummy = list(xt[o])
     for i in range(0,ntr):
       P_val = pars[1]
       n = xt_dummy[i][len(xt_dummy[i])-1] - xt_dummy[0][0]
@@ -139,20 +139,22 @@ def plot_transit_nice():
 
     #Redefine megax with the new xt values
     xtime = np.concatenate(xt_dummy)
+    yflux = np.concatenate(yt[o])
+    eflux = np.concatenate(et[o])
     flag = [False, False, is_b_factor, False]
     fname = outdir+'/'+star+plabels[o]+'_tr.pdf'
-    fancy_tr_plot(xtime, megay, megae,pars,ldc,flag, fname)
+    fancy_tr_plot(xtime, yflux, eflux,pars,ldc,flag, fname)
     base = base + 8
 
 
 def plot_all_transits():
   flag = [False, False, False, False]
-  xt_dummy = list(xt)
+  xt_dummy = list(xt[o])
   for i in range(0,ntr):
     xt_dummy[i] = xt_dummy[i] - P_val * i
   for i in range(0,ntr):
     fname = outdir+'/'+star+plabels[0]+'_transit'+str(i)+'.pdf'
-    fancy_tr_plot(np.array(xt_dummy[i]),np.array(yt[i]),np.array(et[i]),flag,fname)
+    fancy_tr_plot(np.array(xt_dummy[i]),np.array(yt[o][i]),np.array(et[o][i]),flag,fname)
 
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   print 'Creating ', fname
