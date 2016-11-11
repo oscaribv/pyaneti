@@ -150,12 +150,24 @@ def smart_priors():
     #Estimate systemic velocity priors and limits from data
     #The systemic velocity value of all the telescope should 
     #be between the smallest and larger RV datapoint
-    min_rv0 = min(mega_rv)
-    max_rv0 = max(mega_rv)
-    min_phys_rv0 = min(mega_rv)
-    max_phys_rv0 = max(mega_rv)
+    #min_rv0 = min(mega_rv)
+    #max_rv0 = max(mega_rv)
+    #min_phys_rv0 = min(mega_rv)
+    #max_phys_rv0 = max(mega_rv)
+
+    min_rv0 = [None]*nt
+    max_rv0 = [None]*nt
+    min_phys_rv0 = [None]*nt
+    max_phys_rv0 = [None]*nt
+    for o in range(0,nt):
+        min_rv0[o] = min(rv_all[o])
+        max_rv0[o] = max(rv_all[o])
+        min_phys_rv0[o] = min(rv_all[o])
+        max_phys_rv0[o] = max(rv_all[o])
+
+
     if ( fit_v0 ):
-      v0 = [min_rv0]*nt
+      v0 = list(min_rv0)
     #Estimate k priors and limits from data
     if ( P.__class__ == float  ):
       if ( fit_alpha or fit_beta ):
@@ -393,7 +405,7 @@ def fit_new_method():
 
   wtf_all = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
             int(fit_i),int(fit_a), int(fit_pz), int(fit_k) ]
-  wtf_rvs = [int(fit_v0)]*nplanets
+  wtf_rvs = [int(fit_v0)]*nt
   wtf_ldc = [fit_q1, fit_q2]
 
   if ( method == 'new' ):
@@ -408,10 +420,10 @@ def fit_new_method():
     vec_rv0_limits = []
     vec_rv0_phys_limits = []
     for m in range(0,nt):
-      vec_rv0_limits.append(min_rv0)
-      vec_rv0_limits.append(max_rv0)
-      vec_rv0_phys_limits.append(min_phys_rv0)
-      vec_rv0_phys_limits.append(max_phys_rv0)
+      vec_rv0_limits.append(min_rv0[m])
+      vec_rv0_limits.append(max_rv0[m])
+      vec_rv0_phys_limits.append(min_phys_rv0[m])
+      vec_rv0_phys_limits.append(max_phys_rv0[m])
 
     dummy_lims = \
     [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
@@ -922,7 +934,8 @@ def print_init():
       print ('q2 = [ %4.4f , %4.4f ]' %(min_q2,max_q2))
     if (fit_rv):
       print ('K  = [ %4.4f , %4.4f ]' %(min_k,max_k))
-      print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0,max_rv0))
+      for m in range(0,nt):
+        print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0[m],max_rv0[m]))
   else:
     for j in range(0,nplanets):
       print 'Planet ', j + 1
@@ -938,7 +951,8 @@ def print_init():
         print ('q2 = [ %4.4f , %4.4f ]' %(min_q2[j],max_q2[j]))
       if (fit_rv):
         print ('K  = [ %4.4f , %4.4f ]' %(min_k[j],max_k[j]))
-        print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0,max_rv0))
+        for m in range(0,nt):
+          print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0[m],max_rv0[m]))
   print '------------------------------'
   print '     PHYSICAL LIMITS          '
   print '------------------------------'
@@ -954,6 +968,7 @@ def print_init():
     print ('q2 = [ %4.4f , %4.4f ]' %(min_phys_q2,max_phys_q2))
   if (fit_rv):
     print ('K  = [ %4.4f , %4.4f ]' %(min_phys_k,max_phys_k))
-    print ('rv0= [ %4.4f , %4.4f ]' %(min_phys_rv0,max_phys_rv0))
+    for m in range(0,nt):
+      print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0[m],max_rv0[m]))
   print '------------------------------'
   print '=============================='

@@ -216,12 +216,13 @@ k_val  = np.ndarray(nplanets)
 alpha_val = 0.0
 beta_val = 0.0
 
-for o in range(0,nt):
+for o in range(0,nplanets):
   t0_val[o] = np.median(params[base + 0])
   P_val[o]  = np.median(params[base + 1])
   e_val[o]  = np.median(params[base + 2])
   w_val[o]  = np.median(params[base + 3])
   k_val[o]  = np.median(params[base + 7])
+  base = base + 8
 
 if ( nplanets > 0 ):
 

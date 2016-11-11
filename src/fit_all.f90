@@ -7,7 +7,7 @@ implicit none
   integer, intent(in) :: size_rv, size_tr, npl, n_tel, n_cad !size of RV and LC data
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
-  double precision, intent(in), dimension(0:size_rv-1) :: tlab
+  integer, intent(in), dimension(0:size_rv-1) :: tlab
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
   double precision, intent(out) :: chi2
@@ -41,7 +41,6 @@ implicit none
   call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,0.d0,&
                     flag_rv,chi2_rv,size_rv,n_tel,npl)
 
-
   chi2 = chi2_rv + chi2_tr
 
 end subroutine
@@ -65,7 +64,7 @@ implicit none
   integer, intent(in) :: nwalks, maxi, thin_factor, nconv, n_cad
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
-  double precision, intent(in), dimension(0:size_rv-1) :: tlab
+  integer, intent(in), dimension(0:size_rv-1) :: tlab
   double precision, intent(in), dimension(0:8*npl - 1) :: pars
   double precision, intent(in), dimension(0:2*8*npl - 1):: lims, lims_p
   double precision, intent(in), dimension(0:n_tel - 1) :: rvs
@@ -77,7 +76,7 @@ implicit none
   logical, intent(in) :: flags(0:5) !CHECK THE SIZE
 !Local variables
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: pars_old, pars_new
-  double precision, dimension(0:nwalks-1,0:n_tel - 1) :: rvs_old, rvs_new
+  double precision, dimension(0:nwalks-1,0:n_tel-1) :: rvs_old, rvs_new
   double precision, dimension(0:nwalks-1,0:1) :: ldc_old, ldc_new
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   double precision, dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
@@ -93,6 +92,7 @@ implicit none
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
   dof  = size_rv + size_tr - spar
 
+
   !call the random seed
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -101,9 +101,13 @@ implicit none
   !Let us create uniformative random priors
   do nk = 0, nwalks - 1
     !random parameters
-    call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
-    call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
-    call uniform_priors(ldc,2,wtf_ldc,lims_ldc,ldc_old(nk,:))
+    is_limit_good = .false.
+    do while ( .not. is_limit_good )
+      call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
+      call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
+      call uniform_priors(ldc,2,wtf_ldc,lims_ldc,ldc_old(nk,:))
+      call check_limits(pars_old(nk,:),lims_p,is_limit_good,8*npl)
+    end do
     !Compute total chi2
     call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
          t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:),ldc_old(nk,:), &
@@ -126,6 +130,7 @@ implicit none
   !is_jitter = jit
   a_factor = 2.d0
   n_burn = 1
+  call init_random_seed()
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
@@ -166,10 +171,13 @@ implicit none
                      ( ldc_old(nk,:) - ldc_new(nk,:) )
 
       !Let us check if the new parameters are inside the limits
-      !call check_limits(pars_new,lims_p,is_limit_good,8*npl)
+      is_limit_good = .true.
+      call check_limits(pars_new(nk,:),lims_p,is_limit_good,8*npl)
+      if (is_limit_good ) then
+        call check_limits(rvs_new(nk,:),lims_p_rvs,is_limit_good,n_tel)
+      end if
       !CHECK ALSO THE LIMITS FOR RV AND LDC
 
-      is_limit_good = .true.
       if ( is_limit_good ) then
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
              t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),ldc_new(nk,:), &
@@ -182,7 +190,7 @@ implicit none
     !Compute the likelihood
     q = 1.0d0 !add jitter later
     q = q * z_rand(nk)**( int(spar - 1) ) * &
-          exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5  )
+          exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5d0  )
 
     !Check if the new likelihood is better
     if ( q > r_rand(nk) ) then
