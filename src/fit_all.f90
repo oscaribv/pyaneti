@@ -93,7 +93,6 @@ implicit none
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
   dof  = size_rv + size_tr - spar
 
-
   !call the random seed
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -127,7 +126,6 @@ implicit none
   !is_jitter = jit
   a_factor = 2.d0
   n_burn = 1
-  call init_random_seed()
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
