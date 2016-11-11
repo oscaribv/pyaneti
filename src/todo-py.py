@@ -440,7 +440,7 @@ def fit_new_method():
     limits_p_rvs = vec_rv0_phys_limits
 
     limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
-    limits_p_ldc = [ min_q1, max_q1, min_q2, max_q2]
+    limits_p_ldc = [ min_phys_q1, max_phys_q1, min_phys_q2, max_phys_q2]
 
     pti.multi_all_stretch_move(\
                       mega_time,mega_rv,megax,megay,mega_err,megae, \

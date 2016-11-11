@@ -83,6 +83,7 @@ implicit none
   double precision, dimension(0:nwalks-1,0:8*npl-1,0:nconv-1) :: pars_chains
   integer, dimension(0:nwalks-1) :: r_int
   double precision  :: q, spar, a_factor, dof
+  double precision  :: mean_chi2
   logical :: continua, is_burn, is_limit_good, is_cvg
   integer :: nk, j, n, m, o, n_burn, new_thin_factor
 !external calls
@@ -99,17 +100,13 @@ implicit none
 
   print *, 'CREATING UNIFORM UNIFORMATIVE PRIORS'
   !Let us create uniformative random priors
+  is_limit_good = .false.
   do nk = 0, nwalks - 1
     !random parameters
-    is_limit_good = .false.
-    do while ( .not. is_limit_good )
       call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
       call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
       call uniform_priors(ldc,2,wtf_ldc,lims_ldc,ldc_old(nk,:))
-      call check_limits(pars_old(nk,:),lims_p,is_limit_good,8*npl)
-    end do
-    !Compute total chi2
-    call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
+      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
          t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:),ldc_old(nk,:), &
          chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
   end do
@@ -152,9 +149,9 @@ implicit none
     end do
 
     !Paralellization calls
-    ! !$OMP PARALLEL &
-    ! !$OMP PRIVATE(is_limit_good,q,m,params_tr,params_rv)
-    ! !$OMP DO SCHEDULE(DYNAMIC)
+    !$OMP PARALLEL &
+    !$OMP PRIVATE(is_limit_good,q)
+    !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1
 
       !Generate the random step to perform the stretch move
@@ -173,9 +170,8 @@ implicit none
       !Let us check if the new parameters are inside the limits
       is_limit_good = .true.
       call check_limits(pars_new(nk,:),lims_p,is_limit_good,8*npl)
-      if (is_limit_good ) then
-        call check_limits(rvs_new(nk,:),lims_p_rvs,is_limit_good,n_tel)
-      end if
+      if (is_limit_good ) call check_limits(rvs_new(nk,:),lims_p_rvs,is_limit_good,n_tel)
+      if (is_limit_good ) call check_limits(ldc_new(nk,:),lims_p_ldc,is_limit_good,2)
       !CHECK ALSO THE LIMITS FOR RV AND LDC
 
       if ( is_limit_good ) then
@@ -220,7 +216,7 @@ implicit none
 
 
     end do !walkers
-    ! !$OMP END PARALLEL
+    !$OMP END PARALLEL
 
     !Evolve burning-in controls
     if ( is_burn ) then
