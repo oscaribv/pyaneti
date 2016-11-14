@@ -54,7 +54,7 @@ if (is_smart_priors ):
 check_circular()
 
 #Print intial configuration
-print_init()
+#print_init()
 
 #-------------------------------------------------------------
 #                   FITTING ROUTINES

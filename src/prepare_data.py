@@ -10,22 +10,20 @@ mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=nwalkers*nconv)
 
 #Change limits accordingly
-if ( is_ew ):
-    min_e = min_ew
-    min_w = min_ew
-    max_e = max_ew
-    max_w = max_ew
-    min_phys_e = min_phys_ew
-    min_phys_w = min_phys_ew
-    max_phys_e = max_phys_ew
-    max_phys_w = max_phys_ew
-if ( is_b_factor ):
-    min_i = min_b
-    max_i = max_b
-    min_phys_i = min_phys_b
-    max_phys_i = max_phys_b
-
-
+#if ( is_ew ):
+#    min_e = min_ew
+#    min_w = min_ew
+#    max_e = max_ew
+#    max_w = max_ew
+#    min_phys_e = min_phys_ew
+#    min_phys_w = min_phys_ew
+#    max_phys_e = max_phys_ew
+#    max_phys_w = max_phys_ew
+#if ( is_b_factor ):
+#    min_i = min_b
+#    max_i = max_b
+#    min_phys_i = min_phys_b
+#    max_phys_i = max_phys_b
 
 #What transit data are we fitting
 if (fit_tr):
@@ -45,7 +43,17 @@ if (fit_tr):
 #                         RV DATA
 #-----------------------------------------------------------
 
-if (fit_rv or method == 'new' ):
+#Let us check the kind of variable
+nplanets_rv = 0
+if ( fit_rv.__class__ == list ):
+    for o in range(0,len(fit_rv)):
+      nplanets_rv = nplanets_rv + int(fit_rv[o])
+if ( fit_rv.__class__ == bool and fit_rv ):
+    nplanets_rv = 1
+
+
+#Let us ensure that we want to fit rv data
+if ( nplanets_rv > 0 ):
 
 	#Read the data file
 	#time, RV, errors, and Telescope label
@@ -103,13 +111,30 @@ if (fit_rv or method == 'new' ):
 			mega_time.append(time_all[i][j])
 			mega_err.append(errs_all[i][j])
 
+	total_rv_fit = True
+
+else:
+  tlab = [0]
+  mega_rv = [None]
+  mega_time = [None]
+  mega_err  = [None]
+  total_rv_fit = False
+
 #RV DATA READY
 
 #-----------------------------------------------------------
 #                     TRANSIT DATA
 #-----------------------------------------------------------
 
-if (fit_tr or method == 'new'):
+#Let us check the kind of variable
+nplanets_tr = 0
+if ( fit_tr.__class__ == list ):
+    for o in range(0,len(fit_tr)):
+      nplanets_tr = nplanets_tr + int(fit_tr[o])
+if ( fit_tr.__class__ == bool and fit_tr ):
+    nplanets_tr = 1
+
+if ( nplanets_tr > 0 ):
 
   #Each transit planet hasa different file
   xt= [None]*nplanets
@@ -133,7 +158,7 @@ if (fit_tr or method == 'new'):
         print 'Please, define ntr and ranges'
           #Get the transit ranges
     else:      #This assumes that the input file has the different transits separated
-      tls, ntr = get_transit_ranges(hdate,gap_between_transits)
+      tls, ntr = get_transit_ranges(hdate,gap_between_transits[o])
     #print tls
     #sys.exit()
 
@@ -168,6 +193,56 @@ if (fit_tr or method == 'new'):
             megay.append(yt[i][j][k])
             megae.append(et[i][j][k])
 
+  total_tr_fit = True
+
+else:
+  megax = [None]
+  megay = [None]
+  megae = [None]
+  total_tr_fit = False
 
 #TRANSIT DATA READY
+
+#CHECK WHAT WE HAVE TO FIT
+#If we are not going to fit RV or TR data, let us turn off the variables
+#for the given case
+for o in range(0,nplanets):
+  if ( fit_tr.__class__ == list ):
+    if (fit_tr[o] == False ):
+      fit_pz[o] = False
+      pz[o] = 1e-10
+      fit_i[o] = False
+      ii[o] = 1e-10
+      fit_a[o] = False
+      a[o] = 10.0
+      fit_q1[o] = False
+      q1[o] = 1e-10
+      fit_q2[o] = False
+      q2[o] = 1e-10
+    if (fit_rv[o] == False ):
+      fit_k[o] = False
+      k0[o] = 1e-10
+  elif ( fit_tr.__class__ == bool ):
+    if (fit_tr == False ):
+      fit_pz = False
+      pz = 1e-10
+      fit_i = False
+      ii = 1e-10
+      fit_a = False
+      a = 10.0
+    if (fit_rv == False ):
+      fit_k = False
+      k0 = 1e-10
+
+#Let us turn off velocity offset for a pure TR fit
+if ( not total_rv_fit ):
+  fit_v0 = False
+  nt = 1
+  min_rv0 = [-1.]
+  max_rv0 = [1.]
+  min_phys_rv0 = [-1.]
+  max_phys_rv0 = [1.]
+  rvs = [0.0]
+  telescopes = ['O']
+  telescopes_labels = ['']
 

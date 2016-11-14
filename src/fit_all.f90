@@ -1,4 +1,4 @@
-subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
+subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,tff, &
            t_cad,n_cad,pars,rvs,ldc,chi2,npl,n_tel,size_rv,size_tr)
 
 implicit none
@@ -10,6 +10,7 @@ implicit none
   integer, intent(in), dimension(0:size_rv-1) :: tlab
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
+  logical, intent(in) :: tff(0:1)
   double precision, intent(out) :: chi2
   !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each parameter
   !THIS DOES NOT ADD alpha and beta
@@ -36,11 +37,18 @@ implicit none
   flag_tr = (/ .false., .false., .true. , .false. /)
 
   !Let us calculate chi2
+  chi2_rv = 0.d0
+  chi2_tr = 0.d0
+  if (tff(1) ) &
   call find_chi2_tr_new(x_tr,y_tr,e_tr,pars_tr,0.d0,flag_tr,&
                         ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
+  if (tff(0) ) &
   call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,0.d0,&
                     flag_rv,chi2_rv,size_rv,n_tel,npl)
 
+  !print *, tff
+  !print *, chi2_rv, chi2_tr
+  !stop
   chi2 = chi2_rv + chi2_tr
 
 end subroutine
@@ -48,7 +56,7 @@ end subroutine
 subroutine multi_all_stretch_move( &
            x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, & !Data vars
            pars, rvs, ldc, &                      !parameters vars
-           flags, &                               !flags
+           flags, total_fit_flag, &               !flags
            wtf_all, wtf_rvs, wtf_ldc, &           !fitting controls
            nwalks, maxi, thin_factor, nconv, &    !
            lims, lims_rvs, lims_ldc, &            !prior limits
@@ -73,7 +81,7 @@ implicit none
   double precision, intent(in), dimension(0:3) :: lims_ldc, lims_p_ldc
   double precision, intent(in) ::  t_cad
   integer, intent(in) :: wtf_all(0:8*npl-1), wtf_rvs(0:n_tel-1), wtf_ldc(0:1)
-  logical, intent(in) :: flags(0:5) !CHECK THE SIZE
+  logical, intent(in) :: flags(0:5), total_fit_flag(0:1) !CHECK THE SIZE
 !Local variables
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: pars_old, pars_new
   double precision, dimension(0:nwalks-1,0:n_tel-1) :: rvs_old, rvs_new
@@ -93,6 +101,11 @@ implicit none
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
   dof  = size_rv + size_tr - spar
 
+  print *, 'Limits'
+  print *, lims
+  print *, 'Physical Limits'
+  print *, lims_p
+
   !call the random seed
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -105,7 +118,7 @@ implicit none
       call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
       call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
       call uniform_priors(ldc,2,wtf_ldc,lims_ldc,ldc_old(nk,:))
-      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
+      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,total_fit_flag, &
          t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:),ldc_old(nk,:), &
          chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
   end do
@@ -173,7 +186,7 @@ implicit none
       !CHECK ALSO THE LIMITS FOR RV AND LDC
 
       if ( is_limit_good ) then
-        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
+        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, total_fit_flag,&
              t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),ldc_new(nk,:), &
              chi2_new_total(nk),npl,n_tel,size_rv,size_tr)
       else
@@ -222,6 +235,7 @@ implicit none
       if ( mod(j,new_thin_factor) == 0 ) n_burn = n_burn + 1
       if ( n_burn > nconv ) continua = .false.
     else
+      if ( mod(j,thin_factor) == 0 ) then
       !If the chains have not converged, let us check convergence
       !Let us save a 3D array with the informations of the parameters,
       !the nk and the iteration. This array is used to perform GR test
@@ -262,6 +276,7 @@ implicit none
           open(unit=101,file='all_data.dat',status='unknown')
         end if ! is_cvg
       end if !nconv
+      end if
     end if !is_burn
 
     !check if we exceed the maximum number of iterations

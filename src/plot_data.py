@@ -14,12 +14,12 @@ chi2 = params[2]
 def plot_chains():
   plt.xlabel('iteration')
   plt.ylabel('$\chi^2$')
-  if (nplanets == 1):
+#  if (nplanets == 1):
    #plt.plot(vari,chi2,'b.')
-   plt.hist2d(vari,chi2,bins=100,norm=LogNorm())
-  else:
+  plt.hist2d(vari,chi2,bins=100,norm=LogNorm())
+#  else:
    #plt.plot(vari[0],chi2[0],'b.')
-   plt.hist2d(vari[0],chi2[0],bins=100,norm=LogNorm())
+#   plt.hist2d(vari[0],chi2[0],bins=100,norm=LogNorm())
   fname = outdir+'/'+star+plabels[0]+'_chains.pdf'
   print 'Creating ', fname
   plt.savefig(fname,bbox_inches='tight')
@@ -131,7 +131,7 @@ def plot_transit_nice():
     ldc = [ np.mean(params[3+8*nplanets]), np.median(params[3+9*nplanets]) ]
 
     xt_dummy = list(xt[o])
-    for i in range(0,ntr):
+    for i in range(0,len(xt_dummy)):
       P_val = pars[1]
       n = xt_dummy[i][len(xt_dummy[i])-1] - xt_dummy[0][0]
       n = int(n/P_val)
@@ -205,7 +205,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
 v_vec_val = [None]*nt
 v_val = [None]*nt
 #3 + npars + ldc
-v_vec_val[:] = params[3+10*nplanets:3+10*nplanets+nt]
+v_vec_val[:] = params[3+8*nplanets+2:3+8*nplanets+2+nt]
 for o in range(0,nt):
   v_val[o] = np.median(v_vec_val[o])
 
@@ -441,7 +441,7 @@ def plot_histogram_2():
       etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \
                  '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_*$'+plabels[o], \
                  '$R_p/R_*$'+plabels[o],'$k$'+plabels[o]]
-    labs.append(etiquetas)
+      labs.append(etiquetas)
     labs.append(['$q_1$','$q_2$'])
     labs.append(telescopes_labels)
     labels = np.concatenate(labs)

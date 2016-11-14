@@ -217,7 +217,7 @@ implicit none
   u1 = 2.d0*u1*q2k
 
   !Get planet radius
-  pz = pars(6,:)
+  pz(:) = pars(6,:)
 
   !are the u1 and u2 within a physical solution
   call check_us(u1,u2,is_good)
@@ -245,7 +245,8 @@ implicit none
 
       call find_z(xd_ub,pars,flag,z,n_cad)
       !Now we have z, let us use Agol's routines
-      call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
+      !call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
+      call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad)
 
       !Re-bin the data
       muld_npl(j,n) = sum(flux_ub) / n_cad
@@ -262,7 +263,8 @@ implicit none
     !This is the final flux for all the planets
     muld(:) = muld(:) / npl_dbl
 
-  end do
+  end do !datas
+  stop
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
@@ -431,8 +433,7 @@ implicit none
     end if
 
   end do
-!  stop
-  
+
   !Calculate the degrees of freedom
   nu = datas - spar
   if ( nu <= 0 ) then

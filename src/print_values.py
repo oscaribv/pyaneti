@@ -27,15 +27,8 @@ tstar = np.random.normal(loc=tstar_mean,scale=tstar_sigma,size=new_nwalkers*ncon
 
 
 #Calculate the BIC
-if (fit_rv and fit_tr ):
-  ndata = len(megax) + len(mega_rv)
-  npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
-elif(fit_rv and not fit_tr):
-  ndata = len(mega_rv)
-  npars = sum(what_fit) + nt - 1
-elif(not fit_rv and fit_tr):
-  ndata = len(megax)
-  npars = sum(what_fit)
+ndata = len(megax) + len(mega_rv)
+npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
 
 chi2tot_val  = np.min(params[2])
 chi2_val = chi2tot_val / ( ndata - npars )
@@ -98,14 +91,14 @@ if ( method == 'new' or method == 'plot' ):
   print ('T_*     = %4.7f + %4.7f - %4.7f K'%(find_vals_perc(tstar)))
   #Print the data for all the planets
   for o in range(0,nplanets):
-    T0_vec[0] = params[base + 0]
-    P_vec[0]  = params[base + 1]
-    e_vec[0]  = params[base + 2]
-    w_vec[0]  = params[base + 3]
-    b_vec[0]  = params[base + 4]
-    ar_vec[0] = params[base + 5]
-    rr_vec[0] = params[base + 6]
-    k_vec[0]  = params[base + 7]
+    T0_vec[o] = params[base + 0]
+    P_vec[o]  = params[base + 1]
+    e_vec[o]  = params[base + 2]
+    w_vec[o]  = params[base + 3]
+    b_vec[o]  = params[base + 4]
+    ar_vec[o] = params[base + 5]
+    rr_vec[o] = params[base + 6]
+    k_vec[o]  = params[base + 7]
 
 #STARTING CALCULATIONS
 
