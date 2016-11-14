@@ -1,4 +1,4 @@
-subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,tff, &
+subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,tff, &
            t_cad,n_cad,pars,rvs,ldc,chi2,npl,n_tel,size_rv,size_tr)
 
 implicit none
@@ -7,6 +7,7 @@ implicit none
   integer, intent(in) :: size_rv, size_tr, npl, n_tel, n_cad !size of RV and LC data
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
+  integer, intent(in), dimension(0:size_tr-1) :: plab_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
@@ -40,7 +41,7 @@ implicit none
   chi2_rv = 0.d0
   chi2_tr = 0.d0
   if (tff(1) ) &
-  call find_chi2_tr_new(x_tr,y_tr,e_tr,pars_tr,0.d0,flag_tr,&
+  call find_chi2_tr_new(x_tr,y_tr,e_tr,plab_tr,pars_tr,0.d0,flag_tr,&
                         ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
   if (tff(0) ) &
   call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,0.d0,&
@@ -54,8 +55,8 @@ implicit none
 end subroutine
 
 subroutine multi_all_stretch_move( &
-           x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, & !Data vars
-           pars, rvs, ldc, &                      !parameters vars
+           x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &  !Data vars
+           plab_tr,pars, rvs, ldc, &              !parameters vars
            flags, total_fit_flag, &               !flags
            wtf_all, wtf_rvs, wtf_ldc, &           !fitting controls
            nwalks, maxi, thin_factor, nconv, &    !
@@ -72,6 +73,7 @@ implicit none
   integer, intent(in) :: nwalks, maxi, thin_factor, nconv, n_cad
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
+  integer, intent(in), dimension(0:size_tr-1) :: plab_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab
   double precision, intent(in), dimension(0:8*npl - 1) :: pars
   double precision, intent(in), dimension(0:2*8*npl - 1):: lims, lims_p
@@ -106,6 +108,7 @@ implicit none
   print *, 'Physical Limits'
   print *, lims_p
 
+
   !call the random seed
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
@@ -118,7 +121,7 @@ implicit none
       call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
       call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
       call uniform_priors(ldc,2,wtf_ldc,lims_ldc,ldc_old(nk,:))
-      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,total_fit_flag, &
+      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,total_fit_flag, &
          t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:),ldc_old(nk,:), &
          chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
   end do
@@ -186,7 +189,7 @@ implicit none
       !CHECK ALSO THE LIMITS FOR RV AND LDC
 
       if ( is_limit_good ) then
-        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, total_fit_flag,&
+        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, total_fit_flag,&
              t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),ldc_new(nk,:), &
              chi2_new_total(nk),npl,n_tel,size_rv,size_tr)
       else

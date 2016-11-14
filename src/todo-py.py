@@ -165,95 +165,41 @@ def smart_priors():
         min_phys_rv0[o] = min(rv_all[o])
         max_phys_rv0[o] = max(rv_all[o])
 
-    if ( fit_v0 ):
-      v0 = list(min_rv0)
-
-    #Estimate k priors and limits from data
-#    if ( P.__class__ == float  ):
-#      if ( fit_alpha or fit_beta ):
-#        min_k = min(min(min_rv0)/2.,2.*min(min_rv0))
-#        max_k = max(max(max_rv0)/2.,2.*max_rv0)
-#        min_phys_rv0 = min(min_rv0/2.,2.*min_rv0)
-#        max_phys_rv0 = max(max_rv0/2.,2.*max_rv0)
-#      max_phys_k = 0.0
-#      for i in range(0,nt):
-#        # The maximum value ok K should be
-#        max_phys_k = max_phys_k + max(rv_all[i]) - min(rv_all[i])
-#      max_phys_k = max_phys_k / nt
-#
-#      # if we gave a worst prior for k, let us take a better
-#      max_k = min( [max_k,max_phys_k] )
-#    else:
-      # The maximum value ok K should be
-    #  max_phys_k = (max_rv0 - min_rv0)
-      # if we gave a worst prior for k, let us take a better
-    #  max_k = [(max_rv0 - min_rv0) ]*nplanets
-    #P
-#      ppp = 0
-    #The period should not be larger than our obsrvational run
-    #max_phys_P = max(mega_time) - min(mega_time)
-    #T0
-    #The T0 should not be larger than our obsrvational run
-    #min_phys_t0 = min(mega_time)
-    #max_phys_t0 = max(mega_time)
+    v0 = list(min_rv0)
 
   if ( total_tr_fit ):
 
-    #Let us estimate limits for planet size from data 
-    #The maximum depth of the data is max_flux - min_flux
     min_flux = min(megay)
     max_flux = max(megay)
-    #If we gave a worst prior for planet size, take a better
-    if ( nplanets > 1 ):
-      max_phys_pz = [None]*nplanets
-      min_phys_pz = [None]*nplanets
-      for o in range(0,nplanets):
-        min_phys_pz[o] = 0.0
-        max_phys_pz[o] = max_flux - min_flux
-        max_phys_pz[o] = np.sqrt(max_phys_pz[o])
-        #Let us assume that the smallest planet in the data
-        #is around 10% of the maximum depth
-        #If we gave a worst prior for planet size, take a better
-        max_pz[o] = min([max_pz[o],max_phys_pz[o]])
-    else:
-      max_phys_pz = max_flux - min_flux
-      #Then, our maximum planet size should be (eq. 23 Winn)
-      max_phys_pz = np.sqrt(max_phys_pz)
+    min_phys_pz =[None]*len(xt)
+    max_phys_pz =[None]*len(xt)
+    for o in range(0,nplanets):
+      min_phys_pz[o] = 0.0
+      max_phys_pz[o] = max_flux - min_flux
+      max_phys_pz[o] = np.sqrt(max_phys_pz[o])
       #Let us assume that the smallest planet in the data
-      max_pz = min([max_pz,max_phys_pz])
+      #is around 10% of the maximum depth
+      #If we gave a worst prior for planet size, take a better
+      max_pz[o] = min([max_pz[o],max_phys_pz[o]])
 
-    #P
-    #tls is the list with the limits of the transits
-    #The period cannot be larger (smaller)  than the outer
-    # (inner) boudarie of two consecutive transit sets
-    if ( P.__class__ == float ):
-      max_phys_P = tls[1][1] - tls[0][0]
-      min_phys_P = tls[1][0] - tls[0][1]
-      min_P = max(min_P,min_phys_P)
-      max_P = min(max_P,max_phys_P)
-      #t0
-      #T0 should be in the first transit data set
-      min_phys_t0 = tls[0][0]
-      max_phys_t0 = tls[0][1]
-    elif( P.__class__ == list ):
-      min_phys_P =[None]*len(xt)
-      max_phys_P =[None]*len(xt)
-      min_phys_t0=[None]*len(xt)
-      max_phys_t0=[None]*len(xt)
-      for o in range(0,nplanets):
-        #Max and minimum Period for each planet from the data
-        #----          ----|min_phys_P|----         ------
-        #    -       -                     -       -
-        #     -------                       -------
-        #|                  max_phys_P                    |
-        #|min_phys_t0
-        #     max_phys_t0  |
-        max_phys_P[o] = xt[o][1][len(xt[o][1])-1] - xt[o][0][0]
-        min_phys_P[o] = xt[o][1][0] - xt[o][0][len(xt[o][0])-1]
-        min_P[o] = max(min_P[o],min_phys_P[o])
-        max_P[o] = min(max_P[o],max_phys_P[o])
-        min_phys_t0[o] = xt[o][0][0]
-        max_phys_t0[o] = xt[o][0][len(xt[o][0])-1]
+    min_phys_P =[None]*len(xt)
+    max_phys_P =[None]*len(xt)
+    min_phys_t0=[None]*len(xt)
+    max_phys_t0=[None]*len(xt)
+    for o in range(0,nplanets):
+      #Max and minimum Period for each planet from the data
+      #----          ----|min_phys_P|----         ------
+      #    -       -                     -       -
+      #     -------                       -------
+      #|                  max_phys_P                    |
+      #|min_phys_t0
+      #     max_phys_t0  |
+      max_phys_P[o] = xt[o][1][len(xt[o][1])-1] - xt[o][0][0]
+      min_phys_P[o] = xt[o][1][0] - xt[o][0][len(xt[o][0])-1]
+      min_P[o] = max(min_P[o],min_phys_P[o])
+      max_P[o] = min(max_P[o],max_phys_P[o])
+      min_phys_t0[o] = xt[o][0][0]
+      max_phys_t0[o] = xt[o][0][len(xt[o][0])-1]
 
 #-----------------------------------------------------------
 #Get transit ranges, assumes that the consecutive
@@ -289,9 +235,9 @@ def get_transit_ranges(times,gap):
     lims[i/2] = [xlimits[i],xlimits[i+1]]
 
   ntr = len(lims)
-  print 'Number of transits = ', ntr
-  print 'Transit limits ='
-  print lims
+  #print 'Number of transits = ', ntr
+  #print 'Transit limits ='
+  #print lims
 
   return lims, ntr
 
@@ -304,11 +250,11 @@ def get_transit_ranges(times,gap):
 #   err    -> error array
 #   limits -> time limits for a given transit
 # Output:
-#   dummyx   ->  time vector with the time data between 
+#   dummyx   ->  time vector with the time data between
 #                limits[0] and limits[1]
 #   dummyy   ->  flux vector with the time data between 
 #                limits[0] and limits[1]
-#   dummyerr ->  errors vector with the time data between 
+#   dummyerr ->  errors vector with the time data between
 #                limits[0] and limits[1]
 #-----------------------------------------------------------
 def separate_transits(x,y,err,limits):
@@ -426,18 +372,12 @@ def fit_new_method():
 
   wtf_all = [None]*8*nplanets
   for o in range(0,nplanets):
-    if ( fit_t0.__class__ == bool ):
-      wtf_all[o*8:(o+1)*8] = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
-                              int(fit_i),int(fit_a), int(fit_pz), int(fit_k) ]
-    else:
-      wtf_all[o*8:(o+1)*8] = [int(fit_t0[o]),int(fit_P[o]),int(fit_e[o]),int(fit_w[o]), \
-                              int(fit_i[o]),int(fit_a[o]), int(fit_pz[o]), int(fit_k[o]) ]
-
+    wtf_all[o*8:(o+1)*8] = [int(fit_t0[o]),int(fit_P[o]),int(fit_e[o]),int(fit_w[o]), \
+                            int(fit_i[o]),int(fit_a[o]), int(fit_pz[o]), int(fit_k[o]) ]
 
   wtf_rvs = []
-  if ( fit_v0.__class__ == bool ):
-    for o in range(0,nt):
-      wtf_rvs.append(int(fit_v0))
+  for o in range(0,nt):
+    wtf_rvs.append(int(fit_v0))
 
   wtf_ldc = [int(fit_q1), int(fit_q2)]
 
@@ -445,10 +385,7 @@ def fit_new_method():
   total_fit_flag = [ total_rv_fit, total_tr_fit ]
   pars = [None]*8*nplanets
   for i in range(0,nplanets):
-    if (T0.__class__ == float ):
-      pars  = [T0,P,e,w,ii,a,pz,k0]
-    else:
-      pars[i*8:(i+1)*8]= [T0[i],P[i],e[i],w[i],ii[i],a[i],pz[i],k0[i]]
+    pars[i*8:(i+1)*8]= [T0[i],P[i],e[i],w[i],ii[i],a[i],pz[i],k0[i]]
 
   ldc   = [q1,q2]
   flags = [is_log_P,is_ew,is_b_factor,is_log_a,is_log_k,is_log_rv0]
@@ -466,20 +403,12 @@ def fit_new_method():
     dummy_lims = [None]*8*2*nplanets
     dummy_lims_physical = [None]*8*2*nplanets
     for o in range(0,nplanets):
-      if ( min_t0.__class__ == list ):
-        dummy_lims[o*8*2:(o+1)*8*2 ] = \
-        [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
-        , min_i[o], max_i[o], min_a[o], max_a[o], min_pz[o], max_pz[o], min_k[o], max_k[o] ]
-        dummy_lims_physical[o*8*2:(o+1)*8*2] = \
-        [min_phys_t0[o], max_phys_t0[o], min_phys_P[o], max_phys_P[o], min_phys_e[o], max_phys_e[o], min_phys_w[o], max_phys_w[o] \
-        , min_phys_i[o], max_phys_i[o], min_phys_a[o], max_phys_a[o], min_phys_pz[o], max_phys_pz[o],min_phys_k[o],max_phys_k[o] ]
-      else:
-        dummy_lims[o*8*2:(o+1)*8*2 ] = \
-        [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
-        , min_i, max_i, min_a, max_a, min_pz, max_pz, min_k, max_k ]
-        dummy_lims_physical[o*8*2:(o+1)*8*2] = \
-        [min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w \
-        , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k ]
+      dummy_lims[o*8*2:(o+1)*8*2 ] = \
+      [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
+      , min_i[o], max_i[o], min_a[o], max_a[o], min_pz[o], max_pz[o], min_k[o], max_k[o] ]
+      dummy_lims_physical[o*8*2:(o+1)*8*2] = \
+      [min_phys_t0[o], max_phys_t0[o], min_phys_P[o], max_phys_P[o], min_phys_e[o], max_phys_e[o], min_phys_w[o], max_phys_w[o] \
+      , min_phys_i[o], max_phys_i[o], min_phys_a[o], max_phys_a[o], min_phys_pz[o], max_phys_pz[o],min_phys_k[o],max_phys_k[o] ]
 
     limits = dummy_lims
     limits_p = dummy_lims_physical
@@ -490,11 +419,11 @@ def fit_new_method():
     limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
     limits_p_ldc = [ min_phys_q1, max_phys_q1, min_phys_q2, max_phys_q2]
 
-    sys.exit()
+    #sys.exit()
 
     pti.multi_all_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
-    tlab,pars,rvs,ldc,flags,total_fit_flag,wtf_all,wtf_rvs,wtf_ldc, \
+    tlab,megap,pars,rvs,ldc,flags,total_fit_flag,wtf_all,wtf_rvs,wtf_ldc, \
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
     limits_ldc,limits_p, limits_p_rvs, limits_p_ldc, \
     n_cad, t_cad, nplanets, nt)
@@ -671,7 +600,7 @@ def fit_transit():
     [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
     , min_i, max_i, min_a, max_a, min_q1, max_q1, \
     min_q1, max_q1, min_pz, max_pz]
-               
+
     limits_physical = \
     [min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w \
     , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \

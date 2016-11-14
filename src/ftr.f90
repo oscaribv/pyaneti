@@ -181,13 +181,14 @@ implicit none
 end subroutine
 !-----------------------------------------------------------
 
-subroutine find_chi2_tr_new(xd,yd,errs,pars,jitter,flag,ldc,&
+subroutine find_chi2_tr_new(xd,yd,errs,plab_tr,pars,jitter,flag,ldc,&
            n_cad,t_cad,chi2,datas,npl)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas, n_cad, npl
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  integer, intent(in), dimension(0:datas-1)  :: plab_tr
   double precision, intent(in), dimension(0:6,0:npl-1) :: pars
   !pars = T0, P, e, w, b, a/R*, Rp/R*
   double precision, intent(in) :: t_cad
@@ -196,7 +197,7 @@ implicit none
   double precision, intent(in), dimension (0:1) :: ldc
   double precision, intent(out) :: chi2
 !Local variables
-  double precision, dimension(0:datas-1,0:npl-1) :: muld_npl
+  double precision, dimension(0:datas-1) :: muld_npl
   double precision, dimension(0:datas-1) :: res, muld, mu
   double precision :: npl_dbl, small, dbl, u1, u2, pz(0:npl-1), q1k, q2k, zdum(0:0)
   !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
@@ -225,46 +226,48 @@ implicit none
   if ( is_good ) then
 
   !Selective re-sampling
+  n = 0
   do j = 0, datas - 1
 
-    do n = 0, npl - 1
+    !control the label of the planet
+    if ( plab_tr(j) >  n ) then
+      n = n + 1
+    end if
+    !print *, plab_tr(j), n
 
     !Are we generating an eclipse?
     !Take care with the pars
     call find_z(xd(j),pars(0:5,n),flag,zdum,1)
 
-    if ( zdum(0) > 1.0 + 2*pz(n) .or. pz(n) < small ) then
+    if ( zdum(0) > 1.d0 + 2*pz(n) .or. pz(n) < small ) then
 
-      muld_npl(j,n) = 1.d0 !This is not eclipse
+      muld_npl(j) = 1.d0 !This is not eclipse
 
     else
 
       do k = 0, n_cad - 1
-        xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5*(n_cad+1.d0))/n_cad
+        xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
       end do
 
-      call find_z(xd_ub,pars,flag,z,n_cad)
+      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad)
       !Now we have z, let us use Agol's routines
       !call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
       call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad)
 
       !Re-bin the data
-      muld_npl(j,n) = sum(flux_ub) / n_cad
+      muld_npl(j) = sum(flux_ub) / n_cad
+
+      !print *, zdum,pz(n),plab_tr(j), muld_npl(j), yd(j)
 
     end if
 
-    end do !planets
-
     !The final flux is F = (F1 + F2 + ... + Fn ) / n
-    muld(:) = 0.d0
-    do n = 0, npl - 1
-      muld(:) = muld(:) +  muld_npl(:,n)
-    end do
-    !This is the final flux for all the planets
-    muld(:) = muld(:) / npl_dbl
+    muld(j) =  muld_npl(j)
 
   end do !datas
-  stop
+  !print *, 'stop new tr chi2'
+  !stop
+
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
@@ -278,6 +281,8 @@ implicit none
     chi2 = huge(dble(0.d0))
 
   end if
+  !print *, 'stoped newchi2'
+  !stop
 
 end subroutine
 

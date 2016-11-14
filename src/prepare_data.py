@@ -9,22 +9,6 @@
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=nwalkers*nconv)
 
-#Change limits accordingly
-#if ( is_ew ):
-#    min_e = min_ew
-#    min_w = min_ew
-#    max_e = max_ew
-#    max_w = max_ew
-#    min_phys_e = min_phys_ew
-#    min_phys_w = min_phys_ew
-#    max_phys_e = max_phys_ew
-#    max_phys_w = max_phys_ew
-#if ( is_b_factor ):
-#    min_i = min_b
-#    max_i = max_b
-#    min_phys_i = min_phys_b
-#    max_phys_i = max_phys_b
-
 #What transit data are we fitting
 if (fit_tr):
   if ( lc_data == 'kepler_lc' ):
@@ -34,10 +18,9 @@ if (fit_tr):
     n_cad = 1
     t_cad = 1.5 / 60. / 24.0 #days
   elif ( lc_data == 'free' ):
-    #values given by the user    
+    #values given by the user
     n_cad = n_cad
     t_cad = t_cad
-
 
 #-----------------------------------------------------------
 #                         RV DATA
@@ -45,24 +28,20 @@ if (fit_tr):
 
 #Let us check the kind of variable
 nplanets_rv = 0
-if ( fit_rv.__class__ == list ):
-    for o in range(0,len(fit_rv)):
-      nplanets_rv = nplanets_rv + int(fit_rv[o])
-if ( fit_rv.__class__ == bool and fit_rv ):
-    nplanets_rv = 1
-
+for o in range(0,len(fit_rv)):
+  nplanets_rv = nplanets_rv + int(fit_rv[o])
 
 #Let us ensure that we want to fit rv data
 if ( nplanets_rv > 0 ):
 
 	#Read the data file
 	#time, RV, errors, and Telescope label
-	time,rv,err,tspe = np.loadtxt('inpy/'+star+'/'+fname_rv,usecols=(0,1,2,3), \
+	time,rv,err,tspe = np.loadtxt('inpy/'+star+'/'+fname_rv[0],usecols=(0,1,2,3), \
   	dtype={'names': ('time', 'rv', 'err','telescope'), \
 		'formats': ('float', 'float', 'float', 'S10')}, \
 		comments='#',unpack=True)
-	
-	#These lists have lists with data for 
+
+	#These lists have lists with data for
 	#the different telescopes
 	time_all = []
 	rv_all   = []
@@ -128,11 +107,8 @@ else:
 
 #Let us check the kind of variable
 nplanets_tr = 0
-if ( fit_tr.__class__ == list ):
-    for o in range(0,len(fit_tr)):
-      nplanets_tr = nplanets_tr + int(fit_tr[o])
-if ( fit_tr.__class__ == bool and fit_tr ):
-    nplanets_tr = 1
+for o in range(0,len(fit_tr)):
+  nplanets_tr = nplanets_tr + int(fit_tr[o])
 
 if ( nplanets_tr > 0 ):
 
@@ -186,9 +162,11 @@ if ( nplanets_tr > 0 ):
   megax = []
   megay = []
   megae = []
+  megap = []
   for i in range(0,nplanets):
       for j in range(0,len(xt[i])):
         for k in range(0,len(xt[i][j])):
+            megap.append(i)
             megax.append(xt[i][j][k])
             megay.append(yt[i][j][k])
             megae.append(et[i][j][k])
@@ -199,6 +177,7 @@ else:
   megax = [None]
   megay = [None]
   megae = [None]
+  megap = [None]
   total_tr_fit = False
 
 #TRANSIT DATA READY
@@ -207,7 +186,6 @@ else:
 #If we are not going to fit RV or TR data, let us turn off the variables
 #for the given case
 for o in range(0,nplanets):
-  if ( fit_tr.__class__ == list ):
     if (fit_tr[o] == False ):
       fit_pz[o] = False
       pz[o] = 1e-10
@@ -215,24 +193,9 @@ for o in range(0,nplanets):
       ii[o] = 1e-10
       fit_a[o] = False
       a[o] = 10.0
-      fit_q1[o] = False
-      q1[o] = 1e-10
-      fit_q2[o] = False
-      q2[o] = 1e-10
     if (fit_rv[o] == False ):
       fit_k[o] = False
       k0[o] = 1e-10
-  elif ( fit_tr.__class__ == bool ):
-    if (fit_tr == False ):
-      fit_pz = False
-      pz = 1e-10
-      fit_i = False
-      ii = 1e-10
-      fit_a = False
-      a = 10.0
-    if (fit_rv == False ):
-      fit_k = False
-      k0 = 1e-10
 
 #Let us turn off velocity offset for a pure TR fit
 if ( not total_rv_fit ):
