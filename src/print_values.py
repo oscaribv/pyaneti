@@ -178,8 +178,10 @@ if ( method == 'new' or method == 'plot' ):
     print ('i    = %4.7f + %4.7f - %4.7f  deg  '%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
     print ('a    = %4.7f + %4.7f - %4.7f  AU   '%(find_vals_perc(a_vec[o],s_factor)))
     print ('rho* = %4.7f + %4.7f - %4.7f  g/cm^3'%(find_vals_perc(ds_vec[o],s_factor)))
-    print ('Rp   = %4.7f + %4.7f - %4.7f   '%(find_vals_perc(r_vec[o],s_factor)))
-    print ('Mp   = %4.7f + %4.7f - %4.7f   '%(find_vals_perc(m_vec[o],s_factor)))
+    r_val, r_val_r, r_val_l = find_vals_perc(r_vec[o],s_factor)
+    m_val, m_val_r, m_val_l = find_vals_perc(m_vec[o],s_factor)
+    print ('Mp   = %4.7f + %4.7f - %4.7f M_%s  '%(m_val,m_val_l,m_val_r,unit_mass))
+    print ('Rp   = %4.7f + %4.7f - %4.7f R_%s  '%(r_val,r_val_l,r_val_r,unit_mass))
     print ('wp   = %4.7f + %4.7f - %4.7f  deg  '%(w_p_deg,w_s_deg_l,w_s_deg_r))
     print ('Tperi= %4.7f + %4.7f - %4.7f  days '%(find_vals_perc(Tpe_vec[o],s_factor)))
     print ('Teq  = %4.7f + %4.7f - %4.7f  K    '%(find_vals_perc(Teq_vec[o],s_factor)))
@@ -202,7 +204,8 @@ print '--------------------  Other parameters -----------------------'
 print ('q1    = %4.7f + %4.7f - %4.7f    '%(find_vals_perc(q1_vec,s_factor)))
 print ('q2    = %4.7f + %4.7f - %4.7f    '%(find_vals_perc(q2_vec,s_factor)))
 for o in range(0,nt):
-  print ('gamma = %4.7f + %4.7f - %4.7f km/s'%(find_vals_perc(rv_vec[o],s_factor)))
+  v_val, v_val_r, v_val_l = find_vals_perc(rv_vec[o],s_factor)
+  print ('%s = %4.7f + %4.7f - %4.7f km/s'%(telescopes_labels[o],v_val,v_val_l,v_val_r))
 print '--------------------------------------------------------------'
 print ''
 

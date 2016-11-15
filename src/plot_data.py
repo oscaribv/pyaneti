@@ -439,7 +439,7 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
 
-def plot_histogram_2():
+def plot_histogram():
     labs = []
     for o in range(0,nplanets):
       etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \
@@ -481,7 +481,7 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
 
-def plot_correlations_2():
+def plot_correlations():
   labs = []
   for o in range(0,nplanets):
     etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \

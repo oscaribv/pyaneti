@@ -8,12 +8,10 @@ execfile('src/plot_data.py')
 plot_chains()
 
 if ( is_plot_histogram ):
-  #plot_histogram()
-  plot_histogram_2()
+  plot_histogram()
 
 if ( is_plot_correlations ):
-  #plot_correlations()
-  plot_correlations_2()
+  plot_correlations()
 
  #PLOT TRANSIT
 if ( total_tr_fit ):
@@ -23,11 +21,5 @@ if ( total_tr_fit ):
 
 #PLOT RV CURVE
 if ( total_rv_fit ):
-  if ( nplanets == 1 ):
-    plot_rv_all_data()
-    #plot_rv_one()
-    plot_rv_mp()
-  else:
-  #PLOT THE RV curves
-    plot_rv_all_data()
-    plot_rv_mp()
+  plot_rv_all_data()
+  plot_rv_mp()
