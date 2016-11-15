@@ -29,4 +29,5 @@ if ( total_rv_fit ):
     plot_rv_mp()
   else:
   #PLOT THE RV curves
+    plot_rv_all_data()
     plot_rv_mp()

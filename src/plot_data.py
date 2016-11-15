@@ -20,7 +20,7 @@ def plot_chains():
 #  else:
    #plt.plot(vari[0],chi2[0],'b.')
 #   plt.hist2d(vari[0],chi2[0],bins=100,norm=LogNorm())
-  fname = outdir+'/'+star+plabels[0]+'_chains.pdf'
+  fname = outdir+'/'+star+'_chains.pdf'
   print 'Creating ', fname
   plt.savefig(fname,bbox_inches='tight')
   plt.close()
@@ -42,43 +42,48 @@ def fancy_tr_plot(xtime,yflux,errors,pars,ldc,flag,fname):
 
   q1_val = ldc[0]
   q2_val = ldc[1]
+  u1_val = np.sqrt(q1_val)
+  u2_val = u1_val * (1.0 -2.0*q2_val)
+  u1_val = 2.0*u1_val*q2_val
 
   print 'Creating ', fname
   #Let us create the model
   xmodel_res = list(xtime)
-  xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1.e3 )
+  xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1e3 )
 
-  xd_ub = np.ndarray(shape=(n_cad,len(xmodel)))
-  xd_ub_res = np.ndarray(shape=(n_cad,len(xmodel)))
-  zd_ub = [None]*n_cad
-  zd_ub_res = [None]*n_cad
-  fd_ub = [None]*n_cad
-  fd_ub_res = [None]*n_cad
+  xd_ub = np.ndarray(shape=(len(xmodel),n_cad))
+  xd_ub_res = np.ndarray(shape=(len(xmodel),n_cad))
+  zd_ub = [None]*len(xmodel)
+  zd_ub_res = [None]*len(xmodel)
+  fd_ub = [None]*len(xmodel)
+  fd_ub_res = [None]*len(xmodel)
   #Use the long cadence data
-  for m in range(0,n_cad):
+  for m in range(0,len(xmodel)):
     #This vector has the model fit
-    for n in range(0,len(xmodel)):
-      xd_ub[m][n] = xmodel[n] + t_cad * ( (m+1) - 0.5 * (n_cad + 1 ))/n_cad
+    for n in range(0,n_cad):
+      xd_ub[m][n] = xmodel[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1 ))/n_cad
     #This vector has the residuals
-    for n in range(0,len(xmodel_res)):
-      xd_ub_res[m][n] = xmodel_res[n] + t_cad * ( (m+1) - 0.5 * (n_cad + 1))/n_cad
+  for m in range(0,len(xmodel_res)):
+    for n in range(0,n_cad):
+      xd_ub_res[m][n] = xmodel_res[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1))/n_cad
 
   #Calculate the transit curve for all the data
-  for m in range(0,n_cad):
+  for m in range(0,len(xmodel)):
     zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
-    fd_ub[m], dummm = pti.occultquad(zd_ub[m],q1_val,q2_val,pz_val)
+    fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,pz_val)
+  for m in range(0,len(xmodel_res)):
     zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
-    fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],q1_val,q2_val,pz_val)
+    fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,pz_val)
 
   #Bin the data
   fd_reb = [0.0]*len(xmodel)
   fd_reb_res = [0.0]*len(xmodel_res)
   for m in range(0,len(xmodel)):
     for n in range(0,n_cad):
-      fd_reb[m] = fd_reb[m] + fd_ub[n][m]/n_cad
+      fd_reb[m] = fd_reb[m] + fd_ub[m][n]/n_cad
   for m in range(0,len(xmodel_res)):
     for n in range(0,n_cad):
-      fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[n][m]/n_cad
+      fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[m][n]/n_cad
 
   #Residuals
   res_res = yflux - fd_reb_res
@@ -121,6 +126,7 @@ def fancy_tr_plot(xtime,yflux,errors,pars,ldc,flag,fname):
 def plot_transit_nice():
 #Move all the points to T0
   base = 3
+  ldc = [ np.mean(params[3+8*nplanets]), np.median(params[4+8*nplanets]) ]
   for o in range(0,nplanets):
 
     pars_vec = params[base:base+7]
@@ -128,11 +134,9 @@ def plot_transit_nice():
     for m in range(0,7):
       pars[m] = np.median(pars_vec[m])
 
-    ldc = [ np.mean(params[3+8*nplanets]), np.median(params[3+9*nplanets]) ]
-
     xt_dummy = list(xt[o])
+    P_val = pars[1]
     for i in range(0,len(xt_dummy)):
-      P_val = pars[1]
       n = xt_dummy[i][len(xt_dummy[i])-1] - xt_dummy[0][0]
       n = int(n/P_val)
       xt_dummy[i] = xt_dummy[i] - P_val * n
@@ -430,7 +434,7 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
     plt.xlabel(plabs[i])
     plt.hist(params[i],normed=True,bins=nb)
 
-  fname = outdir+'/'+star+plabels[0]+'_histogram.pdf'
+  fname = outdir+'/'+star+'_histogram.pdf'
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
@@ -472,7 +476,7 @@ def create_plot_correlation(params,plabs,col='red',mark='.'):
 
       plt.hist2d(params[j],params[i],bins=100,norm=LogNorm())
 
-  fname = outdir+'/'+star+plabels[0]+'_correlations.pdf'
+  fname = outdir+'/'+star+'_correlations.pdf'
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
