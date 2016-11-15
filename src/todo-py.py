@@ -387,6 +387,7 @@ def fit_new_method():
   for i in range(0,nplanets):
     pars[i*8:(i+1)*8]= [T0[i],P[i],e[i],w[i],ii[i],a[i],pz[i],k0[i]]
 
+  rvs = v0
   ldc   = [q1,q2]
   flags = [is_log_P,is_ew,is_b_factor,is_log_a,is_log_k,is_log_rv0]
 

@@ -1,6 +1,5 @@
 subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,tff, &
            t_cad,n_cad,pars,rvs,ldc,chi2,npl,n_tel,size_rv,size_tr)
-
 implicit none
 
 !In/Out variables
@@ -9,11 +8,11 @@ implicit none
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_tr-1) :: plab_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab
+  !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
-  logical, intent(in) :: tff(0:1)
+  logical, intent(in) :: tff(0:1) !total_fit_flag
   double precision, intent(out) :: chi2
-  !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each parameter
   !THIS DOES NOT ADD alpha and beta
 !Local variables
   double precision :: pars_rv(0:7+n_tel-1,0:npl-1)
@@ -22,18 +21,17 @@ implicit none
   logical :: flag_rv(0:3), flag_tr(0:3)
   integer :: i, j
 
-
   !Create the parameter variables for rv and tr
   do i = 0, npl - 1
     j = 8*i !the new data start point
     pars_tr(:,i)   = pars(j:j+6)
     pars_rv(0:3,i) = pars(j:j+3)
     pars_rv(4,i) = pars(j+7)
-    pars_rv(5:6,i) = 0.d0
-    !ADD alpha and beta
+    pars_rv(5:6,i) = 0.d0 !ADD alpha and beta
     pars_rv(7:7+n_tel-1,i) = rvs(:)
   end do
 
+  !This should come from the input file
   flag_rv = (/ .false., .false., .false., .false. /)
   flag_tr = (/ .false., .false., .true. , .false. /)
 
@@ -51,6 +49,24 @@ implicit none
   !print *, chi2_rv, chi2_tr
   !stop
   chi2 = chi2_rv + chi2_tr
+
+end subroutine
+
+!This subroutine ensure third kepler law for multi-planet fits
+subroutine ensure_kepler(pars,npl)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: npl
+  double precision, intent(inout), dimension(0:8*npl - 1) :: pars
+  !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
+!Local variables
+  integer :: i
+
+  do i =1, npl - 1
+    pars(5 + 8*i ) = pars(5) * ( pars(1+8*i) / pars(1) )**(2.d0/3.d0)
+  end do
+  !
 
 end subroutine
 
@@ -95,6 +111,7 @@ implicit none
   double precision  :: q, spar, a_factor, dof
   double precision  :: mean_chi2
   logical :: continua, is_burn, is_limit_good, is_cvg
+  logical :: is_kepler
   integer :: nk, j, n, m, o, n_burn, new_thin_factor
 !external calls
   external :: init_random_seed, find_chi2_tr, find_chi2_rv
@@ -142,6 +159,7 @@ implicit none
   !is_jitter = jit
   a_factor = 2.d0
   n_burn = 1
+  is_kepler = .True.
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
@@ -181,12 +199,14 @@ implicit none
       ldc_new(nk,:)  = ldc_new(nk,:) + wtf_ldc(:) * z_rand(nk) * &
                      ( ldc_old(nk,:) - ldc_new(nk,:) )
 
+      if ( npl > 1 .and. is_kepler ) &
+        call ensure_kepler(pars_new(nk,:),npl)
+
       !Let us check if the new parameters are inside the limits
       is_limit_good = .true.
       call check_limits(pars_new(nk,:),lims_p,is_limit_good,8*npl)
       if (is_limit_good ) call check_limits(rvs_new(nk,:),lims_p_rvs,is_limit_good,n_tel)
       if (is_limit_good ) call check_limits(ldc_new(nk,:),lims_p_ldc,is_limit_good,2)
-      !CHECK ALSO THE LIMITS FOR RV AND LDC
 
       if ( is_limit_good ) then
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, total_fit_flag,&
@@ -196,38 +216,35 @@ implicit none
          chi2_new_total(nk) = huge(0.0d0) !A really big number!
       end if
 
-    !Let us compare our models
-    !Compute the likelihood
-    q = 1.0d0 !add jitter later
-    q = q * z_rand(nk)**( int(spar - 1) ) * &
-          exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5d0  )
+      !Let us compare our models
+      !Compute the likelihood
+      q = 1.0d0 !add jitter later
+      q = q * z_rand(nk)**( int(spar - 1) ) * &
+            exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5d0  )
 
-    !Check if the new likelihood is better
-    if ( q > r_rand(nk) ) then
-      !If yes, let us save it as the old vectors
-      chi2_old_total(nk) = chi2_new_total(nk)
-      pars_old(nk,:) = pars_new(nk,:)
-      rvs_old(nk,:) = rvs_new(nk,:)
-      ldc_old(nk,:) = ldc_new(nk,:)
-      !WE CAN ADD JITTER LATER
-    end if
-
-    !Compute the reduced chi square
-    chi2_red(nk) = chi2_old_total(nk) / dof
-
-    !Start to burn-in
-    if ( is_burn ) then
-      if ( mod(j,new_thin_factor) == 0 ) then
-       ! !$OMP CRITICAL
-       !write(*,*)   j, nk, chi2_old_total(nk), pars_old(nk,:), &
-       !             ldc_old(nk,:), rvs_old(nk,:)
-       write(101,*) j, nk, chi2_old_total(nk), pars_old(nk,:), &
-                    ldc_old(nk,:), rvs_old(nk,:)
-       ! !$OMP END CRITICAL
+      !Check if the new likelihood is better
+      if ( q > r_rand(nk) ) then
+        !If yes, let us save it as the old vectors
+        chi2_old_total(nk) = chi2_new_total(nk)
+        pars_old(nk,:) = pars_new(nk,:)
+        rvs_old(nk,:) = rvs_new(nk,:)
+        ldc_old(nk,:) = ldc_new(nk,:)
+        !WE CAN ADD JITTER LATER
       end if
-    end if
-    !End burn-i
 
+      !Compute the reduced chi square
+      chi2_red(nk) = chi2_old_total(nk) / dof
+
+      !Start to burn-in
+      if ( is_burn ) then
+        if ( mod(j,new_thin_factor) == 0 ) then
+         !$OMP CRITICAL
+         write(101,*) j, nk, chi2_old_total(nk), pars_old(nk,:), &
+                      ldc_old(nk,:), rvs_old(nk,:)
+         !$OMP END CRITICAL
+        end if
+      end if
+      !End burn-in
 
     end do !walkers
     !$OMP END PARALLEL
@@ -239,47 +256,47 @@ implicit none
       if ( n_burn > nconv ) continua = .false.
     else
       if ( mod(j,thin_factor) == 0 ) then
-      !If the chains have not converged, let us check convergence
-      !Let us save a 3D array with the informations of the parameters,
-      !the nk and the iteration. This array is used to perform GR test
-      pars_chains(:,:,n) = pars_old(:,:)
-      n = n + 1
-      !Is it time to check covergence=
-      if ( n == nconv ) then
-        !Perform G-R test
-        n = 0 !reinitilize n
-        call print_chain_data(chi2_red,nwalks)
-        print *, '==========================='
-        print *, '  PERFOMING GELMAN-RUBIN'
-        print *, '   TEST FOR CONVERGENCE'
-        print *, '==========================='
-        !Check convergence for all the parameters
-        is_cvg = .true.
-        do o = 0, 8*npl-1
-          if (wtf_all(o) == 1 ) then !perform G-R test
-            call gr_test(pars_chains(:,o,:),nwalks,nconv,is_cvg)
-          end if
-          if ( .not. is_cvg ) exit
-        end do
-        if ( .not. is_cvg  ) then
-          print *, '=================================='
-          print *, 'CHAINS HAVE NOT CONVERGED YET!'
-          print *,  nconv*thin_factor,' ITERATIONS MORE!'
-          print *, '=================================='
-        else
+        !If the chains have not converged, let us check convergence
+        !Let us save a 3D array with the informations of the parameters,
+        !the nk and the iteration. This array is used to perform GR test
+        pars_chains(:,:,n) = pars_old(:,:)
+        n = n + 1
+        !Is it time to check covergence=
+        if ( n == nconv ) then
+          !Perform G-R test
+          n = 0 !reinitilize n
+          call print_chain_data(chi2_red,nwalks)
           print *, '==========================='
-          print *, '  CHAINS HAVE CONVERGED'
+          print *, '  PERFOMING GELMAN-RUBIN'
+          print *, '   TEST FOR CONVERGENCE'
           print *, '==========================='
-          print *, 'STARTING BURNING-IN PHASE'
-          print *, '==========================='
-          is_burn = .True.
-          new_thin_factor = thin_factor
-          print *, 'CREATING BURNING-IN DATA FILE'
-          !Let us start the otput file
-          open(unit=101,file='all_data.dat',status='unknown')
-        end if ! is_cvg
-      end if !nconv
-      end if
+          !Check convergence for all the parameters
+          is_cvg = .true.
+          do o = 0, 8*npl-1
+            if (wtf_all(o) == 1 ) then !perform G-R test
+              call gr_test(pars_chains(:,o,:),nwalks,nconv,is_cvg)
+            end if
+            if ( .not. is_cvg ) exit
+          end do
+          if ( .not. is_cvg  ) then
+            print *, '=================================='
+            print *, 'CHAINS HAVE NOT CONVERGED YET!'
+            print *,  nconv*thin_factor,' ITERATIONS MORE!'
+            print *, '=================================='
+          else
+            print *, '==========================='
+            print *, '  CHAINS HAVE CONVERGED'
+            print *, '==========================='
+            print *, 'STARTING BURNING-IN PHASE'
+            print *, '==========================='
+            is_burn = .True.
+            new_thin_factor = thin_factor
+            print *, 'CREATING BURNING-IN DATA FILE'
+            !Let us start the otput file
+            open(unit=101,file='all_data.dat',status='unknown')
+          end if ! is_cvg
+        end if !nconv
+      end if !j/thin_factor
     end if !is_burn
 
     !check if we exceed the maximum number of iterations
