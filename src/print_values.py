@@ -71,24 +71,27 @@ if ( method == 'new' or method == 'plot' ):
 
 
 #Print the summary
-  print '--------------------------------------------------------------'
-  print('Summary:')
-  print('N_chains    = %8i '%nwalkers)
-  print('N_conv      = %8i '%nconv)
-  print('thin_factor = %8i '%thin_factor)
-  print('N_data      = %8i '%ndata)
-  print('N_pars      = %8i '%npars)
-  print('chi2        = %4.4f' %(chi2tot_val))
-  print('DOF         = %8i ' %(ndata - npars))
-  print('chi2_red    = %4.4f ' %chi2_val)
-  print('scale factor= %4.4f' %s_factor)
-  print('BIC         = %4.4f' %(bic2))
-  print '--------------------------------------------------------------'
-  print '             INPUT STELLAR PARAMETERS'
-  print '--------------------------------------------------------------'
-  print ('M_*     = %4.7f + %4.7f - %4.7f solar masses'%(find_vals_perc(mstar)))
-  print ('R_*     = %4.7f + %4.7f - %4.7f solar radii'%(find_vals_perc(rstar)))
-  print ('T_*     = %4.7f + %4.7f - %4.7f K'%(find_vals_perc(tstar)))
+  out_params_file = outdir+'/'+star+'_params.dat'
+  opars = open(out_params_file,'w')
+  opars.write('\n')
+  opars.write ('--------------------------------------------------------------\n')
+  opars.write('Summary:\f')
+  opars.write('N_chains    = %8i \n'%nwalkers)
+  opars.write('N_conv      = %8i \n'%nconv)
+  opars.write('thin_factor = %8i \n'%thin_factor)
+  opars.write('N_data      = %8i \n'%ndata)
+  opars.write('N_pars      = %8i \n'%npars)
+  opars.write('chi2        = %4.4f\n' %(chi2tot_val))
+  opars.write('DOF         = %8i \n' %(ndata - npars))
+  opars.write('chi2_red    = %4.4f \n' %chi2_val)
+  opars.write('scale factor= %4.4f\n' %s_factor)
+  opars.write('BIC         = %4.4f\n' %(bic2))
+  opars.write ('--------------------------------------------------------------\n')
+  opars.write ('             INPUT STELLAR PARAMETERS\n')
+  opars.write ('--------------------------------------------------------------\n')
+  opars.write ('M_*     = %4.7f - %4.7f + %4.7f solar masses\n'%(mstar_mean,mstar_sigma,mstar_sigma))
+  opars.write ('R_*     = %4.7f - %4.7f + %4.7f solar radii\n'%(rstar_mean,rstar_sigma,rstar_sigma))
+  opars.write ('T_*     = %4.7f - %4.7f + %4.7f K\n'%(tstar_mean,tstar_sigma,tstar_sigma))
   #Print the data for all the planets
   for o in range(0,nplanets):
     T0_vec[o] = params[base + 0]
@@ -162,32 +165,32 @@ if ( method == 'new' or method == 'plot' ):
 
     #Print the parameters
     #Fitted parameters
-    print '--------------------------------------------------------------'
-    print '                   Parameters ', star + plabels[o]
-    print '--------------------------------------------------------------'
-    print '-------------------------Fitted-------------------------------'
-    print ('T0   = %4.7f + %4.7f - %4.7f  days '%(find_vals_perc(T0_vec[o],s_factor)))
-    print ('P    = %4.7f + %4.7f - %4.7f  days '%(find_vals_perc(P_vec[o],s_factor)))
-    print ('e    = %4.7f + %4.7f - %4.7f       '%(find_vals_perc(e_vec[o],s_factor)))
-    print ('w*   = %4.7f + %4.7f - %4.7f  deg  '%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
-    print ('b    = %4.7f + %4.7f - %4.7f       '%(find_vals_perc(b_vec[o],s_factor)))
-    print ('a/R* = %4.7f + %4.7f - %4.7f       '%(find_vals_perc(ar_vec[o],s_factor)))
-    print ('Rp/R*= %4.7f + %4.7f - %4.7f       '%(find_vals_perc(rr_vec[o],s_factor)))
-    print ('K    = %4.7f + %4.7f - %4.7f  m/s  '%(find_vals_perc(k_vec[o]*1e3,s_factor)))
-    print '-------------------------Derived------------------------------'
-    print ('i    = %4.7f + %4.7f - %4.7f  deg  '%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
-    print ('a    = %4.7f + %4.7f - %4.7f  AU   '%(find_vals_perc(a_vec[o],s_factor)))
-    print ('rho* = %4.7f + %4.7f - %4.7f  g/cm^3'%(find_vals_perc(ds_vec[o],s_factor)))
+    opars.write ('--------------------------------------------------------------\n')
+    opars.write ('                   Parameters %s\n' %( star + plabels[o]))
+    opars.write ('--------------------------------------------------------------\n')
+    opars.write ('-------------------------Fitted-------------------------------\n')
+    opars.write ('T0   = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(T0_vec[o],s_factor)))
+    opars.write ('P    = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(P_vec[o],s_factor)))
+    opars.write ('e    = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_vec[o],s_factor)))
+    opars.write ('w*   = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
+    opars.write ('b    = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(b_vec[o],s_factor)))
+    opars.write ('a/R* = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(ar_vec[o],s_factor)))
+    opars.write ('Rp/R*= %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(rr_vec[o],s_factor)))
+    opars.write ('K    = %4.7f - %4.7f + %4.7f  m/s  \n'%(find_vals_perc(k_vec[o]*1e3,s_factor)))
+    opars.write ('-------------------------Derived------------------------------\n')
+    opars.write ('i    = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
+    opars.write ('a    = %4.7f - %4.7f + %4.7f  AU   \n'%(find_vals_perc(a_vec[o],s_factor)))
+    opars.write ('rho* = %4.7f + %4.7f + %4.7f  g/cm^3\n'%(find_vals_perc(ds_vec[o],s_factor)))
     r_val, r_val_r, r_val_l = find_vals_perc(r_vec[o],s_factor)
     m_val, m_val_r, m_val_l = find_vals_perc(m_vec[o],s_factor)
-    print ('Mp   = %4.7f + %4.7f - %4.7f M_%s  '%(m_val,m_val_l,m_val_r,unit_mass))
-    print ('Rp   = %4.7f + %4.7f - %4.7f R_%s  '%(r_val,r_val_l,r_val_r,unit_mass))
-    print ('wp   = %4.7f + %4.7f - %4.7f  deg  '%(w_p_deg,w_s_deg_l,w_s_deg_r))
-    print ('Tperi= %4.7f + %4.7f - %4.7f  days '%(find_vals_perc(Tpe_vec[o],s_factor)))
-    print ('Teq  = %4.7f + %4.7f - %4.7f  K    '%(find_vals_perc(Teq_vec[o],s_factor)))
-    print ('T_tot= %4.7f + %4.7f - %4.7f  hours'%(find_vals_perc(trt_vec[o],s_factor)))
-    print ('T_i/e= %4.7f + %4.7f - %4.7f  hours'%(find_vals_perc(tri_vec[o],s_factor)))
-    print '--------------------------------------------------------------'
+    opars.write ('Mp   = %4.7f - %4.7f + %4.7f M_%s  \n'%(m_val,m_val_r,m_val_l,unit_mass))
+    opars.write ('Rp   = %4.7f - %4.7f + %4.7f R_%s  \n'%(r_val,r_val_r,r_val_l,unit_mass))
+    opars.write ('wp   = %4.7f - %4.7f + %4.7f  deg  \n'%(w_p_deg,w_s_deg_l,w_s_deg_r))
+    opars.write ('Tperi= %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(Tpe_vec[o],s_factor)))
+    opars.write ('Teq  = %4.7f - %4.7f + %4.7f  K    \n'%(find_vals_perc(Teq_vec[o],s_factor)))
+    opars.write ('T_tot= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(trt_vec[o],s_factor)))
+    opars.write ('T_i/e= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(tri_vec[o],s_factor)))
+    opars.write ('--------------------------------------------------------------\n')
 
     #Let us change to the next planet
     base = base + 8
@@ -196,18 +199,30 @@ if ( method == 'new' or method == 'plot' ):
 q1_vec = params[base]
 q2_vec = params[base+1]
 
+u1_vec = np.sqrt(q1_vec)
+u2_vec = u1_vec * (1. - 2.*q2_vec)
+u1_vec = 2.*u1_vec*q2_vec
+
 rv_vec = [None]*nt
 for o in range(0,nt):
   rv_vec[o] = params[base+2+o]
 
-print '--------------------  Other parameters -----------------------'
-print ('q1    = %4.7f + %4.7f - %4.7f    '%(find_vals_perc(q1_vec,s_factor)))
-print ('q2    = %4.7f + %4.7f - %4.7f    '%(find_vals_perc(q2_vec,s_factor)))
+opars.write ('--------------------  Other parameters -----------------------\n')
+opars.write ('q1    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(q1_vec,s_factor)))
+opars.write ('q2    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(q2_vec,s_factor)))
+opars.write ('u1    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(u1_vec,s_factor)))
+opars.write ('u2    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(u2_vec,s_factor)))
 for o in range(0,nt):
   v_val, v_val_r, v_val_l = find_vals_perc(rv_vec[o],s_factor)
-  print ('%s = %4.7f + %4.7f - %4.7f km/s'%(telescopes_labels[o],v_val,v_val_l,v_val_r))
-print '--------------------------------------------------------------'
-print ''
+  opars.write ('%s = %4.7f - %4.7f + %4.7f km/s\n'%(telescopes_labels[o],v_val,v_val_r,v_val_l))
+opars.write ('--------------------------------------------------------------\n')
+opars.write('\n')
+
+opars.close()
+dummy_file = open(out_params_file)
+for line in dummy_file:
+  print line,
+dummy_file.close()
 
 if ( nplanets == 0 ):
 
@@ -404,7 +419,7 @@ if ( nplanets == 0 ):
     bic2 = get_BIC(chi2tot_val)
 
     #Print the best fit values values
-    out_params_file = outdir+'/'+star+plabels[0]+'.dat'
+    out_params_file = outdir+'/'+star+'_params.dat'
     opars = open(out_params_file,'w')
     opars.write('\n')
     opars.write('Summary:\n')

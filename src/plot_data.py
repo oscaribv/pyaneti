@@ -49,7 +49,7 @@ def fancy_tr_plot(xtime,yflux,errors,pars,ldc,flag,fname):
   print 'Creating ', fname
   #Let us create the model
   xmodel_res = list(xtime)
-  xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1e3 )
+  xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1e4 )
 
   xd_ub = np.ndarray(shape=(len(xmodel),n_cad))
   xd_ub_res = np.ndarray(shape=(len(xmodel),n_cad))

@@ -162,8 +162,8 @@ def smart_priors():
     for o in range(0,nt):
         min_rv0[o] = min(rv_all[o])
         max_rv0[o] = max(rv_all[o])
-        min_phys_rv0[o] = min(rv_all[o])
-        max_phys_rv0[o] = max(rv_all[o])
+        min_phys_rv0[o] = min(rv_all[o]) - 1.
+        max_phys_rv0[o] = max(rv_all[o]) + 1.
 
     v0 = list(min_rv0)
 
@@ -235,9 +235,9 @@ def get_transit_ranges(times,gap):
     lims[i/2] = [xlimits[i],xlimits[i+1]]
 
   ntr = len(lims)
-  #print 'Number of transits = ', ntr
-  #print 'Transit limits ='
-  #print lims
+  print 'Number of transits = ', ntr
+  print 'Transit limits ='
+  print lims
 
   return lims, ntr
 
@@ -857,88 +857,85 @@ def fit_radial_velocity():
 # PRINT INITIAL CONFIGURATION
 #-----------------------------------------------------------
 def print_init():
-  print ''
-  print '=============================='
-  print '------------------------------'
-  print "    INITIAL CONFIGURATION     "
-  print '------------------------------'
-  print 'iter max       = ', maxi
-  print 'thin factor    = ', thin_factor
-  print 'nconv          = ', nconv
-  print 'nwalkers       = ', nwalkers
-  print '------------------------------'
-  print 'fit RV         = ', fit_rv
-  print 'fit Transit    = ', fit_tr
-  print '------------------------------'
+  out_init_file = outdir+'/'+star+'_init.dat'
+  oif = open(out_init_file,'w')
+  oif.write ('\n')
+  oif.write ('==============================\n')
+  oif.write ('------------------------------\n')
+  oif.write ("    INITIAL CONFIGURATION     \n")
+  oif.write ('------------------------------\n')
+  oif.write ('Star           = %s\n'%star)
+  oif.write ('No. planets    = %d\n'%nplanets)
+  oif.write ('------------------------------\n')
+  oif.write ('iter max       = %d\n' %maxi)
+  oif.write ('thin factor    = %d\n' %thin_factor)
+  oif.write ('nconv          = %d\n' %nconv)
+  oif.write ('nwalkers       = %d\n' %nwalkers)
+  oif.write ('------------------------------\n')
+  oif.write ('fit RV         = %s\n' %fit_rv)
+  oif.write ('fit Transit    = %s\n' %fit_tr)
+  oif.write ('------------------------------\n')
+  if ( total_tr_fit ):
+    oif.write ('LC data        = %s\n' %lc_data)
+    oif.write ('cadence time   =  %2.3f min\n'%(t_cad*60.*24))
+    oif.write ('n rebinning    = %d\n' %n_cad)
+  oif.write ('------------------------------\n')
+  oif.write ('fitting T0     = %s\n'% fit_t0)
+  oif.write ('fitting P      = %s\n'% fit_P)
+  oif.write ('fitting e      = %s\n'% fit_e)
+  oif.write ('fitting w      = %s\n'% fit_w)
   if (fit_tr):
-    print 'LC data        = ', lc_data
-    print ('cadence time   =  %2.3f min'%(t_cad*60.*24))
-    print 'n rebinning    = ', n_cad
-  print '------------------------------'
-  print 'fitting T0     = ', fit_t0
-  print 'fitting P      = ', fit_P
-  print 'fitting e      = ', fit_e
-  print 'fitting w      = ', fit_w
-  if (fit_tr):
-    print 'fitting i      = ', fit_i
-    print 'fitting a      = ', fit_a
-    print 'fitting q1     = ', fit_q1
-    print 'fitting q2     = ', fit_q2
-    print 'fitting pz     = ', fit_pz
+    oif.write ('fitting i      = %s\n'% fit_i)
+    oif.write ('fitting a      = %s\n'% fit_a)
+    oif.write ('fitting q1     = %s\n'% fit_q1)
+    oif.write ('fitting q2     = %s\n'% fit_q2)
+    oif.write ('fitting pz     = %s\n'% fit_pz)
   if (fit_rv):
-    print 'fitting k      = ', fit_k
-    print 'fitting v0     = ', fit_v0
-  print '------------------------------'
-  print '        PRIOR RANGES          '
-  print '------------------------------'
-  if ( min_t0.__class__ == float ):
-    print ('T0 = [ %4.4f , %4.4f ]' %(min_t0,max_t0))
-    print ('P  = [ %4.4f , %4.4f ]' %(min_P,max_P))
-    print ('e  = [ %4.4f , %4.4f ]' %(min_e,max_e))
-    print ('w  = [ %4.4f , %4.4f ]' %(min_w,max_w))
-    if (fit_tr):
-      print ('i  = [ %4.4f , %4.4f ]' %(min_i,max_i))
-      print ('a  = [ %4.4f , %4.4f ]' %(min_a,max_a))
-      print ('pz = [ %4.4f , %4.4f ]' %(min_pz,max_pz))
-      print ('q1 = [ %4.4f , %4.4f ]' %(min_q1,max_q1))
-      print ('q2 = [ %4.4f , %4.4f ]' %(min_q2,max_q2))
-    if (fit_rv):
-      print ('K  = [ %4.4f , %4.4f ]' %(min_k,max_k))
-      for m in range(0,nt):
-        print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0[m],max_rv0[m]))
-  else:
-    for j in range(0,nplanets):
-      print 'Planet ', j + 1
-      print ('T0 = [ %4.4f , %4.4f ]' %(min_t0[j],max_t0[j]))
-      print ('P  = [ %4.4f , %4.4f ]' %(min_P[j],max_P[j]))
-      print ('e  = [ %4.4f , %4.4f ]' %(min_e[j],max_e[j]))
-      print ('w  = [ %4.4f , %4.4f ]' %(min_w[j],max_w[j]))
-      if (fit_tr):
-        print ('i  = [ %4.4f , %4.4f ]' %(min_i[j],max_i[j]))
-        print ('a  = [ %4.4f , %4.4f ]' %(min_a[j],max_a[j]))
-        print ('pz = [ %4.4f , %4.4f ]' %(min_pz[j],max_pz[j]))
-        print ('q1 = [ %4.4f , %4.4f ]' %(min_q1[j],max_q1[j]))
-        print ('q2 = [ %4.4f , %4.4f ]' %(min_q2[j],max_q2[j]))
-      if (fit_rv):
-        print ('K  = [ %4.4f , %4.4f ]' %(min_k[j],max_k[j]))
-        for m in range(0,nt):
-          print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0[m],max_rv0[m]))
-  print '------------------------------'
-  print '     PHYSICAL LIMITS          '
-  print '------------------------------'
-  print ('T0 = [ %4.4f , %4.4f ]' %(min_phys_t0,max_phys_t0))
-  print ('P  = [ %4.4f , %4.4f ]' %(min_phys_P,max_phys_P))
-  print ('e  = [ %4.4f , %4.4f ]' %(min_phys_e,max_phys_e))
-  print ('w  = [ %4.4f , %4.4f ]' %(min_phys_w,max_phys_w))
-  if (fit_tr):
-    print ('i  = [ %4.4f , %4.4f ]' %(min_phys_i,max_phys_i))
-    print ('a  = [ %4.4f , %4.4f ]' %(min_phys_a,max_phys_a))
-    print ('pz = [ %4.4f , %4.4f ]' %(min_phys_pz,max_phys_pz))
-    print ('q1 = [ %4.4f , %4.4f ]' %(min_phys_q1,max_phys_q1))
-    print ('q2 = [ %4.4f , %4.4f ]' %(min_phys_q2,max_phys_q2))
-  if (fit_rv):
-    print ('K  = [ %4.4f , %4.4f ]' %(min_phys_k,max_phys_k))
-    for m in range(0,nt):
-      print ('rv0= [ %4.4f , %4.4f ]' %(min_rv0[m],max_rv0[m]))
-  print '------------------------------'
-  print '=============================='
+    oif.write ('fitting k      = %s\n'% fit_k)
+    oif.write ('fitting v0     = %s\n'% fit_v0)
+  for j in range(0,nplanets):
+    oif.write ('------------------------------\n')
+    oif.write ('  PLANET %s\n' %star + plabels[j])
+    oif.write ('------------------------------\n')
+    oif.write ('        PRIOR RANGES          \n')
+    oif.write ('------------------------------\n')
+    oif.write ('T0 = [ %4.4f , %4.4f ]\n' %(min_t0[j],max_t0[j]))
+    oif.write ('P  = [ %4.4f , %4.4f ]\n' %(min_P[j],max_P[j]))
+    oif.write ('e  = [ %4.4f , %4.4f ]\n' %(min_e[j],max_e[j]))
+    oif.write ('w  = [ %4.4f , %4.4f ]\n' %(min_w[j],max_w[j]))
+    oif.write ('i  = [ %4.4f , %4.4f ]\n' %(min_i[j],max_i[j]))
+    oif.write ('a  = [ %4.4f , %4.4f ]\n' %(min_a[j],max_a[j]))
+    oif.write ('pz = [ %4.4f , %4.4f ]\n' %(min_pz[j],max_pz[j]))
+    oif.write ('K  = [ %4.4f , %4.4f ]\n' %(min_k[j],max_k[j]))
+    oif.write ('------------------------------\n')
+    oif.write ('     PHYSICAL LIMITS          \n')
+    oif.write ('------------------------------\n')
+    oif.write ('T0 = [ %4.4f , %4.4f ]\n' %(min_phys_t0[j],max_phys_t0[j]))
+    oif.write ('P  = [ %4.4f , %4.4f ]\n' %(min_phys_P[j],max_phys_P[j]))
+    oif.write ('e  = [ %4.4f , %4.4f ]\n' %(min_phys_e[j],max_phys_e[j]))
+    oif.write ('w  = [ %4.4f , %4.4f ]\n' %(min_phys_w[j],max_phys_w[j]))
+    oif.write ('i  = [ %4.4f , %4.4f ]\n' %(min_phys_i[j],max_phys_i[j]))
+    oif.write ('a  = [ %4.4f , %4.4f ]\n' %(min_phys_a[j],max_phys_a[j]))
+    oif.write ('pz = [ %4.4f , %4.4f ]\n' %(min_phys_pz[j],max_phys_pz[j]))
+    oif.write ('K  = [ %4.4f , %4.4f ]\n' %(min_phys_k[j],max_phys_k[j]))
+  oif.write ('------------------------------\n')
+  oif.write ('   Other parameters limits \n')
+  oif.write ('------------------------------\n')
+  oif.write ('q1 = [ %4.4f , %4.4f ]\n' %(min_q1[0],max_q1[0]))
+  oif.write ('q2 = [ %4.4f , %4.4f ]\n' %(min_q2[0],max_q2[0]))
+  for m in range(0,nt):
+    oif.write (' %s = [ %4.4f , %4.4f ]\n' %(telescopes_labels[m],min_rv0[m],max_rv0[m]))
+  oif.write ('------------------------------\n')
+  oif.write ('Other parameters physical limits\n ')
+  oif.write ('------------------------------\n')
+  oif.write ('q1 = [ %4.4f , %4.4f ]\n' %(min_phys_q1[0],max_phys_q1[0]))
+  oif.write ('q2 = [ %4.4f , %4.4f ]\n' %(min_phys_q2[0],max_phys_q2[0]))
+  for m in range(0,nt):
+    oif.write ('%s = [ %4.4f , %4.4f ]\n' %(telescopes_labels[m],min_phys_rv0[m],max_phys_rv0[m]))
+  oif.write ('==============================\n')
+
+  oif.close()
+  dummy_file = open(out_init_file)
+  for line in dummy_file:
+    print line,
+  dummy_file.close()

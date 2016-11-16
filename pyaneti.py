@@ -53,6 +53,8 @@ if (is_smart_priors ):
 #if is_circular is turned on, we ensure a circular orbit
 check_circular()
 
+print_init()
+
 #-------------------------------------------------------------
 #                   FITTING ROUTINES
 #-------------------------------------------------------------
