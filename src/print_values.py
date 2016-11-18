@@ -14,12 +14,18 @@ from matplotlib import gridspec
 newfile = outdir+'/'+star+'_all_data.dat'
 dparams = np.loadtxt(newfile, comments='#',unpack=True)
 
+newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
+dparams_jitter = np.loadtxt(newfile_jitter, comments='#',unpack=True)
+
 #Starting clustering
 good_index, new_nwalkers = good_clustering(dparams[2],dparams[1],nconv,nwalkers)
 #Let us do the clustering
 params = [None]*len(dparams)
+params_jitter = [None]*2
 for o in range(0,len(dparams)):
     params[o] = clustering(dparams[o],good_index)
+for o in range(0,2):
+    params_jitter[o] = clustering(dparams_jitter[o],good_index)
 #Create the stellar data
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=new_nwalkers*nconv)
@@ -75,7 +81,7 @@ if ( method == 'new' or method == 'plot' ):
   opars = open(out_params_file,'w')
   opars.write('\n')
   opars.write ('--------------------------------------------------------------\n')
-  opars.write('Summary:\f')
+  opars.write('Summary:\n')
   opars.write('N_chains    = %8i \n'%nwalkers)
   opars.write('N_conv      = %8i \n'%nconv)
   opars.write('thin_factor = %8i \n'%thin_factor)
@@ -180,7 +186,7 @@ if ( method == 'new' or method == 'plot' ):
     opars.write ('-------------------------Derived------------------------------\n')
     opars.write ('i    = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
     opars.write ('a    = %4.7f - %4.7f + %4.7f  AU   \n'%(find_vals_perc(a_vec[o],s_factor)))
-    opars.write ('rho* = %4.7f + %4.7f + %4.7f  g/cm^3\n'%(find_vals_perc(ds_vec[o],s_factor)))
+    opars.write ('rho* = %4.7f - %4.7f + %4.7f  g/cm^3\n'%(find_vals_perc(ds_vec[o],s_factor)))
     r_val, r_val_r, r_val_l = find_vals_perc(r_vec[o],s_factor)
     m_val, m_val_r, m_val_l = find_vals_perc(m_vec[o],s_factor)
     opars.write ('Mp   = %4.7f - %4.7f + %4.7f M_%s  \n'%(m_val,m_val_r,m_val_l,unit_mass))
@@ -216,7 +222,15 @@ for o in range(0,nt):
   v_val, v_val_r, v_val_l = find_vals_perc(rv_vec[o],s_factor)
   opars.write ('%s = %4.7f - %4.7f + %4.7f km/s\n'%(telescopes_labels[o],v_val,v_val_r,v_val_l))
 opars.write ('--------------------------------------------------------------\n')
+opars.write ('RV jitter = %4.7f - %4.7f + %4.7f m/s    \n'%(find_vals_perc(params_jitter[0]*1.e3,s_factor)))
+opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux]   \n'%(find_vals_perc(params_jitter[1],s_factor)))
+opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
+
+#RESIZE TRANSIT ERROR BARS
+jit_tr = np.median(params_jitter[1])
+for o in range(0,len(megae)):
+  megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 
 opars.close()
 dummy_file = open(out_params_file)

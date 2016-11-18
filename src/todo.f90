@@ -132,7 +132,7 @@ implicit none
   GM_SI = mstar(:) * S_GM_SI
 
   !Get scaled semi-major axis from 3rd Kepler law
-  a(:) = 0.25d0 * GM_SI(:) * ( P * 24 * 3600 ) * ( P * 24 * 3600 )
+  a(:) = 0.25d0 * GM_SI(:) * ( P * 24.d0 * 3600.d0 ) * ( P * 24.d0 * 3600.d0 )
   a(:) = a(:) / R_SI(:) / R_SI(:) / R_SI(:) / pi / pi 
   a(:) = a(:)**(1.d0/3.d0)
 
@@ -257,7 +257,13 @@ implicit none
 
   is_good = .true.
 
-  if ( u1 + u2 > 1.d0 ) is_good = .false.
+  if ( u1 + u2 > 1.d0 ) then
+    is_good = .false.
+  else if ( u1 > 1.d0 .or. u1 < 0.0d0 ) then
+    is_good = .false.
+  else if ( u2 > 1.d0 .or. u2 < -1.0d0 ) then
+    is_good = .false.
+   end if
 
 end subroutine
 
@@ -321,9 +327,8 @@ implicit none
   double precision, intent(out), dimension(0:n-1) :: valor
   !Local variables
   double precision, dimension(0:2*n-1) :: r_real
-  double precision  :: two_pi = 2*3.1415926535897932384626d0
+  double precision  :: two_pi = 2.d0*3.1415926535897932384626d0
 
-  call init_random_seed()
   call random_number(r_real)
 
   valor(:) = sqrt( - 2.d0 * log(r_real(0:n-1)) ) * &

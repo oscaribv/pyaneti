@@ -421,10 +421,12 @@ def fit_new_method():
     limits_p_ldc = [ min_phys_q1, max_phys_q1, min_phys_q2, max_phys_q2]
 
     #sys.exit()
+    stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
 
     pti.multi_all_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
-    tlab,megap,pars,rvs,ldc,flags,total_fit_flag,wtf_all,wtf_rvs,wtf_ldc, \
+    tlab,megap,pars,rvs,ldc,stellar_pars,a_from_kepler,\
+    flags,total_fit_flag,wtf_all,wtf_rvs,wtf_ldc, \
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
     limits_ldc,limits_p, limits_p_rvs, limits_p_ldc, \
     n_cad, t_cad, nplanets, nt)
@@ -445,6 +447,9 @@ def fit_new_method():
   if ( os.path.isfile('all_data.dat') ):
     os.rename('all_data.dat',newfile)
 
+  newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
+  if ( os.path.isfile('jitter_data.dat') ):
+    os.rename('jitter_data.dat',newfile_jitter)
 
 
 #-----------------------------------------------------------
@@ -879,6 +884,7 @@ def print_init():
     oif.write ('LC data        = %s\n' %lc_data)
     oif.write ('cadence time   =  %2.3f min\n'%(t_cad*60.*24))
     oif.write ('n rebinning    = %d\n' %n_cad)
+    oif.write ('Stellar priors = %s\n' %a_from_kepler)
   oif.write ('------------------------------\n')
   oif.write ('fitting T0     = %s\n'% fit_t0)
   oif.write ('fitting P      = %s\n'% fit_P)
@@ -895,7 +901,7 @@ def print_init():
     oif.write ('fitting v0     = %s\n'% fit_v0)
   for j in range(0,nplanets):
     oif.write ('------------------------------\n')
-    oif.write ('  PLANET %s\n' %star + plabels[j])
+    oif.write ('  PLANET %s \n' %(star + plabels[j]))
     oif.write ('------------------------------\n')
     oif.write ('        PRIOR RANGES          \n')
     oif.write ('------------------------------\n')
@@ -924,7 +930,7 @@ def print_init():
   oif.write ('q1 = [ %4.4f , %4.4f ]\n' %(min_q1[0],max_q1[0]))
   oif.write ('q2 = [ %4.4f , %4.4f ]\n' %(min_q2[0],max_q2[0]))
   for m in range(0,nt):
-    oif.write (' %s = [ %4.4f , %4.4f ]\n' %(telescopes_labels[m],min_rv0[m],max_rv0[m]))
+    oif.write ('%s = [ %4.4f , %4.4f ]\n' %(telescopes_labels[m],min_rv0[m],max_rv0[m]))
   oif.write ('------------------------------\n')
   oif.write ('Other parameters physical limits\n ')
   oif.write ('------------------------------\n')

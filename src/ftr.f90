@@ -207,7 +207,7 @@ implicit none
 !External function
   external :: occultquad
 
-  small = 1.d-10
+  small = 1.d-5
   npl_dbl = dble(npl)
 
   q1k = ldc(0)
@@ -227,6 +227,7 @@ implicit none
 
   !Selective re-sampling
   n = 0
+  muld_npl(:) = 0.d0
   do j = 0, datas - 1
 
     !control the label of the planet
@@ -234,6 +235,7 @@ implicit none
       n = n + 1
     end if
     !print *, plab_tr(j), n
+    !do n = 0, npl - 1
 
     !Are we generating an eclipse?
     !Take care with the pars
@@ -241,7 +243,7 @@ implicit none
 
     if ( zdum(0) > 1.d0 + 2*pz(n) .or. pz(n) < small ) then
 
-      muld_npl(j) = 1.d0 !This is not eclipse
+      muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
 
     else
 
@@ -255,14 +257,16 @@ implicit none
       call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad)
 
       !Re-bin the data
-      muld_npl(j) = sum(flux_ub) / n_cad
+      muld_npl(j) = muld_npl(j) + sum(flux_ub) / n_cad
 
       !print *, zdum,pz(n),plab_tr(j), muld_npl(j), yd(j)
 
     end if
 
+    !end do !planets
+
     !The final flux is F = (F1 + F2 + ... + Fn ) / n
-    muld(j) =  muld_npl(j)
+    muld(j) =  muld_npl(j)! / npl_dbl
 
   end do !datas
   !print *, 'stop new tr chi2'
