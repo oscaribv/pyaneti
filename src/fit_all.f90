@@ -40,9 +40,6 @@ implicit none
   chi2_rv = 0.d0
   chi2_tr = 0.d0
 
-  !print *, jrv, jtr
-  !stop
-
   if (tff(1) ) &
   call find_chi2_tr_new(x_tr,y_tr,e_tr,plab_tr,pars_tr,jtr,flag_tr,&
                         ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
@@ -79,7 +76,7 @@ subroutine multi_all_stretch_move( &
            x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &  !Data vars
            plab_tr,pars, rvs, ldc, &              !parameters vars
            stellar_pars,afk,&
-           flags, total_fit_flag, &               !flags
+           flags, total_fit_flag,is_jit, &               !flags
            wtf_all, wtf_rvs, wtf_ldc, &           !fitting controls
            nwalks, maxi, thin_factor, nconv, &    !
            lims, lims_rvs, lims_ldc, &            !prior limits
@@ -107,7 +104,7 @@ implicit none
   double precision, intent(in) ::  t_cad
   integer, intent(in) :: wtf_all(0:8*npl-1), wtf_rvs(0:n_tel-1), wtf_ldc(0:1)
   logical, intent(in) :: flags(0:5), total_fit_flag(0:1) !CHECK THE SIZE
-  logical, intent(in) :: afk(0:npl-1)
+  logical, intent(in) :: afk(0:npl-1), is_jit(0:1)
 !Local variables
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: pars_old, pars_new
   double precision, dimension(0:nwalks-1,0:n_tel-1) :: rvs_old, rvs_new
@@ -152,18 +149,22 @@ implicit none
   jitter_tr_old(:) = 0.0d0
   jitter_rv_new(:) = 0.0d0
   jitter_tr_new(:) = 0.0d0
-  call gauss_random_bm(e_rv(0)*1e-2,e_rv(0)*1e-3,jitter_rv_old,nwalks)
-  call gauss_random_bm(e_tr(0)*1e-2,e_tr(0)*1e-3,jitter_tr_old,nwalks)
+  if ( is_jit(0) ) &
+     call gauss_random_bm(e_rv(0)*1e-2,e_rv(0)*1e-3,jitter_rv_old,nwalks)
+  if ( is_jit(1) ) &
+    call gauss_random_bm(e_tr(0)*1e-2,e_tr(0)*1e-3,jitter_tr_old,nwalks)
   mult_old(:,:) = 1.0d0
   mult_new(:,:) = 1.0d0
-  do nk = 0, nwalks - 1
-    do j = 0, size_rv-1
-      mult_old(nk,j) = 1.0d0/sqrt( e_rv(j)**2 + jitter_rv_old(nk)**2  )
+  if ( is_jit(0) .or. is_jit(1) ) then
+    do nk = 0, nwalks - 1
+      do j = 0, size_rv-1
+        mult_old(nk,j) = 1.0d0/sqrt( e_rv(j)**2 + jitter_rv_old(nk)**2  )
+      end do
+      do j = size_rv, size_rv+size_tr-1
+        mult_old(nk,j) = 1.0d0/sqrt( e_tr(j-size_rv)**2 + jitter_tr_old(nk)**2)
+      end do
     end do
-    do j = size_rv, size_rv+size_tr-1
-      mult_old(nk,j) = 1.0d0/sqrt( e_tr(j-size_rv)**2 + jitter_tr_old(nk)**2)
-    end do
-  end do
+  end if
 
   print *, 'CREATING PRIORS'
   call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
@@ -222,8 +223,8 @@ implicit none
     !Create random integers to be the index of the walks
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
-!    call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
-!    call gauss_random_bm(rstar_mean,rstar_sigma,rstar,nwalks)
+    call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
+    call gauss_random_bm(rstar_mean,rstar_sigma,rstar,nwalks)
 
     !Pick a random walker
     do nk = 0, nwalks - 1 !walkers
@@ -260,9 +261,9 @@ implicit none
 
 !      do m = 0, npl - 1
 !        if ( afk(m) ) then
-          !The parameter comes from 3rd Kepler law
-          !pars_old(1) is the period
-!          call get_a_scaled(mstar(nk),rstar(nk),pars_new(nk,1+8*m),pars_new(nk,5+8*m),1)
+!          !The parameter comes from 3rd Kepler law
+!         !pars_old(1) is the period
+!        call get_a_scaled(mstar(nk),rstar(nk),pars_new(nk,1+8*m),pars_new(nk,5+8*m),1)
 !        end if
 !      end do
 
@@ -285,20 +286,25 @@ implicit none
              chi2_new_total(nk),npl,n_tel,size_rv,size_tr)
 
       mult_new(nk,:) = 1.0d0
-      do m = 0, size_rv-1
-        mult_new(nk,m) = 1.0d0/sqrt( e_rv(m)**2 + jitter_rv_new(nk)**2  )
-      end do
-      do m = size_rv, size_rv+size_tr-1
-        mult_new(nk,m) = 1.0d0/sqrt( e_tr(m-size_rv)**2 + jitter_tr_new(nk)**2  )
-      end do
+      if ( is_jit(0) .or. is_jit(1) ) then
+        do m = 0, size_rv-1
+          mult_new(nk,m) = 1.0d0/sqrt( e_rv(m)**2 + jitter_rv_new(nk)**2  )
+        end do
+        do m = size_rv, size_rv+size_tr-1
+          mult_new(nk,m) = 1.0d0/sqrt( e_tr(m-size_rv)**2 + jitter_tr_new(nk)**2  )
+        end do
+      end if
+
       mult_total(nk,:) = mult_new(nk,:) / mult_old(nk,:)
 
       !Add the jitter terms
       !print *, mult_total(nk,:)
       q = 1.0d0
-      do m = 0, size_rv+size_tr-1
-        q = q * mult_total(nk,m)
-      end do
+      if ( is_jit(0) .or. is_jit(1) ) then
+        do m = 0, size_rv+size_tr-1
+          q = q * mult_total(nk,m)
+        end do
+      end if
       !print *, q
       !stop
       !Let us compare our models
@@ -314,8 +320,10 @@ implicit none
         pars_old(nk,:) = pars_new(nk,:)
         rvs_old(nk,:) = rvs_new(nk,:)
         ldc_old(nk,:) = ldc_new(nk,:)
-        jitter_rv_old(nk) = jitter_rv_new(nk)
-        jitter_tr_old(nk) = jitter_tr_new(nk)
+        if ( is_jit(0) ) &
+          jitter_rv_old(nk) = jitter_rv_new(nk)
+        if ( is_jit(1) ) &
+          jitter_tr_old(nk) = jitter_tr_new(nk)
         mult_old(nk,:) = mult_new(nk,:)
       end if
 

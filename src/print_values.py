@@ -1,8 +1,5 @@
 from matplotlib import gridspec
 
-#what is the minimum chi2
-#minchi2_index = np.argmin(chi2)
-
 #Read the data
 #Dummy params vector contains
 #[0] -> i

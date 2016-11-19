@@ -13,10 +13,10 @@ chi2 = params[2]
 
 def plot_chains():
   plt.xlabel('iteration')
-  plt.ylabel('$\chi^2$')
+  plt.ylabel('Reduced $\chi^2$')
 #  if (nplanets == 1):
    #plt.plot(vari,chi2,'b.')
-  plt.hist2d(vari,chi2,bins=100,norm=LogNorm())
+  plt.hist2d(vari,chi2/(ndata-npars),bins=100,norm=LogNorm())
 #  else:
    #plt.plot(vari[0],chi2[0],'b.')
 #   plt.hist2d(vari[0],chi2[0],bins=100,norm=LogNorm())

@@ -201,6 +201,22 @@ def smart_priors():
       min_phys_t0[o] = xt[o][0][0]
       max_phys_t0[o] = xt[o][0][len(xt[o][0])-1]
 
+    #If we are ussing spectroscopic priors, let us estimante the limits on a
+    ms_min = mstar_mean - 5.*mstar_sigma
+    ms_max = mstar_mean + 5.*mstar_sigma
+    rs_min = rstar_mean - 5.*rstar_sigma
+    rs_max = rstar_mean + 5.*rstar_sigma
+    for o in range(0,nplanets):
+      if ( a_from_kepler[o] ):
+        p_min = min_P[o]
+        p_max = max_P[o]
+        min_phys_a[o] = pti.get_a_scaled(ms_min,rs_max,p_min)
+        max_phys_a[o] = pti.get_a_scaled(ms_max,rs_min,p_max)
+        print min_phys_a[o], max_phys_a[o]
+
+  #sys.exit()
+
+
 #-----------------------------------------------------------
 #Get transit ranges, assumes that the consecutive
 #data is almost equally spaced
@@ -422,11 +438,12 @@ def fit_new_method():
 
     #sys.exit()
     stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
+    is_jitter = [is_jitter_rv, is_jitter_tr]
 
     pti.multi_all_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
     tlab,megap,pars,rvs,ldc,stellar_pars,a_from_kepler,\
-    flags,total_fit_flag,wtf_all,wtf_rvs,wtf_ldc, \
+    flags,total_fit_flag,is_jitter,wtf_all,wtf_rvs,wtf_ldc, \
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
     limits_ldc,limits_p, limits_p_rvs, limits_p_ldc, \
     n_cad, t_cad, nplanets, nt)
