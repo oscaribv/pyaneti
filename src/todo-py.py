@@ -176,7 +176,7 @@ def smart_priors():
     for o in range(0,nplanets):
       min_phys_pz[o] = 0.0
       max_phys_pz[o] = max_flux - min_flux
-      max_phys_pz[o] = np.sqrt(max_phys_pz[o])
+      max_phys_pz[o] = 2.*np.sqrt(max_phys_pz[o])
       #Let us assume that the smallest planet in the data
       #is around 10% of the maximum depth
       #If we gave a worst prior for planet size, take a better

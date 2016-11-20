@@ -281,9 +281,9 @@ if ( nplanets > 0 ):
     plt.xlim(xmin,xmax)
     for j in range(0,nt):
       plt.errorbar(time_all[j],rv_dum[j],errs_datas[j],\
-      label=telescopes_labels[j],fmt=mark[j],alpha=1.0)
+      label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=4)
     plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
-    fname = outdir+'/'+star+plabels[0]+'_rv_all.pdf'
+    fname = outdir+'/'+star+'_rv_all.pdf'
     print 'Creating ', fname
     plt.savefig(fname,format='pdf',bbox_inches='tight')
     plt.close()

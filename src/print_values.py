@@ -11,8 +11,6 @@ from matplotlib import gridspec
 newfile = outdir+'/'+star+'_all_data.dat'
 dparams = np.loadtxt(newfile, comments='#',unpack=True)
 
-newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
-dparams_jitter = np.loadtxt(newfile_jitter, comments='#',unpack=True)
 
 #Starting clustering
 good_index, new_nwalkers = good_clustering(dparams[2],dparams[1],nconv,nwalkers)
@@ -21,7 +19,10 @@ params = [None]*len(dparams)
 params_jitter = [None]*2
 for o in range(0,len(dparams)):
     params[o] = clustering(dparams[o],good_index)
-for o in range(0,2):
+if ( is_jitter_rv or is_jitter_tr ):
+  newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
+  dparams_jitter = np.loadtxt(newfile_jitter, comments='#',unpack=True)
+  for o in range(0,2):
     params_jitter[o] = clustering(dparams_jitter[o],good_index)
 #Create the stellar data
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
@@ -219,15 +220,17 @@ for o in range(0,nt):
   v_val, v_val_r, v_val_l = find_vals_perc(rv_vec[o],s_factor)
   opars.write ('%s = %4.7f - %4.7f + %4.7f km/s\n'%(telescopes_labels[o],v_val,v_val_r,v_val_l))
 opars.write ('--------------------------------------------------------------\n')
-opars.write ('RV jitter = %4.7f - %4.7f + %4.7f m/s    \n'%(find_vals_perc(params_jitter[0]*1.e3,s_factor)))
-opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux]   \n'%(find_vals_perc(params_jitter[1],s_factor)))
-opars.write ('--------------------------------------------------------------\n')
+if ( is_jitter_rv or is_jitter_tr ):
+  opars.write ('RV jitter = %4.7f - %4.7f + %4.7f m/s    \n'%(find_vals_perc(params_jitter[0]*1.e3,s_factor)))
+  opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux]   \n'%(find_vals_perc(params_jitter[1],s_factor)))
+  opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
 
 #RESIZE TRANSIT ERROR BARS
-jit_tr = np.median(params_jitter[1])
-for o in range(0,len(megae)):
-  megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
+if ( is_jitter_tr ):
+  jit_tr = np.median(params_jitter[1])
+  for o in range(0,len(megae)):
+    megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 
 opars.close()
 dummy_file = open(out_params_file)
