@@ -3,7 +3,11 @@
 from matplotlib import gridspec
 from matplotlib.colors import LogNorm
 
-#The size of our plots follow an aurea rectangle 
+if ( is_seaborn_plot ):
+  import seaborn as sns
+  sns.set(style='ticks')
+
+#The size of our plots follow an aurea rectangle
 fsx = figure_size_x
 fsy = figure_size_y
 fos = font_size_label
@@ -16,7 +20,8 @@ def plot_chains():
   plt.ylabel('Reduced $\chi^2$')
 #  if (nplanets == 1):
    #plt.plot(vari,chi2,'b.')
-  plt.hist2d(vari,chi2/(ndata-npars),bins=100,norm=LogNorm())
+  #plt.hist2d(vari,chi2/(ndata-npars),bins=100,norm=LogNorm())
+  plt.hist2d(vari,chi2/(ndata-npars),bins=100)
 #  else:
    #plt.plot(vari[0],chi2[0],'b.')
 #   plt.hist2d(vari[0],chi2[0],bins=100,norm=LogNorm())

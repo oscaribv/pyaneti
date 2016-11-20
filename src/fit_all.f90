@@ -185,9 +185,10 @@ implicit none
           call get_a_scaled(mstar(nk),rstar(nk),pars_old(nk,1+8*m),pars_old(nk,5+8*m),1)
         end if
       end do
-      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,total_fit_flag, &
-         t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:),ldc_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
-         chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
+      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
+           total_fit_flag, t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
+           ldc_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
+           chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
   end do
 
  chi2_red(:) = chi2_old_total(:) / dof
@@ -205,9 +206,8 @@ implicit none
   !Initialize the values
   j = 1
   n = 0
-  continua = .TRUE.
-  is_burn = .FALSE.
-  !is_jitter = jit
+  continua = .true.
+  is_burn = .false.
   a_factor = 2.d0
   n_burn = 1
   is_kepler = .false.
@@ -281,8 +281,9 @@ implicit none
 
       chi2_new_total(nk) = huge(0.0d0) !A really big number!
       if ( is_limit_good ) & !If we are inside the limits, let us calculate chi^2
-        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, total_fit_flag,&
-             t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),ldc_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
+        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
+             total_fit_flag, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
+             ldc_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
              chi2_new_total(nk),npl,n_tel,size_rv,size_tr)
 
       mult_new(nk,:) = 1.0d0
@@ -309,7 +310,6 @@ implicit none
       !stop
       !Let us compare our models
       !Compute the likelihood
-      !q = 1.0d0 !add jitter later
       q = q * z_rand(nk)**( int(spar - 1) ) * &
             exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5d0  )
 

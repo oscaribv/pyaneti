@@ -62,7 +62,7 @@ unit_mass = 'solar'
 scale_error_bars = False
 s_factor = 1.0
 lc_data = 'free'
-a_from_kepler = False
+a_from_kepler = [False]
 a_factor = 2.0
 is_plot_histogram = True
 is_plot_correlations = True
@@ -71,6 +71,7 @@ latex_values = True
 plot_all_tr = False
 is_jitter_rv = False
 is_jitter_tr = False
+is_seaborn_plot = False
 textra = 0.0
 gap_between_transits = [10]
 #The defaul number of planets is 1
