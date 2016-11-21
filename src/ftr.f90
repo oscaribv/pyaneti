@@ -26,8 +26,9 @@ implicit none
 !Local variables
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: t0, P, e, w, i, a
-  double precision :: si
+  double precision :: si, new_t0, ttot
   double precision :: pi = 3.1415926535897932384626d0
+  integer :: n, j
 !External function
   external :: find_anomaly
 !
@@ -49,6 +50,12 @@ implicit none
   if (flag(3)) a = 10.0**a
   if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(w) ) / ( 1.d0 - e*e ) )
 
+  !Let us estimate the eclipse duration to rule out the no real recondary transits
+  !For a planet with radius 0.0. This would not affect the method
+  ttot = (1.d0 + 0.d0)**2 - ( a * cos(i) * (1.0d0 - e*e) / ( 1.0d0 + e * sin(w)) )**2
+  ttot = asin( ttot / a / sin(i) )
+  ttot = P * ttot / pi * sqrt(1.0 - e*e) / ( 1.d0 + e*sin(w) )
+
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)
   swt = sin(w+ta)
@@ -57,6 +64,14 @@ implicit none
   z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
       / ( 1.d0 + e * cos(ta) ) 
   !z has been calculated
+
+  !Let us remove the secondary transits
+  do n = 0, ts - 1
+    j = int( ( t(n) - t0 ) / P )
+    new_t0 = t0 + j*P
+    if ( t(n) > t0 + j*P + ttot .and. t(n) < t0 + (j+1)*P - ttot ) &
+      z(n) = 1.d1
+  end do
   
 end subroutine
 
@@ -231,11 +246,11 @@ implicit none
   do j = 0, datas - 1
 
     !control the label of the planet
-    if ( plab_tr(j) >  n ) then
-      n = n + 1
-    end if
+!    if ( plab_tr(j) >  n ) then
+!      n = n + 1
+!    end if
     !print *, plab_tr(j), n
-    !do n = 0, npl - 1
+    do n = 0, npl - 1
 
     !Are we generating an eclipse?
     !Take care with the pars
@@ -263,10 +278,10 @@ implicit none
 
     end if
 
-    !end do !planets
+    end do !planets
 
     !The final flux is F = (F1 + F2 + ... + Fn ) / n
-    muld(j) =  muld_npl(j)! / npl_dbl
+    muld(j) =  1.0d0 + muld_npl(j) - npl_dbl
 
   end do !datas
   !print *, 'stop new tr chi2'
