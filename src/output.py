@@ -16,8 +16,7 @@ if ( is_plot_correlations ):
  #PLOT TRANSIT
 if ( total_tr_fit ):
   plot_transit_nice()
-  if ( plot_all_tr ):
-    plot_all_transits()
+  plot_all_transits()
 
 #PLOT RV CURVE
 if ( total_rv_fit ):
