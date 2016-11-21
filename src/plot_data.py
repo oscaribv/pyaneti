@@ -35,64 +35,10 @@ def plot_chains():
   #=========================#
 
 #Ntransit is the number of the transit that we want to plot
-def fancy_tr_plot(xtime,yflux,errors,pars,ldc,flag,fname):
+def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fname):
 
-  t0_val = pars[0]
-  P_val  = pars[1]
-  e_val = pars[2]
-  w_val = pars[3]
-  i_val = pars[4]
-  a_val = pars[5]
-  pz_val = pars[6]
-
-  q1_val = ldc[0]
-  q2_val = ldc[1]
-  u1_val = np.sqrt(q1_val)
-  u2_val = u1_val * (1.0 -2.0*q2_val)
-  u1_val = 2.0*u1_val*q2_val
 
   print 'Creating ', fname
-  #Let us create the model
-  xmodel_res = list(xtime)
-  xmodel = np.arange(min(xtime), max(xtime), (max(xtime)-min(xtime))/1e4 )
-
-  xd_ub = np.ndarray(shape=(len(xmodel),n_cad))
-  xd_ub_res = np.ndarray(shape=(len(xmodel),n_cad))
-  zd_ub = [None]*len(xmodel)
-  zd_ub_res = [None]*len(xmodel)
-  fd_ub = [None]*len(xmodel)
-  fd_ub_res = [None]*len(xmodel)
-  #Use the long cadence data
-  for m in range(0,len(xmodel)):
-    #This vector has the model fit
-    for n in range(0,n_cad):
-      xd_ub[m][n] = xmodel[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1 ))/n_cad
-    #This vector has the residuals
-  for m in range(0,len(xmodel_res)):
-    for n in range(0,n_cad):
-      xd_ub_res[m][n] = xmodel_res[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1))/n_cad
-
-  #Calculate the transit curve for all the data
-  for m in range(0,len(xmodel)):
-    zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
-    fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,pz_val)
-  for m in range(0,len(xmodel_res)):
-    zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val,P_val,e_val,w_val,i_val,a_val],flag)
-    fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,pz_val)
-
-  #Bin the data
-  fd_reb = [0.0]*len(xmodel)
-  fd_reb_res = [0.0]*len(xmodel_res)
-  for m in range(0,len(xmodel)):
-    for n in range(0,n_cad):
-      fd_reb[m] = fd_reb[m] + fd_ub[m][n]/n_cad
-  for m in range(0,len(xmodel_res)):
-    for n in range(0,n_cad):
-      fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[m][n]/n_cad
-
-  #Residuals
-  res_res = yflux - fd_reb_res
-
   #Do the plot
   tfc = 24. # time factor conversion to hours
   local_T0 = t0_val
@@ -130,30 +76,125 @@ def fancy_tr_plot(xtime,yflux,errors,pars,ldc,flag,fname):
 
 def plot_transit_nice():
 #Move all the points to T0
-  base = 3
   ldc = [ np.mean(params[3+8*nplanets]), np.median(params[4+8*nplanets]) ]
+  q1_val = ldc[0]
+  q2_val = ldc[1]
+  u1_val = np.sqrt(q1_val)
+  u2_val = u1_val * (1.0 -2.0*q2_val)
+  u1_val = 2.0*u1_val*q2_val
+  flag = [False, False, is_b_factor, False]
+
+  t0_val = [None]*nplanets
+  P_val  = [None]*nplanets
+  e_val  = [None]*nplanets
+  w_val  = [None]*nplanets
+  i_val  = [None]*nplanets
+  a_val  = [None]*nplanets
+  pz_val = [None]*nplanets
+
+  base = 3
+  for m in range(0,nplanets):
+    t0_val[m] = np.median(params[base + 0])
+    P_val[m]  = np.median(params[base + 1])
+    e_val[m]  = np.median(params[base + 2])
+    w_val[m]  = np.median(params[base + 3])
+    i_val[m]  = np.median(params[base + 4])
+    a_val[m]  = np.median(params[base + 5])
+    pz_val[m] = np.median(params[base + 6])
+    base = base + 8
+
   for o in range(0,nplanets):
 
-    pars_vec = params[base:base+7]
-    pars = [None]*7
-    for m in range(0,7):
-      pars[m] = np.median(pars_vec[m])
-
+    #Let us fold the time vector
     xt_dummy = list(xt[o])
-    P_val = pars[1]
     for i in range(0,len(xt_dummy)):
       n = xt_dummy[i][len(xt_dummy[i])-1] - xt_dummy[0][0]
-      n = int(n/P_val)
-      xt_dummy[i] = xt_dummy[i] - P_val * n
+      n = int(n/P_val[o])
+      xt_dummy[i] = xt_dummy[i] - P_val[o] * n
 
     #Redefine megax with the new xt values
     xtime = np.concatenate(xt_dummy)
     yflux = np.concatenate(yt[o])
     eflux = np.concatenate(et[o])
-    flag = [False, False, is_b_factor, False]
+
+    xmodel_res = list(xtime)
+    xmodel = np.arange(min(xtime), max(xtime),1.0/60./24.)
+    #Let us create the model
+
+    xd_ub = np.ndarray(shape=(len(xmodel),n_cad))
+    xd_ub_res = np.ndarray(shape=(len(xmodel_res),n_cad))
+    zd_ub = [None]*len(xmodel)
+    zd_ub_res = [None]*len(xmodel_res)
+    fd_ub = [None]*len(xmodel)
+    fd_ub_res = [None]*len(xmodel_res)
+    #Use the long cadence data
+    for m in range(0,len(xmodel)):
+      #This vector has the model fit
+      for n in range(0,n_cad):
+        xd_ub[m][n] = xmodel[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1 ))/n_cad
+      #This vector has the residuals
+    for m in range(0,len(xmodel_res)):
+      for n in range(0,n_cad):
+        xd_ub_res[m][n] = xmodel_res[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1))/n_cad
+
+  #Calculate the transit curve for all the data
+    for m in range(0,len(xmodel)):
+      zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
+      fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,pz_val[o])
+    for m in range(0,len(xmodel_res)):
+      zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
+      fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,pz_val[o])
+
+    #Bin the data
+    fd_reb = [0.0]*len(xmodel)
+    fd_reb_res = [0.0]*len(xmodel_res)
+    for m in range(0,len(xmodel)):
+      for n in range(0,n_cad):
+        fd_reb[m] = fd_reb[m] + fd_ub[m][n]/n_cad
+    for m in range(0,len(xmodel_res)):
+      for n in range(0,n_cad):
+        #This is the flux caused by the time stams which come from the data
+        fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[m][n]/n_cad
+
+   #############################################################################
+   # Let us calculate the flux caused by the other planets
+    xmodel_vec = np.concatenate(list(xt[o]))
+    xd_ub_vec = np.ndarray(shape=(len(xmodel_vec),n_cad))
+    for m in range(0,len(xmodel_vec)):
+      for n in range(0,n_cad):
+        xd_ub_vec[m][n] = xmodel_vec[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1))/n_cad
+
+    zd_ub_dum = [None]*len(xmodel_vec)
+    fd_ub_dum = [None]*len(xmodel_vec)
+    fd_ub_total = [0.0]*len(xmodel_vec)
+    fd_reb_dum  = [0.0]*len(xmodel_vec)
+    for p in range(0,nplanets):
+      if ( p != o ):
+        for m in range(0,len(xmodel_vec)):
+          zd_ub_dum[m] = pti.find_z(xd_ub_vec[m][:],[t0_val[p],P_val[p],e_val[p],w_val[p],i_val[p],a_val[p]],flag)
+          fd_ub_dum[m], dummm = pti.occultquad(zd_ub_dum[m],u1_val,u2_val,pz_val[p])
+          for n in range(0,n_cad):
+            #This is the flux caused by the time stams which come from the data
+            fd_reb_dum[m] = fd_reb_dum[m] + fd_ub_dum[m][n]/n_cad
+          fd_ub_total[m] = fd_ub_total[m] + fd_reb_dum[m]
+
+    yflux_local = yflux - fd_ub_total
+    yflux_local = yflux_local - 1.0 + nplanets
+    #The flux has been corrected for the other planets
+
+    res_res = yflux_local - fd_reb_res
+
+   #############################################################################
+
     fname = outdir+'/'+star+plabels[o]+'_tr.pdf'
-    fancy_tr_plot(xtime, yflux, eflux,pars,ldc,flag, fname)
-    base = base + 8
+    #xtime is the folded time
+    #yflux is the data flux
+    #eflux is the error related to yflux
+    #xmodel is the light curve model timestamps
+    #xmodel_res is the residuals time_stamps
+    #fd_reb is the modeled light cuve
+    #res_res are the residuals
+    fancy_tr_plot(t0_val[o],xtime,yflux_local,eflux,xmodel,xmodel_res,fd_reb,res_res,fname)
 
 
 def plot_all_transits():
