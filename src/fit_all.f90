@@ -1,4 +1,4 @@
-subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,tff, &
+subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,tff,flags,&
            t_cad,n_cad,pars,rvs,ldc,jrv,jtr,chi2,npl,n_tel,size_rv,size_tr)
 implicit none
 
@@ -12,6 +12,7 @@ implicit none
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
   double precision, intent(in) :: jrv, jtr
+  logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
   double precision, intent(out) :: chi2
   !THIS DOES NOT ADD alpha and beta
@@ -32,9 +33,10 @@ implicit none
     pars_rv(7:7+n_tel-1,i) = rvs(:)
   end do
 
-  !This should come from the input file
-  flag_rv = (/ .false., .false., .false., .false. /)
-  flag_tr = (/ .false., .false., .true. , .false. /)
+  !Put the correct flags
+  flag_tr(:)   = flags(0:3)
+  flag_rv(0:1) = flags(0:1)
+  flag_rv(2:3) = flags(4:5)
 
   !Let us calculate chi2
   chi2_rv = 0.d0
@@ -47,9 +49,6 @@ implicit none
   call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,jrv,&
                     flag_rv,chi2_rv,size_rv,n_tel,npl)
 
-  !print *, tff
-  !print *, chi2_rv, chi2_tr
-  !stop
   chi2 = chi2_rv + chi2_tr
 
 end subroutine
@@ -63,7 +62,7 @@ subroutine multi_all_stretch_move( &
            nwalks, maxi, thin_factor, nconv, &    !
            lims, lims_rvs, lims_ldc, &            !prior limits
            lims_p, lims_p_rvs, lims_p_ldc, &      !physical limits
-           n_cad, t_cad, &                        !cadence cotrols
+           n_cad, t_cad, &                       !cadence cotrols
            npl, n_tel, & !integers                !planets and telescopes
            size_rv, size_tr &                     !data sizes
            )
@@ -98,10 +97,8 @@ implicit none
   double precision, dimension(0:nwalks-1,0:size_rv+size_tr-1) :: mult_old, mult_new, mult_total
   integer, dimension(0:nwalks-1) :: r_int
   double precision  :: q, spar, a_factor, dof
-  double precision  :: mean_chi2
   double precision  :: lims_ldc_dynamic(0:1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
-
   logical :: continua, is_burn, is_limit_good, is_cvg
   logical :: is_kepler
   integer :: nk, j, n, m, o, n_burn
@@ -168,7 +165,7 @@ implicit none
         end if
       end do
       call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
-           total_fit_flag, t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
+           total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
            ldc_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
            chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
   end do
@@ -249,9 +246,6 @@ implicit none
 !        end if
 !      end do
 
-      if ( npl > 1 .and. is_kepler ) &
-        call ensure_kepler(pars_new(nk,:),npl)
-
       !Let us check if the new parameters are inside the limits
       is_limit_good = .true.
       call check_limits(pars_new(nk,:),lims_p,is_limit_good,8*npl)
@@ -264,7 +258,7 @@ implicit none
       chi2_new_total(nk) = huge(0.0d0) !A really big number!
       if ( is_limit_good ) & !If we are inside the limits, let us calculate chi^2
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
-             total_fit_flag, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
+             total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
              ldc_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
              chi2_new_total(nk),npl,n_tel,size_rv,size_tr)
 

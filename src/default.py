@@ -50,7 +50,7 @@ telescopes = []
 telescopes_labels = ['']
 
 #MCMC controls
-method = 'sm'
+method = 'new'
 is_circular = False
 maxi = int(1e8)
 thin_factor = 10
@@ -88,20 +88,20 @@ my_tr_ranges = False
 mark = ['o', 'd', '^', '<', '>', '8', 's', 'p', '*', 'v','h','.', 'H', 'D','+']
 
 #Default priors
-P = 365.0
-e = 1e-8
-w = np.pi / 2.0
-ii = np.pi / 2.0
-inclination_mean = ii
-inclination_sigma = 1e-6
-a = 215.0
-q1 = 0.0
-q2 = 0.0
-pz = 0.1
-k0 = 1.0
-v0 = 0.0
-alpha = 0.0
-beta = 0.0
+P = [365.0]
+e = [1e-8]
+w = [np.pi / 2.0]
+ii = [np.pi / 2.0]
+inclination_mean = [ii]
+inclination_sigma = [1e-6]
+a = [215.0]
+q1 = [0.0]
+q2 = [0.0]
+pz = [0.1]
+k0 = [1.0]
+v0 = [0.0]
+alpha = [0.0]
+beta = [0.0]
 
 #Fit nothing
 fit_rv = False
@@ -149,17 +149,17 @@ min_i   = [0.0 ]    # 70 degrees
 max_i   = [1.0]  # 90 degrees
 min_b   = [0.0]
 max_b   = [1.0]
-min_a   = [1.5	]       # The planet is outside the star
+min_a   = [1.5]       # The planet is outside the star
 max_a   = [1.e8]	       # The planet is really far
-min_q1  = [0.0	    ]   #
-max_q1  = [1.0     ]     #
-min_q2  = [0.0	  ]     #
-max_q2  = [1.0	 ]      #
-min_pz  = [1.e-3]	       # Earth size planet / sun
-max_pz  = [0.99	 ]      # a really big planet
+min_q1  = [0.0]   #
+max_q1  = [1.0]     #
+min_q2  = [0.0]     #
+max_q2  = [1.0]      #
+min_pz  = [1.e-3]       # Earth size planet / sun
+max_pz  = [0.99]      # a really big planet
 #rv fit
-min_k   = [1.e-6]	       # m/s amplitudes
-max_k   = [30.	  ]     # a really big planet
+min_k   = [1.e-6]      # m/s amplitudes
+max_k   = [30.]     # a really big planet
 min_alpha = [-1.0]
 max_alpha = [1.0]
 min_beta = [-1.0]
@@ -179,7 +179,7 @@ max_phys_w   = [2.*np.pi]      #rad
 min_phys_ew  = [-1.0]
 max_phys_ew  = [1.0]
 #transit fit
-min_phys_i   = [0.0 ]     # 70 degrees
+min_phys_i   = [0.0]     # 70 degrees
 max_phys_i   = [1.0]  # 90 degrees
 min_phys_b   = [0.0]
 max_phys_b   = [1.0]
@@ -189,10 +189,10 @@ min_phys_q1  = [0.0]	       #
 max_phys_q1  = [1.0 ]            #
 min_phys_q2  = [0.0]	       #
 max_phys_q2  = [1.0]	       #
-min_phys_pz  = [1.e-12]	       # Earth size planet / sun
+min_phys_pz  = [0.00]	       # Earth size planet / sun
 max_phys_pz  = [0.99]       # a really big planet
 #rv fit
-min_phys_k   = [1.e-12]           # m/s amplitudes
+min_phys_k   = [0.00]           # m/s amplitudes
 max_phys_k   = [30]	       # a really big planet
 min_phys_alpha = -100.
 max_phys_alpha = 100.

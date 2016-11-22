@@ -92,6 +92,7 @@ implicit none
   double precision  :: alpha, beta
   double precision, dimension(0:datas-1) :: model, res
   integer :: i, tel
+  logical :: is_limit_good
 !External function
   external :: rv_curve_mp
 
@@ -112,17 +113,33 @@ implicit none
   if ( flag(2) ) k(:) = 1.d1**params(4,:)
   if ( flag(3) ) rv0(:) = 1.d1**params(7:6+nt,0)
 
-  !Telescope label counter
-  tel = 0
+  is_limit_good = .true.
 
-  do i = 0, datas-1
-   if ( tel .ne. tlab(i)  ) tel = tel + 1 
-    call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,alpha,beta,model(i),1,npl)
+  do i = 0, npl - 1
+    if ( e(i) > 1.0d0 ) then
+      is_limit_good = .false.
+    end if
   end do
 
-  !Let us obtain chi^2
-  res(:) = ( model(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 ) 
-  chi2 = dot_product(res,res) 
+  if ( is_limit_good ) then
+
+    !Telescope label counter
+    tel = 0
+
+    do i = 0, datas-1
+     if ( tel .ne. tlab(i)  ) tel = tel + 1
+      call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,alpha,beta,model(i),1,npl)
+    end do
+
+    !Let us obtain chi^2
+    res(:) = ( model(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
+    chi2 = dot_product(res,res)
+
+  else
+
+    chi2 = huge(0.e0)
+
+  end if
 
 end subroutine
 

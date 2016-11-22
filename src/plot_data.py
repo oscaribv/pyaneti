@@ -15,6 +15,10 @@ fos = font_size_label
 vari = params[0]
 chi2 = params[2]
 
+#===========================================================
+#              plot chains
+#===========================================================
+
 def plot_chains():
   plt.xlabel('iteration')
   plt.ylabel('Reduced $\chi^2$')
@@ -30,13 +34,12 @@ def plot_chains():
   plt.savefig(fname,bbox_inches='tight')
   plt.close()
 
-  #=========================#
-  #       Transit plot      #
-  #=========================#
+#===========================================================
+#              plot tr fancy function
+#===========================================================
 
 #Ntransit is the number of the transit that we want to plot
 def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fname):
-
 
   print 'Creating ', fname
   #Do the plot
@@ -74,6 +77,9 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.close()
 
 
+#===========================================================
+#              plot the folded data for each transit
+#===========================================================
 def plot_transit_nice():
 #Move all the points to T0
   ldc = [ np.mean(params[3+8*nplanets]), np.median(params[4+8*nplanets]) ]
@@ -82,7 +88,7 @@ def plot_transit_nice():
   u1_val = np.sqrt(q1_val)
   u2_val = u1_val * (1.0 -2.0*q2_val)
   u1_val = 2.0*u1_val*q2_val
-  flag = [False, False, is_b_factor, False]
+  flag = [is_log_P, is_ew, is_b_factor, is_log_a]
 
   t0_val = [None]*nplanets
   P_val  = [None]*nplanets
@@ -196,6 +202,9 @@ def plot_transit_nice():
     #res_res are the residuals
     fancy_tr_plot(t0_val[o],xtime,yflux_local,eflux,xmodel,xmodel_res,fd_reb,res_res,fname)
 
+#===========================================================
+#              plot all transits
+#===========================================================
 
 def plot_all_transits():
 
@@ -205,7 +214,7 @@ def plot_all_transits():
   u1_val = np.sqrt(q1_val)
   u2_val = u1_val * (1.0 -2.0*q2_val)
   u1_val = 2.0*u1_val*q2_val
-  flag = [False, False, is_b_factor, False]
+  flag = [is_log_P, is_ew, is_b_factor, is_log_a]
 
   t0_val = [None]*nplanets
   P_val  = [None]*nplanets
@@ -287,9 +296,9 @@ def plot_all_transits():
         n = int(n/P_val[i])
         fancy_tr_plot(t0_val[i]+P_val[i]*n,xvec,yflux_local,et[i][j],xvec_model,xvec,fd_ub_res_total,res_res,fname)
 
-  #=========================#
-  #        RV plot          #
-  #=========================#
+#===========================================================
+#              plot rv fancy function
+#===========================================================
 
 def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   print 'Creating ', fname
@@ -331,7 +340,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
 
 
 #===========================================================
-#                   One planet plots
+#                   RV PLOTS
 #===========================================================
 
 v_vec_val = [None]*nt
@@ -340,6 +349,8 @@ v_val = [None]*nt
 v_vec_val[:] = params[3+8*nplanets+2:3+8*nplanets+2+nt]
 for o in range(0,nt):
   v_val[o] = np.median(v_vec_val[o])
+  if ( is_log_rv0 ):
+    v_val[o] = 10.0**(v_val[o])
 
 base = 3
 t0_val = np.ndarray(nplanets)
@@ -356,11 +367,22 @@ for o in range(0,nplanets):
   e_val[o]  = np.median(params[base + 2])
   w_val[o]  = np.median(params[base + 3])
   k_val[o]  = np.median(params[base + 7])
+  if ( is_log_P ):
+    P_val[o] = 10.0**(P_val)
+  if ( is_log_k ):
+    k_val[o] = 10.0**(k_val)
+  if ( is_ew ):
+    edum_val = e_val[o]
+    e_val[o] = e_val[o]**2 + w_val[o]**2
+    w_val[o] = np.arctan2(edum_val,w_val[o])
+
   base = base + 8
 
 if ( nplanets > 0 ):
-
   #Plot without fold the data
+  #===========================================================
+  #      Plot the light curve with all the parameters
+  #===========================================================
   def plot_rv_all_data():
     cfactor = np.float(1.e3)
     rv_datas = [None]*nt
@@ -412,63 +434,8 @@ if ( nplanets > 0 ):
     plt.close()
 
 #===========================================================
-
-#Plot RV for one planet
-  def plot_rv_one():
-    cfactor = np.float(1.e3)
-    rv_dat2 = [None]*len(rv_all)
-    errs_dat2 = [None]*len(errs_all)
-    for i in range(0,nt):
-      rv_dat2[i] = list(rv_all[i])
-      errs_dat2[i] = list(errs_all[i])
-    for i in range(0,nt):
-      for j in range(0,len(rv_dat2[i])):
-        rv_dat2[i][j] = cfactor*rv_dat2[i][j]
-        errs_dat2[i][j] = cfactor*errs_dat2[i][j]
-
-    #Let us save all the RV data in rv_dum
-    n = 5000
-    xmin = t0_val
-    xmax = t0_val + P_val[0]
-    dn = (xmax - xmin) /  n
-    rvx = np.empty([n])
-    rvx[0] = xmin
-    for j in range(1,n):
-      rvx[j] = rvx[j-1] + dn
-
-    #Model curve
-    rvy = pti.rv_curve_mp(rvx,0.0,t0_val[0],\
-                          k_val[0]*cfactor,P_val[0],e_val[0],w_val[0],0.0,0.0)
-    res = [None]*nt
-    rv_dum = [None]*nt
-    for j in range(0,nt):
-        #This is the model of the actual planet
-        res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val[0],k_val[0]*cfactor,\
-                                 P_val[0],e_val[0],w_val[0],0.0,0.0)
-        alpha_time = [None]*len(time_all[j])
-        beta_time = [None]*len(time_all[j])
-        for m in range(0,len(time_all[j])):
-            alpha_time[m] = (time_all[j][m]-t0_val)**1 * alpha_val[0] * cfactor
-            beta_time[m]  = (time_all[j][m]-t0_val)**2 * beta_val[0]  * cfactor
-
-        rv_dum[j] = rv_dat2[j] - v_val[j]*cfactor - alpha_time - beta_time
-        res[j] = rv_dum[j] - res[j]
-
-        p_rv = scale_period(rvx,t0_val,P_val)
-        p_all = [None]*nt
-        for j in range(0,nt):
-            p_all[j] = scale_period(time_all[j],t0_val,P_val)
-
-    fname = outdir+'/'+star+plabels[0]+'_rv.pdf'
-    plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_dat2,res,telescopes_labels,fname)
-
-
+#                RV multi-planet fit
 #===========================================================
-#                   Multi-planet plots
-#===========================================================
-
-#else:
-  #Plot RV for multiplanet
   def plot_rv_mp():
     cfactor = np.float(1.e3)
     rvy = [None]*nplanets
@@ -514,7 +481,6 @@ if ( nplanets > 0 ):
           de_val.append(e_val[j])
           dw_val.append(w_val[j])
         j = j + 1
-
 
       res = [None]*nt
       drvy = [None]*nt

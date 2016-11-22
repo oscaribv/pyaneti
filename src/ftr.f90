@@ -237,6 +237,12 @@ implicit none
 
   !are the u1 and u2 within a physical solution
   call check_us(u1,u2,is_good)
+  if ( flag(1) ) then
+    do n = 0, npl - 1
+     call check_e(pars(2,n),pars(3,n),is_good)
+     if ( .not. is_good ) exit
+    end do
+  end if
 
   if ( is_good ) then
 
@@ -297,7 +303,7 @@ implicit none
 
   else
 
-    chi2 = huge(dble(0.d0))
+    chi2 = huge(0.e0)
 
   end if
   !print *, 'stoped newchi2'

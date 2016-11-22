@@ -121,6 +121,19 @@ if ( method == 'new' or method == 'plot' ):
       b_vec[o] =  ar_vec[o] * np.cos(b_vec[o]) * ( ( 1. - e_vec[o]**2 ) \
                / ( 1.0 + e_vec*np.sin(w_vec[o] + np.pi )))
 
+    if ( is_log_P ):
+      P_vec[o] = 10.0**(P_vec[o])
+    if ( is_log_a ):
+      ar_vec[o] = 10.0**(ar_vec[o])
+    if ( is_log_k ):
+      k_vec[o] = 10.0**(k_vec[o])
+
+    if ( is_ew ):
+      e_dum = list(e_vec[o])
+      e_vec[o] = e_vec[o]**2 + w_vec[o]**2
+      w_vec[o] = np.arctan2(e_dum,w_vec[o])
+      w_vec[o] = w_vec[o] % (2*np.pi)
+
     #Calculate equilibrium temperature
     #assuming albedo=0
     Teq_vec[o] = get_teq(tstar,0.0,1.0,ar_vec[o])
