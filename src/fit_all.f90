@@ -54,24 +54,6 @@ implicit none
 
 end subroutine
 
-!This subroutine ensure third kepler law for multi-planet fits
-subroutine ensure_kepler(pars,npl)
-implicit none
-
-!In/Out variables
-  integer, intent(in) :: npl
-  double precision, intent(inout), dimension(0:8*npl - 1) :: pars
-  !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
-!Local variables
-  integer :: i
-
-  do i =1, npl - 1
-    pars(5 + 8*i ) = pars(5) * ( pars(1+8*i) / pars(1) )**(2.d0/3.d0)
-  end do
-  !
-
-end subroutine
-
 subroutine multi_all_stretch_move( &
            x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &  !Data vars
            plab_tr,pars, rvs, ldc, &              !parameters vars
