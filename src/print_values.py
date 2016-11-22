@@ -154,7 +154,6 @@ if ( method == 'new' or method == 'plot' ):
     #Eq. (30) Winn 2014
     ds_vec[o] = get_rhostar(P_vec[o],ar_vec[o]) #cgs
 
-
     #Time of periastron passage
     Tpe_vec[o] = list(T0_vec[o])
     for m in range(0,len(Tpe_vec[o])):
@@ -164,6 +163,15 @@ if ( method == 'new' or method == 'plot' ):
     r_vec[o] = rr_vec[o] * rstar
     a_vec[o] = ar_vec[o] * rstar * S_radius_SI / AU_SI
     m_vec[o] = planet_mass(mstar,k_vec[o]*1.e3,P_vec[o],e_vec[o],i_vec[o])
+
+
+    #stimate planet gravity and density
+    pden_vec = m_vec[o] / r_vec[o]**3 #solar units
+    pden_vec = pden_vec * S_den_cgs   #g/cm^3
+    #We can stimate planet surface gravity (eq. (31) Winn)
+    pgra_vec = (P_vec[o]*24.*3600.) * (rr_vec[o]/ar_vec[o])**2 * np.sin(i_vec[o])
+    pgra_vec = 2. * np.pi * np.sqrt(1. - e_vec[o]**2) * (k_vec[o]**1.e-5) / pgra_vec #cm/s^2
+
     #Convert units
     usymbol = '{\odot}'
     if ( unit_mass == 'earth'):
@@ -202,6 +210,8 @@ if ( method == 'new' or method == 'plot' ):
     m_val, m_val_r, m_val_l = find_vals_perc(m_vec[o],s_factor)
     opars.write ('Mp   = %4.7f - %4.7f + %4.7f M_%s  \n'%(m_val,m_val_r,m_val_l,unit_mass))
     opars.write ('Rp   = %4.7f - %4.7f + %4.7f R_%s  \n'%(r_val,r_val_r,r_val_l,unit_mass))
+    opars.write ('rho_p= %4.7f - %4.7f + %4.7f  g/cm^3\n'%(find_vals_perc(pden_vec,s_factor)))
+    opars.write ('g_p  = %4.7f - %4.7f + %4.7f  cm/s^2\n'%(find_vals_perc(pgra_vec,s_factor)))
     opars.write ('wp   = %4.7f - %4.7f + %4.7f  deg  \n'%(w_p_deg,w_s_deg_l,w_s_deg_r))
     opars.write ('Tperi= %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(Tpe_vec[o],s_factor)))
     opars.write ('Teq  = %4.7f - %4.7f + %4.7f  K    \n'%(find_vals_perc(Teq_vec[o],s_factor)))
