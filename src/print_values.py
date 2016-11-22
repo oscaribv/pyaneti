@@ -76,7 +76,9 @@ if ( method == 'new' or method == 'plot' ):
 
 #Print the summary
   out_params_file = outdir+'/'+star+'_params.dat'
+  out_tex_file = outdir+'/'+star+'_params.tex'
   opars = open(out_params_file,'w')
+  otex  = open(out_tex_file,'w')
   opars.write('\n')
   opars.write ('--------------------------------------------------------------\n')
   opars.write('Summary:\n')
@@ -96,6 +98,14 @@ if ( method == 'new' or method == 'plot' ):
   opars.write ('M_*     = %4.7f - %4.7f + %4.7f solar masses\n'%(mstar_mean,mstar_sigma,mstar_sigma))
   opars.write ('R_*     = %4.7f - %4.7f + %4.7f solar radii\n'%(rstar_mean,rstar_sigma,rstar_sigma))
   opars.write ('T_*     = %4.7f - %4.7f + %4.7f K\n'%(tstar_mean,tstar_sigma,tstar_sigma))
+  #tex
+  #otex.write ('--------------------------------------------------------------\n')
+  #otex.write ('             INPUT STELLAR PARAMETERS\n')
+  #otex.write ('--------------------------------------------------------------\n')
+  otex.write ('\\newcommand{\smass}[1][$M_{\odot}$]{ $ %4.7f _{- %4.7f}^{ + %4.7f} $ #1} \n'%(mstar_mean,mstar_sigma,mstar_sigma))
+  otex.write ('\\newcommand{\sradius}[1][$R_{\odot}$]{ $%4.7f _{ - %4.7f}^{ + %4.7f} $ #1}\n'%(rstar_mean,rstar_sigma,rstar_sigma))
+  otex.write ('\\newcommand{\stemp}[1][$\mathrm{K}$]{ $ %4.7f _{- %4.7f}^{ + %4.7f} $ #1 }\n'%(tstar_mean,tstar_sigma,tstar_sigma))
+
   #Print the data for all the planets
   for o in range(0,nplanets):
     T0_vec[o] = params[base + 0]
@@ -218,6 +228,33 @@ if ( method == 'new' or method == 'plot' ):
     opars.write ('T_tot= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(trt_vec[o],s_factor)))
     opars.write ('T_i/e= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(tri_vec[o],s_factor)))
     opars.write ('--------------------------------------------------------------\n')
+    #LaTeX
+    #otex.write ('%--------------------------------------------------------------\n')
+    #otex.write ('%                   Parameters %s\n' %( star + plabels[o]))
+    #otex.write ('%--------------------------------------------------------------\n')
+    #otex.write ('%-------------------------Fitted-------------------------------\n')
+    otex.write ('\\newcommand{\Tzero'+plabels[o]+'}[1][days]{$%4.7f _{ - %4.7f } ^ { + %4.7f } $#1} \n'%(find_vals_perc(T0_vec[o],s_factor)))
+    otex.write ('\\newcommand{\P'+plabels[o]+'}[1][days]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1} \n'%(find_vals_perc(P_vec[o],s_factor)))
+    otex.write ('\\newcommand{\e'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1}      \n'%(find_vals_perc(e_vec[o],s_factor)))
+    otex.write ('\\newcommand{\w'+plabels[o]+'}[1][deg]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1} \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
+    otex.write ('\\newcommand{\\b'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1}       \n'%(find_vals_perc(b_vec[o],s_factor)))
+    otex.write ('\\newcommand{\\ar'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1}       \n'%(find_vals_perc(ar_vec[o],s_factor)))
+    otex.write ('\\newcommand{\\rr'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1}       \n'%(find_vals_perc(rr_vec[o],s_factor)))
+    otex.write ('\\newcommand{\k'+plabels[o]+'}[1][$m \, s^{-1}$]{$%4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1} \n'%(find_vals_perc(k_vec[o]*1e3,s_factor)))
+    #otex.write ('%-------------------------Derived------------------------------\n')
+    otex.write ('\\newcommand{\i'+plabels[o]+'}[1][deg]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1} \n'%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
+    otex.write ('\\newcommand{\\a'+plabels[o]+'}[1][AU]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1}   \n'%(find_vals_perc(a_vec[o],s_factor)))
+    otex.write ('\\newcommand{\dens'+plabels[o]+'}[1][$\mathrm{g\,cm^{-3}}$]{$ %4.7f _{ - %4.7f } ^ { + %4.7f }$  #1}\n'%(find_vals_perc(ds_vec[o],s_factor)))
+    otex.write ('\\newcommand{\mp'+plabels[o]+'}[1][$M_%s$]{$%4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1} \n'%(usymbol,m_val,m_val_r,m_val_l))
+    otex.write ('\\newcommand{\\rp'+plabels[o]+'}[1][$R_%s$]{$%4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1}   \n'%(usymbol,r_val,r_val_r,r_val_l))
+    otex.write ('\\newcommand{\denp'+plabels[o]+'}[1][$\mathrm{g\,cm^{-3}}$]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1}\n'%(find_vals_perc(pden_vec,s_factor)))
+    otex.write ('\\newcommand{\gp'+plabels[o]+'}[1][$\mathrm{cm\,s^{-2}}$]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1}\n'%(find_vals_perc(pgra_vec,s_factor)))
+    otex.write ('\\newcommand{\wp'+plabels[o]+'}[1][deg]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1}  \n'%(w_p_deg,w_s_deg_l,w_s_deg_r))
+    otex.write ('\\newcommand{\Tperi'+plabels[o]+'}[1][days]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f  }$ #1} \n'%(find_vals_perc(Tpe_vec[o],s_factor)))
+    otex.write ('\\newcommand{\Tequi'+plabels[o]+'}[1][K]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$  #1}    \n'%(find_vals_perc(Teq_vec[o],s_factor)))
+    otex.write ('\\newcommand{\\ttot'+plabels[o]+'}[1][hours]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$  #1}\n'%(find_vals_perc(trt_vec[o],s_factor)))
+    otex.write ('\\newcommand{\\tineg'+plabels[o]+'}[1][hours]{$ %4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1}\n'%(find_vals_perc(tri_vec[o],s_factor)))
+    #otex.write ('%--------------------------------------------------------------\n')
 
     #Let us change to the next planet
     base = base + 8
@@ -248,6 +285,21 @@ if ( is_jitter_rv or is_jitter_tr ):
   opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux]   \n'%(find_vals_perc(params_jitter[1],s_factor)))
   opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
+#LaTeX
+#otex.write ('--------------------  Other parameters -----------------------\n')
+otex.write ('\\newcommand{\qone}[1][]{ $%4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(q1_vec,s_factor)))
+otex.write ('\\newcommand{\qtwo}[1][]{ $%4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(q2_vec,s_factor)))
+otex.write ('\\newcommand{\uone}[1][]{ $%4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(u1_vec,s_factor)))
+otex.write ('\\newcommand{\utwo}[1][]{ $%4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(u2_vec,s_factor)))
+for o in range(0,nt):
+  v_val, v_val_r, v_val_l = find_vals_perc(rv_vec[o],s_factor)
+  otex.write ('\\newcommand{\\vel%s}[1][$\mathrm{km\,s^{-1}}$]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}\n'%(telescopes_labels[o],v_val,v_val_r,v_val_l))
+#opars.write ('--------------------------------------------------------------\n')
+if ( is_jitter_rv or is_jitter_tr ):
+  otex.write ('\\newcommand{\\rvjitter}[1][$\mathrm{m\,s^{-1}}$]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}    \n'%(find_vals_perc(params_jitter[0]*1.e3,s_factor)))
+  otex.write ('\\newcommand{\\trjitter}[1][]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(params_jitter[1],s_factor)))
+  #otex.write ('--------------------------------------------------------------\n')
+otex.write('\n')
 
 #RESIZE TRANSIT ERROR BARS
 if ( is_jitter_tr ):
@@ -256,6 +308,7 @@ if ( is_jitter_tr ):
     megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 
 opars.close()
+otex.close()
 dummy_file = open(out_params_file)
 for line in dummy_file:
   print line,
