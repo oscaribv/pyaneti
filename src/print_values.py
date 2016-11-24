@@ -174,6 +174,13 @@ if ( method == 'new' or method == 'plot' ):
     a_vec[o] = ar_vec[o] * rstar * S_radius_SI / AU_SI
     m_vec[o] = planet_mass(mstar,k_vec[o]*1.e3,P_vec[o],e_vec[o],i_vec[o])
 
+    #Planet-star distance at the time of eclipse
+    true_anomaly_vec = [None]*len(T0_vec[o])
+    for l in range(0,len(true_anomaly_vec)):
+      true_anomaly_vec[l] = pti.find_anomaly(T0_vec[o][l],T0_vec[o][l],e_vec[o][l],w_vec[o][l],P_vec[o][l])
+    dummy_anomaly = np.concatenate(true_anomaly_vec)
+    psd_vec = ar_vec[o] * ( 1. - e_vec[o]**2) / ( 1. + e_vec[o]*np.cos(dummy_anomaly))
+    psd_vec_units = psd_vec * rstar * S_radius_SI / AU_SI
 
     #stimate planet gravity and density
     pden_vec = m_vec[o] / r_vec[o]**3 #solar units
@@ -224,6 +231,8 @@ if ( method == 'new' or method == 'plot' ):
     opars.write ('g_p  = %4.7f - %4.7f + %4.7f  cm/s^2\n'%(find_vals_perc(pgra_vec,s_factor)))
     opars.write ('wp   = %4.7f - %4.7f + %4.7f  deg  \n'%(w_p_deg,w_s_deg_l,w_s_deg_r))
     opars.write ('Tperi= %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(Tpe_vec[o],s_factor)))
+    opars.write ('a(T0)= %4.7f - %4.7f + %4.7f    (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec,s_factor)))
+    opars.write ('r(T0)= %4.7f - %4.7f + %4.7f  AU (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec_units,s_factor)))
     opars.write ('Teq  = %4.7f - %4.7f + %4.7f  K    \n'%(find_vals_perc(Teq_vec[o],s_factor)))
     opars.write ('T_tot= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(trt_vec[o],s_factor)))
     opars.write ('T_i/e= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(tri_vec[o],s_factor)))

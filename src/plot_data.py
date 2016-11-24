@@ -6,6 +6,7 @@ from matplotlib.colors import LogNorm
 if ( is_seaborn_plot ):
   import seaborn as sns
   sns.set(style='ticks')
+  sns.set_color_codes()
 
 #The size of our plots follow an aurea rectangle
 fsx = figure_size_x
@@ -50,11 +51,12 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3.0, 1.])
   gs.update(hspace=0.00)
   ax1 = plt.subplot(gs[0])
+  plt.tick_params(labelsize=fos)
   x_lim = (min(xtime)-local_T0)*tfc
   plt.xlim(x_lim,-x_lim)
   min_val_model = max(fd_reb) -  min(fd_reb)
-  plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='r.',alpha=0.8)
-  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0,alpha=0.8)
+  plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='r.',alpha=1.0)
+  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
   plt.minorticks_on()
@@ -62,8 +64,9 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.tick_params( axis='x',which='both',labelbottom='off')
   #Plot the residuals
   dplot = plt.subplot(gs[1])
-  plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='r.',alpha=0.8)
-  plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=0.8)
+  plt.tick_params(labelsize=fos)
+  plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='r.',alpha=1.0)
+  plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
   yylims = dplot.get_ylim()
   plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
@@ -306,6 +309,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
   gs.update(hspace=0.00)
   ax0 = plt.subplot(gs[0])
+  plt.tick_params(labelsize=fos)
   plt.minorticks_on()
   #plt.subplot(311)
   ax0 = plt.xlabel("")
@@ -317,12 +321,13 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
     label=telescopes_labels[j],\
     fmt=mark[j],\
     alpha=1.0 ,\
-    markersize=4)
+    markersize=6)
   plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.tick_params( axis='x',which='both',labelbottom='off')
   #plt.subplot(312)
   ax1 = plt.subplot(gs[1])
+  plt.tick_params(labelsize=fos)
   plt.xlabel("Orbital phase",fontsize=fos)
   plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on')
   plt.xticks(np.arange(0.,1.01,0.1))
@@ -330,7 +335,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
     plt.errorbar(p_all[j],res[j],errs_all[j],\
-    label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=4)
+    label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=6)
   yylims = ax1.get_ylim()
   plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.minorticks_on()
