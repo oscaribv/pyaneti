@@ -169,6 +169,9 @@ if ( method == 'new' or method == 'plot' ):
     for m in range(0,len(Tpe_vec[o])):
       Tpe_vec[o][m] = pti.find_tp(T0_vec[o][m],e_vec[o][m],w_vec[o][m],P_vec[o][m])
 
+    #Density from the input stellar parameters
+    irho_vec = mstar/rstar**3 * 1.411
+
     #Get planet mass, radius and orbit semi-major axis in real units
     r_vec[o] = rr_vec[o] * rstar
     a_vec[o] = ar_vec[o] * rstar * S_radius_SI / AU_SI
@@ -181,6 +184,10 @@ if ( method == 'new' or method == 'plot' ):
     dummy_anomaly = np.concatenate(true_anomaly_vec)
     psd_vec = ar_vec[o] * ( 1. - e_vec[o]**2) / ( 1. + e_vec[o]*np.cos(dummy_anomaly))
     psd_vec_units = psd_vec * rstar * S_radius_SI / AU_SI
+
+    #Kepler cociente
+    pa_vec = (P_vec[o]*3600.*24.0)**2 * S_GM_SI * (mstar + m_vec[o])
+    pa_vec = pa_vec / ( 4.*np.pi**2 * (a_vec[o]*AU_SI)**3 )
 
     #stimate planet gravity and density
     pden_vec = m_vec[o] / r_vec[o]**3 #solar units
@@ -222,7 +229,8 @@ if ( method == 'new' or method == 'plot' ):
     opars.write ('-------------------------Derived------------------------------\n')
     opars.write ('i    = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
     opars.write ('a    = %4.7f - %4.7f + %4.7f  AU   \n'%(find_vals_perc(a_vec[o],s_factor)))
-    opars.write ('rho* = %4.7f - %4.7f + %4.7f  g/cm^3\n'%(find_vals_perc(ds_vec[o],s_factor)))
+    opars.write ('rho* = %4.7f - %4.7f + %4.7f  g/cm^3 (transit light curve)\n'%(find_vals_perc(ds_vec[o],s_factor)))
+    opars.write ('rho* = %4.7f - %4.7f + %4.7f  g/cm^3 (input stellar parameters)\n'%(find_vals_perc(irho_vec,s_factor)))
     r_val, r_val_r, r_val_l = find_vals_perc(r_vec[o],s_factor)
     m_val, m_val_r, m_val_l = find_vals_perc(m_vec[o],s_factor)
     opars.write ('Mp   = %4.7f - %4.7f + %4.7f M_%s  \n'%(m_val,m_val_r,m_val_l,unit_mass))
@@ -233,7 +241,8 @@ if ( method == 'new' or method == 'plot' ):
     opars.write ('Tperi= %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(Tpe_vec[o],s_factor)))
     opars.write ('a(T0)= %4.7f - %4.7f + %4.7f    (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec,s_factor)))
     opars.write ('r(T0)= %4.7f - %4.7f + %4.7f  AU (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec_units,s_factor)))
-    opars.write ('Teq  = %4.7f - %4.7f + %4.7f  K    \n'%(find_vals_perc(Teq_vec[o],s_factor)))
+    opars.write ('P2/a3= %4.7f - %4.7f + %4.7f     (P^2 G (m1 + m2) ) / ( 4 pi^2 a^3)  \n'%(find_vals_perc(pa_vec,s_factor)))
+    opars.write ('Teq  = %4.7f - %4.7f + %4.7f  K (albedo=0)   \n'%(find_vals_perc(Teq_vec[o],s_factor)))
     opars.write ('T_tot= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(trt_vec[o],s_factor)))
     opars.write ('T_i/e= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(tri_vec[o],s_factor)))
     opars.write ('--------------------------------------------------------------\n')
