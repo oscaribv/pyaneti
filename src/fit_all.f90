@@ -15,7 +15,6 @@ implicit none
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
   double precision, intent(out) :: chi2
-  !THIS DOES NOT ADD alpha and beta
 !Local variables
   double precision :: pars_rv(0:7+n_tel-1,0:npl-1)
   double precision :: pars_tr(0:6,0:npl-1)
@@ -111,10 +110,6 @@ implicit none
   rstar_mean  = stellar_pars(2)
   rstar_sigma = stellar_pars(3)
 
-  !print *, stellar_pars
-  !print *, afk
-  !stop
-
   !spar -> size of parameters, dof -> degrees of freedom
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
   dof  = size_rv + size_tr - spar
@@ -171,7 +166,6 @@ implicit none
   end do
 
  chi2_red(:) = chi2_old_total(:) / dof
-
 
   !Print the initial cofiguration
   print *, ''
@@ -237,7 +231,6 @@ implicit none
       jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) * &
                          ( jitter_tr_old(nk) - jitter_tr_new(nk) )
 
-
 !      do m = 0, npl - 1
 !        if ( afk(m) ) then
 !          !The parameter comes from 3rd Kepler law
@@ -282,8 +275,7 @@ implicit none
           q = q * mult_total(nk,m)
         end do
       end if
-      !print *, q
-      !stop
+
       !Let us compare our models
       !Compute the likelihood
       q = q * z_rand(nk)**( int(spar - 1) ) * &

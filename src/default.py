@@ -50,7 +50,7 @@ telescopes = []
 telescopes_labels = ['']
 
 #MCMC controls
-method = 'new'
+method = 'mcmc'
 is_circular = False
 maxi = int(1e8)
 thin_factor = 10
@@ -67,6 +67,7 @@ a_factor = 2.0
 is_plot_histogram = True
 is_plot_correlations = True
 is_smart_priors = True
+is_clustering = True
 latex_values = True
 plot_all_tr = False
 is_jitter_rv = False

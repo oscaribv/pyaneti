@@ -17,22 +17,10 @@ import sys
 #-----------------------------------------------------------
 def get_BIC(chi2tot_val):
 
-  #Get the number of data and parameters
-#  if (fit_rv and fit_tr ):
-#    ndata = len(megax) + len(mega_rv)
-###    npars = sum(what_fit) + nt - 1
-#  elif(fit_rv and not fit_tr):
-#    ndata = len(mega_rv)
-#    npars = sum(what_fit) + nt - nplanets
-#  elif(not fit_rv and fit_tr):
-#    ndata = len(megax)
-#    npars = sum(what_fit)
-#
-
   npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
   ndata = len(megax) + len(mega_rv)
 
-  BIC = chi2tot_val + npars * np.log(ndata)  
+  BIC = chi2tot_val + npars * np.log(ndata)
 
   return BIC
 
@@ -299,7 +287,7 @@ def separate_transits(x,y,err,limits):
 #-----------------------------------------------------------
 def find_vals_perc(x,sf=1.0):
   #With a 68% confidence interval
-  mine, med, maxe = np.percentile(x,[16,50,84])
+  mine, med, maxe = np.percentile(x,[16.0,50.0,84.0])
   maxe = ( maxe - med ) / sf
   mine = ( med - mine ) / sf
   
@@ -369,7 +357,7 @@ def clustering(par,good_index):
 #-----------------------------------------------------------
 #         FIT JOINT RV-TRANSIT DATA
 #-----------------------------------------------------------
-def fit_new_method():
+def joint_fit():
   global wtf_all, wtf_ldc, wtf_rvs, nt
   global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
   global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
@@ -407,7 +395,7 @@ def fit_new_method():
   ldc   = [q1,q2]
   flags = [is_log_P,is_ew,is_b_factor,is_log_a,is_log_k,is_log_rv0]
 
-  if ( method == 'new' ):
+  if ( method == 'mcmc' ):
 
     vec_rv0_limits = []
     vec_rv0_phys_limits = []
@@ -436,7 +424,6 @@ def fit_new_method():
     limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
     limits_p_ldc = [ min_phys_q1, max_phys_q1, min_phys_q2, max_phys_q2]
 
-    #sys.exit()
     stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
     is_jitter = [is_jitter_rv, is_jitter_tr]
 
@@ -454,11 +441,9 @@ def fit_new_method():
 
   else:
     print 'You did not choose a method!'
-    print 'method = sm   -> Stretch move'
-    print 'method = plot -> Plot of a previous run'
+    print 'method = mcmc   -> Run the MCMC code'
+    print 'method = plot   -> Plot of a previous run'
     sys.exit('choose your favorite.')
-
-  print 'Reading the data file, wait a bit!'
 
   newfile = outdir+'/'+star+'_all_data.dat'
   if ( os.path.isfile('all_data.dat') ):
@@ -468,415 +453,8 @@ def fit_new_method():
   if ( os.path.isfile('jitter_data.dat') ):
     os.rename('jitter_data.dat',newfile_jitter)
 
-
 #-----------------------------------------------------------
-#         FIT JOINT RV-TRANSIT DATA
-#-----------------------------------------------------------
-def fit_joint():
-
-  global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
-  global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
-  global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_pz, fit_k,fit_v0
-  global T0,P,e,w,ii,a,q1,q2,pz,k0,alpha,beta, v0
-  global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
-         max_a, min_q1, max_q1, min_q1, max_q1, min_pz, max_pz, min_k, max_k, min_alpha, max_alpha, \
-         min_beta, max_beta
-  global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
-         min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
-         max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, \
-         min_phys_beta, max_phys_beta, min_phys_rv0, max_phys_rv0
-  global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko,alphao,betao,vo, what_fit
-  global new_nwalkers, good_index
-  global jrvo, jtro
-
-
-  if ( a_from_kepler ):
-    k_log_a = False
-    fit_a = False
-  else:
-    k_log_a = is_log_a
-    fit_a = fit_a
-
-  pstar = [mstar_mean,rstar_mean]
-  lpstar = [mstar_sigma,rstar_sigma]
-
-  flag = [is_log_P,is_ew,is_b_factor,k_log_a,is_log_k,is_log_rv0]
-
-  what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w), \
-              int(fit_i),int(fit_a),int(fit_q1),int(fit_q2),\
-              int(fit_pz), int(fit_k),int(fit_alpha,), int(fit_beta), int(fit_v0)]
-
-  dummy = [T0,P,e,w,ii,a,q1,q2,pz,k0,alpha,beta]
-  params = np.concatenate((dummy,v0))
-
-  #Call the fit routine
-
-  if ( method == 'sm' ):
-
-    vec_rv0_limits = []
-    vec_rv0_phys_limits = []
-    for m in range(0,nt):
-      vec_rv0_limits.append(min_rv0) 
-      vec_rv0_limits.append(max_rv0)
-      vec_rv0_phys_limits.append(min_phys_rv0)
-      vec_rv0_phys_limits.append(max_phys_rv0) 
-
-    dummy_lims = \
-    [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
-    , min_i, max_i, min_a, max_a, min_q1, max_q1, min_q1, \
-      max_q1, min_pz, max_pz, min_k, max_k,min_alpha, max_alpha, \
-         min_beta, max_beta ]
-
-    dummy_lims_physical = \
-    [min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w \
-    , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
-    max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, \
-         min_phys_beta, max_phys_beta ]
-
-    limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
-    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_phys_limits)) 
-
-    is_jitter = [ is_jitter_rv, is_jitter_tr ]
-
-    pti.stretch_move(mega_time,mega_rv,mega_err,tlab \
-    ,megax, megay, megae, params,pstar,lpstar,limits, limits_p , nwalkers,a_factor, maxi, thin_factor, \
-    n_cad,t_cad,what_fit, flag,is_jitter,a_from_kepler, nconv,nt=nt,npars=12)
-
-  elif ( method == 'plot' ):
-    print 'I will only print the values and generate the plot'
-
-  else:
-    print 'You did not choose a method!'
-    print 'method = sm   -> Stretch move'
-    print 'method = plot -> Plot of a previous run'
-    sys.exit('choose your favorite.')
-
-  print 'Reading the data file, wait a bit!'
-
-  newfile = outdir+'/'+star+'_rv-tr.dat'
-  if ( os.path.isfile('mh_fit.dat') ):
-    os.rename('mh_fit.dat',newfile)
-
-  #Read the data
-  dvari,dchain_lab,dchi2,djrvo,djtro,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo,dko, dalphao, dbetao =  \
-  np.loadtxt(newfile, comments='#',unpack=True, \
-  usecols=range(0,17))
-  dvo = [None]*nt
-  for j in range(0,nt):
-    n = [17+j]
-    a = np.loadtxt(newfile, comments='#', \
-    unpack=True, usecols=(n))
-    dvo[j] = a
-
-  #Starting clustering
-  good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
-  vari = clustering(dvari,good_index)
-  chi2 = clustering(dchi2,good_index)
-  jrvo = clustering(djrvo,good_index)
-  jtro = clustering(djtro,good_index)
-  t0o = clustering(dt0o,good_index)
-  Po = clustering(dPo,good_index)
-  eo = clustering(deo,good_index)
-  wo = clustering(dwo,good_index)
-  io = clustering(dio,good_index)
-  ao = clustering(dao,good_index)
-  q1o = clustering(dq1o,good_index)
-  q2o = clustering(dq2o,good_index)
-  pzo = clustering(dpzo,good_index)
-  ko = clustering(dko,good_index)
-  alphao = clustering(dalphao,good_index)
-  betao = clustering(dbetao,good_index)
-  vo = [None]*nt
-  for j in range(0,nt):
-    vo[j] = clustering(dvo[j],good_index)
-
-
-#-----------------------------------------------------------
-#         FIT TRANSIT DATA
-#-----------------------------------------------------------
-def fit_transit():
-
-  global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
-  global is_log_P, is_ew, is_b_factor, _is_log_a
-  global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_pz
-  global T0,P,e,w,ii,a,q1,q2,pz
-  global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
-         max_a, min_q1, max_q1, min_q1, max_q1, min_pz, max_pz
-  global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
-         min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
-         max_phys_q1, min_phys_pz, max_phys_pz
-  global vari,chi2,jtro,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo, what_fit
-  global new_nwalkers, good_index
-
-
-  flag = [is_log_P, is_ew, is_b_factor, is_log_a]
-
-  what_fit = [int(fit_t0),int(fit_P),int(fit_e),int(fit_w),  \
-                int(fit_i),int(fit_a), int(fit_q1),int(fit_q2),\
-                int(fit_pz)]
-
-  params = [T0,P,e,w,ii,a,q1,q2,pz]
-
-  if ( method == 'sm' ):
-    #The transit time should be in the first window
-    limits = \
-    [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w \
-    , min_i, max_i, min_a, max_a, min_q1, max_q1, \
-    min_q1, max_q1, min_pz, max_pz]
-
-    limits_physical = \
-    [min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w \
-    , min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
-    max_phys_q1, min_phys_pz, max_phys_pz]
-
-    pti.stretch_move_tr(megax, megay, megae,  \
-    params,pstar,lpstar,limits, limits_physical, nwalkers,a_factor,maxi, thin_factor,n_cad,t_cad, what_fit \
-    ,flag,a_from_kepler,nconv)
-
-  elif ( method == 'plot' ):
-    print 'I will only print the values and generate the plot'
-
-  else:
-    print 'You did not choose a method!'
-    print 'method = sm   -> Stretch move'
-    print 'method = plot -> Plot of a previous run'
-    sys.exit('choose your favorite.')
-
-  print 'Reading the data file, wait a bit!'
-
-  newfile = outdir+'/'+star+'_tr.dat'
-  if ( os.path.isfile('mh_trfit.dat') ):
-    os.rename('mh_trfit.dat',newfile)
-  #Read the data
-  dvari,dchain_lab,dchi2,djtro,dt0o,dPo,deo,dwo,dio,dao,dq1o,dq2o,dpzo = \
-  np.loadtxt(newfile, comments='#',unpack=True)
-
-  #Starting clustering
-  good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
-  jtro = clustering(djtro,good_index)
-  chi2 = clustering(dchi2,good_index)
-  vari = clustering(dvari,good_index)
-  t0o = clustering(dt0o,good_index)
-  Po = clustering(dPo,good_index)
-  eo = clustering(deo,good_index)
-  wo = clustering(dwo,good_index)
-  io = clustering(dio,good_index)
-  ao = clustering(dao,good_index)
-  q1o = clustering(dq1o,good_index)
-  q2o = clustering(dq2o,good_index)
-  pzo = clustering(dpzo,good_index)
-
-
-#-----------------------------------------------------------
-#                 FIT RV DATA
-#-----------------------------------------------------------
-def fit_radial_velocity():
-
-  global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
-  global is_log_P, is_ew, is_log_k, is_log_rv0
-  global fit_t0, fit_P, fit_e, fit_w,fit_k,fit_v0
-  global T0,P,e,w,k0, v0
-  global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w,\
-         min_k, max_k, min_alpha, max_alpha, min_beta, max_beta
-  global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
-         min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, min_phys_beta, max_phys_beta, min_phys_rv0, max_phys_rv0
-  global vari,chi2,chi2red,t0o,Po,eo,wo,ko,alphao,betao,vo, what_fit
-  global new_nwalkers, good_index
-  global jrvo
-
-  flag = [is_log_P,is_ew,is_log_k,is_log_rv0]
-
-  if ( P.__class__ == float ):
-    what_fit = [fit_t0, fit_P, fit_e, fit_w, fit_k, fit_alpha, fit_beta, fit_v0 ]
-    dparams = [T0, P, e, w, k0, alpha, beta]
-    params = np.concatenate((dparams,v0))
-	
-    vec_rv0_limits = []
-    vec_rv0_phys_limits = []
-    for m in range(0,nt):
-      vec_rv0_limits.append(min_rv0) 
-      vec_rv0_limits.append(max_rv0) 
-      vec_rv0_phys_limits.append(min_phys_rv0) 
-      vec_rv0_phys_limits.append(max_phys_rv0) 
-	
-    dummy_lims = \
-    [ min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, \
-    min_k, max_k, min_alpha, max_alpha, min_beta, max_beta]
-
-    dummy_lims_physical = \
-    [ min_t0, max_t0, min_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
-    min_phys_k,max_phys_k,  min_alpha, max_alpha, min_beta, max_beta]
-
-    limits = np.concatenate((dummy_lims,vec_rv0_limits)) 
-    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_phys_limits)) 
-		
-  else:
-    what_fit = [None]*(8*nplanets)
-    params   = [None]*((7+nt)*nplanets)	
-    limits   = [None]*((7+nt)*2*nplanets)
-    #Let us fill the input variables for 
-    #all the number of planets
-    for m in range(0,nplanets):
-      #What to fit from the input lists	
-      what_fit[0+8*m] = int(fit_t0[m]) 
-      what_fit[1+8*m] = int(fit_P[m]) 
-      what_fit[2+8*m] = int(fit_e[m]) 
-      what_fit[3+8*m] = int(fit_w[m]) 
-      what_fit[4+8*m] = int(fit_k[m]) 
-      what_fit[5+8*m] = int(fit_alpha[m]) 
-      what_fit[6+8*m] = int(fit_beta[m]) 
-      what_fit[7+8*m] = int(fit_v0[m]) 
-      #fill the parameters vector
-      params[0+(7+nt)*m] = T0[m]
-      params[1+(7+nt)*m] = P[m]
-      params[2+(7+nt)*m] = e[m]
-      params[3+(7+nt)*m] = w[m]
-      params[4+(7+nt)*m] = k[m]
-      params[5+(7+nt)*m] = alpha[m]
-      params[6+(7+nt)*m] = beta[m]
-      #fill the systemic velocities
-      for j in range(0,nt):
-        params[(7+j)+(7+nt)*m] = v0[j]
-	#fill the limits
-      limits[0+(7+nt)*2*m] = min_t0[m]
-      limits[1+(7+nt)*2*m] = max_t0[m]
-      limits[2+(7+nt)*2*m] = min_P[m]
-      limits[3+(7+nt)*2*m] = max_P[m]
-      limits[4+(7+nt)*2*m] = min_e[m]
-      limits[5+(7+nt)*2*m] = max_e[m]
-      limits[6+(7+nt)*2*m] = min_w[m]
-      limits[7+(7+nt)*2*m] = max_w[m]
-      limits[8+(7+nt)*2*m] = min_k[m]
-      limits[9+(7+nt)*2*m] = max_k[m]
-      limits[10+(7+nt)*2*m] = min_alpha[m]
-      limits[11+(7+nt)*2*m] = max_alpha[m]
-      limits[12+(7+nt)*2*m] = min_beta[m]
-      limits[13+(7+nt)*2*m] = max_beta[m]
-      for j in range(0,nt):
-        limits[(14+j*2)+(7+nt)*2*m] = min_rv0
-        limits[(15+j*2)+(7+nt)*2*m] = max_rv0
-
-    vec_rv0_limits = []
-    vec_rv0_phys_limits = []
-    for m in range(0,nt):
-      vec_rv0_limits.append(min_rv0) 
-      vec_rv0_limits.append(max_rv0) 
-      vec_rv0_phys_limits.append(min_phys_rv0) 
-      vec_rv0_phys_limits.append(max_phys_rv0) 
-	
-    dummy_lims_physical = \
-    [ min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
-    min_phys_k,max_phys_k,  min_phys_alpha, max_phys_alpha, min_phys_beta, max_phys_beta]
-
-    limits_p = np.concatenate((dummy_lims_physical,vec_rv0_phys_limits)) 
-	
-  if ( method == 'sm' ):
-
-    pti.stretch_move_rv(mega_time,mega_rv,mega_err,tlab,\
-    params, limits,limits_p, nwalkers, a_factor, maxi, thin_factor, \
-     what_fit,flag, nconv, datas=len(mega_time), nt=nt, \
-    npl=nplanets, npars=7)
-
-  elif ( method == 'plot' ):
-    print 'I will only print the values and generate the plot'
-
-  else:
-    print 'You did not choose a method!'
-    print 'method = sm   -> Stretch move'
-    print 'method = plot -> Plot of a previous run'
-    sys.exit('choose your favorite.')
-
-  print 'Reading the data file, wait a bit!'
-
-  if ( nplanets == 1):
-    out_file = 'planet1.dat'
-    newfile = outdir+'/'+star+'_rv.dat'
-    if ( os.path.isfile(out_file) ):
-      os.rename(out_file,newfile)
-  elif ( nplanets > 1):
-    out_file = [None]*nplanets
-    newfile = [None]*nplanets
-    for m in range(0,nplanets):
-      out_file[m] = 'planet' + str(m+1) + '.dat'
-      newfile[m] = outdir+'/'+star+'_rv'+str(m+1)+'.dat'
-      if ( os.path.isfile(out_file[m]) ):
-        os.rename(out_file[m],newfile[m])
-
-  if ( nplanets == 1 ):
-    dvari,dchain_lab,dchi2,djrvo,dt0o,dPo,deo,dwo,dko,dalphao, dbetao = \
-    np.loadtxt(newfile, comments='#', unpack=True,\
-    usecols=range(0,11))
-    #Read the systemic velocities
-    dvo = [None]*nt
-    for j in range(0,nt):
-      n = [11+j]
-      a = np.loadtxt(newfile, comments='#',unpack=True,\
-      usecols=(n))
-      dvo[j] = a
-
-    #Cluster variables
-    good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
-    vari = clustering(dvari,good_index)
-    chi2 = clustering(dchi2,good_index)
-    jrvo = clustering(djrvo,good_index)
-    t0o = clustering(dt0o,good_index)
-    Po = clustering(dPo,good_index)
-    eo = clustering(deo,good_index)
-    wo = clustering(dwo,good_index)
-    ko = clustering(dko,good_index)
-    alphao = clustering(dalphao,good_index)
-    betao = clustering(dbetao,good_index)
-    vo = [None]*nt
-    for j in range(0,nt):
-      vo[j] = clustering(dvo[j],good_index)
-
-   
-  else:
-    new_nwalkers = nwalkers
-    #Create all the variables, list of lists
-    vari = [[]]*nplanets
-    chi2 = [[]]*nplanets
-    dvari = [[]]*nplanets
-    t0o = [[]]*nplanets
-    Po = [[]]*nplanets
-    eo = [[]]*nplanets
-    wo = [[]]*nplanets
-    ko = [[]]*nplanets
-    alphao = [[]]*nplanets
-    betao = [[]]*nplanets
-    #each l index is for a different planet
-
-
-    for l in range(0,nplanets):
-      dvari,dchain_lab,dchi2,dt0o,dPo,deo, \
-      dwo,dko, dalphao, dbetao = np.loadtxt(newfile[l], comments='#', \
-      unpack=True, usecols=range(0,10))
-    #Cluster variables
-      good_index, new_nwalkers = good_clustering(dchi2,dchain_lab,nconv,nwalkers)
-      vari[l] = clustering(dvari,good_index)
-      chi2[l] = clustering(dchi2,good_index)
-      t0o[l] = clustering(dt0o,good_index)
-      Po[l] = clustering(dPo,good_index)
-      eo[l] = clustering(deo,good_index)
-      wo[l] = clustering(dwo,good_index)
-      ko[l] = clustering(dko,good_index)
-      alphao[l] = clustering(dalphao,good_index)
-      betao[l] = clustering(dbetao,good_index)
-
-    #The  systemic velocities are the same for all the planets
-    dvo = [None]*nt
-    vo = [None]*nt
-    for j in range(0,nt):
-      n = [10+j]
-      a = np.loadtxt(newfile[0], comments='#', \
-      unpack=True, usecols=(n))
-      dvo[j] = a
-
-    for j in range(0,nt):
-      vo[j] = clustering(dvo[j],good_index)
-
-#-----------------------------------------------------------
-# PRINT INITIAL CONFIGURATION
+#          PRINT INITIAL CONFIGURATION
 #-----------------------------------------------------------
 def print_init():
   out_init_file = outdir+'/'+star+'_init.dat'

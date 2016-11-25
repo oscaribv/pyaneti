@@ -11,19 +11,23 @@ from matplotlib import gridspec
 newfile = outdir+'/'+star+'_all_data.dat'
 dparams = np.loadtxt(newfile, comments='#',unpack=True)
 
-
-#Starting clustering
-good_index, new_nwalkers = good_clustering(dparams[2],dparams[1],nconv,nwalkers)
 #Let us do the clustering
-params = [None]*len(dparams)
+params = list(dparams)
 params_jitter = [None]*2
-for o in range(0,len(dparams)):
+new_nwalkers = nwalkers
+if ( is_clustering ):
+  #Starting clustering
+  good_index, new_nwalkers = good_clustering(dparams[2],dparams[1],nconv,nwalkers)
+  for o in range(0,len(dparams)):
     params[o] = clustering(dparams[o],good_index)
+
 if ( is_jitter_rv or is_jitter_tr ):
   newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
   dparams_jitter = np.loadtxt(newfile_jitter, comments='#',unpack=True)
-  for o in range(0,2):
-    params_jitter[o] = clustering(dparams_jitter[o],good_index)
+  params_jitter = list(dparams_jitter)
+  if ( is_clustering ):
+    for o in range(0,2):
+      params_jitter[o] = clustering(dparams_jitter[o],good_index)
 #Create the stellar data
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=new_nwalkers*nconv)
@@ -46,7 +50,7 @@ if ( scale_error_bars ):
     s_factor = 1.0
 
 
-if ( method == 'new' or method == 'plot' ):
+if ( method == 'mcmc' or method == 'plot' ):
 
   minchi2_index = np.argmin(params[2])
 
