@@ -42,7 +42,7 @@ implicit none
   chi2_tr = 0.d0
 
   if (tff(1) ) &
-  call find_chi2_tr_new(x_tr,y_tr,e_tr,plab_tr,pars_tr,jtr,flag_tr,&
+  call find_chi2_tr(x_tr,y_tr,e_tr,plab_tr,pars_tr,jtr,flag_tr,&
                         ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
   if (tff(0) ) &
   call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,jrv,&
