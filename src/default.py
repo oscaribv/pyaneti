@@ -40,7 +40,7 @@ rstar_sigma = 1e-10
 tstar_sigma = 100.
 
 #Default transit data cadence
-n_cad = 1.
+n_cad = 1
 t_cad = 30. / 60. / 24.
 #Default input columns for transit fit
 columns_tr = [0,1,2]
@@ -152,10 +152,10 @@ min_b   = [0.0]
 max_b   = [1.0]
 min_a   = [1.5]       # The planet is outside the star
 max_a   = [1.e8]	       # The planet is really far
-min_q1  = [0.0]   #
-max_q1  = [1.0]     #
-min_q2  = [0.0]     #
-max_q2  = [1.0]      #
+min_q1  = 0.0   #
+max_q1  = 1.0     #
+min_q2  = 0.0     #
+max_q2  = 1.0      #
 min_pz  = [1.e-3]       # Earth size planet / sun
 max_pz  = [0.99]      # a really big planet
 #rv fit
@@ -186,10 +186,10 @@ min_phys_b   = [0.0]
 max_phys_b   = [1.0]
 min_phys_a   = [3.0]	       # The planet is outside the star
 max_phys_a   = [1.e3]	       # The planet is really far
-min_phys_q1  = [0.0]	       #
-max_phys_q1  = [1.0 ]            #
-min_phys_q2  = [0.0]	       #
-max_phys_q2  = [1.0]	       #
+min_phys_q1  = 0.0	       #
+max_phys_q1  = 1.0             #
+min_phys_q2  = 0.0	       #
+max_phys_q2  = 1.0	       #
 min_phys_pz  = [0.00]	       # Earth size planet / sun
 max_phys_pz  = [0.99]       # a really big planet
 #rv fit

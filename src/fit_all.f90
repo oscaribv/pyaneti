@@ -96,7 +96,7 @@ implicit none
   double precision, dimension(0:nwalks-1,0:size_rv+size_tr-1) :: mult_old, mult_new, mult_total
   integer, dimension(0:nwalks-1) :: r_int
   double precision  :: q, spar, a_factor, dof
-  double precision  :: lims_ldc_dynamic(0:1)
+  double precision  :: lims_ldc_dynamic(0:1), lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
   logical :: continua, is_burn, is_limit_good, is_cvg
   logical :: is_kepler
@@ -148,17 +148,31 @@ implicit none
   do nk = 0, nwalks - 1
     !random parameters
       call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
+      !If we are using the parametrization for e and omega
+      if ( flags(1) ) then
+        do m = 0, npl-1
+          lims_e_dynamic(:,m) = sqrt( 1.d0 - pars_old(nk,2+8*m)**2 )
+          lims_e_dynamic(0,m) = - lims_e_dynamic(0,m)
+          call uniform_priors(pars(3),1,wtf_all(3),lims_e_dynamic(:,m),pars_old(nk,3+8*m))
+        end do
+      end if
+
+
       call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
+
       call uniform_priors(ldc(0),1,wtf_ldc(0),lims_ldc(0:1),ldc_old(nk,0))
       lims_ldc_dynamic(:) = (/ lims_ldc(2), 1.0d0 - ldc_old(nk,0) /)
+
       call uniform_priors(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
       !Will we use spectroscopic priors for some planets?
+
       do m = 0, npl - 1
         if ( afk(m) ) then
           !The parameter comes from 3rd Kepler law !pars_old(1) is the period
           call get_a_scaled(mstar(nk),rstar(nk),pars_old(nk,1+8*m),pars_old(nk,5+8*m),1)
         end if
       end do
+
       call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
            ldc_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
@@ -230,6 +244,11 @@ implicit none
                          ( jitter_rv_old(nk) - jitter_rv_new(nk) )
       jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) * &
                          ( jitter_tr_old(nk) - jitter_tr_new(nk) )
+
+      !For the fixed parameters, we assume a gaussian distribution with error bars
+      do m = 0, 8*npl-1
+       if ( wtf_all(m) == 0 ) call gauss_random_bm(pars(m),lims(2*m),pars_new(nk,m),1)
+      end do
 
 !      do m = 0, npl - 1
 !        if ( afk(m) ) then

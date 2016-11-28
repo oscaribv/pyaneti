@@ -173,10 +173,10 @@ if ( nplanets_tr > 0 ):
   total_tr_fit = True
 
 else:
-  megax = [None]
-  megay = [None]
-  megae = [None]
-  megap = [None]
+  megax = [1.]
+  megay = [1.]
+  megae = [1.]
+  megap = [0]
   total_tr_fit = False
 
 #TRANSIT DATA READY
@@ -191,7 +191,7 @@ for o in range(0,nplanets):
       fit_i[o] = False
       ii[o] = 1e-10
       fit_a[o] = False
-      a[o] = 10.0
+      a[o] = 1e-10
     if (fit_rv[o] == False ):
       fit_k[o] = False
       k0[o] = 1e-10
