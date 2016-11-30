@@ -423,7 +423,7 @@ if ( nplanets > 0 ):
       #the actual value, minus the systemic velocity
       rv_dum[j] = rv_datas[j] - v_val[j]*cfactor
 
-    plt.figure(1,figsize=(fsx,fsy))
+    plt.figure(1,figsize=(2*fsx,fsy))
     plt.plot(rvx,rvy,'k')
     plt.minorticks_on()
     plt.xlabel("JD (days)",fontsize=fos)

@@ -126,7 +126,7 @@ implicit none
   if ( is_jit(0) ) &
      call gauss_random_bm(e_rv(0)*1e-2,e_rv(0)*1e-3,jitter_rv_old,nwalks)
   if ( is_jit(1) ) &
-    call gauss_random_bm(e_tr(0)*1e-2,e_tr(0)*1e-3,jitter_tr_old,nwalks)
+    call gauss_random_bm(1e-6*1e-2,1e-6*1e-3,jitter_tr_old,nwalks)
   mult_old(:,:) = 1.0d0
   mult_new(:,:) = 1.0d0
   if ( is_jit(0) .or. is_jit(1) ) then
@@ -164,8 +164,8 @@ implicit none
       lims_ldc_dynamic(:) = (/ lims_ldc(2), 1.0d0 - ldc_old(nk,0) /)
 
       call uniform_priors(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
-      !Will we use spectroscopic priors for some planets?
 
+      !Will we use spectroscopic priors for some planets?
       do m = 0, npl - 1
         if ( afk(m) ) then
           !The parameter comes from 3rd Kepler law !pars_old(1) is the period
@@ -177,6 +177,7 @@ implicit none
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
            ldc_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
            chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
+
   end do
 
  chi2_red(:) = chi2_old_total(:) / dof
@@ -247,7 +248,9 @@ implicit none
 
       !For the fixed parameters, we assume a gaussian distribution with error bars
       do m = 0, 8*npl-1
-       if ( wtf_all(m) == 0 ) call gauss_random_bm(pars(m),lims(2*m),pars_new(nk,m),1)
+       if ( wtf_all(m) == 0 ) then
+          call gauss_random_bm(pars(m),pars(m)-lims(2*m),pars_new(nk,m),1)
+       end if
       end do
 
 !      do m = 0, npl - 1
@@ -287,7 +290,6 @@ implicit none
       mult_total(nk,:) = mult_new(nk,:) / mult_old(nk,:)
 
       !Add the jitter terms
-      !print *, mult_total(nk,:)
       q = 1.0d0
       if ( is_jit(0) .or. is_jit(1) ) then
         do m = 0, size_rv+size_tr-1

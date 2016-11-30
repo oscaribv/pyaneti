@@ -70,6 +70,7 @@ is_smart_priors = True
 is_clustering = True
 latex_values = True
 plot_all_tr = False
+is_fit_tr_errorbars = True
 is_jitter_rv = False
 is_jitter_tr = False
 is_seaborn_plot = False

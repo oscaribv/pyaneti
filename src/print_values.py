@@ -326,6 +326,10 @@ otex.write('\n')
 #RESIZE TRANSIT ERROR BARS
 if ( is_jitter_tr ):
   jit_tr = np.median(params_jitter[1])
+  for o in range(0,len(et)):
+      for m in range(0,len(et[o])):
+          for q in range(0,len(et[o][m])):
+              et[o][m][q] = np.sqrt(et[o][m][q]**2 + jit_tr**2)
   for o in range(0,len(megae)):
     megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 
