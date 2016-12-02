@@ -1,5 +1,5 @@
 subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,tff,flags,&
-           t_cad,n_cad,pars,rvs,ldc,jrv,jtr,chi2,npl,n_tel,size_rv,size_tr)
+           t_cad,n_cad,pars,rvs,ldc,jrv,jtr,chi2_rv,chi2_tr,npl,n_tel,size_rv,size_tr)
 implicit none
 
 !In/Out variables
@@ -14,11 +14,10 @@ implicit none
   double precision, intent(in) :: jrv, jtr
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
-  double precision, intent(out) :: chi2
+  double precision, intent(out) :: chi2_rv, chi2_tr
 !Local variables
   double precision :: pars_rv(0:7+n_tel-1,0:npl-1)
   double precision :: pars_tr(0:6,0:npl-1)
-  double precision :: chi2_rv, chi2_tr
   logical :: flag_rv(0:3), flag_tr(0:3)
   integer :: i, j
 
@@ -48,7 +47,6 @@ implicit none
   call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,jrv,&
                     flag_rv,chi2_rv,size_rv,n_tel,npl)
 
-  chi2 = chi2_rv + chi2_tr
 
 end subroutine
 
@@ -91,6 +89,8 @@ implicit none
   double precision, dimension(0:nwalks-1,0:1) :: ldc_old, ldc_new
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand, mstar, rstar
   double precision, dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
+  double precision, dimension(0:nwalks-1) :: chi2_old_rv, chi2_old_tr
+  double precision, dimension(0:nwalks-1) :: chi2_new_rv, chi2_new_tr
   double precision, dimension(0:nwalks-1,0:8*npl-1,0:nconv-1) :: pars_chains
   double precision, dimension(0:nwalks-1) :: jitter_rv_old, jitter_rv_new, jitter_tr_old, jitter_tr_new
   double precision, dimension(0:nwalks-1,0:size_rv+size_tr-1) :: mult_old, mult_new, mult_total
@@ -126,7 +126,7 @@ implicit none
   if ( is_jit(0) ) &
      call gauss_random_bm(e_rv(0)*1e-2,e_rv(0)*1e-3,jitter_rv_old,nwalks)
   if ( is_jit(1) ) &
-    call gauss_random_bm(1e-6*1e-2,1e-6*1e-3,jitter_tr_old,nwalks)
+    call gauss_random_bm(e_tr(0)*1e-2,e_tr(0)*1e-3,jitter_tr_old,nwalks)
   mult_old(:,:) = 1.0d0
   mult_new(:,:) = 1.0d0
   if ( is_jit(0) .or. is_jit(1) ) then
@@ -176,7 +176,9 @@ implicit none
       call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
            ldc_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
-           chi2_old_total(nk),npl,n_tel,size_rv,size_tr)
+           chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,size_rv,size_tr)
+
+           chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
 
   end do
 
@@ -271,11 +273,14 @@ implicit none
       end if
 
       chi2_new_total(nk) = huge(0.0d0) !A really big number!
-      if ( is_limit_good ) & !If we are inside the limits, let us calculate chi^2
+      if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
              total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
              ldc_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
-             chi2_new_total(nk),npl,n_tel,size_rv,size_tr)
+             chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,size_rv,size_tr)
+
+        chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
+     end if
 
       mult_new(nk,:) = 1.0d0
       if ( is_jit(0) .or. is_jit(1) ) then
@@ -306,6 +311,8 @@ implicit none
       if ( q > r_rand(nk) ) then
         !If yes, let us save it as the old vectors
         chi2_old_total(nk) = chi2_new_total(nk)
+        chi2_old_rv(nk) = chi2_new_rv(nk)
+        chi2_old_tr(nk) = chi2_new_tr(nk)
         pars_old(nk,:) = pars_new(nk,:)
         rvs_old(nk,:) = rvs_new(nk,:)
         ldc_old(nk,:) = ldc_new(nk,:)
@@ -323,7 +330,7 @@ implicit none
       if ( is_burn ) then
         if ( mod(j,thin_factor) == 0 ) then
          !$OMP CRITICAL
-         write(101,*) j, nk, chi2_old_total(nk), pars_old(nk,:), &
+         write(101,*) j, nk, chi2_old_rv(nk),chi2_old_tr(nk), pars_old(nk,:), &
                       ldc_old(nk,:), rvs_old(nk,:)
          write(201,*) jitter_rv_old(nk), jitter_tr_old(nk)
          !$OMP END CRITICAL

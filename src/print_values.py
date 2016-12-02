@@ -4,10 +4,11 @@ from matplotlib import gridspec
 #Dummy params vector contains
 #[0] -> i
 #[1] -> chain label
-#[2] -> chi2
-#[3-8*nplanets] -> parameters
-#[8*nplanets-+2] -> ldc
-#[8*nplanets-+2] -> rvs
+#[2] -> chi2_rv
+#[3] -> chi2_tr
+#[4-8*nplanets] -> parameters
+#[4+8*nplanets-+2] -> ldc
+#[4+8*nplanets+2-+ntelescopes] -> rvs
 newfile = outdir+'/'+star+'_all_data.dat'
 dparams = np.loadtxt(newfile, comments='#',unpack=True)
 
@@ -38,7 +39,9 @@ tstar = np.random.normal(loc=tstar_mean,scale=tstar_sigma,size=new_nwalkers*ncon
 ndata = len(megax) + len(mega_rv)
 npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
 
-chi2tot_val  = np.min(params[2])
+chi2tot_val_rv  = np.min(params[2])
+chi2tot_val_tr  = np.min(params[3])
+chi2tot_val  = chi2tot_val_rv + chi2tot_val_tr
 chi2_val = chi2tot_val / ( ndata - npars )
 bic2 = get_BIC(chi2tot_val)
 
@@ -52,9 +55,10 @@ if ( scale_error_bars ):
 
 if ( method == 'mcmc' or method == 'plot' ):
 
-  minchi2_index = np.argmin(params[2])
+  minchi2_rv_index = np.argmin(params[2])
+  minchi2_tr_index = np.argmin(params[3])
 
-  base = 3 #Where do the parameters start?
+  base = 4 #Where do the parameters start?
 #Fitted parameters
   T0_vec = [None]*nplanets
   P_vec  = [None]*nplanets
@@ -91,6 +95,8 @@ if ( method == 'mcmc' or method == 'plot' ):
   opars.write('thin_factor = %8i \n'%thin_factor)
   opars.write('N_data      = %8i \n'%ndata)
   opars.write('N_pars      = %8i \n'%npars)
+  opars.write('chi2_rv     = %4.4f\n' %(chi2tot_val_rv))
+  opars.write('chi2_tr     = %4.4f\n' %(chi2tot_val_tr))
   opars.write('chi2        = %4.4f\n' %(chi2tot_val))
   opars.write('DOF         = %8i \n' %(ndata - npars))
   opars.write('chi2_red    = %4.4f \n' %chi2_val)

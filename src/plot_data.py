@@ -14,7 +14,8 @@ fsy = figure_size_y
 fos = font_size_label
 
 vari = params[0]
-chi2 = params[2]
+chi2 = params[2] + params[3]
+
 
 #===========================================================
 #              plot chains
@@ -85,7 +86,7 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
 #===========================================================
 def plot_transit_nice():
 #Move all the points to T0
-  ldc = [ np.mean(params[3+8*nplanets]), np.median(params[4+8*nplanets]) ]
+  ldc = [ np.median(params[4+8*nplanets]), np.median(params[5+8*nplanets]) ]
   q1_val = ldc[0]
   q2_val = ldc[1]
   u1_val = np.sqrt(q1_val)
@@ -101,7 +102,7 @@ def plot_transit_nice():
   a_val  = [None]*nplanets
   pz_val = [None]*nplanets
 
-  base = 3
+  base = 4
   for m in range(0,nplanets):
     t0_val[m] = np.median(params[base + 0])
     P_val[m]  = np.median(params[base + 1])
@@ -211,7 +212,7 @@ def plot_transit_nice():
 
 def plot_all_transits():
 
-  ldc = [ np.mean(params[3+8*nplanets]), np.median(params[4+8*nplanets]) ]
+  ldc = [ np.median(params[4+8*nplanets]), np.median(params[5+8*nplanets]) ]
   q1_val = ldc[0]
   q2_val = ldc[1]
   u1_val = np.sqrt(q1_val)
@@ -227,7 +228,7 @@ def plot_all_transits():
   a_val  = [None]*nplanets
   pz_val = [None]*nplanets
 
-  base = 3
+  base = 4
   for m in range(0,nplanets):
     t0_val[m] = np.median(params[base + 0])
     P_val[m]  = np.median(params[base + 1])
@@ -351,13 +352,13 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
 v_vec_val = [None]*nt
 v_val = [None]*nt
 #3 + npars + ldc
-v_vec_val[:] = params[3+8*nplanets+2:3+8*nplanets+2+nt]
+v_vec_val[:] = params[4+8*nplanets+2:4+8*nplanets+2+nt]
 for o in range(0,nt):
   v_val[o] = np.median(v_vec_val[o])
   if ( is_log_rv0 ):
     v_val[o] = 10.0**(v_val[o])
 
-base = 3
+base = 4
 t0_val = np.ndarray(nplanets)
 P_val  = np.ndarray(nplanets)
 e_val  = np.ndarray(nplanets)
@@ -548,7 +549,7 @@ def plot_histogram():
     labs.append(['$q_1$','$q_2$'])
     labs.append(telescopes_labels)
     labels = np.concatenate(labs)
-    create_plot_histogram(params[3:],labels, cbars='red', nb=50)
+    create_plot_histogram(params[4:],labels, cbars='red', nb=50)
 
 #===========================================================
 #                   Correlation plots
@@ -590,5 +591,5 @@ def plot_correlations():
   labs.append(['$q_1$','$q_2$'])
   labs.append(telescopes_labels)
   labels = np.concatenate(labs)
-  create_plot_correlation(params[3:],labels,col='blue')
+  create_plot_correlation(params[4:],labels,col='blue')
 
