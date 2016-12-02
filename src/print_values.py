@@ -144,6 +144,7 @@ if ( method == 'mcmc' or method == 'plot' ):
 
     if ( is_ew ):
       e_dum = list(e_vec[o])
+      w_dum = list(w_vec[o])
       e_vec[o] = e_vec[o]**2 + w_vec[o]**2
       w_vec[o] = np.arctan2(e_dum,w_vec[o])
       w_vec[o] = w_vec[o] % (2*np.pi)
@@ -224,13 +225,20 @@ if ( method == 'mcmc' or method == 'plot' ):
     opars.write ('-------------------------Fitted-------------------------------\n')
     opars.write ('T0   = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(T0_vec[o],s_factor)))
     opars.write ('P    = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(P_vec[o],s_factor)))
-    opars.write ('e    = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_vec[o],s_factor)))
-    opars.write ('w*   = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
+    if ( is_ew ):
+      opars.write ('ew 1 = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_dum,s_factor)))
+      opars.write ('ew 2 = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(w_dum,s_factor)))
+    else:
+      opars.write ('e    = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_vec[o],s_factor)))
+      opars.write ('w*   = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
     opars.write ('b    = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(b_vec[o],s_factor)))
     opars.write ('a/R* = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(ar_vec[o],s_factor)))
     opars.write ('Rp/R*= %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(rr_vec[o],s_factor)))
     opars.write ('K    = %4.7f - %4.7f + %4.7f  m/s  \n'%(find_vals_perc(k_vec[o]*1e3,s_factor)))
     opars.write ('-------------------------Derived------------------------------\n')
+    if ( is_ew ):
+      opars.write ('e    = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_vec[o],s_factor)))
+      opars.write ('w*   = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
     opars.write ('i    = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
     opars.write ('a    = %4.7f - %4.7f + %4.7f  AU   \n'%(find_vals_perc(a_vec[o],s_factor)))
     opars.write ('rho* = %4.7f - %4.7f + %4.7f  g/cm^3 (transit light curve)\n'%(find_vals_perc(ds_vec[o],s_factor)))
@@ -257,6 +265,9 @@ if ( method == 'mcmc' or method == 'plot' ):
     #otex.write ('%-------------------------Fitted-------------------------------\n')
     otex.write ('\\newcommand{\Tzero'+plabels[o]+'}[1][days]{$%4.7f _{ - %4.7f } ^ { + %4.7f } $#1} \n'%(find_vals_perc(T0_vec[o],s_factor)))
     otex.write ('\\newcommand{\P'+plabels[o]+'}[1][days]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1} \n'%(find_vals_perc(P_vec[o],s_factor)))
+    if ( is_ew ):
+      otex.write ('\\newcommand{\esin'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1 } \n'%(find_vals_perc(e_dum,s_factor)))
+      otex.write ('\\newcommand{\ecos'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1 } \n'%(find_vals_perc(w_dum,s_factor)))
     otex.write ('\\newcommand{\e'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1}      \n'%(find_vals_perc(e_vec[o],s_factor)))
     otex.write ('\\newcommand{\w'+plabels[o]+'}[1][deg]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1} \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
     otex.write ('\\newcommand{\\b'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1}       \n'%(find_vals_perc(b_vec[o],s_factor)))
