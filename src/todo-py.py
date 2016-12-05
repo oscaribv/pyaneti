@@ -372,7 +372,7 @@ def joint_fit():
          min_phys_beta, max_phys_beta, min_phys_rv0, max_phys_rv0
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko,alphao,betao,vo, what_fit
   global new_nwalkers, good_index
-  global jrvo, jtro
+  global jrvo, jtro, total_fit_flag, flags
 
   wtf_all = [None]*8*nplanets
   for o in range(0,nplanets):
@@ -384,6 +384,8 @@ def joint_fit():
     wtf_rvs.append(int(fit_v0))
 
   wtf_ldc = [int(fit_q1), int(fit_q2)]
+
+  wtf_trends = [int(is_linear_trend), int(is_quadratic_trend)]
 
   #Let us check what do we want to fit
   total_fit_flag = [ total_rv_fit, total_tr_fit ]
@@ -430,7 +432,7 @@ def joint_fit():
     pti.multi_all_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
     tlab,megap,pars,rvs,ldc,stellar_pars,a_from_kepler,\
-    flags,total_fit_flag,is_jitter,wtf_all,wtf_rvs,wtf_ldc, \
+    flags,total_fit_flag,is_jitter,wtf_all,wtf_rvs,wtf_ldc,wtf_trends, \
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
     limits_ldc,limits_p, limits_p_rvs, limits_p_ldc, \
     n_cad, t_cad, nplanets, nt)
@@ -452,6 +454,10 @@ def joint_fit():
   newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
   if ( os.path.isfile('jitter_data.dat') ):
     os.rename('jitter_data.dat',newfile_jitter)
+
+  newfile_trends = outdir+'/'+star+'_trends_data.dat'
+  if ( os.path.isfile('trends_data.dat') ):
+    os.rename('trends_data.dat',newfile_trends)
 
 #-----------------------------------------------------------
 #          PRINT INITIAL CONFIGURATION

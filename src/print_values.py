@@ -14,11 +14,11 @@ dparams = np.loadtxt(newfile, comments='#',unpack=True)
 
 #Let us do the clustering
 params = list(dparams)
-params_jitter = [None]*2
+params_jitter = [0.0]*2
 new_nwalkers = nwalkers
 if ( is_clustering ):
   #Starting clustering
-  good_index, new_nwalkers = good_clustering(dparams[2],dparams[1],nconv,nwalkers)
+  good_index, new_nwalkers = good_clustering(dparams[2]+dparams[3],dparams[1],nconv,nwalkers)
   for o in range(0,len(dparams)):
     params[o] = clustering(dparams[o],good_index)
 
@@ -29,18 +29,51 @@ if ( is_jitter_rv or is_jitter_tr ):
   if ( is_clustering ):
     for o in range(0,2):
       params_jitter[o] = clustering(dparams_jitter[o],good_index)
+
+
+if ( is_linear_trend or is_quadratic_trend ):
+  newfile_trends = outdir+'/'+star+'_trends_data.dat'
+  dparams_trends = np.loadtxt(newfile_trends, comments='#',unpack=True)
+  params_trends = list(dparams_trends)
+  if ( is_clustering ):
+    for o in range(0,2):
+      params_trends[o] = clustering(dparams_trends[o],good_index)
+
 #Create the stellar data
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=new_nwalkers*nconv)
 tstar = np.random.normal(loc=tstar_mean,scale=tstar_sigma,size=new_nwalkers*nconv)
 
-
 #Calculate the BIC
 ndata = len(megax) + len(mega_rv)
 npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
 
-chi2tot_val_rv  = np.min(params[2])
-chi2tot_val_tr  = np.min(params[3])
+dummy_pars = [0.0]*len(params)
+for o in range(0,len(params)):
+    dummy_pars[o] = np.median(params[o])
+
+fit_pars = dummy_pars[4:4+8*nplanets]
+ldc_pars = dummy_pars[4+8*nplanets:6+8*nplanets]
+rvs_pars = dummy_pars[6+8*nplanets:6+8*nplanets+nt]
+
+fit_jrv = 0.0
+fit_jtr = 0.0
+
+if ( is_jitter_rv or is_jitter_tr ) :
+  fit_jrv = np.median(params_jitter[0])
+  fit_jtr = np.median(params_jitter[1])
+
+fit_trends = [0.0]*2
+if ( is_linear_trend or is_quadratic_trend ):
+ fit_trends = [np.median(params_trends[0]),np.median(params_trends[1])]
+
+#Calculate the final chi2 for each case
+chi2tot_val_rv, chi2tot_val_tr = \
+  pti.get_total_chi2(mega_time,mega_rv,megax,megay,mega_err,megae,\
+                     tlab,megap,total_fit_flag,flags,t_cad, n_cad, \
+                     fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr \
+                     )
+
 chi2tot_val  = chi2tot_val_rv + chi2tot_val_tr
 chi2_val = chi2tot_val / ( ndata - npars )
 bic2 = get_BIC(chi2tot_val)
@@ -93,6 +126,8 @@ if ( method == 'mcmc' or method == 'plot' ):
   opars.write('N_chains    = %8i \n'%nwalkers)
   opars.write('N_conv      = %8i \n'%nconv)
   opars.write('thin_factor = %8i \n'%thin_factor)
+  opars.write('N_rv_data   = %8i \n'%len(mega_time))
+  opars.write('N_tr_data   = %8i \n'%len(megax))
   opars.write('N_data      = %8i \n'%ndata)
   opars.write('N_pars      = %8i \n'%npars)
   opars.write('chi2_rv     = %4.4f\n' %(chi2tot_val_rv))
@@ -323,6 +358,10 @@ if ( is_jitter_rv or is_jitter_tr ):
   opars.write ('RV jitter = %4.7f - %4.7f + %4.7f m/s    \n'%(find_vals_perc(params_jitter[0]*1.e3,s_factor)))
   opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux]   \n'%(find_vals_perc(params_jitter[1],s_factor)))
   opars.write ('--------------------------------------------------------------\n')
+if ( is_linear_trend or is_quadratic_trend ):
+  opars.write ('linear t    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(params_trends[0],s_factor)))
+  opars.write ('quatratic t = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(params_trends[1],s_factor)))
+  opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
 #LaTeX
 #otex.write ('--------------------  Other parameters -----------------------\n')
@@ -341,7 +380,7 @@ if ( is_jitter_rv or is_jitter_tr ):
 otex.write('\n')
 
 #RESIZE TRANSIT ERROR BARS
-if ( is_jitter_tr ):
+if ( is_jitter_tr and resize_tr ):
   jit_tr = np.median(params_jitter[1])
   for o in range(0,len(et)):
       for m in range(0,len(et[o])):
@@ -349,6 +388,10 @@ if ( is_jitter_tr ):
               et[o][m][q] = np.sqrt(et[o][m][q]**2 + jit_tr**2)
   for o in range(0,len(megae)):
     megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
+if ( is_jitter_rv and resize_rv ):
+    jit_rv = np.median(params_jitter[0])
+    for o in range(0,len(mega_err)):
+        mega_err[o] = np.sqrt(mega_err[o]**2 + jit_rv**2)
 
 opars.close()
 otex.close()

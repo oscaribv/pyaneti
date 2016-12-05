@@ -27,7 +27,7 @@ def plot_chains():
 #  if (nplanets == 1):
    #plt.plot(vari,chi2,'b.')
   #plt.hist2d(vari,chi2/(ndata-npars),bins=100,norm=LogNorm())
-  plt.hist2d(vari,chi2/(ndata-npars),bins=100)
+  plt.hist2d(vari,chi2/(ndata-npars),bins=50)
 #  else:
    #plt.plot(vari[0],chi2[0],'b.')
 #   plt.hist2d(vari[0],chi2[0],bins=100,norm=LogNorm())
@@ -358,14 +358,20 @@ for o in range(0,nt):
   if ( is_log_rv0 ):
     v_val[o] = 10.0**(v_val[o])
 
+
+alpha_val = 0.0
+beta_val = 0.0
+if ( is_linear_trend or is_quadratic_trend ):
+  alpha_val = np.median(params_trends[0])
+  beta_val  = np.median(params_trends[1])
+
+
 base = 4
 t0_val = np.ndarray(nplanets)
 P_val  = np.ndarray(nplanets)
 e_val  = np.ndarray(nplanets)
 w_val  = np.ndarray(nplanets)
 k_val  = np.ndarray(nplanets)
-alpha_val = 0.0
-beta_val = 0.0
 
 for o in range(0,nplanets):
   t0_val[o] = np.median(params[base + 0])
@@ -469,8 +475,8 @@ if ( nplanets > 0 ):
       for j in range(1,n):
         rvx[j] = rvx[j-1] + dn
       rvy[i] = pti.rv_curve_mp(rvx,0.0,t0_val[i],\
-      k_dum[i],P_val[i],e_val[i],w_val[i],alpha_val*cfactor \
-      , beta_val*cfactor)
+      k_dum[i],P_val[i],e_val[i],w_val[i],0.0 \
+      ,0.0)
 
       dt0_val = []
       dk_dum = []
@@ -490,22 +496,32 @@ if ( nplanets > 0 ):
 
       res = [None]*nt
       drvy = [None]*nt
-      for j in range(0,nt):
+      for j in range(0,nt): #Remove the signal for each telescope
         #This is the model of the actual planet
         res[j] = pti.rv_curve_mp(time_all[j],0.0,t0_val[i],k_dum[i],\
-        P_val[i],e_val[i],w_val[i], cfactor*alpha_val, cfactor*beta_val)
+        P_val[i],e_val[i],w_val[i], 0.0, 0.0)
 
         #This variable has all the others planets
         if ( nplanets > 1 ):
           drvy[j] = pti.rv_curve_mp(time_all[j],0.0,dt0_val,dk_dum \
-          ,dP_val,de_val,dw_val, alpha_val*cfactor \
-          ,beta_val*cfactor)
+          ,dP_val,de_val,dw_val, 0.0 \
+          ,0.0)
         else:
           drvy[j] = 0.0
 
+        alpha_time = [None]*len(time_all[j])
+        beta_time = [None]*len(time_all[j])
+        for m in range(0,len(time_all[j])):
+            alpha_time[m] = (time_all[j][m]-t0_val)**1 * alpha_val * cfactor
+            beta_time[m]  = (time_all[j][m]-t0_val)**2 * beta_val  * cfactor
+
         #the actual value, minus the systemic velocity, minus the other planets
-        rv_dum[j] = rv_dum[j] - v_val[j] - drvy[j]
-        res[j] = rv_dum[j] - res[j]
+        for o in range(len(time_all[j])):
+          if ( nplanets > 1 ):
+            rv_dum[j][o] = rv_dum[j][o] - v_val[j] - drvy[j][o] - alpha_time[o] - beta_time[o]
+          else:
+            rv_dum[j][o] = rv_dum[j][o] - v_val[j] - drvy[j] - alpha_time[o] - beta_time[o]
+          res[j][o] = rv_dum[j][o] - res[j][o]
 
       p_rv[i] = scale_period(rvx,t0_val[i],P_val[i])
       p_all = [None]*nt

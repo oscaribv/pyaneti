@@ -1,5 +1,5 @@
 subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,tff,flags,&
-           t_cad,n_cad,pars,rvs,ldc,jrv,jtr,chi2_rv,chi2_tr,npl,n_tel,size_rv,size_tr)
+           t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr,chi2_rv,chi2_tr,npl,n_tel,size_rv,size_tr)
 implicit none
 
 !In/Out variables
@@ -11,6 +11,7 @@ implicit none
   !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
+  double precision, intent(in) :: trends(0:1)
   double precision, intent(in) :: jrv, jtr
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
@@ -27,7 +28,7 @@ implicit none
     pars_tr(:,i)   = pars(j:j+6)
     pars_rv(0:3,i) = pars(j:j+3)
     pars_rv(4,i) = pars(j+7)
-    pars_rv(5:6,i) = 0.d0 !ADD alpha and beta
+    pars_rv(5:6,i) = trends(:)
     pars_rv(7:7+n_tel-1,i) = rvs(:)
   end do
 
@@ -55,7 +56,7 @@ subroutine multi_all_stretch_move( &
            plab_tr,pars, rvs, ldc, &              !parameters vars
            stellar_pars,afk,&
            flags, total_fit_flag,is_jit, &               !flags
-           wtf_all, wtf_rvs, wtf_ldc, &           !fitting controls
+           wtf_all, wtf_rvs, wtf_ldc,wtf_trends, &           !fitting controls
            nwalks, maxi, thin_factor, nconv, &    !
            lims, lims_rvs, lims_ldc, &            !prior limits
            lims_p, lims_p_rvs, lims_p_ldc, &      !physical limits
@@ -80,6 +81,7 @@ implicit none
   double precision, intent(in), dimension(0:2*n_tel - 1) :: lims_rvs, lims_p_rvs
   double precision, intent(in), dimension(0:3) :: lims_ldc, lims_p_ldc
   double precision, intent(in) ::  t_cad
+  integer, intent(in) :: wtf_trends(0:1)
   integer, intent(in) :: wtf_all(0:8*npl-1), wtf_rvs(0:n_tel-1), wtf_ldc(0:1)
   logical, intent(in) :: flags(0:5), total_fit_flag(0:1) !CHECK THE SIZE
   logical, intent(in) :: afk(0:npl-1), is_jit(0:1)
@@ -93,9 +95,11 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_new_rv, chi2_new_tr
   double precision, dimension(0:nwalks-1,0:8*npl-1,0:nconv-1) :: pars_chains
   double precision, dimension(0:nwalks-1) :: jitter_rv_old, jitter_rv_new, jitter_tr_old, jitter_tr_new
+  double precision, dimension(0:nwalks-1,0:1) :: tds_old, tds_new !linear and quadratic terms
+  double precision, dimension(0:3) :: lims_trends
   double precision, dimension(0:nwalks-1,0:size_rv+size_tr-1) :: mult_old, mult_new, mult_total
   integer, dimension(0:nwalks-1) :: r_int
-  double precision  :: q, spar, a_factor, dof
+  double precision  :: q, spar, a_factor, dof, tds
   double precision  :: lims_ldc_dynamic(0:1), lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
   logical :: continua, is_burn, is_limit_good, is_cvg
@@ -140,6 +144,19 @@ implicit none
     end do
   end if
 
+  !Linear and quadratic terms
+  lims_trends(:) = 0.0d0
+  tds = 0.0d0
+  if ( wtf_trends(0) == 1 ) then !linear trend
+    lims_trends(0) = -1.0d-1
+    lims_trends(1) =  1.0d-1
+  end if
+  if ( wtf_trends(1) == 1) then !quadratic trend
+    lims_trends(2) = -1.0d-1
+    lims_trends(3) =  1.0d-1
+  end if
+
+
   print *, 'CREATING PRIORS'
   call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
   call gauss_random_bm(rstar_mean,rstar_sigma,rstar,nwalks)
@@ -157,6 +174,7 @@ implicit none
         end do
       end if
 
+      call uniform_priors(tds,2,wtf_trends,lims_trends,tds_old(nk,:))
 
       call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
 
@@ -175,10 +193,11 @@ implicit none
 
       call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
-           ldc_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
+           ldc_old(nk,:),tds_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
            chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,size_rv,size_tr)
 
            chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
+
 
   end do
 
@@ -221,6 +240,7 @@ implicit none
       pars_new(nk,:) = pars_old(r_int(nk),:)
       rvs_new(nk,:) = rvs_old(r_int(nk),:)
       ldc_new(nk,:) = ldc_old(r_int(nk),:)
+      tds_new(nk,:) = tds_old(r_int(nk),:)
       jitter_rv_new(nk) = jitter_rv_old(r_int(nk))
       jitter_tr_new(nk) = jitter_tr_old(r_int(nk))
     end do
@@ -243,6 +263,8 @@ implicit none
                      ( rvs_old(nk,:) - rvs_new(nk,:) )
       ldc_new(nk,:)  = ldc_new(nk,:) + wtf_ldc(:) * z_rand(nk) * &
                      ( ldc_old(nk,:) - ldc_new(nk,:) )
+      tds_new(nk,:)  = tds_new(nk,:) + wtf_trends(:) * z_rand(nk) * &
+                     ( tds_old(nk,:) - tds_new(nk,:) )
       jitter_rv_new(nk) = jitter_rv_new(nk) + z_rand(nk) * &
                          ( jitter_rv_old(nk) - jitter_rv_new(nk) )
       jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) * &
@@ -255,13 +277,13 @@ implicit none
        end if
       end do
 
-!      do m = 0, npl - 1
-!        if ( afk(m) ) then
-!          !The parameter comes from 3rd Kepler law
-!         !pars_old(1) is the period
-!        call get_a_scaled(mstar(nk),rstar(nk),pars_new(nk,1+8*m),pars_new(nk,5+8*m),1)
-!        end if
-!      end do
+      do m = 0, npl - 1
+        if ( afk(m) ) then
+          !The parameter comes from 3rd Kepler law
+         !pars_old(1) is the period
+        call get_a_scaled(mstar(nk),rstar(nk),pars_new(nk,1+8*m),pars_new(nk,5+8*m),1)
+        end if
+      end do
 
       !Let us check if the new parameters are inside the limits
       is_limit_good = .true.
@@ -276,7 +298,7 @@ implicit none
       if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
              total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
-             ldc_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
+             ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
              chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,size_rv,size_tr)
 
         chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
@@ -316,6 +338,7 @@ implicit none
         pars_old(nk,:) = pars_new(nk,:)
         rvs_old(nk,:) = rvs_new(nk,:)
         ldc_old(nk,:) = ldc_new(nk,:)
+        tds_old(nk,:) = tds_new(nk,:)
         if ( is_jit(0) ) &
           jitter_rv_old(nk) = jitter_rv_new(nk)
         if ( is_jit(1) ) &
@@ -333,6 +356,7 @@ implicit none
          write(101,*) j, nk, chi2_old_rv(nk),chi2_old_tr(nk), pars_old(nk,:), &
                       ldc_old(nk,:), rvs_old(nk,:)
          write(201,*) jitter_rv_old(nk), jitter_tr_old(nk)
+         write(301,*) tds_old(nk,:)
          !$OMP END CRITICAL
         end if
       end if
@@ -386,6 +410,7 @@ implicit none
             !Let us start the otput file
             open(unit=101,file='all_data.dat',status='unknown')
             open(unit=201,file='jitter_data.dat',status='unknown')
+            open(unit=301,file='trends_data.dat',status='unknown')
           end if ! is_cvg
         end if !nconv
       end if !j/thin_factor
@@ -405,5 +430,6 @@ implicit none
   !Close file
   close(101)
   close(201)
+  close(301)
 
 end subroutine
