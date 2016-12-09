@@ -73,6 +73,7 @@ plot_all_tr = False
 is_fit_tr_errorbars = True
 is_jitter_rv = False
 is_jitter_tr = False
+plot_parameters = []
 is_linear_trend = False
 is_quadratic_trend = False
 is_seaborn_plot = False

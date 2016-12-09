@@ -359,8 +359,8 @@ if ( is_jitter_rv or is_jitter_tr ):
   opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux]   \n'%(find_vals_perc(params_jitter[1],s_factor)))
   opars.write ('--------------------------------------------------------------\n')
 if ( is_linear_trend or is_quadratic_trend ):
-  opars.write ('linear t    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(params_trends[0],s_factor)))
-  opars.write ('quatratic t = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(params_trends[1],s_factor)))
+  opars.write ('linear trend    = %4.7f - %4.7f + %4.7f  m/s/days   \n'%(find_vals_perc(params_trends[0]*1.e3,s_factor)))
+  opars.write ('quadratic trend = %4.7f - %4.7f + %4.7f  m/s/days^2 \n'%(find_vals_perc(params_trends[1]*1.e3,s_factor)))
   opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
 #LaTeX

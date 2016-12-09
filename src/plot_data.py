@@ -57,7 +57,7 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.xlim(x_lim,-x_lim)
   min_val_model = max(fd_reb) -  min(fd_reb)
   plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='ro',alpha=1.0)
-  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0,alpha=1.0)
+  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
   plt.minorticks_on()
@@ -433,7 +433,7 @@ if ( nplanets > 0 ):
     plt.figure(1,figsize=(2*fsx,fsy))
     plt.plot(rvx,rvy,'k')
     plt.minorticks_on()
-    plt.xlabel("JD (days)",fontsize=fos)
+    plt.xlabel("BJD - 2450000 (days)",fontsize=fos)
     plt.ylabel('RV (m/s)',fontsize=fos)
     plt.xlim(xmin,xmax)
     for j in range(0,nt):
@@ -535,12 +535,16 @@ if ( nplanets > 0 ):
 #                   Histogram plots
 #===========================================================
 
-def create_plot_histogram(params,plabs,cbars='red',nb=50):
-  n = len(params)
-  plt.figure(1,figsize=(15,4*(n)/2))
-  gs = gridspec.GridSpec(nrows=(n+1)/2,ncols=2)
-  for i in range(0,n):
-    plt.subplot(gs[i])
+def create_plot_histogram(params,plabs,cbars='red',nb=50,num=[]):
+  if ( len(num) < 2 ):
+    n = range(0,len(params))
+  else:
+    n = num
+  plt.figure(1,figsize=(12,4*(len(n))/2))
+  gs = gridspec.GridSpec(nrows=(len(n)+1)/2,ncols=2)
+  j = 0
+  for i in n:
+    plt.subplot(gs[j])
     vpar, lpar, rpar = find_vals_perc(params[i],1.0)
     #best_val = params[i][minchi2_index]
     #plt.axvline(x=best_val,c='yellow')
@@ -549,6 +553,7 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
     plt.axvline(x=vpar+rpar,c=cbars,ls='--')
     plt.xlabel(plabs[i])
     plt.hist(params[i],normed=True,bins=nb)
+    j = j + 1
 
   fname = outdir+'/'+star+'_histogram.pdf'
   print 'Creating ', fname
@@ -558,39 +563,51 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50):
 def plot_histogram():
     labs = []
     for o in range(0,nplanets):
-      etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \
-                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_*$'+plabels[o], \
-                 '$R_p/R_*$'+plabels[o],'$k$'+plabels[o]]
+      etiquetas = ['$T0$'+plabels[o]+' (days)','$P$'+plabels[o]+' (days)','$e$'+plabels[o], \
+                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_\star$'+plabels[o], \
+                 '$R_{\mathrm{p}}/R_\star$'+plabels[o],'$k$'+plabels[o]+' (kms$^{-1}$)']
       labs.append(etiquetas)
     labs.append(['$q_1$','$q_2$'])
     labs.append(telescopes_labels)
     labels = np.concatenate(labs)
-    create_plot_histogram(params[4:],labels, cbars='red', nb=50)
+    create_plot_histogram(params[4:],labels, cbars='red', nb=50, num=plot_parameters)
 
 #===========================================================
 #                   Correlation plots
 #===========================================================
 
-def create_plot_correlation(params,plabs,col='red',mark='.'):
-  n = len(params)
-  plt.figure(1,figsize=(2*n,2*n))
-  gs = gridspec.GridSpec(nrows=n,ncols=n)
-  for i in range(0,n):
-    for j in range(0,i):
-      plt.subplot(gs[i*n+j])
-      if ( j == 0 ):
-        plt.ylabel(plabs[i])
-      elif ( j == i - 1 ):
-        #plt.colorbar()
+def create_plot_correlation(params,plabs,col='red',mark='.',num=[]):
+  if ( len(num) < 1 ):
+    n = range(0,len(params))
+  else:
+    n = num
+  plt.figure(1,figsize=(4*len(n),4*len(n)))
+  gs = gridspec.GridSpec(nrows=len(n),ncols=len(n))
+  o = 0
+  for i in n:
+    p = 0
+    for j in n:
+      if ( j < i ):
+        plt.subplot(gs[o*len(n)+p])
         plt.tick_params( axis='y',which='both',labelleft='off')
-      else:
-        plt.tick_params( axis='y',which='both',labelleft='off')
-      if ( i == n-1):
-        plt.xlabel(plabs[j])
-      else:
         plt.tick_params( axis='x',which='both',labelbottom='off')
-
-      plt.hist2d(params[j],params[i],bins=100,norm=LogNorm())
+        plt.ticklabel_format(useOffset=False, axis='both')
+        if ( j == 0 ):
+           plt.ylabel(plabs[i],fontsize=25)
+        elif ( j == i - 1 ):
+          plt.tick_params( axis='y',which='both',labelleft='off')
+          plt.tick_params( axis='x',which='both',labelbottom='off')
+        else:
+          plt.tick_params( axis='y',which='both',labelleft='off')
+          plt.tick_params( axis='x',which='both',labelbottom='off')
+        if ( i == n[len(n)-1]):
+          plt.xlabel(plabs[j],fontsize=25)
+        else:
+          plt.tick_params( axis='y',which='both',labelleft='off')
+          plt.tick_params( axis='x',which='both',labelbottom='off')
+        plt.hist2d(params[j],params[i],bins=100,norm=LogNorm())
+        p = p + 1
+    o = o + 1
 
   fname = outdir+'/'+star+'_correlations.pdf'
   print 'Creating ', fname
@@ -601,11 +618,11 @@ def plot_correlations():
   labs = []
   for o in range(0,nplanets):
     etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \
-                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_*$'+plabels[o], \
-                 '$R_p/R_*$'+plabels[o],'$k$'+plabels[o]]
+                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_\star$'+plabels[o], \
+                 '$R_{\mathrm{p}}/R_\star$'+plabels[o],'$k$'+plabels[o]]
     labs.append(etiquetas)
   labs.append(['$q_1$','$q_2$'])
   labs.append(telescopes_labels)
   labels = np.concatenate(labs)
-  create_plot_correlation(params[4:],labels,col='blue')
+  create_plot_correlation(params[4:],labels,col='blue',num=plot_parameters)
 
