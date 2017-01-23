@@ -74,6 +74,25 @@ chi2tot_val_rv, chi2tot_val_tr = \
                      fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr \
                      )
 
+#Calculate likelihoods
+likelihood_rv = 1.0
+for o in range(0,len(mega_err)):
+  likelihood_rv = likelihood_rv * np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv**2))
+  #likelihood_rv = likelihood_rv * np.sqrt(( mega_err[o]**2+fit_jrv**2))
+  print likelihood_rv
+likelihood_rv = likelihood_rv * np.exp(-chi2tot_val_rv/2.0)
+
+likelihood_tr = 1.0
+for o in range(0,len(megae)):
+  likelihood_tr = likelihood_tr * np.sqrt(2.*np.pi*( megae[o]**2+fit_jtr**2))
+  #likelihood_tr = likelihood_tr * np.sqrt(( megae[o]**2+fit_jtr**2))
+likelihood_tr = likelihood_tr * np.exp(-chi2tot_val_tr/2.0)
+
+likelihood_total = likelihood_rv * likelihood_tr
+
+
+bic_from_likelihood = np.log(ndata)*npars - 2.0*np.log(likelihood_total)
+
 chi2tot_val  = chi2tot_val_rv + chi2tot_val_tr
 chi2_val = chi2tot_val / ( ndata - npars )
 bic2 = get_BIC(chi2tot_val)
@@ -133,10 +152,14 @@ if ( method == 'mcmc' or method == 'plot' ):
   opars.write('chi2_rv     = %4.4f\n' %(chi2tot_val_rv))
   opars.write('chi2_tr     = %4.4f\n' %(chi2tot_val_tr))
   opars.write('chi2        = %4.4f\n' %(chi2tot_val))
+  opars.write('ln likelihood_rv= %4.4f\n' %(np.log(likelihood_rv)))
+  opars.write('ln likelihood_tr= %4.4f\n' %(np.log(likelihood_tr)))
+  opars.write('ln likelihood  = %4.4f\n' %(np.log(likelihood_total)))
   opars.write('DOF         = %8i \n' %(ndata - npars))
   opars.write('chi2_red    = %4.4f \n' %chi2_val)
   opars.write('scale factor= %4.4f\n' %s_factor)
-  opars.write('BIC         = %4.4f\n' %(bic2))
+  opars.write('BIC from chi2   = %4.4f\n' %(bic2))
+  opars.write('BIC from likelihood   = %4.4f\n' %(bic_from_likelihood))
   opars.write ('--------------------------------------------------------------\n')
   opars.write ('             INPUT STELLAR PARAMETERS\n')
   opars.write ('--------------------------------------------------------------\n')

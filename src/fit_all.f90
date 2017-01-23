@@ -128,9 +128,9 @@ implicit none
   jitter_rv_new(:) = 0.0d0
   jitter_tr_new(:) = 0.0d0
   if ( is_jit(0) ) &
-     call gauss_random_bm(e_rv(0)*1e-2,e_rv(0)*1e-3,jitter_rv_old,nwalks)
+     call gauss_random_bm(e_rv(0)*1e-1,e_rv(0)*1e-2,jitter_rv_old,nwalks)
   if ( is_jit(1) ) &
-    call gauss_random_bm(e_tr(0)*1e-2,e_tr(0)*1e-3,jitter_tr_old,nwalks)
+    call gauss_random_bm(e_tr(0)*1e-1,e_tr(0)*1e-2,jitter_tr_old,nwalks)
   mult_old(:,:) = 1.0d0
   mult_new(:,:) = 1.0d0
   if ( is_jit(0) .or. is_jit(1) ) then
@@ -275,6 +275,9 @@ implicit none
        if ( wtf_all(m) == 0 ) then
           call gauss_random_bm(pars(m),pars(m)-lims(2*m),pars_new(nk,m),1)
        end if
+      end do
+      do m = 0, 1
+        if ( wtf_ldc(m) == 0 ) call gauss_random_bm(ldc(m),ldc(m)*0.2,ldc_new(nk,m),1)
       end do
 
       do m = 0, npl - 1

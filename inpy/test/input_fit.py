@@ -21,6 +21,7 @@ n_cad = 1
 t_cad = 30. / 60. / 24.
 
 method = 'sm'
+method = 'new'
 #method = 'plot'
 
 mstar_mean = 1.0
