@@ -48,6 +48,12 @@ tstar = np.random.normal(loc=tstar_mean,scale=tstar_sigma,size=new_nwalkers*ncon
 ndata = len(megax) + len(mega_rv)
 npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
 
+if ( is_linear_trend ):
+  npars = npars + 1
+if ( is_quadratic_trend):
+  npars = npars + 1
+
+
 dummy_pars = [0.0]*len(params)
 for o in range(0,len(params)):
     dummy_pars[o] = np.median(params[o])
@@ -75,16 +81,16 @@ chi2tot_val_rv, chi2tot_val_tr = \
                      )
 
 #Calculate likelihoods
-likelihood_rv = 1.0
+likelihood_rv = np.float64(1.0)
 for o in range(0,len(mega_err)):
-  likelihood_rv = likelihood_rv * np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv**2))
+  likelihood_rv = likelihood_rv / np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv**2))
   #likelihood_rv = likelihood_rv * np.sqrt(( mega_err[o]**2+fit_jrv**2))
-  print likelihood_rv
+  #print likelihood_rv
 likelihood_rv = likelihood_rv * np.exp(-chi2tot_val_rv/2.0)
 
-likelihood_tr = 1.0
+likelihood_tr = np.float64(1.0)
 for o in range(0,len(megae)):
-  likelihood_tr = likelihood_tr * np.sqrt(2.*np.pi*( megae[o]**2+fit_jtr**2))
+  likelihood_tr = likelihood_tr / np.sqrt(2.*np.pi*( megae[o]**2+fit_jtr**2))
   #likelihood_tr = likelihood_tr * np.sqrt(( megae[o]**2+fit_jtr**2))
 likelihood_tr = likelihood_tr * np.exp(-chi2tot_val_tr/2.0)
 

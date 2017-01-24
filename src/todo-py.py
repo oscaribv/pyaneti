@@ -20,6 +20,11 @@ def get_BIC(chi2tot_val):
   npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
   ndata = len(megax) + len(mega_rv)
 
+  if ( is_linear_trend ):
+      npars = npars + 1
+  if ( is_quadratic_trend):
+      npars = npars + 1
+
   BIC = chi2tot_val + npars * np.log(ndata)
 
   return BIC
