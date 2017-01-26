@@ -88,6 +88,9 @@ implicit none
 !Local variables
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: pars_old, pars_new
   double precision, dimension(0:nwalks-1,0:n_tel-1) :: rvs_old, rvs_new
+  double precision, dimension(0:nwalks-1,0:2) :: t0s_old, t0s_new !multiple transit variable
+  double precision, dimension(0:2) :: t0_priors  !multiple transit variable
+  double precision, dimension(0:1,0:2) ::  t0_limits !multiple transit variable
   double precision, dimension(0:nwalks-1,0:1) :: ldc_old, ldc_new
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand, mstar, rstar
   double precision, dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
@@ -156,6 +159,30 @@ implicit none
     lims_trends(3) =  1.0d-1
   end if
 
+  !Here is the option to fit each T0
+  !This will work only for continous transit and one planet
+  m = 0
+  t0_priors(m) = pars(0)
+  t0_limits(0,m) = lims(0) + m * pars(1)
+  t0_limits(1,m) = lims(1) + m * pars(1)
+  if ( 1 == 1 ) then
+    do j = 0, size_tr - 1
+      n = int( ( x_tr(j) - pars(0) ) / pars(1) )
+      if ( n == m ) then
+        !t0(n) = t0(0) + m * P !all are priors
+        t0_priors(m) = pars(0) + m * pars(1)
+        t0_limits(0,m) = lims(0) + m * pars(1)
+        t0_limits(1,m) = lims(1) + m * pars(1)
+        m = m + 1
+      end if
+    end do
+  end if
+  !At this point I have created an array with all the priors for each T0
+  !and also the limits to create the prior limits for each transit
+
+  print *, t0_priors
+  print *, t0_limits
+!  stop
 
   print *, 'CREATING PRIORS'
   call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
@@ -165,6 +192,14 @@ implicit none
   do nk = 0, nwalks - 1
     !random parameters
       call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
+
+      if ( 1 == 1) then !T0s fit
+        do m = 0, 2
+          call uniform_priors(t0_priors(m),1,1,t0_limits(:,m),t0s_old(nk,m))
+        end do
+      end if
+      print *, nk, t0s_old(nk,:)
+
       !If we are using the parametrization for e and omega
       if ( flags(1) ) then
         do m = 0, npl-1
@@ -200,6 +235,8 @@ implicit none
 
 
   end do
+
+  stop
 
  chi2_red(:) = chi2_old_total(:) / dof
 

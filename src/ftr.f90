@@ -147,10 +147,6 @@ implicit none
   do j = 0, datas - 1
 
     !control the label of the planet
-!    if ( plab_tr(j) >  n ) then
-!      n = n + 1
-!    end if
-    !print *, plab_tr(j), n
     do n = 0, npl - 1
 
     !Are we generating an eclipse?
@@ -169,7 +165,6 @@ implicit none
 
       call find_z(xd_ub,pars(0:5,n),flag,z,n_cad)
       !Now we have z, let us use Agol's routines
-      !call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
       call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad)
 
       !Re-bin the data
@@ -201,7 +196,5 @@ implicit none
     chi2 = huge(0.e0)
 
   end if
-  !print *, 'stoped newchi2'
-  !stop
 
 end subroutine
