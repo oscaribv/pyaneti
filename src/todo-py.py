@@ -464,6 +464,10 @@ def joint_fit():
   if ( os.path.isfile('trends_data.dat') ):
     os.rename('trends_data.dat',newfile_trends)
 
+  newfile_t0s = outdir+'/'+star+'_t0s_data.dat'
+  if ( os.path.isfile('t0s_data.dat') ):
+    os.rename('t0s_data.dat',newfile_t0s)
+
 #-----------------------------------------------------------
 #          PRINT INITIAL CONFIGURATION
 #-----------------------------------------------------------

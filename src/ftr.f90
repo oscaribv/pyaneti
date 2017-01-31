@@ -14,13 +14,14 @@
 !  the star and planet centers. Eq. (5), ( z = r_sky) from
 !  Winn, 2010, Transit and Occultations.
 !------------------------------------------------------------
-subroutine find_z(t,pars,flag,z,ts)
+subroutine find_z(t,pars,t0_vec,flag,z,ts,n_transits)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: ts
+  integer, intent(in) :: ts, n_transits
   double precision, intent(in), dimension(0:ts-1) :: t
   double precision, intent(in), dimension(0:5) :: pars
+  double precision, intent(in), dimension(0:n_transits-1) :: t0_vec
   double precision, intent(out), dimension(0:ts-1) :: z
   logical, intent(in), dimension(0:3) :: flag 
 !Local variables
@@ -56,8 +57,19 @@ implicit none
   ttot = asin( ttot / a / sin(i) )
   ttot = P * ttot / pi * sqrt(1.0 - e*e) / ( 1.d0 + e*sin(w) )
 
-  !Obtain the eccentric anomaly by using find_anomaly
-  call find_anomaly(t,t0,e,w,P,ta,ts)
+ !Obtain the eccentric anomaly by using find_anomaly
+  if ( 1 == 1 ) then
+   !Calculate the projected distance depending on the T0
+   do n = 0, ts - 1
+     j = int( ( t(n) - t0 ) / P )
+     call find_anomaly(t(n),t0_vec(j),e,w,P,ta(n),1)
+     !print *, t0_vec(j)
+   end do
+  else if ( 1 == 0) then
+   !Calculate the projected distance assuming there are no TTVs
+   call find_anomaly(t,t0,e,w,P,ta,ts)
+  end if
+
   swt = sin(w+ta)
 
   si = sin(i)
@@ -92,17 +104,19 @@ end subroutine
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
 subroutine find_chi2_tr(xd,yd,errs,plab_tr,pars,jitter,flag,ldc,&
+           t0_vec,n_transits, &
            n_cad,t_cad,chi2,datas,npl)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, n_cad, npl
+  integer, intent(in) :: datas, n_cad, npl, n_transits
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1)  :: plab_tr
   double precision, intent(in), dimension(0:6,0:npl-1) :: pars
   !pars = T0, P, e, w, b, a/R*, Rp/R*
   double precision, intent(in) :: t_cad
   double precision, intent(in) :: jitter
+  double precision, intent(in), dimension(0:n_transits-1) :: t0_vec
   logical, intent(in), dimension(0:3) :: flag
   double precision, intent(in), dimension (0:1) :: ldc
   double precision, intent(out) :: chi2
@@ -119,6 +133,7 @@ implicit none
 
   small = 1.d-5
   npl_dbl = dble(npl)
+
 
   q1k = ldc(0)
   q2k = ldc(1)
@@ -151,7 +166,7 @@ implicit none
 
     !Are we generating an eclipse?
     !Take care with the pars
-    call find_z(xd(j),pars(0:5,n),flag,zdum,1)
+    call find_z(xd(j),pars(0:5,n),t0_vec,flag,zdum,1,n_transits)
 
     if ( zdum(0) > 1.d0 + 2*pz(n) .or. pz(n) < small ) then
 
@@ -163,7 +178,7 @@ implicit none
         xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
       end do
 
-      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad)
+      call find_z(xd_ub,pars(0:5,n),t0_vec,flag,z,n_cad,n_transits)
       !Now we have z, let us use Agol's routines
       call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad)
 

@@ -1,14 +1,18 @@
 subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,tff,flags,&
-           t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr,chi2_rv,chi2_tr,npl,n_tel,size_rv,size_tr)
+           t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr, t0_vec, n_transits,  &
+           chi2_rv,chi2_tr,npl,n_tel,size_rv,size_tr)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: size_rv, size_tr, npl, n_tel, n_cad !size of RV and LC data
+  integer, intent(in) :: n_transits !size of RV and LC data
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_tr-1) :: plab_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab
   !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
+  double precision, intent(in), dimension(0:n_transits-1) :: t0_vec
+  !Vector wich contains the t0s to fit each transit
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
   double precision, intent(in) :: trends(0:1)
@@ -41,9 +45,11 @@ implicit none
   chi2_rv = 0.d0
   chi2_tr = 0.d0
 
+  !print *, 'inside', t0_vec
+
   if (tff(1) ) &
   call find_chi2_tr(x_tr,y_tr,e_tr,plab_tr,pars_tr,jtr,flag_tr,&
-                        ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
+                        ldc,t0_vec,n_transits,n_cad,t_cad,chi2_tr,size_tr,npl)
   if (tff(0) ) &
   call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,jrv,&
                     flag_rv,chi2_rv,size_rv,n_tel,npl)
@@ -107,7 +113,8 @@ implicit none
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
   logical :: continua, is_burn, is_limit_good, is_cvg
   logical :: is_kepler
-  integer :: nk, j, n, m, o, n_burn
+  integer :: nk, j, n, m, o, n_burn, n_transits
+  !n_transits has to be an input variable
 !external calls
   external :: init_random_seed, find_chi2_tr, find_chi2_rv
 
@@ -116,9 +123,11 @@ implicit none
   mstar_sigma = stellar_pars(1)
   rstar_mean  = stellar_pars(2)
   rstar_sigma = stellar_pars(3)
+  n_transits = 1
 
   !spar -> size of parameters, dof -> degrees of freedom
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
+  spar = spar + n_transits - 1 + sum(wtf_trends)
   dof  = size_rv + size_tr - spar
 
   !call the random seed
@@ -179,10 +188,11 @@ implicit none
   end if
   !At this point I have created an array with all the priors for each T0
   !and also the limits to create the prior limits for each transit
+!  print *, t0_priors
+!  print *, t0_limits
 
-  print *, t0_priors
-  print *, t0_limits
-!  stop
+  !stop
+
 
   print *, 'CREATING PRIORS'
   call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
@@ -194,11 +204,11 @@ implicit none
       call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
 
       if ( 1 == 1) then !T0s fit
-        do m = 0, 2
+        do m = 0, n_transits - 1
           call uniform_priors(t0_priors(m),1,1,t0_limits(:,m),t0s_old(nk,m))
         end do
       end if
-      print *, nk, t0s_old(nk,:)
+!      print *, nk, t0s_old(nk,:)
 
       !If we are using the parametrization for e and omega
       if ( flags(1) ) then
@@ -229,6 +239,7 @@ implicit none
       call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
            ldc_old(nk,:),tds_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
+           t0s_old(nk,:),n_transits, &
            chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,size_rv,size_tr)
 
            chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
@@ -236,7 +247,7 @@ implicit none
 
   end do
 
-  stop
+ !stop
 
  chi2_red(:) = chi2_old_total(:) / dof
 
@@ -278,6 +289,7 @@ implicit none
       rvs_new(nk,:) = rvs_old(r_int(nk),:)
       ldc_new(nk,:) = ldc_old(r_int(nk),:)
       tds_new(nk,:) = tds_old(r_int(nk),:)
+      t0s_new(nk,:) = t0s_old(r_int(nk),:)
       jitter_rv_new(nk) = jitter_rv_old(r_int(nk))
       jitter_tr_new(nk) = jitter_tr_old(r_int(nk))
     end do
@@ -306,6 +318,8 @@ implicit none
                          ( jitter_rv_old(nk) - jitter_rv_new(nk) )
       jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) * &
                          ( jitter_tr_old(nk) - jitter_tr_new(nk) )
+      t0s_new(nk,:)  = t0s_new(nk,:) + z_rand(nk) * &
+                     ( t0s_old(nk,:) - t0s_new(nk,:) )
 
       !For the fixed parameters, we assume a gaussian distribution with error bars
       do m = 0, 8*npl-1
@@ -339,6 +353,7 @@ implicit none
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
              total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
              ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
+             t0s_new(nk,:),n_transits, &
              chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,size_rv,size_tr)
 
         chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
@@ -379,6 +394,7 @@ implicit none
         rvs_old(nk,:) = rvs_new(nk,:)
         ldc_old(nk,:) = ldc_new(nk,:)
         tds_old(nk,:) = tds_new(nk,:)
+        t0s_old(nk,:) = t0s_new(nk,:)
         if ( is_jit(0) ) &
           jitter_rv_old(nk) = jitter_rv_new(nk)
         if ( is_jit(1) ) &
@@ -397,6 +413,7 @@ implicit none
                       ldc_old(nk,:), rvs_old(nk,:)
          write(201,*) jitter_rv_old(nk), jitter_tr_old(nk)
          write(301,*) tds_old(nk,:)
+         write(401,*) t0s_old(nk,:)
          !$OMP END CRITICAL
         end if
       end if
@@ -451,6 +468,7 @@ implicit none
             open(unit=101,file='all_data.dat',status='unknown')
             open(unit=201,file='jitter_data.dat',status='unknown')
             open(unit=301,file='trends_data.dat',status='unknown')
+            open(unit=401,file='t0s_data.dat',status='unknown')
           end if ! is_cvg
         end if !nconv
       end if !j/thin_factor
@@ -471,5 +489,8 @@ implicit none
   close(101)
   close(201)
   close(301)
+  close(401)
+
+  stop
 
 end subroutine

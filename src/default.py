@@ -55,6 +55,7 @@ is_circular = False
 maxi = int(1e8)
 thin_factor = 10
 nconv = 100
+n_transits = 1
 nt = 1
 errores='perc'
 nwalkers = 100
@@ -79,6 +80,7 @@ is_quadratic_trend = False
 is_seaborn_plot = False
 resize_rv = False
 resize_tr = True
+is_TTV = True
 textra = 0.0
 gap_between_transits = [10]
 #The defaul number of planets is 1
