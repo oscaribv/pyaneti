@@ -512,8 +512,8 @@ if ( nplanets > 0 ):
         alpha_time = [None]*len(time_all[j])
         beta_time = [None]*len(time_all[j])
         for m in range(0,len(time_all[j])):
-            alpha_time[m] = (time_all[j][m]-t0_val)**1 * alpha_val * cfactor
-            beta_time[m]  = (time_all[j][m]-t0_val)**2 * beta_val  * cfactor
+            alpha_time[m] = (time_all[j][m]-t0_val[0])**1 * alpha_val * cfactor
+            beta_time[m]  = (time_all[j][m]-t0_val[0])**2 * beta_val  * cfactor
 
         #the actual value, minus the systemic velocity, minus the other planets
         for o in range(len(time_all[j])):
