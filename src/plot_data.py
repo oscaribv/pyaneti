@@ -176,11 +176,11 @@ def plot_transit_nice():
         for n in range(0,n_cad):
           xd_ub_vec[m][n] = xmodel_vec[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1))/n_cad
 
-      zd_ub_dum = [None]*len(xmodel_vec)
       fd_ub_dum = [None]*len(xmodel_vec)
       fd_ub_total = [0.0]*len(xmodel_vec)
-      fd_reb_dum  = [0.0]*len(xmodel_vec)
+      zd_ub_dum = [None]*len(xmodel_vec)
       for p in range(0,nplanets):
+        fd_reb_dum  = [0.0]*len(xmodel_vec)
         if ( p != o ):
           for m in range(0,len(xmodel_vec)):
             zd_ub_dum[m] = pti.find_z(xd_ub_vec[m][:],[t0_val[p],P_val[p],e_val[p],w_val[p],i_val[p],a_val[p]],flag)
@@ -191,7 +191,7 @@ def plot_transit_nice():
             fd_ub_total[m] = fd_ub_total[m] + fd_reb_dum[m]
 
       yflux_local = yflux - fd_ub_total
-      yflux_local = yflux_local - 1.0 + nplanets_tr
+      yflux_local = yflux_local - 1 + nplanets
       #The flux has been corrected for the other planets
 
       res_res = yflux_local - fd_reb_res

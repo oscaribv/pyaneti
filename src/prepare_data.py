@@ -115,7 +115,7 @@ if ( nplanets_tr > 0 ):
   xt= [None]*nplanets
   yt= [None]*nplanets
   et= [None]*nplanets
-  for o in range(0,nplanets):
+  for o in range(0,nplanets_tr):
 
     filename = 'inpy/'+star+'/'+fname_tr[o]
     dummyd,dummyf,dummye = np.loadtxt(filename,usecols=columns_tr, \
@@ -162,7 +162,7 @@ if ( nplanets_tr > 0 ):
   megay = []
   megae = []
   megap = []
-  for i in range(0,nplanets):
+  for i in range(0,nplanets_tr):
       for j in range(0,len(xt[i])):
         for k in range(0,len(xt[i][j])):
             megap.append(i)
