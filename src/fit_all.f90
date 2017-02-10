@@ -102,6 +102,7 @@ implicit none
   double precision  :: q, spar, a_factor, dof, tds
   double precision  :: lims_ldc_dynamic(0:1), lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
+  double precision  :: jrrv, jrtr
   logical :: continua, is_burn, is_limit_good, is_cvg
   logical :: is_kepler
   integer :: nk, j, n, m, o, n_burn
@@ -115,7 +116,7 @@ implicit none
   rstar_sigma = stellar_pars(3)
 
   !spar -> size of parameters, dof -> degrees of freedom
-  spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
+  spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs) + int(is_jit(0)) + int(is_jit(1))
   dof  = size_rv + size_tr - spar
 
   !call the random seed
@@ -137,9 +138,11 @@ implicit none
     do nk = 0, nwalks - 1
       do j = 0, size_rv-1
         mult_old(nk,j) = 1.0d0/sqrt( e_rv(j)**2 + jitter_rv_old(nk)**2  )
+        if ( .not. is_jit(0) ) mult_old(nk,j) = 1.0d0
       end do
       do j = size_rv, size_rv+size_tr-1
         mult_old(nk,j) = 1.0d0/sqrt( e_tr(j-size_rv)**2 + jitter_tr_old(nk)**2)
+        if ( .not. is_jit(1) ) mult_old(nk,j) = 1.0d0
       end do
     end do
   end if
@@ -247,7 +250,7 @@ implicit none
 
     !Paralellization calls
     !$OMP PARALLEL &
-    !$OMP PRIVATE(is_limit_good,q,m)
+    !$OMP PRIVATE(is_limit_good,q,m,jrrv,jrtr)
     !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1
 
@@ -308,12 +311,16 @@ implicit none
      end if
 
       mult_new(nk,:) = 1.0d0
+      jrrv = jitter_rv_new(nk)**2
+      jrtr = jitter_tr_new(nk)**2
       if ( is_jit(0) .or. is_jit(1) ) then
         do m = 0, size_rv-1
-          mult_new(nk,m) = 1.0d0/sqrt( e_rv(m)**2 + jitter_rv_new(nk)**2  )
+          mult_new(nk,m) = 1.0d0/sqrt( e_rv(m)**2 + jrrv  )
+          if ( .not. is_jit(0) ) mult_new(nk,m) = 1.0d0
         end do
         do m = size_rv, size_rv+size_tr-1
-          mult_new(nk,m) = 1.0d0/sqrt( e_tr(m-size_rv)**2 + jitter_tr_new(nk)**2  )
+          mult_new(nk,m) = 1.0d0/sqrt( e_tr(m-size_rv)**2 + jrtr  )
+          if ( .not. is_jit(1) ) mult_new(nk,m) = 1.0d0
         end do
       end if
 
@@ -342,10 +349,8 @@ implicit none
         rvs_old(nk,:) = rvs_new(nk,:)
         ldc_old(nk,:) = ldc_new(nk,:)
         tds_old(nk,:) = tds_new(nk,:)
-        if ( is_jit(0) ) &
-          jitter_rv_old(nk) = jitter_rv_new(nk)
-        if ( is_jit(1) ) &
-          jitter_tr_old(nk) = jitter_tr_new(nk)
+        jitter_rv_old(nk) = jitter_rv_new(nk)
+        jitter_tr_old(nk) = jitter_tr_new(nk)
         mult_old(nk,:) = mult_new(nk,:)
       end if
 
