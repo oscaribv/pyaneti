@@ -130,7 +130,7 @@ def plot_transit_nice():
       eflux = np.concatenate(et[o])
 
       xmodel_res = list(xtime)
-      xmodel = np.arange(min(xtime), max(xtime),1.0/60./24.)
+      xmodel = np.arange(min(xtime), max(xtime),1.0/20./24.)
       #Let us create the model
 
       xd_ub = np.ndarray(shape=(len(xmodel),n_cad))
