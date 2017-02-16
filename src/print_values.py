@@ -137,9 +137,6 @@ if ( scale_error_bars ):
 
 if ( method == 'mcmc' or method == 'plot' ):
 
-  minchi2_rv_index = np.argmin(params[2])
-  minchi2_tr_index = np.argmin(params[3])
-
   base = 4 #Where do the parameters start?
 #Fitted parameters
   T0_vec = [None]*nplanets

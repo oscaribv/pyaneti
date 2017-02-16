@@ -198,7 +198,7 @@ implicit none
 
   else
 
-    chi2 = huge(0.e0)
+    chi2 = huge(0.d0)
 
   end if
   !print *, 'stoped newchi2'

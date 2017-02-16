@@ -99,13 +99,13 @@ implicit none
   double precision, dimension(0:3) :: lims_trends
   double precision, dimension(0:nwalks-1,0:size_rv+size_tr-1) :: mult_old, mult_new, mult_total
   integer, dimension(0:nwalks-1) :: r_int
-  double precision  :: q, spar, a_factor, dof, tds
+  double precision  :: q, a_factor, dof, tds
   double precision  :: lims_ldc_dynamic(0:1), lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
   double precision  :: jrrv, jrtr
   logical :: continua, is_burn, is_limit_good, is_cvg
   logical :: is_kepler
-  integer :: nk, j, n, m, o, n_burn
+  integer :: nk, j, n, m, o, n_burn, spar, spar1
 !external calls
   external :: init_random_seed, find_chi2_tr, find_chi2_rv
 
@@ -115,9 +115,16 @@ implicit none
   rstar_mean  = stellar_pars(2)
   rstar_sigma = stellar_pars(3)
 
+  spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs) + sum(wtf_trends)
   !spar -> size of parameters, dof -> degrees of freedom
-  spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs) + int(is_jit(0)) + int(is_jit(1))
-  dof  = size_rv + size_tr - spar
+  if ( is_jit(0) ) spar = spar + 1
+  if ( is_jit(1) ) spar = spar + 1
+  spar1 = spar - 1
+
+  dof = 0
+  if ( total_fit_flag(0) ) dof = dof + size_rv
+  if ( total_fit_flag(1) ) dof = dof + size_tr
+  dof  = dof - spar
 
   !call the random seed
   print *, 'CREATING RANDOM SEED'
@@ -311,9 +318,13 @@ implicit none
      end if
 
       mult_new(nk,:) = 1.0d0
-      jrrv = jitter_rv_new(nk)**2
-      jrtr = jitter_tr_new(nk)**2
+      q = 1.0d0
       if ( is_jit(0) .or. is_jit(1) ) then
+
+        jrrv = jitter_rv_new(nk)
+        jrrv = jrrv*jrrv
+        jrtr = jitter_tr_new(nk)
+        jrtr = jrtr*jrtr
         do m = 0, size_rv-1
           mult_new(nk,m) = 1.0d0/sqrt( e_rv(m)**2 + jrrv  )
           if ( .not. is_jit(0) ) mult_new(nk,m) = 1.0d0
@@ -322,22 +333,20 @@ implicit none
           mult_new(nk,m) = 1.0d0/sqrt( e_tr(m-size_rv)**2 + jrtr  )
           if ( .not. is_jit(1) ) mult_new(nk,m) = 1.0d0
         end do
-      end if
 
-      mult_total(nk,:) = mult_new(nk,:) / mult_old(nk,:)
+        mult_total(nk,:) = mult_new(nk,:) / mult_old(nk,:)
 
-      !Add the jitter terms
-      q = 1.0d0
-      if ( is_jit(0) .or. is_jit(1) ) then
+        !Add the jitter terms
         do m = 0, size_rv+size_tr-1
           q = q * mult_total(nk,m)
         end do
+
       end if
 
       !Let us compare our models
       !Compute the likelihood
-      q = q * z_rand(nk)**( int(spar - 1) ) * &
-            exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5d0  )
+      q = q * z_rand(nk)**spar1 * &
+              exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5d0  )
 
       !Check if the new likelihood is better
       if ( q > r_rand(nk) ) then
@@ -360,12 +369,14 @@ implicit none
       !Start to burn-in
       if ( is_burn ) then
         if ( mod(j,thin_factor) == 0 ) then
-         !$OMP CRITICAL
+         ! !$OMP CRITICAL
          write(101,*) j, nk, chi2_old_rv(nk),chi2_old_tr(nk), pars_old(nk,:), &
                       ldc_old(nk,:), rvs_old(nk,:)
-         write(201,*) jitter_rv_old(nk), jitter_tr_old(nk)
-         write(301,*) tds_old(nk,:)
-         !$OMP END CRITICAL
+         if ( is_jit(0) .or.  is_jit(1) ) &
+             write(201,*) jitter_rv_old(nk), jitter_tr_old(nk)
+         if ( sum(wtf_trends)  > 0 ) &
+            write(301,*) tds_old(nk,:)
+         ! !$OMP END CRITICAL
         end if
       end if
       !End burn-in
@@ -376,6 +387,7 @@ implicit none
     !Evolve burning-in controls
     if ( is_burn ) then
       !HERE EVOLVE BURNING-IN CONTROLS
+      !if ( mod(j,thin_factor) == 0 ) print *, n_burn, 'of', nconv
       if ( mod(j,thin_factor) == 0 ) n_burn = n_burn + 1
       if ( n_burn > nconv ) continua = .false.
     else
@@ -411,10 +423,10 @@ implicit none
             print *, '==========================='
             print *, '  CHAINS HAVE CONVERGED'
             print *, '==========================='
-            print *, 'STARTING BURNING-IN PHASE'
+            print *, 'STARTING BURN-IN PHASE'
             print *, '==========================='
             is_burn = .True.
-            print *, 'CREATING BURNING-IN DATA FILE'
+            print *, 'CREATING BURN-IN DATA FILE'
             !Let us start the otput file
             open(unit=101,file='all_data.dat',status='unknown')
             open(unit=201,file='jitter_data.dat',status='unknown')

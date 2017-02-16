@@ -187,14 +187,14 @@ else:
 for o in range(0,nplanets):
     if (fit_tr[o] == False ):
       fit_pz[o] = False
-      pz[o] = 1e-10
+#      pz[o] = 1e-10
       fit_i[o] = False
-      ii[o] = 1e-10
+#      ii[o] = 1e-10
       fit_a[o] = False
-      a[o] = 1e-10
+#      a[o] = 1e-10
     if (fit_rv[o] == False ):
       fit_k[o] = False
-      k0[o] = 1e-10
+#      k0[o] = 1e-10
 
 #Let us turn off velocity offset for a pure TR fit
 if ( not total_rv_fit ):
