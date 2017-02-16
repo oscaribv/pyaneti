@@ -287,7 +287,7 @@ implicit none
        end if
       end do
       do m = 0, 1
-        if ( wtf_ldc(m) == 0 ) call gauss_random_bm(ldc(m),ldc(m)*0.2,ldc_new(nk,m),1)
+        if ( wtf_ldc(m) == 0 ) call gauss_random_bm(ldc(m),ldc(m)-lims_ldc(m+2),ldc_new(nk,m),1)
       end do
 
       do m = 0, npl - 1
