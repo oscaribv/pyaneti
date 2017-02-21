@@ -46,7 +46,7 @@ implicit none
     w = atan2(pars(2),pars(3))
   end if
   !Let us get the w of the planet
-  w = w + pi
+  !w = w + pi
   if (flag(3)) a = 10.0**a
   if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(w) ) / ( 1.d0 - e*e ) )
 
@@ -58,6 +58,7 @@ implicit none
 
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)
+  ta = ta + pi
   swt = sin(w+ta)
 
   si = sin(i)
@@ -111,7 +112,7 @@ implicit none
   double precision, dimension(0:datas-1) :: res, muld, mu
   double precision :: npl_dbl, small, dbl, u1, u2, pz(0:npl-1), q1k, q2k, zdum(0:0)
   !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
-  double precision, dimension(0:n_cad-1)  :: xd_ub, z, flux_ub
+  double precision, dimension(0:n_cad)  :: xd_ub, z, flux_ub
   integer :: n, j, k
   logical :: is_good
 !External function
@@ -163,19 +164,33 @@ implicit none
 
     else
 
-      do k = 0, n_cad - 1
-        xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
-      end do
+!      do k = 0, n_cad - 1
+!        xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
+!      end do
 
-      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad)
+!      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad)
       !Now we have z, let us use Agol's routines
       !call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
-      call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad)
+!      call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad)
 
       !Re-bin the data
-      muld_npl(j) = muld_npl(j) + sum(flux_ub) / n_cad
+!      muld_npl(j) = muld_npl(j) + sum(flux_ub) / n_cad
+    !print *, zdum,pz(n),plab_tr(j), muld_npl(j), yd(j)
+      do k = 0, n_cad
+        xd_ub(k) = xd(j) - (t_cad/2.0d0) + k*t_cad/n_cad
+      end do
 
-      !print *, zdum,pz(n),plab_tr(j), muld_npl(j), yd(j)
+      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad+1)
+      !Now we have z, let us use Agol's routines
+      !call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
+      call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad+1)
+
+      !Re-bin the data
+      muld_npl(j) = muld_npl(j) + ( sum(flux_ub) + sum(flux_ub(1:n_cad-1)) ) &
+                     / n_cad / 2.0d0
+!      print *, flux_ub
+!      print *, muld_npl(j)
+!      stop
 
     end if
 
