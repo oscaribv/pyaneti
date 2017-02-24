@@ -235,6 +235,22 @@ implicit none
 
 end subroutine
 
+!Subroutine to get g(z), equation(10)
+!emcee paper -> http://arxiv.org/abs/1202.3665
+subroutine find_gz2(a,z)
+implicit none
+
+!In/Out variables
+  double precision, intent(out) :: z
+  double precision, intent(in) :: a
+!Internal variables
+  double precision :: x
+
+  call random_number(x)
+  z = ( a - 2.d0 + 1.d0/a ) * x*x + 2.d0 * (1.d0 - 1.d0/a ) * x + 1.d0/a
+
+end subroutine
+
 subroutine check_e(es,ec,is_good)
 implicit none
 

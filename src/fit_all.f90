@@ -102,7 +102,7 @@ implicit none
   double precision  :: q, a_factor, dof, tds
   double precision  :: lims_ldc_dynamic(0:1), lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
-  double precision  :: jrrv, jrtr
+  double precision  :: jrrv, jrtr, g_loc
   logical :: continua, is_burn, is_limit_good, is_cvg
   logical :: is_kepler
   integer :: nk, j, n, m, o, n_burn, spar, spar1
@@ -119,6 +119,9 @@ implicit none
   !spar -> size of parameters, dof -> degrees of freedom
   if ( is_jit(0) ) spar = spar + 1
   if ( is_jit(1) ) spar = spar + 1
+  do m = 0, npl - 1
+    if ( afk(m) )  spar = spar - 1
+  end do
   spar1 = spar - 1
 
   dof = 0
@@ -237,7 +240,6 @@ implicit none
 
     !Creating the random variables
     !Do the work for all the walkers
-    call random_number(z_rand)
     call random_number(r_rand)
     !Create random integers to be the index of the walks
     !Note that r_ink(i) != i (avoid copy the same walker)
@@ -257,13 +259,15 @@ implicit none
 
     !Paralellization calls
     !$OMP PARALLEL &
-    !$OMP PRIVATE(is_limit_good,q,m,jrrv,jrtr)
+    !$OMP PRIVATE(is_limit_good,q,m,jrrv,jrtr,g_loc)
     !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1
 
       !Generate the random step to perform the stretch move
-      z_rand(nk) = z_rand(nk) * a_factor
-      call find_gz(z_rand(nk),a_factor)
+      !z_rand(nk) = z_rand(nk) * a_factor
+      !g_loc = z_rand(nk)
+      !call find_gz(g_loc,a_factor)
+      call find_gz2(a_factor,z_rand(nk))
 
       !Perform the stretch move
       !Eq. (7), Goodman & Weare (2010)
