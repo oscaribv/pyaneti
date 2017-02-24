@@ -52,9 +52,13 @@ implicit none
 
   !Let us estimate the eclipse duration to rule out the no real recondary transits
   !For a planet with radius 0.0. This would not affect the method
-  ttot = (1.d0 + 0.d0)**2 - ( a * cos(i) * (1.0d0 - e*e) / ( 1.0d0 + e * sin(w)) )**2
-  ttot = asin( ttot / a / sin(i) )
-  ttot = P * ttot / pi * sqrt(1.0 - e*e) / ( 1.d0 + e*sin(w) )
+  !and let us assume a central transit with i = 90 deg
+  !ttot = (1.d0 + 0.d0)**2 - ( a * cos(i) * (1.0d0 - e*e) / ( 1.0d0 + e * sin(w)) )**2
+  !ttot = asin( ttot / a / sin(i) )
+  !ttot = P * ttot / pi * sqrt(1.0 - e*e) / ( 1.d0 + e*sin(w) )
+  !ttot = 1.d0
+  ttot = asin( 1.0 / a )
+  ttot = P * ttot / pi
 
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,w,P,ta,ts)
@@ -113,6 +117,7 @@ implicit none
   double precision :: npl_dbl, small, dbl, u1, u2, pz(0:npl-1), q1k, q2k, zdum(0:0)
   !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
   double precision, dimension(0:n_cad)  :: xd_ub, z, flux_ub
+  double precision :: t_cad2, t_cadn
   integer :: n, j, k
   logical :: is_good
 !External function
@@ -121,12 +126,15 @@ implicit none
   small = 1.d-5
   npl_dbl = dble(npl)
 
-  q1k = ldc(0)
-  q2k = ldc(1)
+  t_cad2 = 0.5d0 * t_cad
+  t_cadn = t_cad / n_cad
+
+  !q1k = ldc(0)
+  !q2k = ldc(1)
   !re-transform the parameters to u1 and u2
-  u1 = sqrt(q1k)
-  u2 = u1*( 1.d0 - 2.d0*q2k)
-  u1 = 2.d0*u1*q2k
+  u1 = sqrt(ldc(0))
+  u2 = u1*( 1.d0 - 2.d0*ldc(1))
+  u1 = 2.d0*u1*ldc(1)
 
   !Get planet radius
   pz(:) = pars(6,:)
@@ -143,15 +151,9 @@ implicit none
   if ( is_good ) then
 
   !Selective re-sampling
-  n = 0
   muld_npl(:) = 0.d0
   do j = 0, datas - 1
 
-    !control the label of the planet
-!    if ( plab_tr(j) >  n ) then
-!      n = n + 1
-!    end if
-    !print *, plab_tr(j), n
     do n = 0, npl - 1
 
     !Are we generating an eclipse?
@@ -164,45 +166,25 @@ implicit none
 
     else
 
-!      do k = 0, n_cad - 1
-!        xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
-!      end do
-
-!      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad)
-      !Now we have z, let us use Agol's routines
-      !call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
-!      call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad)
-
-      !Re-bin the data
-!      muld_npl(j) = muld_npl(j) + sum(flux_ub) / n_cad
-    !print *, zdum,pz(n),plab_tr(j), muld_npl(j), yd(j)
       do k = 0, n_cad
-        xd_ub(k) = xd(j) - (t_cad/2.0d0) + k*t_cad/n_cad
+        xd_ub(k) = xd(j) - t_cad2 + k*t_cadn
       end do
 
       call find_z(xd_ub,pars(0:5,n),flag,z,n_cad+1)
       !Now we have z, let us use Agol's routines
-      !call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
       call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad+1)
 
       !Re-bin the data
       muld_npl(j) = muld_npl(j) + ( sum(flux_ub) + sum(flux_ub(1:n_cad-1)) ) &
                      / n_cad / 2.0d0
-!      print *, flux_ub
-!      print *, muld_npl(j)
-!      stop
 
     end if
 
     end do !planets
 
-    !The final flux is F = (F1 + F2 + ... + Fn ) / n
     muld(j) =  1.0d0 + muld_npl(j) - npl_dbl
 
   end do !datas
-  !print *, 'stop new tr chi2'
-  !stop
-
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
@@ -216,7 +198,5 @@ implicit none
     chi2 = huge(0.d0)
 
   end if
-  !print *, 'stoped newchi2'
-  !stop
 
 end subroutine

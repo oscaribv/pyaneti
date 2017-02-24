@@ -224,7 +224,9 @@ if ( method == 'mcmc' or method == 'plot' ):
       #wo is the star periastron, add pi to have the planet one
       i_vec[o] = list(b_vec[o])
       b_vec[o] =  ar_vec[o] * np.cos(b_vec[o]) * ( ( 1. - e_vec[o]**2 ) \
-               / ( 1.0 + e_vec*np.sin(w_vec[o] + np.pi )))
+               / ( 1.0 + e_vec[o]*np.sin(w_vec[o] + np.pi )))
+      i_vec[o] = np.array(i_vec[o])
+
 
     if ( is_log_P ):
       P_vec[o] = 10.0**(P_vec[o])
