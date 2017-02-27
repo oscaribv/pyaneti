@@ -352,6 +352,22 @@ implicit none
 
 end subroutine
 
+!Create a normal distribution based on Box-Muller
+subroutine gauss_prior(mu,sigma,x,prob)
+implicit none
+
+  !In/Out variables
+  double precision, intent(in) :: mu, sigma, x
+  double precision, intent(out), dimension(0:n-1) :: prob
+  !Local variables
+  double precision, dimension(0:2*n-1) :: r_real
+  double precision  :: two_pi = 2.d0*3.1415926535897932384626d0
+
+  x = sqrt(two_pi) * sigma
+  x = exp(- (x - mu)**2 / sigma**2) / x
+
+end subroutine
+
 subroutine print_chain_data(chi2,n)
 implicit none
   integer, intent(in) :: n
