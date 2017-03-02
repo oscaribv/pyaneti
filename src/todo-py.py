@@ -175,8 +175,8 @@ def smart_priors():
       #If we gave a worst prior for planet size, take a better
       max_pz[o] = min([max_pz[o],max_phys_pz[o]])
 
-    min_phys_P =[None]*len(xt)
-    max_phys_P =[None]*len(xt)
+#    min_phys_P =[None]*len(xt)
+#    max_phys_P =[None]*len(xt)
     min_phys_t0=[None]*len(xt)
     max_phys_t0=[None]*len(xt)
     for o in range(0,nplanets):
@@ -187,10 +187,10 @@ def smart_priors():
       #|                  max_phys_P                    |
       #|min_phys_t0
       #     max_phys_t0  |
-      max_phys_P[o] = xt[o][1][len(xt[o][1])-1] - xt[o][0][0]
-      min_phys_P[o] = xt[o][1][0] - xt[o][0][len(xt[o][0])-1]
-      min_P[o] = max(min_P[o],min_phys_P[o])
-      max_P[o] = min(max_P[o],max_phys_P[o])
+#      max_phys_P[o] = xt[o][1][len(xt[o][1])-1] - xt[o][0][0]
+#      min_phys_P[o] = xt[o][1][0] - xt[o][0][len(xt[o][0])-1]
+#      min_P[o] = max(min_P[o],min_phys_P[o])
+#      max_P[o] = min(max_P[o],max_phys_P[o])
       min_phys_t0[o] = xt[o][0][0]
       max_phys_t0[o] = xt[o][0][len(xt[o][0])-1]
 

@@ -54,13 +54,13 @@ end subroutine
 subroutine multi_all_stretch_move( &
            x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &  !Data vars
            plab_tr,pars, rvs, ldc, &              !parameters vars
-           stellar_pars,afk,&
-           flags, total_fit_flag,is_jit, &               !flags
-           wtf_all, wtf_rvs, wtf_ldc,wtf_trends, &           !fitting controls
-           nwalks, maxi, thin_factor, nconv, &    !
+           stellar_pars,afk,&                     !Stellar parameters and flag|
+           flags, total_fit_flag,is_jit, &        !flags
+           wtf_all, wtf_rvs, wtf_ldc,wtf_trends, &!fitting controls
+           nwalks, maxi, thin_factor, nconv, &    !mcmc evolution controls
            lims, lims_rvs, lims_ldc, &            !prior limits
            lims_p, lims_p_rvs, lims_p_ldc, &      !physical limits
-           n_cad, t_cad, &                       !cadence cotrols
+           n_cad, t_cad, &                        !cadence cotrols
            npl, n_tel, & !integers                !planets and telescopes
            size_rv, size_tr &                     !data sizes
            )
@@ -87,6 +87,7 @@ implicit none
   logical, intent(in) :: afk(0:npl-1), is_jit(0:1)
 !Local variables
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: pars_old, pars_new
+  double precision, dimension(0:nwalks-1,0:8*npl-1) :: priors_old, priors_new, priors_tot
   double precision, dimension(0:nwalks-1,0:n_tel-1) :: rvs_old, rvs_new
   double precision, dimension(0:nwalks-1,0:1) :: ldc_old, ldc_new
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand, mstar, rstar
@@ -102,12 +103,16 @@ implicit none
   double precision  :: q, a_factor, dof, tds
   double precision  :: lims_ldc_dynamic(0:1), lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
-  double precision  :: jrrv, jrtr, g_loc
+  double precision  :: jrrv, jrtr, a_mean(0:npl-1), a_sigma(0:npl-1)
+  double precision  :: prior_real
   logical :: continua, is_burn, is_limit_good, is_cvg
-  logical :: is_kepler
   integer :: nk, j, n, m, o, n_burn, spar, spar1
 !external calls
   external :: init_random_seed, find_chi2_tr, find_chi2_rv
+
+  !call the random seed
+  print *, 'CREATING RANDOM SEED'
+  call init_random_seed()
 
   !Get the stellar parameters
   mstar_mean  = stellar_pars(0)
@@ -115,13 +120,16 @@ implicit none
   rstar_mean  = stellar_pars(2)
   rstar_sigma = stellar_pars(3)
 
+  !Calculate the scaled semi major axis from the stellar parameters
+  do o = 0, npl - 1
+    call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*o),a_mean(o),a_sigma(o))
+  end do
+
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs) + sum(wtf_trends)
   !spar -> size of parameters, dof -> degrees of freedom
   if ( is_jit(0) ) spar = spar + 1
   if ( is_jit(1) ) spar = spar + 1
-  do m = 0, npl - 1
-    if ( afk(m) )  spar = spar - 1
-  end do
+
   spar1 = spar - 1
 
   dof = 0
@@ -129,9 +137,6 @@ implicit none
   if ( total_fit_flag(1) ) dof = dof + size_tr
   dof  = dof - spar
 
-  !call the random seed
-  print *, 'CREATING RANDOM SEED'
-  call init_random_seed()
 
   !Jitter vars
   jitter_rv_old(:) = 0.0d0
@@ -170,9 +175,11 @@ implicit none
   end if
 
 
-  print *, 'CREATING PRIORS'
+  print *, 'CREATING CHAINS'
   call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
   call gauss_random_bm(rstar_mean,rstar_sigma,rstar,nwalks)
+  priors_old(:,:) = 1.d0
+  priors_new(:,:) = 1.d0
   !Let us create uniformative random priors
   is_limit_good = .false.
   do nk = 0, nwalks - 1
@@ -183,7 +190,7 @@ implicit none
         do m = 0, npl-1
           lims_e_dynamic(:,m) = sqrt( 1.d0 - pars_old(nk,2+8*m)**2 )
           lims_e_dynamic(0,m) = - lims_e_dynamic(0,m)
-          call uniform_priors(pars(3),1,wtf_all(3),lims_e_dynamic(:,m),pars_old(nk,3+8*m))
+          call uniform_priors(pars(3+8*m),1,wtf_all(3+8*m),lims_e_dynamic(:,m),pars_old(nk,3+8*m))
         end do
       end if
 
@@ -201,6 +208,7 @@ implicit none
         if ( afk(m) ) then
           !The parameter comes from 3rd Kepler law !pars_old(1) is the period
           call get_a_scaled(mstar(nk),rstar(nk),pars_old(nk,1+8*m),pars_old(nk,5+8*m),1)
+          call gauss_prior(a_mean(m),a_sigma(m),pars_old(nk,5+8*m),priors_old(nk,5+8*m))
         end if
       end do
 
@@ -232,7 +240,6 @@ implicit none
   is_burn = .false.
   a_factor = 2.d0
   n_burn = 1
-  is_kepler = .false.
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
@@ -244,8 +251,6 @@ implicit none
     !Create random integers to be the index of the walks
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
-    call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
-    call gauss_random_bm(rstar_mean,rstar_sigma,rstar,nwalks)
 
     !Pick a random walker
     do nk = 0, nwalks - 1 !walkers
@@ -259,15 +264,12 @@ implicit none
 
     !Paralellization calls
     !$OMP PARALLEL &
-    !$OMP PRIVATE(is_limit_good,q,m,jrrv,jrtr,g_loc)
+    !$OMP PRIVATE(is_limit_good,q,m,jrrv,jrtr,prior_real)
     !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1
 
       !Generate the random step to perform the stretch move
-      !z_rand(nk) = z_rand(nk) * a_factor
-      !g_loc = z_rand(nk)
-      !call find_gz(g_loc,a_factor)
-      call find_gz2(a_factor,z_rand(nk))
+      call find_gz(a_factor,z_rand(nk))
 
       !Perform the stretch move
       !Eq. (7), Goodman & Weare (2010)
@@ -297,8 +299,7 @@ implicit none
       do m = 0, npl - 1
         if ( afk(m) ) then
           !The parameter comes from 3rd Kepler law
-         !pars_old(1) is the period
-        call get_a_scaled(mstar(nk),rstar(nk),pars_new(nk,1+8*m),pars_new(nk,5+8*m),1)
+        call gauss_prior(a_mean(m),a_sigma(m),pars_new(nk,5+8*m),priors_new(nk,5+8*m))
         end if
       end do
 
@@ -347,6 +348,14 @@ implicit none
 
       end if
 
+      priors_tot(nk,:) = priors_new(nk,:) / priors_old(nk,:)
+      prior_real = 1.d0
+      do o = 0, 8*npl - 1
+        prior_real = prior_real * priors_tot(nk,o)
+      end do
+
+      q = q * prior_real
+
       !Let us compare our models
       !Compute the likelihood
       q = q * z_rand(nk)**spar1 * &
@@ -360,11 +369,12 @@ implicit none
         chi2_old_tr(nk) = chi2_new_tr(nk)
         pars_old(nk,:) = pars_new(nk,:)
         rvs_old(nk,:) = rvs_new(nk,:)
-        ldc_old(nk,:) = ldc_new(nk,:)
+        ldc_old(nk,:) = ldc_new(nk,:
         tds_old(nk,:) = tds_new(nk,:)
         jitter_rv_old(nk) = jitter_rv_new(nk)
         jitter_tr_old(nk) = jitter_tr_new(nk)
         mult_old(nk,:) = mult_new(nk,:)
+        priors_old(nk,:) = priors_new(nk,:)
       end if
 
       !Compute the reduced chi square

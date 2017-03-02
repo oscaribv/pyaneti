@@ -55,8 +55,11 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.tick_params(labelsize=fos)
   x_lim = (min(xtime)-local_T0)*tfc
   plt.xlim(x_lim,-x_lim)
+  if ( select_y_tr ):
+    plt.ylim(y_lim_min,y_lim_max)
+    print 'Iam here'
   min_val_model = max(fd_reb) -  min(fd_reb)
-  plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='ro',alpha=1.0)
+  plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='ro',alpha=0.8)
   plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
@@ -66,12 +69,15 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   #Plot the residuals
   dplot = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos)
-  plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='ro',alpha=1.0)
+  plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='ro',alpha=0.8)
   plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
   yylims = dplot.get_ylim()
   plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
   plt.xlim(x_lim,-x_lim)
+  if ( select_y_tr ):
+    plt.ylim(1.0 - ( y_lim_max - 1.0),y_lim_max)
+    print 'Iam here'
   #Plot the residuals
   plt.ylabel('Residuals',fontsize=fos*0.75)
   plt.xlabel("T - T0 (hours)",fontsize=fos)

@@ -217,27 +217,9 @@ implicit none
 end subroutine
 
 
-!Subroutine to get g(z), equation(10)
-!emcee paper -> http://arxiv.org/abs/1202.3665
-subroutine find_gz(z,a)
-implicit none
-
-!In/Out variables
-  double precision, intent(inout) :: z
-  !f2py itent(in,out) :: z
-  double precision, intent(in) :: a
-
-  if ( z >= 1.d0 / a .and. z <= a ) then
-    z = 1.d0 / sqrt(z) 
-  else
-    z = 0.0d0
-  end if
-
-end subroutine
-
-!Subroutine to get g(z), equation(10)
-!emcee paper -> http://arxiv.org/abs/1202.3665
-subroutine find_gz2(a,z)
+!Subroutine to get Z <- g(z)
+!Goodman & Weare, 2010 paper
+subroutine find_gz(a,z)
 implicit none
 
 !In/Out variables
@@ -246,6 +228,8 @@ implicit none
 !Internal variables
   double precision :: x
 
+  !Thesis of Kaiser, Alexander D
+  !Computational Experiments in Markov Chain Monte Carlo
   call random_number(x)
   z = ( a - 2.d0 + 1.d0/a ) * x*x + 2.d0 * (1.d0 - 1.d0/a ) * x + 1.d0/a
 
@@ -352,19 +336,52 @@ implicit none
 
 end subroutine
 
-!Create a normal distribution based on Box-Muller
+!Create a normal distribution
 subroutine gauss_prior(mu,sigma,x,prob)
 implicit none
 
   !In/Out variables
   double precision, intent(in) :: mu, sigma, x
-  double precision, intent(out), dimension(0:n-1) :: prob
+  double precision, intent(out)  :: prob
   !Local variables
-  double precision, dimension(0:2*n-1) :: r_real
   double precision  :: two_pi = 2.d0*3.1415926535897932384626d0
 
-  x = sqrt(two_pi) * sigma
-  x = exp(- (x - mu)**2 / sigma**2) / x
+  prob = sqrt(two_pi) * sigma
+  prob = exp(- 0.5 * (x - mu)**2 / sigma**2) / prob
+
+end subroutine
+
+subroutine get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,P,amean,aerr)
+implicit none
+
+!In/out variables
+  double precision, intent(in) :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma, P
+  double precision, intent(out) :: amean,aerr
+!Local variables
+  double precision :: dadm, dadr, per
+  double precision :: S_radius_SI = 6.957d8 !R_sun
+  double precision :: S_GM_SI = 1.3271244d20 ! G M_sun
+  double precision :: R_SI, M_SI, G_SI
+  double precision :: R_sigma_SI, M_sigma_SI
+  double precision  :: pi = 3.1415926535897932384626d0
+
+  G_SI = 6.67408e-11
+  R_SI = rstar_mean * S_radius_SI
+  R_sigma_SI = rstar_sigma * S_radius_SI
+  M_SI = mstar_mean * S_GM_SI / G_SI
+  M_sigma_SI = mstar_sigma * S_GM_SI / G_SI
+  per  = P * 3600.d0 * 24.d0
+
+  amean = per**2 * G_SI * M_SI / ( 4.d0 * pi**2 * R_SI**3 )
+  amean = amean**(1.d0/3.d0)
+
+  dadm = ( G_SI * per**2 / ( 4.d0*pi**2 * M_SI**2) ) **(1.d0/3.d0)
+  dadm = dadm / 3.d0 / R_SI
+
+  dadr = - ( G_SI * M_SI*per**2 / (4.d0*pi**2) )**(1.d0/3.d0) / R_SI**2
+
+  aerr = dadm**2 * M_sigma_SI**2 + dadr**2 * R_sigma_SI**2
+  aerr = sqrt(aerr)
 
 end subroutine
 
@@ -412,6 +429,3 @@ implicit none
   end do
 
 end subroutine
-
-
-
