@@ -286,15 +286,15 @@ implicit none
       jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) * &
                          ( jitter_tr_old(nk) - jitter_tr_new(nk) )
 
-      !For the fixed parameters, we assume a gaussian distribution with error bars
-      do m = 0, 8*npl-1
-       if ( wtf_all(m) == 0 ) then
-          call gauss_random_bm(pars(m),pars(m)-lims(2*m),pars_new(nk,m),1)
-       end if
-      end do
-      do m = 0, 1
-        if ( wtf_ldc(m) == 0 ) call gauss_random_bm(ldc(m),ldc(m)-lims_ldc(m+2),ldc_new(nk,m),1)
-      end do
+!!      !For the fixed parameters, we assume a gaussian distribution with error bars
+!      do m = 0, 8*npl-1
+!       if ( wtf_all(m) == 0 ) then
+!          call gauss_random_bm(pars(m),pars(m)-lims(2*m),pars_new(nk,m),1)
+!       end if
+!      end do
+!      do m = 0, 1
+!        if ( wtf_ldc(m) == 0 ) call gauss_random_bm(ldc(m),ldc(m)-lims_ldc(m+2),ldc_new(nk,m),1)
+!      end do
 
       do m = 0, npl - 1
         if ( afk(m) ) then
@@ -369,7 +369,7 @@ implicit none
         chi2_old_tr(nk) = chi2_new_tr(nk)
         pars_old(nk,:) = pars_new(nk,:)
         rvs_old(nk,:) = rvs_new(nk,:)
-        ldc_old(nk,:) = ldc_new(nk,:
+        ldc_old(nk,:) = ldc_new(nk,:)
         tds_old(nk,:) = tds_new(nk,:)
         jitter_rv_old(nk) = jitter_rv_new(nk)
         jitter_tr_old(nk) = jitter_tr_new(nk)
