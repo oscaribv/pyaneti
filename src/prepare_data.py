@@ -137,12 +137,6 @@ if ( nplanets_tr > 0 ):
     #print tls
     #sys.exit()
 
-
-    #crash if you do not have more than one transit
-    if ( ntr < 2):
-      print "you do not have enought transit data!"
-      sys.exit("I crashed because I want more data!")
-
     #Each element of these lists will have the information
     #of a given transit
     xt[o]= [None]*ntr
