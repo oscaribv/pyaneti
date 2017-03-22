@@ -87,8 +87,8 @@ implicit none
   logical, intent(in) :: afk(0:npl-1), is_jit(0:1)
 !Local variables
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: pars_old, pars_new
-  double precision, dimension(0:nwalks-1,0:8*npl-1) :: priors_old, priors_new, priors_tot
-  double precision, dimension(0:nwalks-1,0:1) :: priors_ldc_old, priors_ldc_new, priors_ldc_tot
+  double precision, dimension(0:nwalks-1,0:8*npl-1) :: priors_old, priors_new
+  double precision, dimension(0:nwalks-1,0:1) :: priors_ldc_old, priors_ldc_new
   double precision, dimension(0:nwalks-1,0:n_tel-1) :: rvs_old, rvs_new
   double precision, dimension(0:nwalks-1,0:1) :: ldc_old, ldc_new
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand, mstar, rstar
@@ -102,13 +102,11 @@ implicit none
   double precision, dimension(0:nwalks-1) :: log_prior_old, log_prior_new
   double precision, dimension(0:nwalks-1) :: log_likelihood_old, log_likelihood_new
   double precision, dimension(0:nwalks-1) :: log_errs_old, log_errs_new
-  double precision, dimension(0:nwalks-1,0:size_rv+size_tr-1) :: mult_old, mult_new, mult_total
   integer, dimension(0:nwalks-1) :: r_int
-  double precision  :: q, a_factor, dof, tds, qq
+  double precision  :: a_factor, dof, tds, qq
   double precision  :: lims_ldc_dynamic(0:1), lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
-  double precision  :: jrrv, jrtr, a_mean(0:npl-1), a_sigma(0:npl-1)
-  double precision  :: prior_real
+  double precision  :: a_mean(0:npl-1), a_sigma(0:npl-1)
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   logical :: continua, is_burn, is_limit_good, is_cvg
   integer :: nk, j, n, m, o, n_burn, spar, spar1
@@ -151,35 +149,14 @@ implicit none
      call gauss_random_bm(e_rv(0)*1e-1,e_rv(0)*1e-2,jitter_rv_old,nwalks)
   if ( is_jit(1) ) &
     call gauss_random_bm(e_tr(0)*1e-1,e_tr(0)*1e-2,jitter_tr_old,nwalks)
-  mult_old(:,:) = 1.0d0
-  mult_new(:,:) = 1.0d0
   log_errs_new = 0.0d0
   log_errs_old = 0.0d0
-!  if ( is_jit(0) .or. is_jit(1) ) then
-    do nk = 0, nwalks - 1
-      print *, log_errs_old(nk)
-      if ( total_fit_flag(0) ) &
-      log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_old(nk)**2 ) ) ) )
-      !print *, sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_old(nk)**2 ) ) ) ) , log_errs_old(nk)
-      if ( total_fit_flag(1) ) &
-      log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_old(nk)**2 ) ) ) )
-      !print *, log_errs_old(nk)
-      do j = 0, size_rv-1
-        !log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_rv(j)**2 + jitter_rv_old(nk)**2 ) ) ) )
-        !print *, log_errs_old(nk)
-        mult_old(nk,j) = 1.0d0/sqrt( e_rv(j)**2 + jitter_rv_old(nk)**2  )
-        if ( .not. is_jit(0) ) mult_old(nk,j) = 1.0d0
-      end do
-      do j = size_rv, size_rv+size_tr-1
-        !log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(j-size_rv)**2 + jitter_tr_old(nk)**2 ) ) ) )
-        mult_old(nk,j) = 1.0d0/sqrt( e_tr(j-size_rv)**2 + jitter_tr_old(nk)**2)
-        if ( .not. is_jit(1) ) mult_old(nk,j) = 1.0d0
-        !print *, log_errs_old(nk)
-      end do
-    end do
-!  end if
-  !print *, log_errs_old
-  !stop
+  do nk = 0, nwalks - 1
+    if ( total_fit_flag(0) ) &
+    log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_old(nk)**2 ) ) ) )
+    if ( total_fit_flag(1) ) &
+    log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_old(nk)**2 ) ) ) )
+  end do
 
   !Linear and quadratic terms
   lims_trends(:) = 0.0d0
@@ -205,24 +182,24 @@ implicit none
   is_limit_good = .false.
   do nk = 0, nwalks - 1
     !random parameters
-      call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
+      call uniform_chains(pars,8*npl,wtf_all,lims,pars_old(nk,:))
       !If we are using the parametrization for e and omega
       if ( flags(1) ) then
         do m = 0, npl-1
           lims_e_dynamic(:,m) = sqrt( 1.d0 - pars_old(nk,2+8*m)**2 )
           lims_e_dynamic(0,m) = - lims_e_dynamic(0,m)
-          call uniform_priors(pars(3+8*m),1,wtf_all(3+8*m),lims_e_dynamic(:,m),pars_old(nk,3+8*m))
+          call uniform_chains(pars(3+8*m),1,wtf_all(3+8*m),lims_e_dynamic(:,m),pars_old(nk,3+8*m))
         end do
       end if
 
-      call uniform_priors(tds,2,wtf_trends,lims_trends,tds_old(nk,:))
+      call uniform_chains(tds,2,wtf_trends,lims_trends,tds_old(nk,:))
 
-      call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
+      call uniform_chains(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
 
-      call uniform_priors(ldc(0),1,wtf_ldc(0),lims_ldc(0:1),ldc_old(nk,0))
+      call uniform_chains(ldc(0),1,wtf_ldc(0),lims_ldc(0:1),ldc_old(nk,0))
       lims_ldc_dynamic(:) = (/ lims_ldc(2), 1.0d0 - ldc_old(nk,0) /)
 
-      call uniform_priors(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
+      call uniform_chains(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
 
 !      do m = 0, 1
 !        call gauss_prior(ldc(m),ldc(m)-lims_ldc(m*2),ldc_old(nk,m),priors_ldc_old(nk,m))
@@ -245,11 +222,11 @@ implicit none
            ldc_old(nk,:),tds_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
            chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,size_rv,size_tr)
 
-           chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
+      chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
 
       log_likelihood_old(nk) = log_prior_old(nk) + log_errs_old(nk) - 0.5d0 * chi2_old_total(nk)
-      print *, log_prior_old(nk), log_errs_old(nk), chi2_old_total(nk)
-      print *, log_likelihood_old(nk)
+      !print *, log_prior_old(nk), log_errs_old(nk), chi2_old_total(nk)
+      !print *, log_likelihood_old(nk)
 
 
   end do
@@ -297,7 +274,7 @@ implicit none
 
     !Paralellization calls
     !$OMP PARALLEL &
-    !$OMP PRIVATE(is_limit_good,q,qq,m,jrrv,jrtr,prior_real)
+    !$OMP PRIVATE(is_limit_good,qq,m)
     !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1
 
@@ -356,75 +333,21 @@ implicit none
         end do
 
 
-     end if
+      end if
 
+      !ADD JITTER TERMS
+      log_errs_new(nk) = 0.0d0
+      if ( total_fit_flag(0) ) &
+         log_errs_new(nk) = log_errs_new(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_new(nk)**2 ) ) ) )
+      if ( total_fit_flag(1) ) &
+         log_errs_new(nk) = log_errs_new(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_new(nk)**2 ) ) ) )
 
-!      !ADD JITTER TERMS
- !     mult_new(nk,:) = 1.0d0
-  !    q = 1.0d0
-!!      if ( is_jit(0) .or. is_jit(1) ) then
-
-        jrrv = jitter_rv_new(nk)
-        jrrv = jrrv*jrrv
-        jrtr = jitter_tr_new(nk)
-        jrtr = jrtr*jrtr
-        log_errs_new(nk) = 0.0d0
-        if ( total_fit_flag(0) ) &
-        log_errs_new(nk) = log_errs_new(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_new(nk)**2 ) ) ) )
-        if ( total_fit_flag(1) ) &
-        log_errs_new(nk) = log_errs_new(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_new(nk)**2 ) ) ) )
-!        do m = 0, size_rv-1
-!          !log_errs_new(nk) = log_errs_new(nk) + log( 1.0d0/sqrt( e_rv(j)**2 + jitter_rv_new(nk)**2 ) )
-!          mult_new(nk,m) = 1.0d0/sqrt( e_rv(m)**2 + jrrv  )
-!          if ( .not. is_jit(0) ) mult_new(nk,m) = 1.0d0
-!        end do
-!        do m = size_rv, size_rv+size_tr-1
-!          !log_errs_new(nk) = log_errs_new(nk) + log( 1.0d0/sqrt( e_tr(j-size_rv)**2 + jitter_tr_new(nk)**2 ) )
-!          mult_new(nk,m) = 1.0d0/sqrt( e_tr(m-size_rv)**2 + jrtr  )
-!          if ( .not. is_jit(1) ) mult_new(nk,m) = 1.0d0
-!        end do
-!
-!        mult_total(nk,:) = mult_new(nk,:) / mult_old(nk,:)
-!
-!        !Add the jitter terms
-!        do m = 0, size_rv+size_tr-1
-!          q = q * mult_total(nk,m)
-!        end do
-!
-!!      end if
-!
-!      !ADD PRIORS
-!      !FOR UNIFORM UNIFORMATIVE PRIORS, THE priors_new/priors_old is always constant
-!      !for this reason pyaneti assume 1.0
-!      priors_tot(nk,:) = priors_new(nk,:) / priors_old(nk,:)
-!      priors_ldc_tot(nk,:) = priors_ldc_new(nk,:) / priors_ldc_old(nk,:)
-!      prior_real = 1.d0
-!!      print *, priors_old(nk,:)
-!!      print *, priors_new(nk,:)
-!!!      print *, priors_tot(nk,:)
-!      !print*, pars_new(nk,5), pars_new(nk,13)
-!      do m = 0, 8*npl - 1
-!        prior_real = prior_real * priors_tot(nk,m)
-!      end do
-!!      do m = 0, 1
-!!        prior_real = prior_real * priors_ldc_tot(nk,m)
-!!      end do
-!!      print *, prior_real
-!!      stop
       log_prior_new(nk) = sum( log(priors_new(nk,:) ) )
 
       log_likelihood_new(nk) = log_prior_new(nk) + log_errs_new(nk) - 0.5d0 * chi2_new_total(nk)
 
-      !Let us compare our models
-      !Compute the likelihood
-!      q = q * prior_real * z_rand(nk)**spar1 * &
-!          exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5d0  )
-
       qq = log_likelihood_new(nk) - log_likelihood_old(nk)
       qq = z_rand(nk)**spar1 * exp(qq)
-
-!      if ( nk == 0) print *, q, qq
-      !stop
 
       !Check if the new likelihood is better
       if ( qq > r_rand(nk) ) then
@@ -439,7 +362,6 @@ implicit none
         tds_old(nk,:) = tds_new(nk,:)
         jitter_rv_old(nk) = jitter_rv_new(nk)
         jitter_tr_old(nk) = jitter_tr_new(nk)
-        mult_old(nk,:) = mult_new(nk,:)
         priors_old(nk,:) = priors_new(nk,:)
         priors_ldc_old(nk,:) = priors_ldc_new(nk,:)
       end if
@@ -457,7 +379,7 @@ implicit none
              write(201,*) jitter_rv_old(nk), jitter_tr_old(nk)
          if ( sum(wtf_trends)  > 0 ) &
             write(301,*) tds_old(nk,:)
-         write(401,*) j, log_likelihood_old(nk)
+         write(401,*) j, nk, log_likelihood_old(nk)
          ! !$OMP END CRITICAL
         end if
       end if

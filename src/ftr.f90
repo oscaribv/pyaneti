@@ -47,7 +47,7 @@ implicit none
   end if
   !Let us get the w of the planet
   !w = w + pi
-  if (flag(3)) a = 10.0**a
+  if (flag(3)) a = 10.d0**a
   if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(w) ) / ( 1.d0 - e*e ) )
 
   !Let us estimate the eclipse duration to rule out the no real recondary transits
@@ -114,9 +114,10 @@ implicit none
 !Local variables
   double precision, dimension(0:datas-1) :: muld_npl
   double precision, dimension(0:datas-1) :: res, muld, mu
-  double precision :: npl_dbl, small, dbl, u1, u2, pz(0:npl-1), q1k, q2k, zdum(0:0)
+  double precision :: npl_dbl, small, u1, u2, pz(0:npl-1), zdum(0:0)
   !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
-  double precision, dimension(0:n_cad)  :: xd_ub, z, flux_ub
+  double precision, dimension(0:n_cad)  :: xd_ub, z, fmultip
+  double precision, dimension(0:n_cad,0:npl-1)  :: flux_ub
   double precision :: t_cad2, t_cadn
   integer :: n, j, k
   logical :: is_good
@@ -129,8 +130,6 @@ implicit none
   t_cad2 = 0.5d0 * t_cad
   t_cadn = t_cad / n_cad
 
-  !q1k = ldc(0)
-  !q2k = ldc(1)
   !re-transform the parameters to u1 and u2
   u1 = sqrt(ldc(0))
   u2 = u1*( 1.d0 - 2.d0*ldc(1))
@@ -152,37 +151,52 @@ implicit none
 
   !Selective re-sampling
   muld_npl(:) = 0.d0
+  !Restart flux_ub
+  flux_ub(:,:) = 0.0
   do j = 0, datas - 1
+
+    !The sime time stamps for all planets
+    do k = 0, n_cad
+      xd_ub(k) = xd(j) - t_cad2 + k*t_cadn
+    end do
 
     do n = 0, npl - 1
 
-    !Are we generating an eclipse?
-    !Take care with the pars
-    call find_z(xd(j),pars(0:5,n),flag,zdum,1)
+      !Are we generating an eclipse?
+      !Take care with the pars
+      call find_z(xd(j),pars(0:5,n),flag,zdum,1)
 
-    if ( zdum(0) > 1.d0 + 2*pz(n) .or. pz(n) < small ) then
+      if ( zdum(0) > 2.d0 .or. pz(n) < small ) then
 
-      muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
+        muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
 
-    else
+      else
 
-      do k = 0, n_cad
-        xd_ub(k) = xd(j) - t_cad2 + k*t_cadn
-      end do
+       !Each planet has a different orbit
+       call find_z(xd_ub,pars(0:5,n),flag,z,n_cad+1)
+       !Each planet generates a different eclipse
+       call occultquad(z,u1,u2,pz(n),flux_ub(:,n),mu,n_cad+1)
 
-      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad+1)
-      !Now we have z, let us use Agol's routines
-      call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad+1)
-
-      !Re-bin the data
-      muld_npl(j) = muld_npl(j) + ( sum(flux_ub) + sum(flux_ub(1:n_cad-1)) ) &
-                     / n_cad / 2.0d0
-
-    end if
+     end if
 
     end do !planets
 
+    fmultip(:) = 0.0
+    !Get ready to rebin multiplanet flux
+    do k = 0, n_cad
+      do n = 0, npl - 1
+        fmultip(k) = fmultip(k) + flux_ub(k,n)
+      end do
+    end do
+
+    !Re-bin the data
+    muld_npl(j) = muld_npl(j) + ( sum(fmultip) + sum(fmultip(1:n_cad-1)) ) &
+                  / n_cad / 2.0d0
+
     muld(j) =  1.0d0 + muld_npl(j) - npl_dbl
+
+  !Restart flux_ub
+  flux_ub(:,:) = 0.0
 
   end do !datas
 

@@ -346,8 +346,8 @@ implicit none
   !Local variables
   double precision  :: two_pi = 2.d0*3.1415926535897932384626d0
 
-  prob = sqrt(two_pi) * sigma
-  prob = exp(- 0.5 * (x - mu)**2 / sigma**2) / prob
+  prob = sqrt(two_pi*sigma*sigma)
+  prob = exp(- 0.5d0 * (x - mu)**2 / sigma**2) / prob
 
 end subroutine
 
@@ -404,7 +404,7 @@ implicit none
 end subroutine
 
 
-subroutine uniform_priors(pars,npars,wtf,lims,pars_out)
+subroutine uniform_chains(pars,npars,wtf,lims,pars_out)
 implicit none
 
   integer, intent(in) :: npars

@@ -24,19 +24,21 @@ chi2 = params[2] + params[3]
 def plot_chains():
   plt.xlabel('iteration')
   plt.ylabel('Reduced $\chi^2$')
-#  if (nplanets == 1):
-   #plt.plot(vari,chi2,'b.')
-  #plt.hist2d(vari,chi2/(ndata-npars),bins=100,norm=LogNorm())
   plt.hist2d(vari,chi2/(ndata-npars),bins=50)
-#  else:
-   #plt.plot(vari[0],chi2[0],'b.')
-#   plt.hist2d(vari[0],chi2[0],bins=100,norm=LogNorm())
   fname = outdir+'/'+star+'_chains.pdf'
   print 'Creating ', fname
   plt.savefig(fname,bbox_inches='tight')
   plt.close()
 
-#===========================================================
+def plot_likelihood():
+  plt.xlabel('iteration')
+  plt.ylabel('$\ln \mathcal{L}$')
+  plt.hist2d(vari,par_likelihood,bins=50)
+  fname = outdir+'/'+star+'_likelihood.pdf'
+  print 'Creating ', fname
+  plt.savefig(fname,bbox_inches='tight')
+  plt.close()
+##===========================================================
 #              plot tr fancy function
 #===========================================================
 
@@ -55,9 +57,9 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.tick_params(labelsize=fos)
   x_lim = (min(xtime)-local_T0)*tfc
   plt.xlim(x_lim,-x_lim)
+  #plt.xlim(-3,3)
   if ( select_y_tr ):
     plt.ylim(y_lim_min,y_lim_max)
-    print 'Iam here'
   min_val_model = max(fd_reb) -  min(fd_reb)
   plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='ro',alpha=0.8)
   plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
@@ -75,9 +77,9 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
   plt.xlim(x_lim,-x_lim)
+  #plt.xlim(-3,3)
   if ( select_y_tr ):
-    plt.ylim(1.0 - ( y_lim_max - 1.0),y_lim_max)
-    print 'Iam here'
+    plt.ylim( - ( y_lim_max - 1.0),y_lim_max - 1.0 )
   #Plot the residuals
   plt.ylabel('Residuals',fontsize=fos*0.75)
   plt.xlabel("T - T0 (hours)",fontsize=fos)

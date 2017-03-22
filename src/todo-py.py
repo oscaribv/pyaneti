@@ -348,6 +348,52 @@ def good_clustering(chi2,chain_lab,nconv,nwalkers):
 
   return good_index, new_nwalkers
 
+def good_clustering_likelihood(chi2,chain_lab,nconv,nwalkers):
+  #Let us find the good indixes for the cluster
+  #We have n walkers
+
+  print 'STARTING CHAIN CLUSTERING'
+  print 'Initial number of chains:', nwalkers
+
+  #Extract all the chains
+  chi2_walkers = [None]*nwalkers
+  chi2_mean = [None]*nwalkers
+  walk_dummy = []
+  for i in range(0,nwalkers):
+    for j in range (0,len(chain_lab)):
+      if (chain_lab[j] == i ):
+        walk_dummy.append(chi2[j])
+    chi2_walkers[i] = walk_dummy
+    walk_dummy = []
+
+
+  #The mean of each walker
+  for i in range (0,nwalkers):
+    chi2_mean[i] = np.mean(chi2_walkers[i])
+
+  #get the minimum chi2
+  total_min = max(chi2_mean)
+
+  good_chain = []
+  #Let us kill all the walkers 5 times the minimum
+  for i in range(0,nwalkers):
+    if ( not chi2_mean[i] < total_min - clustering_delta ):
+      #We are saving the good chain labels
+      good_chain.append(i)
+
+  #Now we know how many good chains we have
+  new_nwalkers = len(good_chain)
+
+  print 'Final number of chains:', new_nwalkers
+
+  #Let us save the good index
+  good_index = []
+  for i in range(0, len(chain_lab)):
+      for j in range(0,len(good_chain)):
+          if ( chain_lab[i] == good_chain[j] ):
+              good_index.append(i)
+
+  return good_index, new_nwalkers
 #-----------------------------------------------------------
 
 def clustering(par,good_index):
@@ -463,6 +509,10 @@ def joint_fit():
   newfile_trends = outdir+'/'+star+'_trends_data.dat'
   if ( os.path.isfile('trends_data.dat') ):
     os.rename('trends_data.dat',newfile_trends)
+
+  newfile_likelihood = outdir+'/'+star+'_likelihood.dat'
+  if ( os.path.isfile('likelihood_data.dat') ):
+    os.rename('likelihood_data.dat',newfile_likelihood)
 
 #-----------------------------------------------------------
 #          PRINT INITIAL CONFIGURATION
