@@ -1,18 +1,14 @@
 subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,tff,flags,&
-           t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr, t0_vec, n_transits,  &
-           chi2_rv,chi2_tr,npl,n_tel,size_rv,size_tr)
+           t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr,chi2_rv,chi2_tr,npl,n_tel,size_rv,size_tr)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: size_rv, size_tr, npl, n_tel, n_cad !size of RV and LC data
-  integer, intent(in) :: n_transits !size of RV and LC data
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_tr-1) :: plab_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab
-  !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
-  double precision, intent(in), dimension(0:n_transits-1) :: t0_vec
-  !Vector wich contains the t0s to fit each transit
+!pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
   double precision, intent(in) :: trends(0:1)
@@ -45,11 +41,9 @@ implicit none
   chi2_rv = 0.d0
   chi2_tr = 0.d0
 
-  !print *, 'inside', t0_vec
-
   if (tff(1) ) &
   call find_chi2_tr(x_tr,y_tr,e_tr,plab_tr,pars_tr,jtr,flag_tr,&
-                        ldc,t0_vec,n_transits,n_cad,t_cad,chi2_tr,size_tr,npl)
+                        ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
   if (tff(0) ) &
   call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,jrv,&
                     flag_rv,chi2_rv,size_rv,n_tel,npl)
@@ -60,13 +54,13 @@ end subroutine
 subroutine multi_all_stretch_move( &
            x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &  !Data vars
            plab_tr,pars, rvs, ldc, &              !parameters vars
-           stellar_pars,afk,&
-           flags, total_fit_flag,is_jit, &               !flags
-           wtf_all, wtf_rvs, wtf_ldc,wtf_trends, &           !fitting controls
-           nwalks, maxi, thin_factor, nconv, &    !
+           stellar_pars,afk,&                     !Stellar parameters and flag|
+           flags, total_fit_flag,is_jit, &        !flags
+           wtf_all, wtf_rvs, wtf_ldc,wtf_trends, &!fitting controls
+           nwalks, maxi, thin_factor, nconv, &    !mcmc evolution controls
            lims, lims_rvs, lims_ldc, &            !prior limits
            lims_p, lims_p_rvs, lims_p_ldc, &      !physical limits
-           n_cad, t_cad, &                       !cadence cotrols
+           n_cad, t_cad, &                        !cadence cotrols
            npl, n_tel, & !integers                !planets and telescopes
            size_rv, size_tr &                     !data sizes
            )
@@ -93,10 +87,9 @@ implicit none
   logical, intent(in) :: afk(0:npl-1), is_jit(0:1)
 !Local variables
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: pars_old, pars_new
+  double precision, dimension(0:nwalks-1,0:8*npl-1) :: priors_old, priors_new
+  double precision, dimension(0:nwalks-1,0:1) :: priors_ldc_old, priors_ldc_new
   double precision, dimension(0:nwalks-1,0:n_tel-1) :: rvs_old, rvs_new
-  double precision, dimension(0:nwalks-1,0:2) :: t0s_old, t0s_new !multiple transit variable
-  double precision, dimension(0:2) :: t0_priors  !multiple transit variable
-  double precision, dimension(0:1,0:2) ::  t0_limits !multiple transit variable
   double precision, dimension(0:nwalks-1,0:1) :: ldc_old, ldc_new
   double precision, dimension(0:nwalks-1) :: r_rand, z_rand, mstar, rstar
   double precision, dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
@@ -106,33 +99,46 @@ implicit none
   double precision, dimension(0:nwalks-1) :: jitter_rv_old, jitter_rv_new, jitter_tr_old, jitter_tr_new
   double precision, dimension(0:nwalks-1,0:1) :: tds_old, tds_new !linear and quadratic terms
   double precision, dimension(0:3) :: lims_trends
-  double precision, dimension(0:nwalks-1,0:size_rv+size_tr-1) :: mult_old, mult_new, mult_total
+  double precision, dimension(0:nwalks-1) :: log_prior_old, log_prior_new
+  double precision, dimension(0:nwalks-1) :: log_likelihood_old, log_likelihood_new
+  double precision, dimension(0:nwalks-1) :: log_errs_old, log_errs_new
   integer, dimension(0:nwalks-1) :: r_int
-  double precision  :: q, spar, a_factor, dof, tds
+  double precision  :: a_factor, dof, tds, qq
   double precision  :: lims_ldc_dynamic(0:1), lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
+  double precision  :: a_mean(0:npl-1), a_sigma(0:npl-1)
+  double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   logical :: continua, is_burn, is_limit_good, is_cvg
-  logical :: is_kepler
-  integer :: nk, j, n, m, o, n_burn, n_transits
-  !n_transits has to be an input variable
+  integer :: nk, j, n, m, o, n_burn, spar, spar1
 !external calls
   external :: init_random_seed, find_chi2_tr, find_chi2_rv
+
+  !call the random seed
+  print *, 'CREATING RANDOM SEED'
+  call init_random_seed()
 
   !Get the stellar parameters
   mstar_mean  = stellar_pars(0)
   mstar_sigma = stellar_pars(1)
   rstar_mean  = stellar_pars(2)
   rstar_sigma = stellar_pars(3)
-  n_transits = 1
 
+  !Calculate the scaled semi major axis from the stellar parameters
+  do o = 0, npl - 1
+    call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*o),a_mean(o),a_sigma(o))
+  end do
+
+  spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs) + sum(wtf_trends)
   !spar -> size of parameters, dof -> degrees of freedom
-  spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
-  spar = spar + n_transits - 1 + sum(wtf_trends)
-  dof  = size_rv + size_tr - spar
+  if ( is_jit(0) ) spar = spar + 1
+  if ( is_jit(1) ) spar = spar + 1
 
-  !call the random seed
-  print *, 'CREATING RANDOM SEED'
-  call init_random_seed()
+  spar1 = spar - 1
+
+  dof = 0
+  if ( total_fit_flag(0) ) dof = dof + size_rv
+  if ( total_fit_flag(1) ) dof = dof + size_tr
+  dof  = dof - spar
 
   !Jitter vars
   jitter_rv_old(:) = 0.0d0
@@ -143,18 +149,14 @@ implicit none
      call gauss_random_bm(e_rv(0)*1e-1,e_rv(0)*1e-2,jitter_rv_old,nwalks)
   if ( is_jit(1) ) &
     call gauss_random_bm(e_tr(0)*1e-1,e_tr(0)*1e-2,jitter_tr_old,nwalks)
-  mult_old(:,:) = 1.0d0
-  mult_new(:,:) = 1.0d0
-  if ( is_jit(0) .or. is_jit(1) ) then
-    do nk = 0, nwalks - 1
-      do j = 0, size_rv-1
-        mult_old(nk,j) = 1.0d0/sqrt( e_rv(j)**2 + jitter_rv_old(nk)**2  )
-      end do
-      do j = size_rv, size_rv+size_tr-1
-        mult_old(nk,j) = 1.0d0/sqrt( e_tr(j-size_rv)**2 + jitter_tr_old(nk)**2)
-      end do
-    end do
-  end if
+  log_errs_new = 0.0d0
+  log_errs_old = 0.0d0
+  do nk = 0, nwalks - 1
+    if ( total_fit_flag(0) ) &
+    log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_old(nk)**2 ) ) ) )
+    if ( total_fit_flag(1) ) &
+    log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_old(nk)**2 ) ) ) )
+  end do
 
   !Linear and quadratic terms
   lims_trends(:) = 0.0d0
@@ -168,86 +170,67 @@ implicit none
     lims_trends(3) =  1.0d-1
   end if
 
-  !Here is the option to fit each T0
-  !This will work only for continous transit and one planet
-  m = 0
-  t0_priors(m) = pars(0)
-  t0_limits(0,m) = lims(0) + m * pars(1)
-  t0_limits(1,m) = lims(1) + m * pars(1)
-  if ( 1 == 1 ) then
-    do j = 0, size_tr - 1
-      n = int( ( x_tr(j) - pars(0) ) / pars(1) )
-      if ( n == m ) then
-        !t0(n) = t0(0) + m * P !all are priors
-        t0_priors(m) = pars(0) + m * pars(1)
-        t0_limits(0,m) = lims(0) + m * pars(1)
-        t0_limits(1,m) = lims(1) + m * pars(1)
-        m = m + 1
-      end if
-    end do
-  end if
-  !At this point I have created an array with all the priors for each T0
-  !and also the limits to create the prior limits for each transit
-!  print *, t0_priors
-!  print *, t0_limits
 
-  !stop
-
-
-  print *, 'CREATING PRIORS'
+  print *, 'CREATING CHAINS'
   call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
   call gauss_random_bm(rstar_mean,rstar_sigma,rstar,nwalks)
+  priors_old(:,:) = 1.d0
+  priors_new(:,:) = 1.d0
+  priors_ldc_old(:,:) = 1.d0
+  priors_ldc_new(:,:) = 1.d0
   !Let us create uniformative random priors
   is_limit_good = .false.
   do nk = 0, nwalks - 1
     !random parameters
-      call uniform_priors(pars,8*npl,wtf_all,lims,pars_old(nk,:))
-
-      if ( 1 == 1) then !T0s fit
-        do m = 0, n_transits - 1
-          call uniform_priors(t0_priors(m),1,1,t0_limits(:,m),t0s_old(nk,m))
-        end do
-      end if
-!      print *, nk, t0s_old(nk,:)
-
+      call uniform_chains(pars,8*npl,wtf_all,lims,pars_old(nk,:))
       !If we are using the parametrization for e and omega
       if ( flags(1) ) then
         do m = 0, npl-1
           lims_e_dynamic(:,m) = sqrt( 1.d0 - pars_old(nk,2+8*m)**2 )
           lims_e_dynamic(0,m) = - lims_e_dynamic(0,m)
-          call uniform_priors(pars(3),1,wtf_all(3),lims_e_dynamic(:,m),pars_old(nk,3+8*m))
+          call uniform_chains(pars(3+8*m),1,wtf_all(3+8*m),lims_e_dynamic(:,m),pars_old(nk,3+8*m))
         end do
       end if
 
-      call uniform_priors(tds,2,wtf_trends,lims_trends,tds_old(nk,:))
+      call uniform_chains(tds,2,wtf_trends,lims_trends,tds_old(nk,:))
 
-      call uniform_priors(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
+      call uniform_chains(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
 
-      call uniform_priors(ldc(0),1,wtf_ldc(0),lims_ldc(0:1),ldc_old(nk,0))
+      call uniform_chains(ldc(0),1,wtf_ldc(0),lims_ldc(0:1),ldc_old(nk,0))
       lims_ldc_dynamic(:) = (/ lims_ldc(2), 1.0d0 - ldc_old(nk,0) /)
 
-      call uniform_priors(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
+      call uniform_chains(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
+
+!      do m = 0, 1
+!        call gauss_prior(ldc(m),ldc(m)-lims_ldc(m*2),ldc_old(nk,m),priors_ldc_old(nk,m))
+!      end do
 
       !Will we use spectroscopic priors for some planets?
       do m = 0, npl - 1
         if ( afk(m) ) then
           !The parameter comes from 3rd Kepler law !pars_old(1) is the period
-          call get_a_scaled(mstar(nk),rstar(nk),pars_old(nk,1+8*m),pars_old(nk,5+8*m),1)
+          call get_a_scaled(mstar(nk),rstar(nk),pars(1+8*m),pars_old(nk,5+8*m),1)
+          !call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*m),a_mean(m),a_sigma(m))
+          call gauss_prior(a_mean(m),a_sigma(m),pars_old(nk,5+8*m),priors_old(nk,5+8*m))
         end if
       end do
+
+      log_prior_old(nk) = sum( log(priors_old(nk,:) ) )
 
       call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
            ldc_old(nk,:),tds_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
-           t0s_old(nk,:),n_transits, &
            chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,size_rv,size_tr)
 
-           chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
+      chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
+
+      log_likelihood_old(nk) = log_prior_old(nk) + log_errs_old(nk) - 0.5d0 * chi2_old_total(nk)
+      !print *, log_prior_old(nk), log_errs_old(nk), chi2_old_total(nk)
+      !print *, log_likelihood_old(nk)
 
 
   end do
-
- !stop
+!  stop
 
  chi2_red(:) = chi2_old_total(:) / dof
 
@@ -267,7 +250,6 @@ implicit none
   is_burn = .false.
   a_factor = 2.d0
   n_burn = 1
-  is_kepler = .false.
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
@@ -275,13 +257,10 @@ implicit none
 
     !Creating the random variables
     !Do the work for all the walkers
-    call random_number(z_rand)
     call random_number(r_rand)
     !Create random integers to be the index of the walks
     !Note that r_ink(i) != i (avoid copy the same walker)
     call random_int(r_int,nwalks)
-    call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
-    call gauss_random_bm(rstar_mean,rstar_sigma,rstar,nwalks)
 
     !Pick a random walker
     do nk = 0, nwalks - 1 !walkers
@@ -289,20 +268,18 @@ implicit none
       rvs_new(nk,:) = rvs_old(r_int(nk),:)
       ldc_new(nk,:) = ldc_old(r_int(nk),:)
       tds_new(nk,:) = tds_old(r_int(nk),:)
-      t0s_new(nk,:) = t0s_old(r_int(nk),:)
       jitter_rv_new(nk) = jitter_rv_old(r_int(nk))
       jitter_tr_new(nk) = jitter_tr_old(r_int(nk))
     end do
 
     !Paralellization calls
     !$OMP PARALLEL &
-    !$OMP PRIVATE(is_limit_good,q,m)
+    !$OMP PRIVATE(is_limit_good,qq,m)
     !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1
 
       !Generate the random step to perform the stretch move
-      z_rand(nk) = z_rand(nk) * a_factor
-      call find_gz(z_rand(nk),a_factor)
+      call find_gz(a_factor,z_rand(nk))
 
       !Perform the stretch move
       !Eq. (7), Goodman & Weare (2010)
@@ -318,26 +295,7 @@ implicit none
                          ( jitter_rv_old(nk) - jitter_rv_new(nk) )
       jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) * &
                          ( jitter_tr_old(nk) - jitter_tr_new(nk) )
-      t0s_new(nk,:)  = t0s_new(nk,:) + z_rand(nk) * &
-                     ( t0s_old(nk,:) - t0s_new(nk,:) )
 
-      !For the fixed parameters, we assume a gaussian distribution with error bars
-      do m = 0, 8*npl-1
-       if ( wtf_all(m) == 0 ) then
-          call gauss_random_bm(pars(m),pars(m)-lims(2*m),pars_new(nk,m),1)
-       end if
-      end do
-      do m = 0, 1
-        if ( wtf_ldc(m) == 0 ) call gauss_random_bm(ldc(m),ldc(m)*0.2,ldc_new(nk,m),1)
-      end do
-
-      do m = 0, npl - 1
-        if ( afk(m) ) then
-          !The parameter comes from 3rd Kepler law
-         !pars_old(1) is the period
-        call get_a_scaled(mstar(nk),rstar(nk),pars_new(nk,1+8*m),pars_new(nk,5+8*m),1)
-        end if
-      end do
 
       !Let us check if the new parameters are inside the limits
       is_limit_good = .true.
@@ -349,44 +307,52 @@ implicit none
       end if
 
       chi2_new_total(nk) = huge(0.0d0) !A really big number!
+      priors_ldc_new(nk,:) = 0.0d0
+      priors_new(nk,:)     = 0.0d0
       if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
              total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
              ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
-             t0s_new(nk,:),n_transits, &
              chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,size_rv,size_tr)
 
         chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
-     end if
 
-      mult_new(nk,:) = 1.0d0
-      if ( is_jit(0) .or. is_jit(1) ) then
-        do m = 0, size_rv-1
-          mult_new(nk,m) = 1.0d0/sqrt( e_rv(m)**2 + jitter_rv_new(nk)**2  )
+        priors_ldc_new(nk,:) = 1.0d0
+        priors_new(nk,:)     = 1.0d0
+
+!        do m = 0, 1
+!          call gauss_prior(ldc(m),ldc(m)-lims_ldc(m*2),ldc_new(nk,m),priors_ldc_new(nk,m))
+!        end do
+
+        do m = 0, npl - 1
+          if ( afk(m) ) then
+            !The parameter comes from 3rd Kepler law
+            !call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*m),a_mean(m),a_sigma(m))
+            call gauss_prior(a_mean(m),a_sigma(m),pars_new(nk,5+8*m),priors_new(nk,5+8*m))
+          end if
         end do
-        do m = size_rv, size_rv+size_tr-1
-          mult_new(nk,m) = 1.0d0/sqrt( e_tr(m-size_rv)**2 + jitter_tr_new(nk)**2  )
-        end do
+
+
       end if
 
-      mult_total(nk,:) = mult_new(nk,:) / mult_old(nk,:)
+      !ADD JITTER TERMS
+      log_errs_new(nk) = 0.0d0
+      if ( total_fit_flag(0) ) &
+         log_errs_new(nk) = log_errs_new(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_new(nk)**2 ) ) ) )
+      if ( total_fit_flag(1) ) &
+         log_errs_new(nk) = log_errs_new(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_new(nk)**2 ) ) ) )
 
-      !Add the jitter terms
-      q = 1.0d0
-      if ( is_jit(0) .or. is_jit(1) ) then
-        do m = 0, size_rv+size_tr-1
-          q = q * mult_total(nk,m)
-        end do
-      end if
+      log_prior_new(nk) = sum( log(priors_new(nk,:) ) )
 
-      !Let us compare our models
-      !Compute the likelihood
-      q = q * z_rand(nk)**( int(spar - 1) ) * &
-            exp( ( chi2_old_total(nk) - chi2_new_total(nk) ) * 0.5d0  )
+      log_likelihood_new(nk) = log_prior_new(nk) + log_errs_new(nk) - 0.5d0 * chi2_new_total(nk)
+
+      qq = log_likelihood_new(nk) - log_likelihood_old(nk)
+      qq = z_rand(nk)**spar1 * exp(qq)
 
       !Check if the new likelihood is better
-      if ( q > r_rand(nk) ) then
+      if ( qq > r_rand(nk) ) then
         !If yes, let us save it as the old vectors
+        log_likelihood_old(nk) = log_likelihood_new(nk)
         chi2_old_total(nk) = chi2_new_total(nk)
         chi2_old_rv(nk) = chi2_new_rv(nk)
         chi2_old_tr(nk) = chi2_new_tr(nk)
@@ -394,12 +360,10 @@ implicit none
         rvs_old(nk,:) = rvs_new(nk,:)
         ldc_old(nk,:) = ldc_new(nk,:)
         tds_old(nk,:) = tds_new(nk,:)
-        t0s_old(nk,:) = t0s_new(nk,:)
-        if ( is_jit(0) ) &
-          jitter_rv_old(nk) = jitter_rv_new(nk)
-        if ( is_jit(1) ) &
-          jitter_tr_old(nk) = jitter_tr_new(nk)
-        mult_old(nk,:) = mult_new(nk,:)
+        jitter_rv_old(nk) = jitter_rv_new(nk)
+        jitter_tr_old(nk) = jitter_tr_new(nk)
+        priors_old(nk,:) = priors_new(nk,:)
+        priors_ldc_old(nk,:) = priors_ldc_new(nk,:)
       end if
 
       !Compute the reduced chi square
@@ -408,13 +372,15 @@ implicit none
       !Start to burn-in
       if ( is_burn ) then
         if ( mod(j,thin_factor) == 0 ) then
-         !$OMP CRITICAL
+         ! !$OMP CRITICAL
          write(101,*) j, nk, chi2_old_rv(nk),chi2_old_tr(nk), pars_old(nk,:), &
                       ldc_old(nk,:), rvs_old(nk,:)
-         write(201,*) jitter_rv_old(nk), jitter_tr_old(nk)
-         write(301,*) tds_old(nk,:)
-         write(401,*) t0s_old(nk,:)
-         !$OMP END CRITICAL
+         if ( is_jit(0) .or.  is_jit(1) ) &
+             write(201,*) jitter_rv_old(nk), jitter_tr_old(nk)
+         if ( sum(wtf_trends)  > 0 ) &
+            write(301,*) tds_old(nk,:)
+         write(401,*) j, nk, log_likelihood_old(nk)
+         ! !$OMP END CRITICAL
         end if
       end if
       !End burn-in
@@ -425,6 +391,7 @@ implicit none
     !Evolve burning-in controls
     if ( is_burn ) then
       !HERE EVOLVE BURNING-IN CONTROLS
+      !if ( mod(j,thin_factor) == 0 ) print *, n_burn, 'of', nconv
       if ( mod(j,thin_factor) == 0 ) n_burn = n_burn + 1
       if ( n_burn > nconv ) continua = .false.
     else
@@ -460,15 +427,15 @@ implicit none
             print *, '==========================='
             print *, '  CHAINS HAVE CONVERGED'
             print *, '==========================='
-            print *, 'STARTING BURNING-IN PHASE'
+            print *, 'STARTING BURN-IN PHASE'
             print *, '==========================='
             is_burn = .True.
-            print *, 'CREATING BURNING-IN DATA FILE'
+            print *, 'CREATING BURN-IN DATA FILE'
             !Let us start the otput file
             open(unit=101,file='all_data.dat',status='unknown')
             open(unit=201,file='jitter_data.dat',status='unknown')
             open(unit=301,file='trends_data.dat',status='unknown')
-            open(unit=401,file='t0s_data.dat',status='unknown')
+            open(unit=401,file='likelihood_data.dat',status='unknown')
           end if ! is_cvg
         end if !nconv
       end if !j/thin_factor
@@ -490,7 +457,5 @@ implicit none
   close(201)
   close(301)
   close(401)
-
-  stop
 
 end subroutine

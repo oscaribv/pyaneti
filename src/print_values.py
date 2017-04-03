@@ -12,15 +12,21 @@ from matplotlib import gridspec
 newfile = outdir+'/'+star+'_all_data.dat'
 dparams = np.loadtxt(newfile, comments='#',unpack=True)
 
+newfile_likelihood = outdir+'/'+star+'_likelihood.dat'
+ldparams = np.loadtxt(newfile_likelihood, comments='#',unpack=True)
+
 #Let us do the clustering
 params = list(dparams)
+#par_likelihood = list(ldparams[2])
 params_jitter = [0.0]*2
 new_nwalkers = nwalkers
 if ( is_clustering ):
   #Starting clustering
   good_index, new_nwalkers = good_clustering(dparams[2]+dparams[3],dparams[1],nconv,nwalkers)
+  #good_index, new_nwalkers = good_clustering_likelihood(ldparams[2],ldparams[1],nconv,nwalkers)
   for o in range(0,len(dparams)):
     params[o] = clustering(dparams[o],good_index)
+  #par_likelihood = clustering(ldparams[2],good_index)
 
 if ( is_jitter_rv or is_jitter_tr ):
   newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
@@ -54,14 +60,22 @@ rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=new_nwalkers*ncon
 tstar = np.random.normal(loc=tstar_mean,scale=tstar_sigma,size=new_nwalkers*nconv)
 
 #Calculate the BIC
-ndata = len(megax) + len(mega_rv)
+ndata = 0
+if ( total_rv_fit ):
+ ndata = ndata + len(mega_rv)
+if ( total_tr_fit ):
+ ndata = ndata + len(megax)
+
 npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
 
 if ( is_linear_trend ):
   npars = npars + 1
 if ( is_quadratic_trend):
   npars = npars + 1
-
+if ( is_jitter_rv ):
+  npars = npars + 1
+if ( is_jitter_tr ):
+  npars = npars + 1
 
 dummy_pars = [0.0]*len(params)
 for o in range(0,len(params)):
@@ -96,22 +110,38 @@ chi2tot_val_rv, chi2tot_val_tr = \
 
 #Calculate likelihoods
 likelihood_rv = np.float64(1.0)
-for o in range(0,len(mega_err)):
-  likelihood_rv = likelihood_rv / np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv**2))
-  #likelihood_rv = likelihood_rv * np.sqrt(( mega_err[o]**2+fit_jrv**2))
-  #print likelihood_rv
-likelihood_rv = likelihood_rv * np.exp(-chi2tot_val_rv/2.0)
+log_like_rv = 0.0
+if ( total_rv_fit ):
+  for o in range(0,len(mega_err)):
+    likelihood_rv = likelihood_rv / np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv**2))
+    log_like_rv = log_like_rv + np.log(1.0/np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv**2)))
+    #likelihood_rv = likelihood_rv * np.sqrt(( mega_err[o]**2+fit_jrv**2))
+    #print likelihood_rv
+  likelihood_rv = likelihood_rv * np.exp(-chi2tot_val_rv/2.0)
+  log_like_rv = log_like_rv - 0.5 * chi2tot_val_rv
 
 likelihood_tr = np.float64(1.0)
-for o in range(0,len(megae)):
-  likelihood_tr = likelihood_tr / np.sqrt(2.*np.pi*( megae[o]**2+fit_jtr**2))
-  #likelihood_tr = likelihood_tr * np.sqrt(( megae[o]**2+fit_jtr**2))
-likelihood_tr = likelihood_tr * np.exp(-chi2tot_val_tr/2.0)
+log_like_tr = 0.0
+if ( total_tr_fit ):
+  for o in range(0,len(megae)):
+    likelihood_tr = likelihood_tr / np.sqrt(2.*np.pi*( megae[o]**2+fit_jtr**2))
+    log_like_tr = log_like_tr + np.log(1./np.sqrt(2.*np.pi*( megae[o]**2+fit_jtr**2)))
+    #likelihood_tr = likelihood_tr * np.sqrt(( megae[o]**2+fit_jtr**2))
+  likelihood_tr = likelihood_tr * np.exp(-chi2tot_val_tr/2.0)
+  log_like_tr = log_like_tr - 0.5 * chi2tot_val_tr
 
 likelihood_total = likelihood_rv * likelihood_tr
+log_like_total = log_like_rv + log_like_tr
 
 
 bic_from_likelihood = np.log(ndata)*npars - 2.0*np.log(likelihood_total)
+bic_from_loglikelihood = np.log(ndata)*npars - 2.0*log_like_total
+
+#print np.log(likelihood_rv), log_like_rv
+#print np.log(likelihood_tr), log_like_tr
+#print np.log(likelihood_total),log_like_total
+#print bic_from_likelihood, bic_from_loglikelihood
+
 
 chi2tot_val  = chi2tot_val_rv + chi2tot_val_tr
 chi2_val = chi2tot_val / ( ndata - npars )
@@ -126,9 +156,6 @@ if ( scale_error_bars ):
 
 
 if ( method == 'mcmc' or method == 'plot' ):
-
-  minchi2_rv_index = np.argmin(params[2])
-  minchi2_tr_index = np.argmin(params[3])
 
   base = 4 #Where do the parameters start?
 #Fitted parameters
@@ -172,14 +199,14 @@ if ( method == 'mcmc' or method == 'plot' ):
   opars.write('chi2_rv     = %4.4f\n' %(chi2tot_val_rv))
   opars.write('chi2_tr     = %4.4f\n' %(chi2tot_val_tr))
   opars.write('chi2        = %4.4f\n' %(chi2tot_val))
-  opars.write('ln likelihood_rv= %4.4f\n' %(np.log(likelihood_rv)))
-  opars.write('ln likelihood_tr= %4.4f\n' %(np.log(likelihood_tr)))
-  opars.write('ln likelihood  = %4.4f\n' %(np.log(likelihood_total)))
+  opars.write('ln likelihood_rv= %4.4f\n' %(log_like_rv))
+  opars.write('ln likelihood_tr= %4.4f\n' %(log_like_tr))
+  opars.write('ln likelihood  = %4.4f\n' %(log_like_total))
   opars.write('DOF         = %8i \n' %(ndata - npars))
   opars.write('chi2_red    = %4.4f \n' %chi2_val)
   opars.write('scale factor= %4.4f\n' %s_factor)
   opars.write('BIC from chi2   = %4.4f\n' %(bic2))
-  opars.write('BIC from likelihood   = %4.4f\n' %(bic_from_likelihood))
+  opars.write('BIC from likelihood   = %4.4f\n' %(bic_from_loglikelihood))
   opars.write ('--------------------------------------------------------------\n')
   opars.write ('             INPUT STELLAR PARAMETERS\n')
   opars.write ('--------------------------------------------------------------\n')
@@ -217,7 +244,9 @@ if ( method == 'mcmc' or method == 'plot' ):
       #wo is the star periastron, add pi to have the planet one
       i_vec[o] = list(b_vec[o])
       b_vec[o] =  ar_vec[o] * np.cos(b_vec[o]) * ( ( 1. - e_vec[o]**2 ) \
-               / ( 1.0 + e_vec*np.sin(w_vec[o] + np.pi )))
+               / ( 1.0 + e_vec[o]*np.sin(w_vec[o] + np.pi )))
+      i_vec[o] = np.array(i_vec[o])
+
 
     if ( is_log_P ):
       P_vec[o] = 10.0**(P_vec[o])
@@ -438,6 +467,8 @@ if ( is_jitter_rv and resize_rv ):
 
 opars.close()
 otex.close()
+
+#Print the output in the screen
 dummy_file = open(out_params_file)
 for line in dummy_file:
   print line,

@@ -115,7 +115,7 @@ if ( nplanets_tr > 0 ):
   xt= [None]*nplanets
   yt= [None]*nplanets
   et= [None]*nplanets
-  for o in range(0,nplanets):
+  for o in range(0,nplanets_tr):
 
     filename = 'inpy/'+star+'/'+fname_tr[o]
     dummyd,dummyf,dummye = np.loadtxt(filename,usecols=columns_tr, \
@@ -137,12 +137,6 @@ if ( nplanets_tr > 0 ):
     #print tls
     #sys.exit()
 
-
-    #crash if you do not have more than one transit
-    if ( ntr < 2):
-      print "you do not have enought transit data!"
-      sys.exit("I crashed because I want more data!")
-
     #Each element of these lists will have the information
     #of a given transit
     xt[o]= [None]*ntr
@@ -162,7 +156,7 @@ if ( nplanets_tr > 0 ):
   megay = []
   megae = []
   megap = []
-  for i in range(0,nplanets):
+  for i in range(0,nplanets_tr):
       for j in range(0,len(xt[i])):
         for k in range(0,len(xt[i][j])):
             megap.append(i)
@@ -187,14 +181,14 @@ else:
 for o in range(0,nplanets):
     if (fit_tr[o] == False ):
       fit_pz[o] = False
-      pz[o] = 1e-10
+#      pz[o] = 1e-10
       fit_i[o] = False
-      ii[o] = 1e-10
+#      ii[o] = 1e-10
       fit_a[o] = False
-      a[o] = 1e-10
+#      a[o] = 1e-10
     if (fit_rv[o] == False ):
       fit_k[o] = False
-      k0[o] = 1e-10
+#      k0[o] = 1e-10
 
 #Let us turn off velocity offset for a pure TR fit
 if ( not total_rv_fit ):

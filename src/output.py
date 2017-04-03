@@ -7,6 +7,8 @@ execfile('src/plot_data.py')
 
 plot_chains()
 
+#plot_likelihood()
+
 if ( is_plot_histogram ):
   plot_histogram()
 
