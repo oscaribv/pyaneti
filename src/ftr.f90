@@ -164,16 +164,15 @@ implicit none
 
       !Are we generating an eclipse?
       !Take care with the pars
-      call find_z(xd(j),pars(0:5,n),flag,zdum,1)
+      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad+1)
 
-      if ( zdum(0) > 2.d0 .or. pz(n) < small ) then
+      if ( ( ALL( z > 1.d0 + 2.d0*pz(n) ) ) .or. pz(n) < small ) then
 
         muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
 
       else
 
        !Each planet has a different orbit
-       call find_z(xd_ub,pars(0:5,n),flag,z,n_cad+1)
        !Each planet generates a different eclipse
        call occultquad(z,u1,u2,pz(n),flux_ub(:,n),mu,n_cad+1)
 
@@ -184,12 +183,10 @@ implicit none
     fmultip(:) = 0.0
     !Get ready to rebin multiplanet flux
     do k = 0, n_cad
-      do n = 0, npl - 1
-        fmultip(k) = fmultip(k) + flux_ub(k,n)
-      end do
+      fmultip(k) =  SUM(flux_ub(k,:))
     end do
 
-    !Re-bin the data
+    !Re-bin the model
     muld_npl(j) = muld_npl(j) + ( sum(fmultip) + sum(fmultip(1:n_cad-1)) ) &
                   / n_cad / 2.0d0
 
