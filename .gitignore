@@ -10,3 +10,8 @@
 input_rv.py
 *.tbl
 input*.py
+inpy/*
+outpy/*
+.buildconfig
+lunas/*
+*.pyc
