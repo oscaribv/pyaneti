@@ -26,6 +26,7 @@ implicit none
 !Local variables
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: t0, P, e, w, i, a
+  double precision :: wp, ws
   double precision :: si, new_t0, ttot
   double precision :: pi = 3.1415926535897932384626d0
   integer :: n, j
@@ -45,10 +46,12 @@ implicit none
     e = pars(2) * pars(2) + pars(3) * pars(3)
     w = atan2(pars(2),pars(3))
   end if
+  ws  = w       !star periastron
+  wp  = ws + pi !planet periastron
   !Let us get the w of the planet
   !w = w + pi
   if (flag(3)) a = 10.d0**a
-  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(w) ) / ( 1.d0 - e*e ) )
+  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(wp) ) / ( 1.d0 - e*e ) )
 
   !Let us estimate the eclipse duration to rule out the no real recondary transits
   !For a planet with radius 0.0. This would not affect the method
@@ -61,9 +64,8 @@ implicit none
   ttot = P * ttot / pi
 
   !Obtain the eccentric anomaly by using find_anomaly
-  call find_anomaly(t,t0,e,w,P,ta,ts)
-  ta = ta + pi
-  swt = sin(w+ta)
+  call find_anomaly(t,t0,e,ws,P,ta,ts)
+  swt = sin(wp+ta)
 
   si = sin(i)
   z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
