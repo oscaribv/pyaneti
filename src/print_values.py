@@ -45,15 +45,6 @@ if ( is_linear_trend or is_quadratic_trend ):
     for o in range(0,2):
       params_trends[o] = clustering(dparams_trends[o],good_index)
 
-#T0s
-if ( True ):
-  newfile_t0s = outdir+'/'+star+'_t0s_data.dat'
-  dparams_t0s = np.loadtxt(newfile_t0s, comments='#',unpack=True)
-  params_t0s = list(dparams_t0s)
-  if ( is_clustering ):
-    for o in range(0,len(dparams_t0s)):
-      params_t0s[o] = clustering(dparams_t0s[o],good_index)
-
 #Create the stellar data
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
 rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=new_nwalkers*nconv)
@@ -92,11 +83,6 @@ if ( is_jitter_rv or is_jitter_tr ) :
   fit_jrv = np.median(params_jitter[0])
   fit_jtr = np.median(params_jitter[1])
 
-t0s_vec = [None]*len(params_t0s)
-if ( True ) :
-  for o in range(0,len(params_t0s)):
-    t0s_vec[o] = np.median(params_t0s[o])
-
 fit_trends = [0.0]*2
 if ( is_linear_trend or is_quadratic_trend ):
  fit_trends = [np.median(params_trends[0]),np.median(params_trends[1])]
@@ -105,7 +91,7 @@ if ( is_linear_trend or is_quadratic_trend ):
 chi2tot_val_rv, chi2tot_val_tr = \
   pti.get_total_chi2(mega_time,mega_rv,megax,megay,mega_err,megae,\
                      tlab,megap,total_fit_flag,flags,t_cad, n_cad, \
-                     fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr,t0s_vec\
+                     fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr \
                      )
 
 #Calculate likelihoods
