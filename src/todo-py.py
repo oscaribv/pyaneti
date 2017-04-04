@@ -291,13 +291,26 @@ def separate_transits(x,y,err,limits):
 #	mine -> left error (50% - 16%)
 #	maxe -> right error (84% - 50%)
 #-----------------------------------------------------------
-def find_vals_perc(x,sf=1.0):
+def find_vals_perc(x,sf=1.0,prob=68.3):
   #With a 68% confidence interval
-  mine, med, maxe = np.percentile(x,[16.0,50.0,84.0])
+  mnval = 50.0 - prob/2.0
+  mxval = 50.0 + prob/2.0
+  mine, med, maxe = np.percentile(x,[mnval,50.0,mxval])
   maxe = ( maxe - med ) / sf
   mine = ( med - mine ) / sf
   
   return med, mine, maxe
+
+
+#-----------------------------------------------------------
+def best_value(vector,cual):
+    if ( cual == 'median'):
+        result = np.median(vector)
+    elif( cual == 'mode' ):
+        result = my_mode(vector)
+
+    return result
+
 
 #-----------------------------------------------------------
 #This routine calculates the mode of a vector
@@ -310,8 +323,8 @@ def my_mode(vector,bins=100):
   j = 0
   o = 0
   limite = np.min(vector) + dx
-  while(o < len(b[0])):
-      if ( b[0][o] < limite ):
+  while(o < len(b)):
+      if ( b[o] < limite ):
           i = i + 1
           if ( i > j ):
               j = i
@@ -321,7 +334,7 @@ def my_mode(vector,bins=100):
           i = 0
           limite = limite + dx
 
-  return maximo, j
+  return maximo
 
 #-----------------------------------------------------------
 

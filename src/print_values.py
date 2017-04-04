@@ -323,6 +323,7 @@ if ( method == 'mcmc' or method == 'plot' ):
     opars.write ('--------------------------------------------------------------\n')
     opars.write ('-------------------------Fitted-------------------------------\n')
     opars.write ('T0   = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(T0_vec[o],s_factor)))
+    opars.write ('mode=%4.7f 99 %4.7f  %4.7f  days \n'%(my_mode(T0_vec[o]),find_vals_perc(T0_vec[o],s_factor,99)[1:]))
     opars.write ('P    = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(P_vec[o],s_factor)))
     if ( is_ew ):
       opars.write ('ew 1 = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_dum,s_factor)))
