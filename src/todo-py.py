@@ -299,6 +299,29 @@ def find_vals_perc(x,sf=1.0):
   
   return med, mine, maxe
 
+#-----------------------------------------------------------
+#This routine calculates the mode of a vector
+#The vector in divided in bins and count the maximum value
+def my_mode(vector,bins=100):
+  dx = np.max(vector) - np.min(vector)
+  dx = dx / bins
+  b = np.sort(vector)
+  i = 0
+  j = 0
+  o = 0
+  limite = np.min(vector) + dx
+  while(o < len(b[0])):
+      if ( b[0][o] < limite ):
+          i = i + 1
+          if ( i > j ):
+              j = i
+              maximo = limite - dx/2.0
+          o = o + 1
+      else:
+          i = 0
+          limite = limite + dx
+
+  return maximo, j
 
 #-----------------------------------------------------------
 
