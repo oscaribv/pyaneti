@@ -96,6 +96,7 @@ figure_size_y = 23./2.56/1.618
 font_size_label = 18
 clustering_delta = 0.5
 my_tr_ranges = False
+get_value = 'median'
 #mark for plots
 mark = ['o', 'D', 's', 'p', 'h', '8', '^', '<', '*', 'v','>','.', 'H', 'd','+']
 

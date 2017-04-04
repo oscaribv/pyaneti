@@ -94,7 +94,7 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
 #===========================================================
 def plot_transit_nice():
 #Move all the points to T0
-  ldc = [ np.median(params[4+8*nplanets]), np.median(params[5+8*nplanets]) ]
+  ldc = [ best_value(params[4+8*nplanets],get_value), best_value(params[5+8*nplanets],get_value) ]
   q1_val = ldc[0]
   q2_val = ldc[1]
   u1_val = np.sqrt(q1_val)
@@ -112,13 +112,13 @@ def plot_transit_nice():
 
   base = 4
   for m in range(0,nplanets):
-    t0_val[m] = np.median(params[base + 0])
-    P_val[m]  = np.median(params[base + 1])
-    e_val[m]  = np.median(params[base + 2])
-    w_val[m]  = np.median(params[base + 3])
-    i_val[m]  = np.median(params[base + 4])
-    a_val[m]  = np.median(params[base + 5])
-    pz_val[m] = np.median(params[base + 6])
+    t0_val[m] = best_value(params[base + 0],get_value)
+    P_val[m]  = best_value(params[base + 1],get_value)
+    e_val[m]  = best_value(params[base + 2],get_value)
+    w_val[m]  = best_value(params[base + 3],get_value)
+    i_val[m]  = best_value(params[base + 4],get_value)
+    a_val[m]  = best_value(params[base + 5],get_value)
+    pz_val[m] = best_value(params[base + 6],get_value)
     base = base + 8
 
   for o in range(0,nplanets):
@@ -222,7 +222,7 @@ def plot_transit_nice():
 
 def plot_all_transits():
 
-  ldc = [ np.median(params[4+8*nplanets]), np.median(params[5+8*nplanets]) ]
+  ldc = [ best_value(params[4+8*nplanets],get_value), best_value(params[5+8*nplanets],get_value) ]
   q1_val = ldc[0]
   q2_val = ldc[1]
   u1_val = np.sqrt(q1_val)
@@ -240,13 +240,13 @@ def plot_all_transits():
 
   base = 4
   for m in range(0,nplanets):
-    t0_val[m] = np.median(params[base + 0])
-    P_val[m]  = np.median(params[base + 1])
-    e_val[m]  = np.median(params[base + 2])
-    w_val[m]  = np.median(params[base + 3])
-    i_val[m]  = np.median(params[base + 4])
-    a_val[m]  = np.median(params[base + 5])
-    pz_val[m] = np.median(params[base + 6])
+    t0_val[m] = best_value(params[base + 0],get_value)
+    P_val[m]  = best_value(params[base + 1],get_value)
+    e_val[m]  = best_value(params[base + 2],get_value)
+    w_val[m]  = best_value(params[base + 3],get_value)
+    i_val[m]  = best_value(params[base + 4],get_value)
+    a_val[m]  = best_value(params[base + 5],get_value)
+    pz_val[m] = best_value(params[base + 6],get_value)
     base = base + 8
 
   for i in range(0,nplanets):
@@ -365,7 +365,7 @@ v_val = [None]*nt
 #3 + npars + ldc
 v_vec_val[:] = params[4+8*nplanets+2:4+8*nplanets+2+nt]
 for o in range(0,nt):
-  v_val[o] = np.median(v_vec_val[o])
+  v_val[o] = best_value(v_vec_val[o],get_value)
   if ( is_log_rv0 ):
     v_val[o] = 10.0**(v_val[o])
 
@@ -373,8 +373,8 @@ for o in range(0,nt):
 alpha_val = 0.0
 beta_val = 0.0
 if ( is_linear_trend or is_quadratic_trend ):
-  alpha_val = np.median(params_trends[0])
-  beta_val  = np.median(params_trends[1])
+  alpha_val = best_value(params_trends[0],get_value)
+  beta_val  = best_value(params_trends[1],get_value)
 
 
 base = 4
@@ -385,11 +385,11 @@ w_val  = np.ndarray(nplanets)
 k_val  = np.ndarray(nplanets)
 
 for o in range(0,nplanets):
-  t0_val[o] = np.median(params[base + 0])
-  P_val[o]  = np.median(params[base + 1])
-  e_val[o]  = np.median(params[base + 2])
-  w_val[o]  = np.median(params[base + 3])
-  k_val[o]  = np.median(params[base + 7])
+  t0_val[o] = best_value(params[base + 0],get_value)
+  P_val[o]  = best_value(params[base + 1],get_value)
+  e_val[o]  = best_value(params[base + 2],get_value)
+  w_val[o]  = best_value(params[base + 3],get_value)
+  k_val[o]  = best_value(params[base + 7],get_value)
   if ( is_log_P ):
     P_val[o] = 10.0**(P_val)
   if ( is_log_k ):

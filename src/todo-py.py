@@ -323,16 +323,19 @@ def my_mode(vector,bins=100):
   j = 0
   o = 0
   limite = np.min(vector) + dx
-  while(o < len(b)):
-      if ( b[o] < limite ):
-          i = i + 1
-          if ( i > j ):
-              j = i
-              maximo = limite - dx/2.0
-          o = o + 1
-      else:
-          i = 0
-          limite = limite + dx
+  if ( dx > 1e-10 ): #the parameter is fixed
+    while(o < len(b)):
+        if ( b[o] < limite ):
+            i = i + 1
+            if ( i > j ):
+                j = i
+                maximo = limite - dx/2.0
+            o = o + 1
+        else:
+            i = 0
+            limite = limite + dx
+  else:
+      maximo = np.median(vector)
 
   return maximo
 

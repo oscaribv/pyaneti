@@ -70,7 +70,7 @@ if ( is_jitter_tr ):
 
 dummy_pars = [0.0]*len(params)
 for o in range(0,len(params)):
-    dummy_pars[o] = np.median(params[o])
+    dummy_pars[o] = best_value(params[o],get_value)
 
 fit_pars = dummy_pars[4:4+8*nplanets]
 ldc_pars = dummy_pars[4+8*nplanets:6+8*nplanets]
@@ -80,12 +80,12 @@ fit_jrv = 0.0
 fit_jtr = 0.0
 
 if ( is_jitter_rv or is_jitter_tr ) :
-  fit_jrv = np.median(params_jitter[0])
-  fit_jtr = np.median(params_jitter[1])
+  fit_jrv = best_value(params_jitter[0],get_value)
+  fit_jtr = best_value(params_jitter[1],get_value)
 
 fit_trends = [0.0]*2
 if ( is_linear_trend or is_quadratic_trend ):
- fit_trends = [np.median(params_trends[0]),np.median(params_trends[1])]
+ fit_trends = [best_value(params_trends[0],get_value),best_value(params_trends[1],get_value)]
 
 #Calculate the final chi2 for each case
 chi2tot_val_rv, chi2tot_val_tr = \
@@ -323,7 +323,6 @@ if ( method == 'mcmc' or method == 'plot' ):
     opars.write ('--------------------------------------------------------------\n')
     opars.write ('-------------------------Fitted-------------------------------\n')
     opars.write ('T0   = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(T0_vec[o],s_factor)))
-    opars.write ('mode=%4.7f 99 %4.7f  %4.7f  days \n'%(my_mode(T0_vec[o]),find_vals_perc(T0_vec[o],s_factor,99)[1:]))
     opars.write ('P    = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(P_vec[o],s_factor)))
     if ( is_ew ):
       opars.write ('ew 1 = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_dum,s_factor)))
@@ -440,7 +439,7 @@ otex.write('\n')
 
 #RESIZE TRANSIT ERROR BARS
 if ( is_jitter_tr and resize_tr ):
-  jit_tr = np.median(params_jitter[1])
+  jit_tr = best_value(params_jitter[1],get_value)
   for o in range(0,len(et)):
       for m in range(0,len(et[o])):
           for q in range(0,len(et[o][m])):
@@ -448,7 +447,7 @@ if ( is_jitter_tr and resize_tr ):
   for o in range(0,len(megae)):
     megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 if ( is_jitter_rv and resize_rv ):
-    jit_rv = np.median(params_jitter[0])
+    jit_rv = best_value(params_jitter[0],get_value)
     for o in range(0,len(mega_err)):
         mega_err[o] = np.sqrt(mega_err[o]**2 + jit_rv**2)
 
