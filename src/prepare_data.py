@@ -179,20 +179,20 @@ else:
 #If we are not going to fit RV or TR data, let us turn off the variables
 #for the given case
 for o in range(0,nplanets):
-    if (fit_tr[o] == False ):
-      fit_pz[o] = False
+    if (fit_tr[o] == 'f' ):
+      fit_pz[o] = 'f'
 #      pz[o] = 1e-10
-      fit_i[o] = False
+      fit_i[o] = 'f'
 #      ii[o] = 1e-10
-      fit_a[o] = False
+      fit_a[o] = 'f'
 #      a[o] = 1e-10
-    if (fit_rv[o] == False ):
-      fit_k[o] = False
+    if (fit_rv[o] == 'f' ):
+      fit_k[o] = 'f'
 #      k0[o] = 1e-10
 
 #Let us turn off velocity offset for a pure TR fit
 if ( not total_rv_fit ):
-  fit_v0 = False
+  fit_v0 = 'f'
   nt = 1
   min_rv0 = [-1.]
   max_rv0 = [1.]

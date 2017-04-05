@@ -56,7 +56,7 @@ subroutine multi_all_stretch_move( &
            plab_tr,pars, rvs, ldc, &              !parameters vars
            stellar_pars,afk,&                     !Stellar parameters and flag|
            flags, total_fit_flag,is_jit, &        !flags
-           wtf_all, wtf_rvs, wtf_ldc,wtf_trends, &!fitting controls
+           fit_all, fit_rvs, fit_ldc,fit_trends, &!fitting controls
            nwalks, maxi, thin_factor, nconv, &    !mcmc evolution controls
            lims, lims_rvs, lims_ldc, &            !prior limits
            lims_p, lims_p_rvs, lims_p_ldc, &      !physical limits
@@ -81,8 +81,8 @@ implicit none
   double precision, intent(in), dimension(0:2*n_tel - 1) :: lims_rvs, lims_p_rvs
   double precision, intent(in), dimension(0:3) :: lims_ldc, lims_p_ldc
   double precision, intent(in) ::  t_cad
-  integer, intent(in) :: wtf_trends(0:1)
-  integer, intent(in) :: wtf_all(0:8*npl-1), wtf_rvs(0:n_tel-1), wtf_ldc(0:1)
+  character, intent(in) :: fit_trends(0:1)
+  character, intent(in) :: fit_all(0:8*npl-1), fit_rvs(0:n_tel-1), fit_ldc(0:1)
   logical, intent(in) :: flags(0:5), total_fit_flag(0:1) !CHECK THE SIZE
   logical, intent(in) :: afk(0:npl-1), is_jit(0:1)
 !Local variables
@@ -110,6 +110,8 @@ implicit none
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   logical :: continua, is_burn, is_limit_good, is_cvg
   integer :: nk, j, n, m, o, n_burn, spar, spar1
+  integer :: wtf_trends(0:1)
+  integer :: wtf_all(0:8*npl-1), wtf_rvs(0:n_tel-1), wtf_ldc(0:1)
 !external calls
   external :: init_random_seed, find_chi2_tr, find_chi2_rv
 
@@ -127,6 +129,10 @@ implicit none
   do o = 0, npl - 1
     call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*o),a_mean(o),a_sigma(o))
   end do
+
+
+  print *, fit_all(0:8*npl-1), fit_rvs(0:n_tel-1), fit_ldc(0:1), fit_trends
+  stop
 
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs) + sum(wtf_trends)
   !spar -> size of parameters, dof -> degrees of freedom

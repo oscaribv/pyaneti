@@ -474,16 +474,16 @@ def joint_fit():
 
   wtf_all = [None]*8*nplanets
   for o in range(0,nplanets):
-    wtf_all[o*8:(o+1)*8] = [int(fit_t0[o]),int(fit_P[o]),int(fit_e[o]),int(fit_w[o]), \
-                            int(fit_i[o]),int(fit_a[o]), int(fit_pz[o]), int(fit_k[o]) ]
+    wtf_all[o*8:(o+1)*8] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
+                            fit_i[o],fit_a[o], fit_pz[o], fit_k[o] ]
 
   wtf_rvs = []
   for o in range(0,nt):
-    wtf_rvs.append(int(fit_v0))
+    wtf_rvs.append(fit_v0)
 
-  wtf_ldc = [int(fit_q1), int(fit_q2)]
+  wtf_ldc = [fit_q1, fit_q2]
 
-  wtf_trends = [int(is_linear_trend), int(is_quadratic_trend)]
+  wtf_trends = [is_linear_trend,is_quadratic_trend]
 
   #Let us check what do we want to fit
   total_fit_flag = [ total_rv_fit, total_tr_fit ]
@@ -534,7 +534,6 @@ def joint_fit():
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
     limits_ldc,limits_p, limits_p_rvs, limits_p_ldc, \
     n_cad, t_cad, nplanets, nt)
-
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'

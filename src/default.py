@@ -75,8 +75,6 @@ is_fit_tr_errorbars = True
 is_jitter_rv = False
 is_jitter_tr = False
 plot_parameters = []
-is_linear_trend = False
-is_quadratic_trend = False
 is_seaborn_plot = False
 resize_rv = False
 resize_tr = True
@@ -122,21 +120,22 @@ fit_tr = False
 
 #All the parameters are fitted
 #by default
-fit_t0  = [True]
-fit_P   = [True]
-fit_e   = [True]
-fit_w   = [True]
+fit_t0  = ['u']
+fit_P   = ['u']
+fit_e   = ['u']
+fit_w   = ['u']
 #transit fit
-fit_i   = [True]
-fit_a   = [True]
-fit_q1  = [True]
-fit_q2  = [True]
-fit_pz  = [True]
+fit_i   = ['u']
+fit_a   = ['u']
+fit_q1  = 'u'
+fit_q2  = 'u'
+fit_pz  = ['u']
 #rv fit
-fit_k   = [True]
-fit_alpha = [False]
-fit_beta  = [False]
-fit_v0  = [True]
+fit_k   = ['u']
+fit_v0  = ['u']
+
+is_linear_trend = 'f'
+is_quadratic_trend = 'f'
 
 #flags
 is_log_P     = False
