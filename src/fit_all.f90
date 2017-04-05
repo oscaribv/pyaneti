@@ -95,9 +95,13 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, chi2_old_tr
   double precision, dimension(0:nwalks-1) :: chi2_new_rv, chi2_new_tr
-  double precision, dimension(0:nwalks-1,0:8*npl-1,0:nconv-1) :: pars_chains
   double precision, dimension(0:nwalks-1) :: jitter_rv_old, jitter_rv_new, jitter_tr_old, jitter_tr_new
   double precision, dimension(0:nwalks-1,0:1) :: tds_old, tds_new !linear and quadratic terms
+  double precision, dimension(0:nwalks-1,0:8*npl-1,0:nconv-1) :: pars_chains
+  double precision, dimension(0:nwalks-1,0:nconv-1) :: chi2_rv_chains, chi2_tr_chains
+  double precision, dimension(0:nwalks-1,0:nconv-1) :: jitter_rv_chains, jitter_tr_chains
+  double precision, dimension(0:nwalks-1,0:1,0:nconv-1) :: tds_chains, ldc_chains
+  double precision, dimension(0:nwalks-1,0:n_tel-1,0:nconv-1) :: rvs_chains
   double precision, dimension(0:3) :: lims_trends
   double precision, dimension(0:nwalks-1) :: log_prior_old, log_prior_new
   double precision, dimension(0:nwalks-1) :: log_likelihood_old, log_likelihood_new
@@ -329,6 +333,13 @@ implicit none
 
       call get_priors(fit_all,lims,pars_new(nk,:),priors_new(nk,:),8*npl)
       call get_priors(fit_ldc,lims_ldc,ldc_new(nk,:),priors_ldc_new(nk,:),2)
+      do m = 0, npl - 1
+        if ( afk(m) ) then
+          !The parameter comes from 3rd Kepler law
+          !call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*m),a_mean(m),a_sigma(m))
+          call gauss_prior(a_mean(m),a_sigma(m),pars_new(nk,5+8*m),priors_new(nk,5+8*m))
+        end if
+      end do
 
       limit_prior = PRODUCT(priors_new(nk,:)) * PRODUCT(priors_ldc_new(nk,:) )
 
@@ -343,8 +354,7 @@ implicit none
       end if
 
       chi2_new_total(nk) = huge(0.0d0) !A really big number!
-      priors_ldc_new(nk,:) = 0.0d0
-      priors_new(nk,:)     = 0.0d0
+
       if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
              total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
@@ -352,21 +362,6 @@ implicit none
              chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,size_rv,size_tr)
 
         chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
-
-        priors_ldc_new(nk,:) = 1.0d0
-        priors_new(nk,:)     = 1.0d0
-
-!        do m = 0, 1
-!          call gauss_prior(ldc(m),ldc(m)-lims_ldc(m*2),ldc_new(nk,m),priors_ldc_new(nk,m))
-!        end do
-
-        do m = 0, npl - 1
-          if ( afk(m) ) then
-            !The parameter comes from 3rd Kepler law
-            !call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*m),a_mean(m),a_sigma(m))
-            call gauss_prior(a_mean(m),a_sigma(m),pars_new(nk,5+8*m),priors_new(nk,5+8*m))
-          end if
-        end do
 
 
       end if
@@ -405,22 +400,6 @@ implicit none
       !Compute the reduced chi square
       chi2_red(nk) = chi2_old_total(nk) / dof
 
-      !Start to burn-in
-      if ( is_burn ) then
-        if ( mod(j,thin_factor) == 0 ) then
-         ! !$OMP CRITICAL
-         write(101,*) j, nk, chi2_old_rv(nk),chi2_old_tr(nk), pars_old(nk,:), &
-                      ldc_old(nk,:), rvs_old(nk,:)
-         if ( is_jit(0) .or.  is_jit(1) ) &
-             write(201,*) jitter_rv_old(nk), jitter_tr_old(nk)
-         if ( sum(wtf_trends)  > 0 ) &
-            write(301,*) tds_old(nk,:)
-         write(401,*) j, nk, log_likelihood_old(nk)
-         ! !$OMP END CRITICAL
-        end if
-      end if
-      !End burn-in
-
     end do !walkers
     !$OMP END PARALLEL
 
@@ -436,6 +415,13 @@ implicit none
         !Let us save a 3D array with the informations of the parameters,
         !the nk and the iteration. This array is used to perform GR test
         pars_chains(:,:,n) = pars_old(:,:)
+        chi2_rv_chains(:,n) = chi2_old_rv(:)
+        chi2_tr_chains(:,n) = chi2_old_tr(:)
+        ldc_chains(:,:,n) = ldc_old(:,:)
+        rvs_chains(:,:,n) = rvs_old(:,:)
+        tds_chains(:,:,n) = tds_old(:,:)
+        jitter_rv_chains(:,n) = jitter_rv_old(:)
+        jitter_tr_chains(:,n) = jitter_tr_old(:)
         n = n + 1
         !Is it time to check covergence=
         if ( n == nconv ) then
@@ -471,7 +457,7 @@ implicit none
             open(unit=101,file='all_data.dat',status='unknown')
             open(unit=201,file='jitter_data.dat',status='unknown')
             open(unit=301,file='trends_data.dat',status='unknown')
-            open(unit=401,file='likelihood_data.dat',status='unknown')
+            continua = .false.
           end if ! is_cvg
         end if !nconv
       end if !j/thin_factor
@@ -488,10 +474,22 @@ implicit none
   end do !infinite loop
   !the MCMC part has ended
 
+  !Let us create the output file
+  do n = 0, nconv - 1
+    do nk = 0, nwalks - 1
+      j = j + 1
+      write(101,*) j, nk, chi2_rv_chains(nk,n),chi2_tr_chains(nk,n), pars_chains(nk,:,n), &
+                   ldc_chains(nk,:,n), rvs_chains(nk,:,n)
+      if ( is_jit(0) .or.  is_jit(1) ) &
+          write(201,*) jitter_rv_chains(nk,n), jitter_tr_chains(nk,n)
+      if ( sum(wtf_trends)  > 0 ) &
+         write(301,*) tds_chains(nk,:,n)
+    end do
+  end do
+
   !Close file
   close(101)
   close(201)
   close(301)
-  close(401)
 
 end subroutine
