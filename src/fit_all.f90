@@ -108,6 +108,7 @@ implicit none
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
   double precision  :: a_mean(0:npl-1), a_sigma(0:npl-1)
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
+  double precision :: limit_prior
   logical :: continua, is_burn, is_limit_good, is_cvg
   integer :: nk, j, n, m, o, n_burn, spar, spar1
   integer :: wtf_trends(0:1)
@@ -192,17 +193,22 @@ implicit none
 
 
   print *, 'CREATING CHAINS'
+
   call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
   call gauss_random_bm(rstar_mean,rstar_sigma,rstar,nwalks)
+
   priors_old(:,:) = 1.d0
   priors_new(:,:) = 1.d0
   priors_ldc_old(:,:) = 1.d0
   priors_ldc_new(:,:) = 1.d0
+
   !Let us create uniformative random priors
   is_limit_good = .false.
   do nk = 0, nwalks - 1
     !random parameters
-      call uniform_chains(pars,8*npl,wtf_all,lims,pars_old(nk,:))
+      !call uniform_chains(pars,8*npl,wtf_all,lims,pars_old(nk,:))
+      call create_chains(fit_all,lims,pars_old(nk,:),8*npl)
+
       !If we are using the parametrization for e and omega
       if ( flags(1) ) then
         do m = 0, npl-1
@@ -212,18 +218,22 @@ implicit none
         end do
       end if
 
-      call uniform_chains(tds,2,wtf_trends,lims_trends,tds_old(nk,:))
+      call get_priors(fit_all,lims,pars_old(nk,:),priors_old(nk,:),8*npl)
 
-      call uniform_chains(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
+      !call uniform_chains(tds,2,wtf_trends,lims_trends,tds_old(nk,:))
+      call create_chains(fit_trends,lims_trends,tds_old(nk,:),2)
+      !call get_priors(fit_trends,lims_trends,tds_old(nk,:),priors_trends(nk,:),2)
 
-      call uniform_chains(ldc(0),1,wtf_ldc(0),lims_ldc(0:1),ldc_old(nk,0))
+      !call uniform_chains(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
+      call create_chains(fit_rvs,lims_rvs,rvs_old(nk,:),n_tel)
+      !call get_priors(fit_rvs,lims_rvs,rvs_old(nk,:),priors_rvs(nk,:),n_tel)
+
+      !call uniform_chains(ldc(0),1,wtf_ldc(0),lims_ldc(0:1),ldc_old(nk,0))
+      call create_chains(fit_ldc,lims_ldc,ldc_old(nk,:),2)
       lims_ldc_dynamic(:) = (/ lims_ldc(2), 1.0d0 - ldc_old(nk,0) /)
-
       call uniform_chains(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
+      call get_priors(fit_ldc,lims_ldc,ldc_old(nk,:),priors_ldc_old(nk,:),2)
 
-!      do m = 0, 1
-!        call gauss_prior(ldc(m),ldc(m)-lims_ldc(m*2),ldc_old(nk,m),priors_ldc_old(nk,m))
-!      end do
 
       !Will we use spectroscopic priors for some planets?
       do m = 0, npl - 1
@@ -235,7 +245,7 @@ implicit none
         end if
       end do
 
-      log_prior_old(nk) = sum( log(priors_old(nk,:) ) )
+      log_prior_old(nk) = sum( log(priors_old(nk,:) ) + sum( log(priors_ldc_old(nk,:) ) ) )
 
       call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
@@ -294,7 +304,7 @@ implicit none
 
     !Paralellization calls
     !$OMP PARALLEL &
-    !$OMP PRIVATE(is_limit_good,qq,m)
+    !$OMP PRIVATE(is_limit_good,qq,m,limit_prior)
     !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1
 
@@ -317,11 +327,17 @@ implicit none
                          ( jitter_tr_old(nk) - jitter_tr_new(nk) )
 
 
+      call get_priors(fit_all,lims,pars_new(nk,:),priors_new(nk,:),8*npl)
+      call get_priors(fit_ldc,lims_ldc,ldc_new(nk,:),priors_ldc_new(nk,:),2)
+
+      limit_prior = PRODUCT(priors_new(nk,:)) * PRODUCT(priors_ldc_new(nk,:) )
+
       !Let us check if the new parameters are inside the limits
       is_limit_good = .true.
-      call check_limits(pars_new(nk,:),lims_p,is_limit_good,8*npl)
+      !call check_limits(pars_new(nk,:),lims_p,is_limit_good,8*npl)
+      if ( limit_prior < 1.d-20 ) is_limit_good = .false.
       if (is_limit_good ) call check_limits(rvs_new(nk,:),lims_p_rvs,is_limit_good,n_tel)
-      if (is_limit_good ) call check_limits(ldc_new(nk,:),lims_p_ldc,is_limit_good,2)
+      !if (is_limit_good ) call check_limits(ldc_new(nk,:),lims_p_ldc,is_limit_good,2)
       if ( is_limit_good ) then
         if ( jitter_rv_new(nk) < 0.0d0 .or. jitter_tr_new(nk) < 0.0d0 ) is_limit_good = .false.
       end if
@@ -362,7 +378,7 @@ implicit none
       if ( total_fit_flag(1) ) &
          log_errs_new(nk) = log_errs_new(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_new(nk)**2 ) ) ) )
 
-      log_prior_new(nk) = sum( log(priors_new(nk,:) ) )
+      log_prior_new(nk) = sum( log(priors_new(nk,:) ) ) + sum( log(priors_ldc_new(nk,:) ) )
 
       log_likelihood_new(nk) = log_prior_new(nk) + log_errs_new(nk) - 0.5d0 * chi2_new_total(nk)
 

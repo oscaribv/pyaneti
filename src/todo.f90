@@ -429,3 +429,52 @@ implicit none
   end do
 
 end subroutine
+
+
+subroutine create_chains(fit_pars,lims,pars_out,npars)
+
+  integer, intent(in) :: npars
+  double precision, intent(in), dimension(0:2*npars-1) :: lims
+  double precision, intent(out), dimension(0:npars-1) :: pars_out
+  character, intent(in), dimension(0:npars-1) :: fit_pars
+!Local
+  integer :: j
+  double precision :: r_real
+
+  do j = 0, npars - 1
+    if ( fit_pars(j) == 'f' ) then
+       pars_out(j) = lims(j*2)
+    else if ( fit_pars(j) == 'u' ) then
+      call random_number(r_real)
+      pars_out(j) = lims(2*j+1) - lims(2*j)
+      pars_out(j) = lims(2*j) + r_real * pars_out(j)
+    else if ( fit_pars(j) == 'g' ) then
+      call gauss_random_bm(lims(2*j),lims(2*j+1),pars_out(j),1)
+    end if
+  end do
+
+end subroutine
+
+subroutine get_priors(fit_pars,lims,pars_in,priors_out,npars)
+
+  integer, intent(in) :: npars
+  double precision, intent(in), dimension(0:2*npars-1) :: lims
+  double precision, intent(in), dimension(0:npars-1) :: pars_in
+  double precision, intent(out), dimension(0:npars-1) :: priors_out
+  character, intent(in), dimension(0:npars-1) :: fit_pars
+!Local
+  integer :: j
+
+  priors_out = 1.d0
+  do j = 0, npars - 1
+    if ( fit_pars(j) == 'u' ) then
+      if ( pars_in(j) < lims(2*j) .or. pars_in(j) > lims(2*j+1) ) then
+        priors_out(j) = 0.d0
+        exit
+      end if
+    else if ( fit_pars(j) == 'g' ) then
+      call gauss_prior(lims(2*j),lims(2*j+1),pars_in(j),priors_out(j))
+    end if
+  end do
+
+end subroutine
