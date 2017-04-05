@@ -372,7 +372,7 @@ for o in range(0,nt):
 
 alpha_val = 0.0
 beta_val = 0.0
-if ( is_linear_trend or is_quadratic_trend ):
+if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   alpha_val = best_value(params_trends[0],get_value)
   beta_val  = best_value(params_trends[1],get_value)
 

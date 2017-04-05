@@ -37,7 +37,7 @@ if ( is_jitter_rv or is_jitter_tr ):
       params_jitter[o] = clustering(dparams_jitter[o],good_index)
 
 
-if ( is_linear_trend or is_quadratic_trend ):
+if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   newfile_trends = outdir+'/'+star+'_trends_data.dat'
   dparams_trends = np.loadtxt(newfile_trends, comments='#',unpack=True)
   params_trends = list(dparams_trends)
@@ -57,11 +57,23 @@ if ( total_rv_fit ):
 if ( total_tr_fit ):
  ndata = ndata + len(megax)
 
-npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
+npars = 0
 
-if ( is_linear_trend ):
+for o in range(0,len(wtf_all)):
+    if ( wtf_all[o] != 'f' ):
+        npars = npars + 1
+
+for o in range(0,len(wtf_ldc)):
+    if ( wtf_ldc[o] != 'f' ):
+        npars = npars + 1
+
+for o in range(0,len(wtf_rvs)):
+    if ( wtf_rvs[o] != 'f' ):
+        npars = npars + 1
+
+if ( is_linear_trend != 'f' ):
   npars = npars + 1
-if ( is_quadratic_trend):
+if ( is_quadratic_trend != 'f' ):
   npars = npars + 1
 if ( is_jitter_rv ):
   npars = npars + 1
@@ -84,7 +96,7 @@ if ( is_jitter_rv or is_jitter_tr ) :
   fit_jtr = best_value(params_jitter[1],get_value)
 
 fit_trends = [0.0]*2
-if ( is_linear_trend or is_quadratic_trend ):
+if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
  fit_trends = [best_value(params_trends[0],get_value),best_value(params_trends[1],get_value)]
 
 #Calculate the final chi2 for each case
@@ -131,7 +143,7 @@ bic_from_loglikelihood = np.log(ndata)*npars - 2.0*log_like_total
 
 chi2tot_val  = chi2tot_val_rv + chi2tot_val_tr
 chi2_val = chi2tot_val / ( ndata - npars )
-bic2 = get_BIC(chi2tot_val)
+#bic2 = get_BIC(chi2tot_val)
 
 if ( scale_error_bars ):
   s_factor = np.sqrt( chi2_val )
@@ -191,7 +203,7 @@ if ( method == 'mcmc' or method == 'plot' ):
   opars.write('DOF         = %8i \n' %(ndata - npars))
   opars.write('chi2_red    = %4.4f \n' %chi2_val)
   opars.write('scale factor= %4.4f\n' %s_factor)
-  opars.write('BIC from chi2   = %4.4f\n' %(bic2))
+#  opars.write('BIC from chi2   = %4.4f\n' %(bic2))
   opars.write('BIC from likelihood   = %4.4f\n' %(bic_from_loglikelihood))
   opars.write ('--------------------------------------------------------------\n')
   opars.write ('             INPUT STELLAR PARAMETERS\n')
@@ -454,7 +466,7 @@ if ( is_jitter_rv or is_jitter_tr ):
   opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux] \n'%(find_vals_perc(params_jitter[1],s_factor)))
   opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[1])))
   opars.write ('--------------------------------------------------------------\n')
-if ( is_linear_trend or is_quadratic_trend ):
+if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   opars.write ('linear trend    = %4.7f - %4.7f + %4.7f  m/s/days   \n'%(find_vals_perc(params_trends[0]*1.e3,s_factor)))
   opars.write ('                  %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_trends[0]*1e3)))
   opars.write ('quadratic trend = %4.7f - %4.7f + %4.7f  m/s/days^2 \n'%(find_vals_perc(params_trends[1]*1.e3,s_factor)))

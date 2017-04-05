@@ -130,9 +130,23 @@ implicit none
     call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*o),a_mean(o),a_sigma(o))
   end do
 
-
-  print *, fit_all(0:8*npl-1), fit_rvs(0:n_tel-1), fit_ldc(0:1), fit_trends
-  stop
+  !Let us fill the what-to-fit vectors
+  wtf_all = 0
+  do o = 0, 8*npl-1
+    if ( fit_all(o) == 'g' .or. fit_all(o) == 'u' ) wtf_all(o) = 1
+  end do
+  wtf_ldc = 0
+  do o = 0, 1
+    if ( fit_ldc(o) == 'g' .or. fit_ldc(o) == 'u' ) wtf_ldc(o) = 1
+  end do
+  wtf_rvs = 0
+  do o = 0, n_tel-1
+    if ( fit_rvs(o) == 'g' .or. fit_rvs(o) == 'u' ) wtf_rvs(o) = 1
+  end do
+  wtf_trends = 0
+  do o = 0, 1
+    if ( fit_trends(o) == 'g' .or. fit_trends(o) == 'u' ) wtf_trends(o) = 1
+  end do
 
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs) + sum(wtf_trends)
   !spar -> size of parameters, dof -> degrees of freedom
