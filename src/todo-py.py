@@ -340,6 +340,13 @@ def my_mode(vector,bins=100):
   return maximo
 
 #-----------------------------------------------------------
+def mode_and_99(vector):
+    a = my_mode(vector, bins=100)
+    d, b, c = find_vals_perc(vector, sf=1.0, prob=99)
+
+    return a,b,c
+
+#-----------------------------------------------------------
 
 def good_clustering(chi2,chain_lab,nconv,nwalkers):
   #Let us find the good indixes for the cluster
