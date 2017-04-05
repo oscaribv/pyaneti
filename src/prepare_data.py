@@ -180,8 +180,8 @@ else:
 #for the given case
 for o in range(0,nplanets):
     if (fit_tr[o] == 'f' ):
-      fit_pz[o] = 'f'
-#      pz[o] = 1e-10
+      fit_rp[o] = 'f'
+#      rp[o] = 1e-10
       fit_i[o] = 'f'
 #      ii[o] = 1e-10
       fit_a[o] = 'f'

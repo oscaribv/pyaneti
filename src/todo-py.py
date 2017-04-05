@@ -17,7 +17,7 @@ import sys
 #-----------------------------------------------------------
 def get_BIC(chi2tot_val):
 
-  npars = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs)
+  npars = sum(fit_all) + sum(fit_ldc) + sum(fit_rvs)
   ndata = len(megax) + len(mega_rv)
 
   if ( is_linear_trend ):
@@ -139,8 +139,8 @@ def smart_priors():
   global tota_rv_fit, total_tr_fit
   global min_rv0, max_rv0, v0, min_k, max_k, min_phys_k, max_phys_k
   global min_P, max_P, min_phys_P, max_phys_P, min_t0, max_t0, \
-         min_phys_t0, max_phys_t0, min_pz, max_pz, min_phys_pz, \
-         max_phys_pz, min_i, max_i, min_phys_i, max_phys_i, min_phys_rv0, max_phys_rv0
+         min_phys_t0, max_phys_t0, min_rp, max_rp, min_phys_rp, \
+         max_phys_rp, min_i, max_i, min_phys_i, max_phys_i, min_phys_rv0, max_phys_rv0
 
   #Let us try to do a guess for the init values
   if ( total_rv_fit ):
@@ -164,17 +164,17 @@ def smart_priors():
 
     min_flux = min(megay)
     max_flux = max(megay)
-    min_phys_pz =[None]*len(xt)
-    max_phys_pz =[None]*len(xt)
+    min_phys_rp =[None]*len(xt)
+    max_phys_rp =[None]*len(xt)
     for o in range(0,nplanets):
-      min_phys_pz[o] = 0.0
-      max_phys_pz[o] = max_flux - min_flux
-      max_phys_pz[o] = 10.*np.sqrt(max_phys_pz[o])
-      max_phys_pz[o] = min(1.0,max_phys_pz[o])
+      min_phys_rp[o] = 0.0
+      max_phys_rp[o] = max_flux - min_flux
+      max_phys_rp[o] = 10.*np.sqrt(max_phys_rp[o])
+      max_phys_rp[o] = min(1.0,max_phys_rp[o])
       #Let us assume that the smallest planet in the data
       #is around 10% of the maximum depth
       #If we gave a worst prior for planet size, take a better
-      max_pz[o] = min([max_pz[o],max_phys_pz[o]])
+      max_rp[o] = min([max_rp[o],max_phys_rp[o]])
 
 #    min_phys_P =[None]*len(xt)
 #    max_phys_P =[None]*len(xt)
@@ -456,40 +456,40 @@ def clustering(par,good_index):
 #         FIT JOINT RV-TRANSIT DATA
 #-----------------------------------------------------------
 def joint_fit():
-  global wtf_all, wtf_ldc, wtf_rvs, nt
+  global fit_all, fit_ldc, fit_rvs, nt
   global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
   global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
-  global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_pz, fit_k,fit_v0
-  global T0,P,e,w,ii,a,q1,q2,pz,k0,alpha,beta, v0
+  global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_rp, fit_k,fit_v0
+  global T0,P,e,w,ii,a,q1,q2,rp,k0,alpha,beta, v0
   global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
-         max_a, min_q1, max_q1, min_q1, max_q1, min_pz, max_pz, min_k, max_k, min_alpha, max_alpha, \
+         max_a, min_q1, max_q1, min_q1, max_q1, min_rp, max_rp, min_k, max_k, min_alpha, max_alpha, \
          min_beta, max_beta, min_rv0, max_rv0
   global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
          min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
-         max_phys_q1, min_phys_pz, max_phys_pz,min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, \
+         max_phys_q1, min_phys_rp, max_phys_rp,min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, \
          min_phys_beta, max_phys_beta, min_phys_rv0, max_phys_rv0
-  global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,pzo,ko,alphao,betao,vo, what_fit
+  global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,rpo,ko,alphao,betao,vo, what_fit
   global new_nwalkers, good_index
   global jrvo, jtro, total_fit_flag, flags
 
-  wtf_all = [None]*8*nplanets
+  fit_all = [None]*8*nplanets
   for o in range(0,nplanets):
-    wtf_all[o*8:(o+1)*8] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
-                            fit_i[o],fit_a[o], fit_pz[o], fit_k[o] ]
+    fit_all[o*8:(o+1)*8] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
+                            fit_i[o],fit_a[o], fit_rp[o], fit_k[o] ]
 
-  wtf_rvs = []
+  fit_rvs = []
   for o in range(0,nt):
-    wtf_rvs.append(fit_v0)
+    fit_rvs.append(fit_v0)
 
-  wtf_ldc = [fit_q1, fit_q2]
+  fit_ldc = [fit_q1, fit_q2]
 
-  wtf_trends = [is_linear_trend,is_quadratic_trend]
+  fit_trends = [is_linear_trend,is_quadratic_trend]
 
   #Let us check what do we want to fit
   total_fit_flag = [ total_rv_fit, total_tr_fit ]
   pars = [None]*8*nplanets
   for i in range(0,nplanets):
-    pars[i*8:(i+1)*8]= [T0[i],P[i],e[i],w[i],ii[i],a[i],pz[i],k0[i]]
+    pars[i*8:(i+1)*8]= [T0[i],P[i],e[i],w[i],ii[i],a[i],rp[i],k0[i]]
 
   rvs = v0
   ldc   = [q1,q2]
@@ -510,10 +510,10 @@ def joint_fit():
     for o in range(0,nplanets):
       dummy_lims[o*8*2:(o+1)*8*2 ] = \
       [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
-      , min_i[o], max_i[o], min_a[o], max_a[o], min_pz[o], max_pz[o], min_k[o], max_k[o] ]
+      , min_i[o], max_i[o], min_a[o], max_a[o], min_rp[o], max_rp[o], min_k[o], max_k[o] ]
       dummy_lims_physical[o*8*2:(o+1)*8*2] = \
       [min_phys_t0[o], max_phys_t0[o], min_phys_P[o], max_phys_P[o], min_phys_e[o], max_phys_e[o], min_phys_w[o], max_phys_w[o] \
-      , min_phys_i[o], max_phys_i[o], min_phys_a[o], max_phys_a[o], min_phys_pz[o], max_phys_pz[o],min_phys_k[o],max_phys_k[o] ]
+      , min_phys_i[o], max_phys_i[o], min_phys_a[o], max_phys_a[o], min_phys_rp[o], max_phys_rp[o],min_phys_k[o],max_phys_k[o] ]
 
     limits = dummy_lims
     limits_p = dummy_lims_physical
@@ -530,7 +530,7 @@ def joint_fit():
     pti.multi_all_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
     tlab,megap,pars,rvs,ldc,stellar_pars,a_from_kepler,\
-    flags,total_fit_flag,is_jitter,wtf_all,wtf_rvs,wtf_ldc,wtf_trends, \
+    flags,total_fit_flag,is_jitter,fit_all,fit_rvs,fit_ldc,fit_trends, \
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
     limits_ldc,limits_p, limits_p_rvs, limits_p_ldc, \
     n_cad, t_cad, nplanets, nt)
@@ -597,7 +597,7 @@ def print_init():
     oif.write ('fitting a      = %s\n'% fit_a)
     oif.write ('fitting q1     = %s\n'% fit_q1)
     oif.write ('fitting q2     = %s\n'% fit_q2)
-    oif.write ('fitting pz     = %s\n'% fit_pz)
+    oif.write ('fitting rp     = %s\n'% fit_rp)
   if (fit_rv):
     oif.write ('fitting k      = %s\n'% fit_k)
     oif.write ('fitting v0     = %s\n'% fit_v0)
@@ -613,7 +613,7 @@ def print_init():
     oif.write ('w  = [ %4.4f , %4.4f ]\n' %(min_w[j],max_w[j]))
     oif.write ('i  = [ %4.4f , %4.4f ]\n' %(min_i[j],max_i[j]))
     oif.write ('a  = [ %4.4f , %4.4f ]\n' %(min_a[j],max_a[j]))
-    oif.write ('pz = [ %4.4f , %4.4f ]\n' %(min_pz[j],max_pz[j]))
+    oif.write ('rp = [ %4.4f , %4.4f ]\n' %(min_rp[j],max_rp[j]))
     oif.write ('K  = [ %4.4f , %4.4f ]\n' %(min_k[j],max_k[j]))
     oif.write ('------------------------------\n')
     oif.write ('     PHYSICAL LIMITS          \n')
@@ -624,7 +624,7 @@ def print_init():
     oif.write ('w  = [ %4.4f , %4.4f ]\n' %(min_phys_w[j],max_phys_w[j]))
     oif.write ('i  = [ %4.4f , %4.4f ]\n' %(min_phys_i[j],max_phys_i[j]))
     oif.write ('a  = [ %4.4f , %4.4f ]\n' %(min_phys_a[j],max_phys_a[j]))
-    oif.write ('pz = [ %4.4f , %4.4f ]\n' %(min_phys_pz[j],max_phys_pz[j]))
+    oif.write ('rp = [ %4.4f , %4.4f ]\n' %(min_phys_rp[j],max_phys_rp[j]))
     oif.write ('K  = [ %4.4f , %4.4f ]\n' %(min_phys_k[j],max_phys_k[j]))
   oif.write ('------------------------------\n')
   oif.write ('   Other parameters limits \n')

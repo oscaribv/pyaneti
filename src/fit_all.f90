@@ -178,9 +178,11 @@ implicit none
   log_errs_old = 0.0d0
   do nk = 0, nwalks - 1
     if ( total_fit_flag(0) ) &
-    log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_old(nk)**2 ) ) ) )
+    log_errs_old(nk) = log_errs_old(nk) + &
+    sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_old(nk)**2 ) ) ) )
     if ( total_fit_flag(1) ) &
-    log_errs_old(nk) = log_errs_old(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_old(nk)**2 ) ) ) )
+    log_errs_old(nk) = log_errs_old(nk) + &
+    sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_old(nk)**2 ) ) ) )
   end do
 
   !Linear and quadratic terms
@@ -403,65 +405,57 @@ implicit none
     end do !walkers
     !$OMP END PARALLEL
 
-    !Evolve burning-in controls
-    if ( is_burn ) then
-      !HERE EVOLVE BURNING-IN CONTROLS
-      !if ( mod(j,thin_factor) == 0 ) print *, n_burn, 'of', nconv
-      if ( mod(j,thin_factor) == 0 ) n_burn = n_burn + 1
-      if ( n_burn > nconv ) continua = .false.
-    else
-      if ( mod(j,thin_factor) == 0 ) then
-        !If the chains have not converged, let us check convergence
-        !Let us save a 3D array with the informations of the parameters,
-        !the nk and the iteration. This array is used to perform GR test
-        pars_chains(:,:,n) = pars_old(:,:)
-        chi2_rv_chains(:,n) = chi2_old_rv(:)
-        chi2_tr_chains(:,n) = chi2_old_tr(:)
-        ldc_chains(:,:,n) = ldc_old(:,:)
-        rvs_chains(:,:,n) = rvs_old(:,:)
-        tds_chains(:,:,n) = tds_old(:,:)
-        jitter_rv_chains(:,n) = jitter_rv_old(:)
-        jitter_tr_chains(:,n) = jitter_tr_old(:)
-        n = n + 1
-        !Is it time to check covergence=
-        if ( n == nconv ) then
-          !Perform G-R test
-          n = 0 !reinitilize n
-          call print_chain_data(chi2_red,nwalks)
+    if ( mod(j,thin_factor) == 0 ) then
+      !If the chains have not converged, let us check convergence
+      !Let us save a 3D array with the informations of the parameters,
+      !the nk and the iteration. This array is used to perform GR test
+      pars_chains(:,:,n) = pars_old(:,:)
+      chi2_rv_chains(:,n) = chi2_old_rv(:)
+      chi2_tr_chains(:,n) = chi2_old_tr(:)
+      ldc_chains(:,:,n) = ldc_old(:,:)
+      rvs_chains(:,:,n) = rvs_old(:,:)
+      tds_chains(:,:,n) = tds_old(:,:)
+      jitter_rv_chains(:,n) = jitter_rv_old(:)
+      jitter_tr_chains(:,n) = jitter_tr_old(:)
+      n = n + 1
+      !Is it time to check covergence=
+      if ( n == nconv ) then
+        !Perform G-R test
+        n = 0 !reinitilize n
+        call print_chain_data(chi2_red,nwalks)
+        print *, '==========================='
+        print *, '  PERFOMING GELMAN-RUBIN'
+        print *, '   TEST FOR CONVERGENCE'
+        print *, '==========================='
+        !Check convergence for all the parameters
+        is_cvg = .true.
+        do o = 0, 8*npl-1
+          if (wtf_all(o) == 1 ) then !perform G-R test
+            call gr_test(pars_chains(:,o,:),nwalks,nconv,is_cvg)
+          end if
+          if ( .not. is_cvg ) exit
+        end do
+        if ( .not. is_cvg  ) then
+          print *, '=================================='
+          print *, 'CHAINS HAVE NOT CONVERGED YET!'
+          print *,  nconv*thin_factor,' ITERATIONS MORE!'
+          print *, '=================================='
+        else
           print *, '==========================='
-          print *, '  PERFOMING GELMAN-RUBIN'
-          print *, '   TEST FOR CONVERGENCE'
+          print *, '  CHAINS HAVE CONVERGED'
           print *, '==========================='
-          !Check convergence for all the parameters
-          is_cvg = .true.
-          do o = 0, 8*npl-1
-            if (wtf_all(o) == 1 ) then !perform G-R test
-              call gr_test(pars_chains(:,o,:),nwalks,nconv,is_cvg)
-            end if
-            if ( .not. is_cvg ) exit
-          end do
-          if ( .not. is_cvg  ) then
-            print *, '=================================='
-            print *, 'CHAINS HAVE NOT CONVERGED YET!'
-            print *,  nconv*thin_factor,' ITERATIONS MORE!'
-            print *, '=================================='
-          else
-            print *, '==========================='
-            print *, '  CHAINS HAVE CONVERGED'
-            print *, '==========================='
-            print *, 'STARTING BURN-IN PHASE'
-            print *, '==========================='
-            is_burn = .True.
-            print *, 'CREATING BURN-IN DATA FILE'
-            !Let us start the otput file
-            open(unit=101,file='all_data.dat',status='unknown')
-            open(unit=201,file='jitter_data.dat',status='unknown')
-            open(unit=301,file='trends_data.dat',status='unknown')
-            continua = .false.
-          end if ! is_cvg
-        end if !nconv
-      end if !j/thin_factor
-    end if !is_burn
+          print *, 'STARTING BURN-IN PHASE'
+          print *, '==========================='
+          is_burn = .True.
+          print *, 'CREATING BURN-IN DATA FILE'
+          !Let us start the otput file
+          open(unit=101,file='all_data.dat',status='unknown')
+          open(unit=201,file='jitter_data.dat',status='unknown')
+          open(unit=301,file='trends_data.dat',status='unknown')
+          continua = .false.
+        end if ! is_cvg
+      end if !nconv
+    end if !j/thin_factor
 
     !check if we exceed the maximum number of iterations
     if ( j > maxi ) then

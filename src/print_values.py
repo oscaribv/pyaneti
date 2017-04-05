@@ -59,16 +59,16 @@ if ( total_tr_fit ):
 
 npars = 0
 
-for o in range(0,len(wtf_all)):
-    if ( wtf_all[o] != 'f' ):
+for o in range(0,len(fit_all)):
+    if ( fit_all[o] != 'f' ):
         npars = npars + 1
 
-for o in range(0,len(wtf_ldc)):
-    if ( wtf_ldc[o] != 'f' ):
+for o in range(0,len(fit_ldc)):
+    if ( fit_ldc[o] != 'f' ):
         npars = npars + 1
 
-for o in range(0,len(wtf_rvs)):
-    if ( wtf_rvs[o] != 'f' ):
+for o in range(0,len(fit_rvs)):
+    if ( fit_rvs[o] != 'f' ):
         npars = npars + 1
 
 if ( is_linear_trend != 'f' ):

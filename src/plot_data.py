@@ -108,7 +108,7 @@ def plot_transit_nice():
   w_val  = [None]*nplanets
   i_val  = [None]*nplanets
   a_val  = [None]*nplanets
-  pz_val = [None]*nplanets
+  rp_val = [None]*nplanets
 
   base = 4
   for m in range(0,nplanets):
@@ -118,7 +118,7 @@ def plot_transit_nice():
     w_val[m]  = best_value(params[base + 3],get_value)
     i_val[m]  = best_value(params[base + 4],get_value)
     a_val[m]  = best_value(params[base + 5],get_value)
-    pz_val[m] = best_value(params[base + 6],get_value)
+    rp_val[m] = best_value(params[base + 6],get_value)
     base = base + 8
 
   for o in range(0,nplanets):
@@ -160,10 +160,10 @@ def plot_transit_nice():
     #Calculate the transit curve for all the data
       for m in range(0,len(xmodel)):
         zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
-        fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,pz_val[o])
+        fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,rp_val[o])
       for m in range(0,len(xmodel_res)):
         zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
-        fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,pz_val[o])
+        fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,rp_val[o])
 
       #Bin the data
       fd_reb = [0.0]*len(xmodel)
@@ -192,7 +192,7 @@ def plot_transit_nice():
         if ( p != o ):
           for m in range(0,len(xmodel_vec)):
             zd_ub_dum[m] = pti.find_z(xd_ub_vec[m][:],[t0_val[p],P_val[p],e_val[p],w_val[p],i_val[p],a_val[p]],flag)
-            fd_ub_dum[m], dummm = pti.occultquad(zd_ub_dum[m],u1_val,u2_val,pz_val[p])
+            fd_ub_dum[m], dummm = pti.occultquad(zd_ub_dum[m],u1_val,u2_val,rp_val[p])
             for n in range(0,n_cad):
               #This is the flux caused by the time stams which come from the data
               fd_reb_dum[m] = fd_reb_dum[m] + fd_ub_dum[m][n]/n_cad
@@ -236,7 +236,7 @@ def plot_all_transits():
   w_val  = [None]*nplanets
   i_val  = [None]*nplanets
   a_val  = [None]*nplanets
-  pz_val = [None]*nplanets
+  rp_val = [None]*nplanets
 
   base = 4
   for m in range(0,nplanets):
@@ -246,7 +246,7 @@ def plot_all_transits():
     w_val[m]  = best_value(params[base + 3],get_value)
     i_val[m]  = best_value(params[base + 4],get_value)
     a_val[m]  = best_value(params[base + 5],get_value)
-    pz_val[m] = best_value(params[base + 6],get_value)
+    rp_val[m] = best_value(params[base + 6],get_value)
     base = base + 8
 
   for i in range(0,nplanets):
@@ -281,14 +281,14 @@ def plot_all_transits():
           for o in range(0,nplanets):
             for m in range(0,len(xvec)):
               zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
-              fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,pz_val[o])
+              fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,rp_val[o])
               for n in range(0,n_cad):
                 fd_reb[m] = fd_reb[m] + fd_ub[m][n]/n_cad
               fd_ub_total[m] = fd_ub_total[m] + fd_reb[m]
               fd_reb[m] = 0.0
             for m in range(0,len(xvec_model)):
               zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
-              fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,pz_val[o])
+              fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,rp_val[o])
               for n in range(0,n_cad):
                 fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[m][n]/n_cad
               fd_ub_res_total[m] = fd_ub_res_total[m] + fd_reb_res[m]

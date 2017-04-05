@@ -116,7 +116,7 @@ implicit none
 !Local variables
   double precision, dimension(0:datas-1) :: muld_npl
   double precision, dimension(0:datas-1) :: res, muld, mu
-  double precision :: npl_dbl, small, u1, u2, pz(0:npl-1), zdum(0:0)
+  double precision :: npl_dbl, small, u1, u2, rp(0:npl-1), zdum(0:0)
   !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
   double precision, dimension(0:n_cad)  :: xd_ub, z, fmultip
   double precision, dimension(0:n_cad,0:npl-1)  :: flux_ub
@@ -138,7 +138,7 @@ implicit none
   u1 = 2.d0*u1*ldc(1)
 
   !Get planet radius
-  pz(:) = pars(6,:)
+  rp(:) = pars(6,:)
 
   !are the u1 and u2 within a physical solution
   call check_us(u1,u2,is_good)
@@ -168,7 +168,7 @@ implicit none
       !Take care with the pars
       call find_z(xd_ub,pars(0:5,n),flag,z,n_cad+1)
 
-      if ( ( ALL( z > 1.d0 + 2.d0*pz(n) ) ) .or. pz(n) < small ) then
+      if ( ( ALL( z > 1.d0 + 2.d0*rp(n) ) ) .or. rp(n) < small ) then
 
         muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
 
@@ -176,7 +176,7 @@ implicit none
 
        !Each planet has a different orbit
        !Each planet generates a different eclipse
-       call occultquad(z,u1,u2,pz(n),flux_ub(:,n),mu,n_cad+1)
+       call occultquad(z,u1,u2,rp(n),flux_ub(:,n),mu,n_cad+1)
 
      end if
 
