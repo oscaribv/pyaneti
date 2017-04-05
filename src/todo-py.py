@@ -315,7 +315,7 @@ def best_value(vector,cual):
 #-----------------------------------------------------------
 #This routine calculates the mode of a vector
 #The vector in divided in bins and count the maximum value
-def my_mode(vector,bins=100):
+def my_mode(vector,bins=50):
   dx = np.max(vector) - np.min(vector)
   dx = dx / bins
   b = np.sort(vector)
@@ -341,7 +341,7 @@ def my_mode(vector,bins=100):
 
 #-----------------------------------------------------------
 def mode_and_99(vector):
-    a = my_mode(vector, bins=100)
+    a = my_mode(vector)
     d, b, c = find_vals_perc(vector, sf=1.0, prob=99)
 
     return a,b,c
