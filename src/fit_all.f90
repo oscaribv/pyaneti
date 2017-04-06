@@ -349,11 +349,11 @@ implicit none
       is_limit_good = .true.
       !call check_limits(pars_new(nk,:),lims_p,is_limit_good,8*npl)
       if ( limit_prior < 1.d-20 ) is_limit_good = .false.
-      if (is_limit_good ) call check_limits(rvs_new(nk,:),lims_p_rvs,is_limit_good,n_tel)
+!      if (is_limit_good ) call check_limits(rvs_new(nk,:),lims_p_rvs,is_limit_good,n_tel)
       !if (is_limit_good ) call check_limits(ldc_new(nk,:),lims_p_ldc,is_limit_good,2)
-      if ( is_limit_good ) then
-        if ( jitter_rv_new(nk) < 0.0d0 .or. jitter_tr_new(nk) < 0.0d0 ) is_limit_good = .false.
-      end if
+   !   if ( is_limit_good ) then
+   !     if ( jitter_rv_new(nk) < 0.0d0 .or. jitter_tr_new(nk) < 0.0d0 ) is_limit_good = .false.
+   !   end if
 
       chi2_new_total(nk) = huge(0.0d0) !A really big number!
 

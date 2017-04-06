@@ -12,8 +12,6 @@ from matplotlib import gridspec
 newfile = outdir+'/'+star+'_all_data.dat'
 dparams = np.loadtxt(newfile, comments='#',unpack=True)
 
-newfile_likelihood = outdir+'/'+star+'_likelihood.dat'
-ldparams = np.loadtxt(newfile_likelihood, comments='#',unpack=True)
 
 #Let us do the clustering
 params = list(dparams)
@@ -23,10 +21,8 @@ new_nwalkers = nwalkers
 if ( is_clustering ):
   #Starting clustering
   good_index, new_nwalkers = good_clustering(dparams[2]+dparams[3],dparams[1],nconv,nwalkers)
-  #good_index, new_nwalkers = good_clustering_likelihood(ldparams[2],ldparams[1],nconv,nwalkers)
   for o in range(0,len(dparams)):
     params[o] = clustering(dparams[o],good_index)
-  #par_likelihood = clustering(ldparams[2],good_index)
 
 if ( is_jitter_rv or is_jitter_tr ):
   newfile_jitter = outdir+'/'+star+'_jitter_data.dat'

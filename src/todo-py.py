@@ -556,10 +556,6 @@ def joint_fit():
   if ( os.path.isfile('trends_data.dat') ):
     os.rename('trends_data.dat',newfile_trends)
 
-  newfile_likelihood = outdir+'/'+star+'_likelihood.dat'
-  if ( os.path.isfile('likelihood_data.dat') ):
-    os.rename('likelihood_data.dat',newfile_likelihood)
-
 #-----------------------------------------------------------
 #          PRINT INITIAL CONFIGURATION
 #-----------------------------------------------------------

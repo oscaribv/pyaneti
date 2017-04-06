@@ -307,6 +307,7 @@ implicit none
   do i = 0, npar - 1
     if ( params(i) <= limits(j) .or. &
          params(i) >= limits(j+1) ) then
+         print *, i
       is_true = .false.
       exit
     end if
