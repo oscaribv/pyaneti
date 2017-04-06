@@ -124,8 +124,11 @@ fit_t0  = ['u']
 fit_P   = ['u']
 fit_e   = ['u']
 fit_w   = ['u']
+fit_ew1 = ['u']
+fit_ew2 = ['u']
 #transit fit
 fit_i   = ['u']
+fit_b   = ['u']
 fit_a   = ['u']
 fit_q1  = 'u'
 fit_q2  = 'u'
@@ -154,11 +157,13 @@ min_e   = [1.e-10 ]      #zero
 max_e   = [0.999]	       #one
 min_w   = [0.0	 ]      #rad
 max_w   = [2.0*np.pi]      #rad
-min_ew  = [-1.0]
-max_ew  = [1.0]
+min_ew1  = [-1.0]
+max_ew1  = [1.0]
+min_ew2  = [-1.0]
+max_ew2  = [1.0]
 #transit fit
 min_i   = [0.0 ]    # 70 degrees
-max_i   = [1.0]  # 90 degrees
+max_i   = [np.pi/2.0]  # 90 degrees
 min_b   = [0.0]
 max_b   = [1.0]
 min_a   = [1.5]       # The planet is outside the star
@@ -167,7 +172,7 @@ min_q1  = 0.0   #
 max_q1  = 1.0     #
 min_q2  = 0.0     #
 max_q2  = 1.0      #
-min_rp  = [1.e-3]       # Earth size planet / sun
+min_rp  = [0.0]       # Earth size planet / sun
 max_rp  = [0.99]      # a really big planet
 #rv fit
 min_k   = [1.e-6]      # m/s amplitudes

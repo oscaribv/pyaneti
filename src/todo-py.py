@@ -505,9 +505,24 @@ def joint_fit():
       vec_rv0_phys_limits.append(min_phys_rv0[m])
       vec_rv0_phys_limits.append(max_phys_rv0[m])
 
+
+
     dummy_lims = [None]*8*2*nplanets
     dummy_lims_physical = [None]*8*2*nplanets
+
+    if ( is_ew ):
+      min_e = min_ew1
+      max_e = max_ew1
+      min_w = min_ew2
+      max_w = max_ew2
+
+    if ( is_b_factor ):
+      min_i = min_b
+      max_i = max_b
+
+
     for o in range(0,nplanets):
+
       dummy_lims[o*8*2:(o+1)*8*2 ] = \
       [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
       , min_i[o], max_i[o], min_a[o], max_a[o], min_rp[o], max_rp[o], min_k[o], max_k[o] ]
@@ -583,59 +598,34 @@ def print_init():
     oif.write ('cadence time   =  %2.3f min\n'%(t_cad*60.*24))
     oif.write ('n rebinning    = %d\n' %n_cad)
     oif.write ('Stellar priors = %s\n' %a_from_kepler)
-  oif.write ('------------------------------\n')
-  oif.write ('fitting T0     = %s\n'% fit_t0)
-  oif.write ('fitting P      = %s\n'% fit_P)
-  oif.write ('fitting e      = %s\n'% fit_e)
-  oif.write ('fitting w      = %s\n'% fit_w)
-  if (fit_tr):
-    oif.write ('fitting i      = %s\n'% fit_i)
-    oif.write ('fitting a      = %s\n'% fit_a)
-    oif.write ('fitting q1     = %s\n'% fit_q1)
-    oif.write ('fitting q2     = %s\n'% fit_q2)
-    oif.write ('fitting rp     = %s\n'% fit_rp)
-  if (fit_rv):
-    oif.write ('fitting k      = %s\n'% fit_k)
-    oif.write ('fitting v0     = %s\n'% fit_v0)
   for j in range(0,nplanets):
     oif.write ('------------------------------\n')
     oif.write ('  PLANET %s \n' %(star + plabels[j]))
     oif.write ('------------------------------\n')
     oif.write ('        PRIOR RANGES          \n')
     oif.write ('------------------------------\n')
-    oif.write ('T0 = [ %4.4f , %4.4f ]\n' %(min_t0[j],max_t0[j]))
-    oif.write ('P  = [ %4.4f , %4.4f ]\n' %(min_P[j],max_P[j]))
-    oif.write ('e  = [ %4.4f , %4.4f ]\n' %(min_e[j],max_e[j]))
-    oif.write ('w  = [ %4.4f , %4.4f ]\n' %(min_w[j],max_w[j]))
-    oif.write ('i  = [ %4.4f , %4.4f ]\n' %(min_i[j],max_i[j]))
-    oif.write ('a  = [ %4.4f , %4.4f ]\n' %(min_a[j],max_a[j]))
-    oif.write ('rp = [ %4.4f , %4.4f ]\n' %(min_rp[j],max_rp[j]))
-    oif.write ('K  = [ %4.4f , %4.4f ]\n' %(min_k[j],max_k[j]))
+    oif.write ('T0 = %s[ %4.4f , %4.4f ]\n' %(fit_t0[j],min_t0[j],max_t0[j]))
+    oif.write ('P  = %s[ %4.4f , %4.4f ]\n' %(fit_P[j],min_P[j],max_P[j]))
+    if ( is_ew ):
+      oif.write ('ew1= %s[ %4.4f , %4.4f ]\n' %(fit_ew1[j],min_ew1[j],max_ew1[j]))
+      oif.write ('ew2= %s[ %4.4f , %4.4f ]\n' %(fit_ew2[j],min_ew2[j],max_ew2[j]))
+    else:
+      oif.write ('e  = %s[ %4.4f , %4.4f ]\n' %(fit_e[j],min_e[j],max_e[j]))
+      oif.write ('w  = %s[ %4.4f , %4.4f ]\n' %(fit_w[j],min_w[j],max_w[j]))
+    if ( is_b_factor ):
+      oif.write ('b  = %s[ %4.4f , %4.4f ]\n' %(fit_b[j],min_b[j],max_b[j]))
+    else:
+      oif.write ('i  = %s[ %4.4f , %4.4f ]\n' %(fit_i[j],min_i[j],max_i[j]))
+    oif.write ('a  = %s[ %4.4f , %4.4f ]\n' %(fit_a[j],min_a[j],max_a[j]))
+    oif.write ('rp = %s[ %4.4f , %4.4f ]\n' %(fit_rp[j],min_rp[j],max_rp[j]))
+    oif.write ('K  = %s[ %4.4f , %4.4f ]\n' %(fit_k[j],min_k[j],max_k[j]))
     oif.write ('------------------------------\n')
-    oif.write ('     PHYSICAL LIMITS          \n')
-    oif.write ('------------------------------\n')
-    oif.write ('T0 = [ %4.4f , %4.4f ]\n' %(min_phys_t0[j],max_phys_t0[j]))
-    oif.write ('P  = [ %4.4f , %4.4f ]\n' %(min_phys_P[j],max_phys_P[j]))
-    oif.write ('e  = [ %4.4f , %4.4f ]\n' %(min_phys_e[j],max_phys_e[j]))
-    oif.write ('w  = [ %4.4f , %4.4f ]\n' %(min_phys_w[j],max_phys_w[j]))
-    oif.write ('i  = [ %4.4f , %4.4f ]\n' %(min_phys_i[j],max_phys_i[j]))
-    oif.write ('a  = [ %4.4f , %4.4f ]\n' %(min_phys_a[j],max_phys_a[j]))
-    oif.write ('rp = [ %4.4f , %4.4f ]\n' %(min_phys_rp[j],max_phys_rp[j]))
-    oif.write ('K  = [ %4.4f , %4.4f ]\n' %(min_phys_k[j],max_phys_k[j]))
+  oif.write (' Other parameter priors \n')
   oif.write ('------------------------------\n')
-  oif.write ('   Other parameters limits \n')
-  oif.write ('------------------------------\n')
-  oif.write ('q1 = [ %4.4f , %4.4f ]\n' %(min_q1,max_q1))
-  oif.write ('q2 = [ %4.4f , %4.4f ]\n' %(min_q2,max_q2))
+  oif.write ('q1 = %s[ %4.4f , %4.4f ]\n' %(fit_q1,min_q1,max_q1))
+  oif.write ('q2 = %s[ %4.4f , %4.4f ]\n' %(fit_q2,min_q2,max_q2))
   for m in range(0,nt):
-    oif.write ('%s = [ %4.4f , %4.4f ]\n' %(telescopes_labels[m],min_rv0[m],max_rv0[m]))
-  oif.write ('------------------------------\n')
-  oif.write ('Other parameters physical limits\n ')
-  oif.write ('------------------------------\n')
-  oif.write ('q1 = [ %4.4f , %4.4f ]\n' %(min_phys_q1,max_phys_q1))
-  oif.write ('q2 = [ %4.4f , %4.4f ]\n' %(min_phys_q2,max_phys_q2))
-  for m in range(0,nt):
-    oif.write ('%s = [ %4.4f , %4.4f ]\n' %(telescopes_labels[m],min_phys_rv0[m],max_phys_rv0[m]))
+    oif.write ('%s = %s[ %4.4f , %4.4f ]\n' %(telescopes_labels[m],fit_v0,min_rv0[m],max_rv0[m]))
   oif.write ('==============================\n')
 
   oif.close()

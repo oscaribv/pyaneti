@@ -220,7 +220,8 @@ implicit none
         do m = 0, npl-1
           lims_e_dynamic(:,m) = sqrt( 1.d0 - pars_old(nk,2+8*m)**2 )
           lims_e_dynamic(0,m) = - lims_e_dynamic(0,m)
-          call uniform_chains(pars(3+8*m),1,wtf_all(3+8*m),lims_e_dynamic(:,m),pars_old(nk,3+8*m))
+          if ( fit_all(3+8*m) == 'f' ) lims_e_dynamic(0,m) = lims(3*2+8*m)
+          call create_chains(fit_all(3+8*m),lims_e_dynamic(:,m),pars_old(nk,3+8*m),1)
         end do
       end if
 
@@ -335,6 +336,7 @@ implicit none
 
       call get_priors(fit_all,lims,pars_new(nk,:),priors_new(nk,:),8*npl)
       call get_priors(fit_ldc,lims_ldc,ldc_new(nk,:),priors_ldc_new(nk,:),2)
+
       do m = 0, npl - 1
         if ( afk(m) ) then
           !The parameter comes from 3rd Kepler law
