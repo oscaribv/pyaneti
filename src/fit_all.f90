@@ -274,7 +274,9 @@ implicit none
   !Print the initial cofiguration
   print *, ''
   print *, 'STARTING MCMC CALCULATION'
+  if ( total_fit_flag(0) ) &
   print *, 'RV datapoints  = ', size_rv
+  if ( total_fit_flag(1) ) &
   print *, 'TR datapoints  = ', size_tr
   print *, 'No. parameters = ', int(spar)
   print *, 'dof            = ', int(dof)

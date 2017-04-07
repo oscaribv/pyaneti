@@ -472,6 +472,20 @@ def joint_fit():
   global new_nwalkers, good_index
   global jrvo, jtro, total_fit_flag, flags
 
+
+  if ( is_ew ):
+    min_e = min_ew1
+    max_e = max_ew1
+    min_w = min_ew2
+    max_w = max_ew2
+    fit_e = fit_ew1
+    fit_w = fit_ew2
+
+  if ( is_b_factor ):
+    min_i = min_b
+    max_i = max_b
+    fit_i = fit_b
+
   fit_all = [None]*8*nplanets
   for o in range(0,nplanets):
     fit_all[o*8:(o+1)*8] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
@@ -505,21 +519,8 @@ def joint_fit():
       vec_rv0_phys_limits.append(min_phys_rv0[m])
       vec_rv0_phys_limits.append(max_phys_rv0[m])
 
-
-
     dummy_lims = [None]*8*2*nplanets
     dummy_lims_physical = [None]*8*2*nplanets
-
-    if ( is_ew ):
-      min_e = min_ew1
-      max_e = max_ew1
-      min_w = min_ew2
-      max_w = max_ew2
-
-    if ( is_b_factor ):
-      min_i = min_b
-      max_i = max_b
-
 
     for o in range(0,nplanets):
 
