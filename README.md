@@ -1,6 +1,8 @@
 
 
-![Logo](./src/images/logo_pyaneti.png)
+<p align="center">
+  <img width = "500" src="./src/images/logo_pyaneti.png"/>
+</p>
 
 # __pyaneti__
 #### Written by Barragán O. et al. 2016
