@@ -69,6 +69,7 @@ is_plot_histogram = True
 is_plot_correlations = True
 is_plot_chains = True
 is_smart_priors = True
+is_print_mode = False
 is_clustering = True
 latex_values = True
 is_plot_all_tr = [False]
