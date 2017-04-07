@@ -61,7 +61,7 @@ subroutine multi_all_stretch_move( &
            lims, lims_rvs, lims_ldc, &            !prior limits
            lims_p, lims_p_rvs, lims_p_ldc, &      !physical limits
            n_cad, t_cad, &                        !cadence cotrols
-           npl, n_tel, & !integers                !planets and telescopes
+           npl, n_tel, &                          !planets and telescopes
            size_rv, size_tr &                     !data sizes
            )
 implicit none
@@ -132,25 +132,26 @@ implicit none
 
   !Calculate the scaled semi major axis from the stellar parameters
   do o = 0, npl - 1
-    call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*o),a_mean(o),a_sigma(o))
+    call get_a_err(mstar_mean,mstar_sigma,rstar_mean, &
+                   rstar_sigma,pars(1+8*o),a_mean(o),a_sigma(o))
   end do
 
   !Let us fill the what-to-fit vectors
   wtf_all = 0
   do o = 0, 8*npl-1
-    if ( fit_all(o) == 'g' .or. fit_all(o) == 'u' ) wtf_all(o) = 1
+    if ( fit_all(o) .ne. 'f' ) wtf_all(o) = 1
   end do
   wtf_ldc = 0
   do o = 0, 1
-    if ( fit_ldc(o) == 'g' .or. fit_ldc(o) == 'u' ) wtf_ldc(o) = 1
+    if ( fit_ldc(o) .ne. 'f' ) wtf_ldc(o) = 1
   end do
   wtf_rvs = 0
   do o = 0, n_tel-1
-    if ( fit_rvs(o) == 'g' .or. fit_rvs(o) == 'u' ) wtf_rvs(o) = 1
+    if ( fit_rvs(o) .ne. 'f' ) wtf_rvs(o) = 1
   end do
   wtf_trends = 0
   do o = 0, 1
-    if ( fit_trends(o) == 'g' .or. fit_trends(o) == 'u' ) wtf_trends(o) = 1
+    if ( fit_trends(o) .ne. 'f' ) wtf_trends(o) = 1
   end do
 
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs) + sum(wtf_trends)
@@ -260,14 +261,10 @@ implicit none
       chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
 
       log_likelihood_old(nk) = log_prior_old(nk) + log_errs_old(nk) - 0.5d0 * chi2_old_total(nk)
-      !print *, log_prior_old(nk), log_errs_old(nk), chi2_old_total(nk)
-      !print *, log_likelihood_old(nk)
-
 
   end do
-!  stop
 
- chi2_red(:) = chi2_old_total(:) / dof
+  chi2_red(:) = chi2_old_total(:) / dof
 
   !Print the initial cofiguration
   print *, ''

@@ -33,6 +33,7 @@ unit_mass = 'earth'
 
 is_plot_histogram = False
 is_plot_correlations = False
+is_plot_chains = False
 
 #Star parameters
 a_from_kepler = [True]

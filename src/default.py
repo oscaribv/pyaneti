@@ -35,8 +35,8 @@ AU_SI = 1.4960e11 # m
 mstar_mean = 1.0
 rstar_mean = 1.0
 tstar_mean = 5600.
-mstar_sigma = 1e-10
-rstar_sigma = 1e-10
+mstar_sigma = 1.e-1
+rstar_sigma = 1.e-1
 tstar_sigma = 100.
 
 #Default transit data cadence
@@ -67,6 +67,7 @@ a_from_kepler = [False]
 a_factor = 2.0
 is_plot_histogram = True
 is_plot_correlations = True
+is_plot_chains = True
 is_smart_priors = True
 is_clustering = True
 latex_values = True

@@ -428,6 +428,7 @@ end subroutine
 
 
 subroutine create_chains(fit_pars,lims,pars_out,npars)
+implicit none
 
   integer, intent(in) :: npars
   double precision, intent(in), dimension(0:2*npars-1) :: lims
@@ -452,6 +453,7 @@ subroutine create_chains(fit_pars,lims,pars_out,npars)
 end subroutine
 
 subroutine get_priors(fit_pars,lims,pars_in,priors_out,npars)
+implicit none
 
   integer, intent(in) :: npars
   double precision, intent(in), dimension(0:2*npars-1) :: lims

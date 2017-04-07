@@ -5,9 +5,8 @@ execfile('src/print_values.py')
 #Create plots
 execfile('src/plot_data.py')
 
-plot_chains()
-
-#plot_likelihood()
+if ( is_plot_chains ):
+  plot_chains()
 
 if ( is_plot_histogram ):
   plot_histogram()

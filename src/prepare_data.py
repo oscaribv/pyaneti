@@ -172,6 +172,8 @@ else:
   megae = [1.]
   megap = [0]
   total_tr_fit = False
+  fit_q1 = 'f'
+  fit_q2 = 'f'
 
 #TRANSIT DATA READY
 
@@ -181,14 +183,11 @@ else:
 for o in range(0,nplanets):
     if (fit_tr[o] == 'f' ):
       fit_rp[o] = 'f'
-#      rp[o] = 1e-10
-      fit_i[o] = 'f'
-#      ii[o] = 1e-10
-      fit_a[o] = 'f'
-#      a[o] = 1e-10
+      fit_i[o]  = 'f'
+      fit_b[o]  = 'f'
+      fit_a[o]  = 'f'
     if (fit_rv[o] == 'f' ):
-      fit_k[o] = 'f'
-#      k0[o] = 1e-10
+      fit_k[o]  = 'f'
 
 #Let us turn off velocity offset for a pure TR fit
 if ( not total_rv_fit ):
