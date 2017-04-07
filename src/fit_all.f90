@@ -225,18 +225,15 @@ implicit none
       !call get_priors(fit_rvs,lims_rvs,rvs_old(nk,:),priors_rvs(nk,:),n_tel)
 
       call create_chains(fit_ldc,lims_ldc,ldc_old(nk,:),2)
-      !lims_ldc_dynamic(:) = (/ lims_ldc(2), 1.0d0 - ldc_old(nk,0) /)
-      !call create_chains(fit_ldc(1),lims_ldc_dynamic,ldc_old(nk,1),1)
       call get_priors(fit_ldc,lims_ldc,ldc_old(nk,:),priors_ldc_old(nk,:),2)
-      !call get_priors(fit_ldc(1),lims_ldc_dynamic,ldc_old(nk,1),priors_ldc_old(nk,1),1)
-
 
       !Will we use spectroscopic priors for some planets?
       do m = 0, npl - 1
         if ( afk(m) ) then
           !The parameter comes from 3rd Kepler law !pars_old(1) is the period
           call get_a_scaled(mstar(nk),rstar(nk),pars_old(nk,1+8*m),pars_old(nk,5+8*m),1)
-          call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars_old(nk,1+8*m),a_mean(m),a_sigma(m))
+          call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,&
+               pars_old(nk,1+8*m),a_mean(m),a_sigma(m))
           call gauss_prior(a_mean(m),a_sigma(m),pars_old(nk,5+8*m),priors_old(nk,5+8*m))
         end if
       end do
@@ -297,7 +294,7 @@ implicit none
 
     !Paralellization calls
     !$OMP PARALLEL &
-    !$OMP PRIVATE(is_limit_good,qq,m,limit_prior)
+    !$OMP PRIVATE(is_limit_good,qq,m,limit_prior,a_mean,a_sigma)
     !$OMP DO SCHEDULE(DYNAMIC)
     do nk = 0, nwalks - 1
 
@@ -319,14 +316,14 @@ implicit none
       jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) *             &
                          ( jitter_tr_old(nk) - jitter_tr_new(nk) )
 
-
       call get_priors(fit_all,lims,pars_new(nk,:),priors_new(nk,:),8*npl)
       call get_priors(fit_ldc,lims_ldc,ldc_new(nk,:),priors_ldc_new(nk,:),2)
 
       do m = 0, npl - 1
         if ( afk(m) ) then
           !The parameter comes from 3rd Kepler law
-          !call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*m),a_mean(m),a_sigma(m))
+          call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,&
+               pars_new(nk,1+8*m),a_mean(m),a_sigma(m))
           call gauss_prior(a_mean(m),a_sigma(m),pars_new(nk,5+8*m),priors_new(nk,5+8*m))
         end if
       end do
