@@ -100,7 +100,6 @@ implicit none
     stop
   end if 
 
-
   !calculate the true anomaly
   !Relation between true anomaly(ta) and eccentric anomaly(ea) is
   !tan(ta) = sqrt(1-e^2) sin (ea) / ( cos(ea) - e ) https://en.wikipedia.org/wiki/True_anomaly
@@ -179,7 +178,6 @@ implicit none
   !Potential scale reduction factor
   R = sqrt ( V / W )
 
-
   if ( R < 1.d0 + delta ) is_cvg = .true.
 
 end subroutine
@@ -210,7 +208,6 @@ implicit none
   a = meany - b * meanx
 
 end subroutine
-
 
 !Subroutine to get Z <- g(z)
 !Goodman & Weare, 2010 paper
@@ -259,8 +256,6 @@ implicit none
    end if
 
 end subroutine
-
-
 
 !Subroutine to create random integers between 0 and n
 subroutine random_int(r_int,n)

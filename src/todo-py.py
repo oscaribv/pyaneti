@@ -501,12 +501,7 @@ def joint_fit():
 
   #Let us check what do we want to fit
   total_fit_flag = [ total_rv_fit, total_tr_fit ]
-  pars = [None]*8*nplanets
-  for i in range(0,nplanets):
-    pars[i*8:(i+1)*8]= [T0[i],P[i],e[i],w[i],ii[i],a[i],rp[i],k0[i]]
 
-  rvs = v0
-  ldc   = [q1,q2]
   flags = [is_log_P,is_ew,is_b_factor,is_log_a,is_log_k,is_log_rv0]
 
   if ( method == 'mcmc' ):
@@ -545,7 +540,7 @@ def joint_fit():
 
     pti.multi_all_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
-    tlab,megap,pars,rvs,ldc,stellar_pars,a_from_kepler,\
+    tlab,megap,stellar_pars,a_from_kepler,\
     flags,total_fit_flag,is_jitter,fit_all,fit_rvs,fit_ldc,fit_trends, \
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
     limits_ldc,limits_p, limits_p_rvs, limits_p_ldc, \

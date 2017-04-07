@@ -53,7 +53,7 @@ end subroutine
 
 subroutine multi_all_stretch_move( &
            x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &  !Data vars
-           plab_tr,pars, rvs, ldc, &              !parameters vars
+           plab_tr, &              !parameters vars
            stellar_pars,afk,&                     !Stellar parameters and flag|
            flags, total_fit_flag,is_jit, &        !flags
            fit_all, fit_rvs, fit_ldc,fit_trends, &!fitting controls
@@ -74,10 +74,7 @@ implicit none
   integer, intent(in), dimension(0:size_tr-1) :: plab_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab
   double precision, intent(in), dimension(0:3) :: stellar_pars
-  double precision, intent(in), dimension(0:8*npl - 1) :: pars
   double precision, intent(in), dimension(0:2*8*npl - 1):: lims, lims_p
-  double precision, intent(in), dimension(0:n_tel - 1) :: rvs
-  double precision, intent(in), dimension(0:1) :: ldc
   double precision, intent(in), dimension(0:2*n_tel - 1) :: lims_rvs, lims_p_rvs
   double precision, intent(in), dimension(0:3) :: lims_ldc, lims_p_ldc
   double precision, intent(in) ::  t_cad
@@ -129,12 +126,6 @@ implicit none
   mstar_sigma = stellar_pars(1)
   rstar_mean  = stellar_pars(2)
   rstar_sigma = stellar_pars(3)
-
-  !Calculate the scaled semi major axis from the stellar parameters
-  do o = 0, npl - 1
-    call get_a_err(mstar_mean,mstar_sigma,rstar_mean, &
-                   rstar_sigma,pars(1+8*o),a_mean(o),a_sigma(o))
-  end do
 
   !Let us fill the what-to-fit vectors
   wtf_all = 0
@@ -234,19 +225,18 @@ implicit none
       !call get_priors(fit_rvs,lims_rvs,rvs_old(nk,:),priors_rvs(nk,:),n_tel)
 
       call create_chains(fit_ldc,lims_ldc,ldc_old(nk,:),2)
-      lims_ldc_dynamic(:) = (/ lims_ldc(2), 1.0d0 - ldc_old(nk,0) /)
-      !call uniform_chains(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
-      call create_chains(fit_ldc(1),lims_ldc_dynamic,ldc_old(nk,1),1)
-      call get_priors(fit_ldc(0),lims_ldc(0:1),ldc_old(nk,0),priors_ldc_old(nk,0),1)
-      call get_priors(fit_ldc(1),lims_ldc_dynamic,ldc_old(nk,1),priors_ldc_old(nk,1),1)
+      !lims_ldc_dynamic(:) = (/ lims_ldc(2), 1.0d0 - ldc_old(nk,0) /)
+      !call create_chains(fit_ldc(1),lims_ldc_dynamic,ldc_old(nk,1),1)
+      call get_priors(fit_ldc,lims_ldc,ldc_old(nk,:),priors_ldc_old(nk,:),2)
+      !call get_priors(fit_ldc(1),lims_ldc_dynamic,ldc_old(nk,1),priors_ldc_old(nk,1),1)
 
 
       !Will we use spectroscopic priors for some planets?
       do m = 0, npl - 1
         if ( afk(m) ) then
           !The parameter comes from 3rd Kepler law !pars_old(1) is the period
-          call get_a_scaled(mstar(nk),rstar(nk),pars(1+8*m),pars_old(nk,5+8*m),1)
-          !call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars(1+8*m),a_mean(m),a_sigma(m))
+          call get_a_scaled(mstar(nk),rstar(nk),pars_old(nk,1+8*m),pars_old(nk,5+8*m),1)
+          call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,pars_old(nk,1+8*m),a_mean(m),a_sigma(m))
           call gauss_prior(a_mean(m),a_sigma(m),pars_old(nk,5+8*m),priors_old(nk,5+8*m))
         end if
       end do
