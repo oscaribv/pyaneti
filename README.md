@@ -155,8 +155,8 @@ Super_telescope = 22.0719863 - 0.0000017 + 0.0000018 km/s
 Once see this, you will see some plots similar to
 
 
-![Transit first fit](./src/images/testb_tr.png)
-![Radial-Velocity first fit](./src/images/testb_rv.png)
+<img src="./src/images/testb_tr.png" style="width: 500px;"/>
+<img src="./src/images/testb_rv.png" style="width: 500px;"/>
 
 Let me explain you briefly what this is:
 > If you were an advanced alien civilization with really high technology, and "lucky" enough to see the Earth crossing in front of the Sun, **this is how the Earth would look like to you**.
