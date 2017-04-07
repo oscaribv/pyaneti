@@ -32,7 +32,6 @@ if ( is_jitter_rv or is_jitter_tr ):
     for o in range(0,2):
       params_jitter[o] = clustering(dparams_jitter[o],good_index)
 
-
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   newfile_trends = outdir+'/'+star+'_trends_data.dat'
   dparams_trends = np.loadtxt(newfile_trends, comments='#',unpack=True)
@@ -380,15 +379,14 @@ if ( method == 'mcmc' or method == 'plot' ):
     opars.write ('       %4.7f , %4.7f , %4.7f  g/cm^3\n'%(mode_and_99(pden_vec)))
     opars.write ('g_p  = %4.7f - %4.7f + %4.7f  cm/s^2\n'%(find_vals_perc(pgra_vec,s_factor)))
     opars.write ('       %4.7f , %4.7f , %4.7f  cm/s^w\n'%(mode_and_99(pgra_vec)))
-    opars.write ('wp   = %4.7f - %4.7f + %4.7f  deg  \n'%(w_p_deg,w_s_deg_l,w_s_deg_r))
     opars.write ('Tperi= %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(Tpe_vec[o],s_factor)))
     opars.write ('       %4.7f , %4.7f , %4.7f  days \n'%(mode_and_99(Tpe_vec[o])))
-    opars.write ('a(T0)= %4.7f - %4.7f + %4.7f    (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec,s_factor)))
-    opars.write ('       %4.7f , %4.7f , %4.7f   \n'%(mode_and_99(psd_vec)))
-    opars.write ('r(T0)= %4.7f - %4.7f + %4.7f  AU (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec_units,s_factor)))
-    opars.write ('       %4.7f , %4.7f , %4.7f  AU \n'%(mode_and_99(psd_vec_units)))
-    opars.write ('P2/a3= %4.7f - %4.7f + %4.7f     (P^2 G (m1 + m2) ) / ( 4 pi^2 a^3)  \n'%(find_vals_perc(pa_vec,s_factor)))
-    opars.write ('       %4.7f , %4.7f , %4.7f   \n'%(mode_and_99(pa_vec)))
+#    opars.write ('a(T0)= %4.7f - %4.7f + %4.7f    (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec,s_factor)))
+#    opars.write ('       %4.7f , %4.7f , %4.7f   \n'%(mode_and_99(psd_vec)))
+#    opars.write ('r(T0)= %4.7f - %4.7f + %4.7f  AU (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec_units,s_factor)))
+#    opars.write ('       %4.7f , %4.7f , %4.7f  AU \n'%(mode_and_99(psd_vec_units)))
+#    opars.write ('P2/a3= %4.7f - %4.7f + %4.7f     (P^2 G (m1 + m2) ) / ( 4 pi^2 a^3)  \n'%(find_vals_perc(pa_vec,s_factor)))
+#    opars.write ('       %4.7f , %4.7f , %4.7f   \n'%(mode_and_99(pa_vec)))
     opars.write ('Teq  = %4.7f - %4.7f + %4.7f  K (albedo=0)   \n'%(find_vals_perc(Teq_vec[o],s_factor)))
     opars.write ('       %4.7f , %4.7f , %4.7f  K \n'%(mode_and_99(Teq_vec[o])))
     opars.write ('T_tot= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(trt_vec[o],s_factor)))

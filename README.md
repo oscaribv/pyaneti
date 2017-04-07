@@ -223,7 +223,7 @@ _Work in progress!_
 ## ** Acknowledgements **
 * to Davide Gandolfi, for his support and motivation to create this code.
 * to Hannu Parviainen, to help me to interpret the first result of the PDF of the MCMC chains. I learned a lot!
-* to Mabel Valerdi, to help me with as the first pyaneti user, to detect bugs and errors in this manual. As well for its idea for the pyaneti's logo.
+* to Mabel Valerdi, to help me with as the first pyaneti user, to detect bugs and errors in this manual. As well for her idea for pyaneti's logo.
 * to Salvador Curiel, for his suggestions to parallelize the code.
 
 **THANKS!**

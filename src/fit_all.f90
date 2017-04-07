@@ -113,7 +113,7 @@ implicit none
   double precision  :: a_mean(0:npl-1), a_sigma(0:npl-1)
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   double precision :: limit_prior
-  logical :: continua, is_burn, is_limit_good, is_cvg
+  logical :: continua, is_limit_good, is_cvg
   integer :: nk, j, n, m, o, n_burn, spar, spar1
   integer :: wtf_trends(0:1)
   integer :: wtf_all(0:8*npl-1), wtf_rvs(0:n_tel-1), wtf_ldc(0:1)
@@ -211,11 +211,10 @@ implicit none
   !Let us create uniformative random priors
   is_limit_good = .false.
   do nk = 0, nwalks - 1
-    !random parameters
-      !call uniform_chains(pars,8*npl,wtf_all,lims,pars_old(nk,:))
+
       call create_chains(fit_all,lims,pars_old(nk,:),8*npl)
 
-      !If we are using the parametrization for e and omega
+      !If we are using e and w parameterization, let us be sure we do not have e > 1
       if ( flags(1) ) then
         do m = 0, npl-1
           lims_e_dynamic(:,m) = sqrt( 1.d0 - pars_old(nk,2+8*m)**2 )
@@ -227,19 +226,18 @@ implicit none
 
       call get_priors(fit_all,lims,pars_old(nk,:),priors_old(nk,:),8*npl)
 
-      !call uniform_chains(tds,2,wtf_trends,lims_trends,tds_old(nk,:))
       call create_chains(fit_trends,lims_trends,tds_old(nk,:),2)
       !call get_priors(fit_trends,lims_trends,tds_old(nk,:),priors_trends(nk,:),2)
 
-      !call uniform_chains(rvs,n_tel,wtf_rvs,lims_rvs,rvs_old(nk,:))
       call create_chains(fit_rvs,lims_rvs,rvs_old(nk,:),n_tel)
       !call get_priors(fit_rvs,lims_rvs,rvs_old(nk,:),priors_rvs(nk,:),n_tel)
 
-      !call uniform_chains(ldc(0),1,wtf_ldc(0),lims_ldc(0:1),ldc_old(nk,0))
       call create_chains(fit_ldc,lims_ldc,ldc_old(nk,:),2)
       lims_ldc_dynamic(:) = (/ lims_ldc(2), 1.0d0 - ldc_old(nk,0) /)
-      call uniform_chains(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
-      call get_priors(fit_ldc,lims_ldc,ldc_old(nk,:),priors_ldc_old(nk,:),2)
+      !call uniform_chains(ldc(1),1,wtf_ldc(1),lims_ldc_dynamic,ldc_old(nk,1))
+      call create_chains(fit_ldc(1),lims_ldc_dynamic,ldc_old(nk,1),1)
+      call get_priors(fit_ldc(0),lims_ldc(0:1),ldc_old(nk,0),priors_ldc_old(nk,0),1)
+      call get_priors(fit_ldc(1),lims_ldc_dynamic,ldc_old(nk,1),priors_ldc_old(nk,1),1)
 
 
       !Will we use spectroscopic priors for some planets?
@@ -286,7 +284,6 @@ implicit none
   j = 1
   n = 0
   continua = .true.
-  is_burn = .false.
   a_factor = 2.d0
   n_burn = 1
 
@@ -303,10 +300,10 @@ implicit none
 
     !Pick a random walker
     do nk = 0, nwalks - 1 !walkers
-      pars_new(nk,:) = pars_old(r_int(nk),:)
-      rvs_new(nk,:) = rvs_old(r_int(nk),:)
-      ldc_new(nk,:) = ldc_old(r_int(nk),:)
-      tds_new(nk,:) = tds_old(r_int(nk),:)
+      pars_new(nk,:)    = pars_old(r_int(nk),:)
+      rvs_new(nk,:)     = rvs_old(r_int(nk),:)
+      ldc_new(nk,:)     = ldc_old(r_int(nk),:)
+      tds_new(nk,:)     = tds_old(r_int(nk),:)
       jitter_rv_new(nk) = jitter_rv_old(r_int(nk))
       jitter_tr_new(nk) = jitter_tr_old(r_int(nk))
     end do
@@ -322,17 +319,17 @@ implicit none
 
       !Perform the stretch move
       !Eq. (7), Goodman & Weare (2010)
-      pars_new(nk,:) = pars_new(nk,:) + wtf_all(:) * z_rand(nk) * &
-                     ( pars_old(nk,:) - pars_new(nk,:) )
-      rvs_new(nk,:)  = rvs_new(nk,:) + wtf_rvs(:) * z_rand(nk) * &
-                     ( rvs_old(nk,:) - rvs_new(nk,:) )
-      ldc_new(nk,:)  = ldc_new(nk,:) + wtf_ldc(:) * z_rand(nk) * &
-                     ( ldc_old(nk,:) - ldc_new(nk,:) )
-      tds_new(nk,:)  = tds_new(nk,:) + wtf_trends(:) * z_rand(nk) * &
-                     ( tds_old(nk,:) - tds_new(nk,:) )
-      jitter_rv_new(nk) = jitter_rv_new(nk) + z_rand(nk) * &
+      pars_new(nk,:)    = pars_new(nk,:) + wtf_all(:) * z_rand(nk) *   &
+                        ( pars_old(nk,:) - pars_new(nk,:) )
+      rvs_new(nk,:)     = rvs_new(nk,:) + wtf_rvs(:) * z_rand(nk) *    &
+                        ( rvs_old(nk,:) - rvs_new(nk,:) )
+      ldc_new(nk,:)     = ldc_new(nk,:) + wtf_ldc(:) * z_rand(nk) *    &
+                        ( ldc_old(nk,:) - ldc_new(nk,:) )
+      tds_new(nk,:)     = tds_new(nk,:) + wtf_trends(:) * z_rand(nk) * &
+                        ( tds_old(nk,:) - tds_new(nk,:) )
+      jitter_rv_new(nk) = jitter_rv_new(nk) + z_rand(nk) *             &
                          ( jitter_rv_old(nk) - jitter_rv_new(nk) )
-      jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) * &
+      jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) *             &
                          ( jitter_tr_old(nk) - jitter_tr_new(nk) )
 
 
@@ -351,74 +348,76 @@ implicit none
 
       !Let us check if the new parameters are inside the limits
       is_limit_good = .true.
-      !call check_limits(pars_new(nk,:),lims_p,is_limit_good,8*npl)
       if ( limit_prior < 1.d-20 ) is_limit_good = .false.
-!      if (is_limit_good ) call check_limits(rvs_new(nk,:),lims_p_rvs,is_limit_good,n_tel)
-      !if (is_limit_good ) call check_limits(ldc_new(nk,:),lims_p_ldc,is_limit_good,2)
-   !   if ( is_limit_good ) then
-   !     if ( jitter_rv_new(nk) < 0.0d0 .or. jitter_tr_new(nk) < 0.0d0 ) is_limit_good = .false.
-   !   end if
+      if ( is_limit_good ) then
+        if ( jitter_rv_new(nk) < 0.0d0 .or. jitter_tr_new(nk) < 0.0d0 ) is_limit_good = .false.
+      end if
 
       chi2_new_total(nk) = huge(0.0d0) !A really big number!
 
       if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
-        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
-             total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
+
+        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,       &
+             total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),  &
              ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
              chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,size_rv,size_tr)
 
         chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
-
 
       end if
 
       !ADD JITTER TERMS
       log_errs_new(nk) = 0.0d0
       if ( total_fit_flag(0) ) &
-         log_errs_new(nk) = log_errs_new(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_new(nk)**2 ) ) ) )
+         log_errs_new(nk) = log_errs_new(nk) + &
+         sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_new(nk)**2 ) ) ) )
       if ( total_fit_flag(1) ) &
-         log_errs_new(nk) = log_errs_new(nk) + sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_new(nk)**2 ) ) ) )
+         log_errs_new(nk) = log_errs_new(nk) + &
+         sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_new(nk)**2 ) ) ) )
 
-      log_prior_new(nk) = sum( log(priors_new(nk,:) ) ) + sum( log(priors_ldc_new(nk,:) ) )
+      log_prior_new(nk) = sum( log(priors_new(nk,:) ) ) + &
+                          sum( log(priors_ldc_new(nk,:) ) )
 
       log_likelihood_new(nk) = log_prior_new(nk) + log_errs_new(nk) - 0.5d0 * chi2_new_total(nk)
 
       qq = log_likelihood_new(nk) - log_likelihood_old(nk)
+      !z^(pars-1) normalization factor needed to perform the stretch move
+      !Goodman & Weare (2010)
       qq = z_rand(nk)**spar1 * exp(qq)
 
       !Check if the new likelihood is better
       if ( qq > r_rand(nk) ) then
         !If yes, let us save it as the old vectors
         log_likelihood_old(nk) = log_likelihood_new(nk)
-        chi2_old_total(nk) = chi2_new_total(nk)
-        chi2_old_rv(nk) = chi2_new_rv(nk)
-        chi2_old_tr(nk) = chi2_new_tr(nk)
-        pars_old(nk,:) = pars_new(nk,:)
-        rvs_old(nk,:) = rvs_new(nk,:)
-        ldc_old(nk,:) = ldc_new(nk,:)
-        tds_old(nk,:) = tds_new(nk,:)
-        jitter_rv_old(nk) = jitter_rv_new(nk)
-        jitter_tr_old(nk) = jitter_tr_new(nk)
-        priors_old(nk,:) = priors_new(nk,:)
-        priors_ldc_old(nk,:) = priors_ldc_new(nk,:)
+        chi2_old_total(nk)     = chi2_new_total(nk)
+        chi2_old_rv(nk)        = chi2_new_rv(nk)
+        chi2_old_tr(nk)        = chi2_new_tr(nk)
+        pars_old(nk,:)         = pars_new(nk,:)
+        rvs_old(nk,:)          = rvs_new(nk,:)
+        ldc_old(nk,:)          = ldc_new(nk,:)
+        tds_old(nk,:)          = tds_new(nk,:)
+        jitter_rv_old(nk)      = jitter_rv_new(nk)
+        jitter_tr_old(nk)      = jitter_tr_new(nk)
+        priors_old(nk,:)       = priors_new(nk,:)
+        priors_ldc_old(nk,:)   = priors_ldc_new(nk,:)
       end if
-
-      !Compute the reduced chi square
-      chi2_red(nk) = chi2_old_total(nk) / dof
 
     end do !walkers
     !$OMP END PARALLEL
+
+    !Compute the reduced chi square
+    chi2_red(:) = chi2_old_total(:) / dof
 
     if ( mod(j,thin_factor) == 0 ) then
       !If the chains have not converged, let us check convergence
       !Let us save a 3D array with the informations of the parameters,
       !the nk and the iteration. This array is used to perform GR test
-      pars_chains(:,:,n) = pars_old(:,:)
-      chi2_rv_chains(:,n) = chi2_old_rv(:)
-      chi2_tr_chains(:,n) = chi2_old_tr(:)
-      ldc_chains(:,:,n) = ldc_old(:,:)
-      rvs_chains(:,:,n) = rvs_old(:,:)
-      tds_chains(:,:,n) = tds_old(:,:)
+      pars_chains(:,:,n)    = pars_old(:,:)
+      chi2_rv_chains(:,n)   = chi2_old_rv(:)
+      chi2_tr_chains(:,n)   = chi2_old_tr(:)
+      ldc_chains(:,:,n)     = ldc_old(:,:)
+      rvs_chains(:,:,n)     = rvs_old(:,:)
+      tds_chains(:,:,n)     = tds_old(:,:)
       jitter_rv_chains(:,n) = jitter_rv_old(:)
       jitter_tr_chains(:,n) = jitter_tr_old(:)
       n = n + 1
@@ -427,10 +426,10 @@ implicit none
         !Perform G-R test
         n = 0 !reinitilize n
         call print_chain_data(chi2_red,nwalks)
-        print *, '==========================='
-        print *, '  PERFOMING GELMAN-RUBIN'
-        print *, '   TEST FOR CONVERGENCE'
-        print *, '==========================='
+        print *, '=================================='
+        print *, '     PERFOMING GELMAN-RUBIN'
+        print *, '      TEST FOR CONVERGENCE'
+        print *, '=================================='
         !Check convergence for all the parameters
         is_cvg = .true.
         do o = 0, 8*npl-1
@@ -445,17 +444,12 @@ implicit none
           print *,  nconv*thin_factor,' ITERATIONS MORE!'
           print *, '=================================='
         else
-          print *, '==========================='
-          print *, '  CHAINS HAVE CONVERGED'
-          print *, '==========================='
-          print *, 'STARTING BURN-IN PHASE'
-          print *, '==========================='
-          is_burn = .True.
-          print *, 'CREATING BURN-IN DATA FILE'
+          print *, '=================================='
+          print *, '      CHAINS HAVE CONVERGED'
+          print *, '=================================='
+          print *, '   CREATING OUTPUT DATA FILES'
+          print *, '=================================='
           !Let us start the otput file
-          open(unit=101,file='all_data.dat',status='unknown')
-          open(unit=201,file='jitter_data.dat',status='unknown')
-          open(unit=301,file='trends_data.dat',status='unknown')
           continua = .false.
         end if ! is_cvg
       end if !nconv
@@ -473,10 +467,13 @@ implicit none
   !the MCMC part has ended
 
   !Let us create the output file
+  open(unit=101,file='all_data.dat',status='unknown')
+  open(unit=201,file='jitter_data.dat',status='unknown')
+  open(unit=301,file='trends_data.dat',status='unknown')
+
   do n = 0, nconv - 1
     do nk = 0, nwalks - 1
-      j = j + 1
-      write(101,*) j, nk, chi2_rv_chains(nk,n),chi2_tr_chains(nk,n), pars_chains(nk,:,n), &
+      write(101,*) n, nk, chi2_rv_chains(nk,n),chi2_tr_chains(nk,n), pars_chains(nk,:,n), &
                    ldc_chains(nk,:,n), rvs_chains(nk,:,n)
       if ( is_jit(0) .or.  is_jit(1) ) &
           write(201,*) jitter_rv_chains(nk,n), jitter_tr_chains(nk,n)

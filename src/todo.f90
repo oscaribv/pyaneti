@@ -180,12 +180,7 @@ implicit none
   R = sqrt ( V / W )
 
 
-  if ( R < 1.d0 + delta ) then
-      is_cvg = .true. 
-  else
-      print *, 'R     = ', R
-      print *, 'delta = ', 1.d0 + delta
-  end if
+  if ( R < 1.d0 + delta ) is_cvg = .true.
 
 end subroutine
 
@@ -392,14 +387,14 @@ implicit none
   double precision, intent(in) :: chi2(0:n-1)
   character(LEN=20) :: fto = "(A,F10.2)"
 
-  write(*,*) '==========================='
+  write(*,*) '=================================='
   write(*,*) '     Chain statistics      '
-  write(*,*) '==========================='
+  write(*,*) '=================================='
   write(*,*) 'chain |  reduced chi^2 '
   write(*,fto) ' best  : ',minval(chi2)
   write(*,fto) ' worst : ',maxval(chi2)
   write(*,fto) ' mean  : ', sum(chi2) / n
-  write(*,*) '==========================='
+  write(*,*) '=================================='
 
 
 end subroutine
