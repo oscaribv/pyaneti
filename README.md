@@ -17,30 +17,33 @@ for a major coverage of the parameter space
 * _Python_ does the nice things: Plots, call to functions, prints, input files.
 * _Fortran_ does the hard work: MCMC evolution, $\chi^2$ calculation, ensemble sampler evolution.
 * Open-source code (GPL v 3.0). No need to pay!
-* ** Free and fast code with the robustness of _Fortran_ and the versatility of _Python_ **.
+* **Free and fast code with the robustness of _Fortran_ and the versatility of _Python_**.
 
 ## __Power of pyaneti__
 
 * Multiple independent Marcov Chains to sample the space parameters.
 * Easy-to-use: it runs by providing only one input_fit.py file.
+* Parallel computing with OpenMP.
 * Automatic creation of histograms, correlations, and ready-to-publish plots.
 * Circular and elliptical orbits.
-* RV multi-planet fitting.
-* Systemic velocities for multiple instruments in RV fittings.
+* Multi-planet fitting.
+* Systemic velocities for multiple instruments.
 * Stellar limb darkening [(Mandel & Agol, 2002)](http://iopscience.iop.org/article/10.1086/345520/meta#artAbst).
 * Correct treatment of short and long cadence data ([Kipping, 2010](http://mnras.oxfordjournals.org/content/408/3/1758)).
 * Single and joint RV-transit fits.
 
-## ** Dependencies **
+## Dependencies
 
 You need to install in your computer:
 * gfortran
+* OpenMP
 * numpy
 * matplotlib
+* seaborn (optional)
 
-## ** Start to use it now! **
+## Start to use it now!
 
-You do not need install anything, just clone or download pyaneti.
+Just clone or download pyaneti.
 
 ```
 git clone https://github.com/oscaribv/pyaneti
@@ -202,25 +205,33 @@ Look at those well known parameters:
 * Period of 365 days
 * 1 AU semi-major axis
 * Density of 5.5 g/cm^2,
-* Gravity of 10 m/s^2.  
+* Gravity of 10 m/s^2.
 
 Of course you would need a spectograph with a precision of a few cm/s and also a very nice photometer.
 
-> If you are at this point, you learned two things. First, with good data you can obtain really nice planet parameters and second, you learned how to run pyaneti.  
+> If you are at this point, you learned two things. First, with good data you can obtain really nice planet parameters and second, you learned how to run pyaneti.
 
 
-## ** Create your own setup **
+## Create your own setup
 _Work in progress!_
 
-## ** Documentation **
+## Documentation
 
 _Work in progress!_
 
-## ** Science  with pyaneti **
-* Nespral et al., 2016, _Mass determination of K2-19b and K2-19c from radial velocities and transit timing variations_, A&A, submitted, (http://arxiv.org/abs/1604.01265)
-* Barragán et al, 2016, _EPIC 211391664b: A 32-M⊕ Neptune-sized planet in a 10-day orbit transiting an F8 star_, AAS, submitted, (http://arxiv.org/abs/1608.01165)
+## Science  with pyaneti
+* Barragán et al., 2017, _EPIC 218916923 b: a low-mass warm Jupiter on a 29-day orbit transiting an active K0V star_,
+MNRAS, submitted (https://arxiv.org/abs/1702.00691).
+* Nespral et al., 2017, _Mass determination of K2-19b and K2-19c from radial velocities and transit timing variations_,
+A&A, in press (http://arxiv.org/abs/1604.01265).
+* Nowak et al., 2017, _EPIC 219388192 b - an inhabitant of the brown dwarf desert in the Ruprecht 147 open cluster_,
+ AJ, 153, 131 (https://arxiv.org/abs/1610.08571).
+* Eigmüller et al., 2017, _K2-60b and K2-107b. A sub-jovian and a jovian planet from the k2 mission_,
+AJ, 153, 130 (https://arxiv.org/abs/1611.03704).
+* Barragán et al, 2016, _K2-98b: A 32-M⊕ Neptune-sized planet in a 10-day orbit transiting an F8 star_,
+ AJ, 152, 6 (http://arxiv.org/abs/1608.01165).
 
-## ** Acknowledgements **
+## Acknowledgements
 * to Davide Gandolfi, for his support and motivation to create this code.
 * to Hannu Parviainen, to help me to interpret the first result of the PDF of the MCMC chains. I learned a lot!
 * to Mabel Valerdi, to help me with as the first pyaneti user, to detect bugs and errors in this manual. As well for her idea for pyaneti's logo.
