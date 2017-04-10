@@ -125,17 +125,6 @@ def plot_transit_nice():
 
     if ( fit_tr[o] ):
 
-      #Let us fold the time vector
-      xt_dummy = list(xt[o])
-      for i in range(0,len(xt_dummy)):
-        n = xt_dummy[i][len(xt_dummy[i])-1] - xt_dummy[0][0]
-        n = int(n/P_val[o])
-        xt_dummy[i] = xt_dummy[i] - P_val[o] * n
-
-      #Redefine megax with the new xt values
-      xtime = np.concatenate(xt_dummy)
-      yflux = np.concatenate(yt[o])
-      eflux = np.concatenate(et[o])
 
       local_time_d, xtime_d, yflux_d, eflux_d = create_transit_data(megax,megay,megae,o)
 

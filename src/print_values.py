@@ -482,8 +482,7 @@ if ( is_jitter_tr and resize_tr ):
   jit_tr = best_value(params_jitter[1],get_value)
   for o in range(0,len(et)):
       for m in range(0,len(et[o])):
-          for q in range(0,len(et[o][m])):
-              et[o][m][q] = np.sqrt(et[o][m][q]**2 + jit_tr**2)
+              et[o][m] = np.sqrt(et[o][m]**2 + jit_tr**2)
   for o in range(0,len(megae)):
     megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 if ( is_jitter_rv and resize_rv ):

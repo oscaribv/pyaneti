@@ -85,7 +85,6 @@ textra = 0.0
 select_y_tr = False
 y_lim_max = 1.05
 y_lim_min = 0.95
-gap_between_transits = [10]
 #The defaul number of planets is 1
 nplanets = 1
 #The default planet labels
