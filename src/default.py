@@ -94,26 +94,9 @@ figure_size_x = 23./2.56 #25cm
 figure_size_y = 23./2.56/1.618
 font_size_label = 18
 clustering_delta = 0.5
-my_tr_ranges = False
 get_value = 'median'
 #mark for plots
 mark = ['o', 'D', 's', 'p', 'h', '8', '^', '<', '*', 'v','>','.', 'H', 'd','+']
-
-#Default priors
-P = [365.0]
-e = [1e-8]
-w = [np.pi / 2.0]
-ii = [0.01]
-inclination_mean = [ii]
-inclination_sigma = [1e-6]
-a = [215.0]
-q1 = 0.5
-q2 = 0.5
-rp = [0.1]
-k0 = [1.0]
-v0 = [0.0]
-alpha = [0.0]
-beta = [0.0]
 
 #Fit nothing
 fit_rv = False
