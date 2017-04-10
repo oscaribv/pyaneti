@@ -20,7 +20,7 @@ n_cad = 1
 t_cad = 30. / 60. / 24.
 
 method = 'mcmc'
-#method = 'plot'
+method = 'plot'
 is_seaborn_plot = True
 
 mstar_mean = 1.0

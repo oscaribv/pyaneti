@@ -153,12 +153,10 @@ def smart_priors():
     min_phys_rv0 = [None]*nt
     max_phys_rv0 = [None]*nt
     for o in range(0,nt):
-        min_rv0[o] = min(rv_all[o]) - 0.1
-        max_rv0[o] = max(rv_all[o]) + 0.1
+        min_rv0[o] = min(rv_all[o]) - 1.0
+        max_rv0[o] = max(rv_all[o]) + 1.0
         min_phys_rv0[o] = min(rv_all[o]) - 1.
         max_phys_rv0[o] = max(rv_all[o]) + 1.
-
-    v0 = list(min_rv0)
 
   if ( total_tr_fit ):
 
@@ -176,40 +174,81 @@ def smart_priors():
       #If we gave a worst prior for planet size, take a better
       max_rp[o] = min([max_rp[o],max_phys_rp[o]])
 
-#    min_phys_P =[None]*len(xt)
-#    max_phys_P =[None]*len(xt)
-    min_phys_t0=[None]*len(xt)
-    max_phys_t0=[None]*len(xt)
-    for o in range(0,nplanets):
-      #Max and minimum Period for each planet from the data
-      #----          ----|min_phys_P|----         ------
-      #    -       -                     -       -
-      #     -------                       -------
-      #|                  max_phys_P                    |
-      #|min_phys_t0
-      #     max_phys_t0  |
-#      max_phys_P[o] = xt[o][1][len(xt[o][1])-1] - xt[o][0][0]
-#      min_phys_P[o] = xt[o][1][0] - xt[o][0][len(xt[o][0])-1]
-#      min_P[o] = max(min_P[o],min_phys_P[o])
-#      max_P[o] = min(max_P[o],max_phys_P[o])
-      min_phys_t0[o] = xt[o][0][0]
-      max_phys_t0[o] = xt[o][0][len(xt[o][0])-1]
+#Create function to create xt vectors
+def create_transit_data(time,flux,errs,planet=0,span=0.0):
+  global trt_vec, P_vec, T0_vec #vector with the transit durations calculated in print_values.py
 
-    #If we are ussing spectroscopic priors, let us estimante the limits on a
-    ms_min = mstar_mean - 5.*mstar_sigma
-    ms_max = mstar_mean + 5.*mstar_sigma
-    rs_min = rstar_mean - 5.*rstar_sigma
-    rs_max = rstar_mean + 5.*rstar_sigma
-    for o in range(0,nplanets):
-      if ( a_from_kepler[o] ):
-        p_min = min_P[o]
-        p_max = max_P[o]
-        min_phys_a[o] = pti.get_a_scaled(ms_min,rs_max,p_min)
-        max_phys_a[o] = pti.get_a_scaled(ms_max,rs_min,p_max)
-        print min_phys_a[o], max_phys_a[o]
+  P  = best_value(P_vec[planet],get_value)
+  T0 = best_value(T0_vec[planet],get_value)
+  tt = best_value(trt_vec[planet],get_value)
+  tt = tt/24.0
 
-  #sys.exit()
+  if ( span < 1e-1 ):
+    #We have to calculate things
+    span = 3.*tt
+#  else:
+    #We have to use the span given by the user
 
+  #Let us fold the data to the period
+  t_inicial = T0 - span/2
+
+  folded_t = list(time)
+  for o in range(0,len(time)):
+    folded_t[o] = int( ( time[o] - t_inicial ) / P )
+    folded_t[o] = time[o] - folded_t[o] * P
+    folded_t[o] = folded_t[o] - T0
+
+  lt = []
+  xt = []
+  yt = []
+  et = []
+  for o in range(0,len(time)):
+      if ( folded_t[o] > - span/2 and folded_t[o] < span/2 ):
+          lt.append(time[o])
+          xt.append(folded_t[o])
+          yt.append(flux[o])
+          et.append(errs[o])
+
+  #let us separate the transits
+  lt_out = []
+  xt_out = []
+  yt_out = []
+  et_out = []
+  lt_d = []
+  xt_d = []
+  yt_d = []
+  et_d = []
+  lt_d.append(lt[0])
+  xt_d.append(xt[0])
+  yt_d.append(yt[0])
+  et_d.append(et[0])
+  for o in range(1,len(xt)):
+      if ( xt[o] > xt[o-1] ):
+        lt_d.append(lt[o])
+        xt_d.append(xt[o])
+        yt_d.append(yt[o])
+        et_d.append(et[o])
+      else:
+        lt_out.append(lt_d)
+        xt_out.append(xt_d)
+        yt_out.append(yt_d)
+        et_out.append(et_d)
+        lt_d = []
+        xt_d = []
+        yt_d = []
+        et_d = []
+        lt_d.append(lt[o])
+        xt_d.append(xt[o])
+        yt_d.append(yt[o])
+        et_d.append(et[o])
+
+
+  lt_out.append(lt_d)
+  xt_out.append(xt_d)
+  yt_out.append(yt_d)
+  et_out.append(et_d)
+
+  return lt_out, xt_out, yt_out, et_out
 
 #-----------------------------------------------------------
 #Get transit ranges, assumes that the consecutive

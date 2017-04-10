@@ -137,7 +137,14 @@ def plot_transit_nice():
       yflux = np.concatenate(yt[o])
       eflux = np.concatenate(et[o])
 
-      xmodel_res = list(xtime)
+      local_time_d, xtime_d, yflux_d, eflux_d = create_transit_data(megax,megay,megae,o)
+
+      local_time = np.concatenate(local_time_d)
+      xtime = np.concatenate(xtime_d)
+      yflux = np.concatenate(yflux_d)
+      eflux = np.concatenate(eflux_d)
+
+      xmodel_res = xtime
       xmodel = np.arange(min(xtime), max(xtime),1.0/20./24.)
       #Let us create the model
 
@@ -159,10 +166,10 @@ def plot_transit_nice():
 
     #Calculate the transit curve for all the data
       for m in range(0,len(xmodel)):
-        zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
+        zd_ub[m] = pti.find_z(xd_ub[m][:],[0.0,P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
         fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,rp_val[o])
       for m in range(0,len(xmodel_res)):
-        zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
+        zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[0.0,P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
         fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,rp_val[o])
 
       #Bin the data
@@ -178,7 +185,8 @@ def plot_transit_nice():
 
      #############################################################################
      # Let us calculate the flux caused by the other planets
-      xmodel_vec = np.concatenate(list(xt[o]))
+#      xmodel_vec = np.concatenate(list(local_time))
+      xmodel_vec = local_time
       xd_ub_vec = np.ndarray(shape=(len(xmodel_vec),n_cad))
       for m in range(0,len(xmodel_vec)):
         for n in range(0,n_cad):
@@ -214,7 +222,7 @@ def plot_transit_nice():
       #xmodel_res is the residuals time_stamps
       #fd_reb is the modeled light cuve
       #res_res are the residuals
-      fancy_tr_plot(t0_val[o],xtime,yflux_local,eflux,xmodel,xmodel_res,fd_reb,res_res,fname)
+      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,fd_reb,res_res,fname)
 
 #===========================================================
 #              plot all transits
@@ -249,8 +257,13 @@ def plot_all_transits():
     rp_val[m] = best_value(params[base + 6],get_value)
     base = base + 8
 
+  xt = [None]*nplanets
+  dt = [None]*nplanets
+  yt = [None]*nplanets
+  et = [None]*nplanets
   for i in range(0,nplanets):
     if ( fit_tr[i] ):
+      xt[i], dt[i], yt[i], et[i] = create_transit_data(megax,megay,megae,i)
       if ( is_plot_all_tr[i] ):
         for j in range(0,len(xt[i])):
 
