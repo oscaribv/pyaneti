@@ -80,6 +80,7 @@ plot_parameters = []
 is_seaborn_plot = False
 resize_rv = False
 resize_tr = True
+span_tr  = []
 is_TTV = True
 textra = 0.0
 select_y_tr = False

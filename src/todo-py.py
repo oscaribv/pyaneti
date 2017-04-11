@@ -183,9 +183,9 @@ def create_transit_data(time,flux,errs,planet=0,span=0.0):
   tt = best_value(trt_vec[planet],get_value)
   tt = tt/24.0
 
-  if ( span < 1e-1 ):
+  if ( span < 1e-5 ):
     #We have to calculate things
-    span = 3.*tt
+    span = 3*tt
 #  else:
     #We have to use the span given by the user
 

@@ -126,7 +126,12 @@ def plot_transit_nice():
     if ( fit_tr[o] ):
 
 
-      local_time_d, xtime_d, yflux_d, eflux_d = create_transit_data(megax,megay,megae,o)
+      if ( len(span_tr) < 1 ):
+          local_span = 0.0
+      else:
+          local_span = span_tr[o]
+
+      local_time_d, xtime_d, yflux_d, eflux_d = create_transit_data(megax,megay,megae,o,local_span)
 
       local_time = np.concatenate(local_time_d)
       xtime = np.concatenate(xtime_d)
@@ -252,12 +257,13 @@ def plot_all_transits():
   et = [None]*nplanets
   for i in range(0,nplanets):
     if ( fit_tr[i] ):
+
       xt[i], dt[i], yt[i], et[i] = create_transit_data(megax,megay,megae,i)
       if ( is_plot_all_tr[i] ):
         for j in range(0,len(xt[i])):
 
           xvec = np.array(xt[i][j])
-          xvec_model = np.arange(min(xvec),max(xvec),1./60./24.)
+          xvec_model = np.arange(min(xvec),max(xvec),1./20./24.)
 
           xd_ub = np.ndarray(shape=(len(xvec),n_cad))
           xd_ub_res = np.ndarray(shape=(len(xvec_model),n_cad))
