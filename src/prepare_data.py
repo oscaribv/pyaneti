@@ -5,10 +5,6 @@
 #                   O. Barragan, March 2016
 #-----------------------------------------------------------
 
-#Create the stellar data
-#mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=nwalkers*nconv)
-#rstar = np.random.normal(loc=rstar_mean,scale=rstar_sigma,size=nwalkers*nconv)
-
 #What transit data are we fitting
 if ( lc_data == 'kepler_lc' ):
   n_cad = 10

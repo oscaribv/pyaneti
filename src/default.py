@@ -105,22 +105,22 @@ fit_tr = False
 
 #All the parameters are fitted
 #by default
-fit_t0  = ['u']
-fit_P   = ['u']
-fit_e   = ['u']
-fit_w   = ['u']
-fit_ew1 = ['u']
-fit_ew2 = ['u']
+fit_t0  = ['f']
+fit_P   = ['f']
+fit_e   = ['f']
+fit_w   = ['f']
+fit_ew1 = ['f']
+fit_ew2 = ['f']
 #transit fit
-fit_i   = ['u']
-fit_b   = ['u']
-fit_a   = ['u']
-fit_q1  = 'u'
-fit_q2  = 'u'
-fit_rp  = ['u']
+fit_i   = ['f']
+fit_b   = ['f']
+fit_a   = ['f']
+fit_q1  = 'f'
+fit_q2  = 'f'
+fit_rp  = ['f']
 #rv fit
-fit_k   = ['u']
-fit_v0  = ['u']
+fit_k   = ['f']
+fit_v0  = ['f']
 
 is_linear_trend = 'f'
 is_quadratic_trend = 'f'
