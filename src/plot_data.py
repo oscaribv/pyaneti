@@ -634,7 +634,7 @@ def create_plot_correlation(params,plabs,col='red',mark='.',num=[]):
         plt.tick_params( axis='y',which='both',labelleft='off')
         plt.tick_params( axis='x',which='both',labelbottom='off')
         plt.ticklabel_format(useOffset=False, axis='both')
-        if ( j == 0 ):
+        if ( j == n[0] ):
            plt.ylabel(plabs[i],fontsize=25)
         elif ( j == i - 1 ):
           plt.tick_params( axis='y',which='both',labelleft='off')
