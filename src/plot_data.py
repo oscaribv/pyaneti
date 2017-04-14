@@ -8,7 +8,6 @@ if ( is_seaborn_plot ):
   sns.set(style='ticks')
   sns.set_color_codes()
 
-#The size of our plots follow an aurea rectangle
 fsx = figure_size_x
 fsy = figure_size_y
 fos = font_size_label
@@ -57,7 +56,6 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.tick_params(labelsize=fos)
   x_lim = (min(xtime)-local_T0)*tfc
   plt.xlim(x_lim,-x_lim)
-  #plt.xlim(-3,3)
   if ( select_y_tr ):
     plt.ylim(y_lim_min,y_lim_max)
   min_val_model = max(fd_reb) -  min(fd_reb)
@@ -77,7 +75,6 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
   plt.xlim(x_lim,-x_lim)
-  #plt.xlim(-3,3)
   if ( select_y_tr ):
     plt.ylim( - ( y_lim_max - 1.0),y_lim_max - 1.0 )
   #Plot the residuals

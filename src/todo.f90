@@ -39,11 +39,14 @@ implicit none
   double precision :: ereal, eimag
   double precision :: pi = 3.1415926535897d0
 
+  !We know that the relation between theta_t0 = pi/2 - w
+  !We have to calculate the eccentric anomaly by knowing this
   ereal = e + cos( pi / 2.d0  - w)
   eimag = sqrt( 1.d0 - e * e ) * sin( pi/ 2.d0  - w )
   theta_p = atan2(eimag, ereal )
+  !Now we  have the eccentric anomaly, let us calcualte the mean anomaly
   theta_p = theta_p - e * sin( theta_p )
-
+  !Time to talculate Tp
   tp = t0 - theta_p * p / 2.d0 / pi
 
 end subroutine
