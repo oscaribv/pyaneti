@@ -158,8 +158,11 @@ else:
 for o in range(0,nplanets):
     if (fit_tr[o] == 'f' ):
       fit_rp[o] = 'f'
+      min_rp[o] = 0.0
       fit_i[o]  = 'f'
+      min_i[o]  = np.pi/2.0
       fit_b[o]  = 'f'
+      min_b[o]  = 0.0
       fit_a[o]  = 'f'
     if (fit_rv[o] == 'f' ):
       fit_k[o]  = 'f'
