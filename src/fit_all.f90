@@ -59,7 +59,6 @@ subroutine multi_all_stretch_move( &
            fit_all, fit_rvs, fit_ldc,fit_trends, &!fitting controls
            nwalks, maxi, thin_factor, nconv, &    !mcmc evolution controls
            lims, lims_rvs, lims_ldc, &            !prior limits
-           lims_p, lims_p_rvs, lims_p_ldc, &      !physical limits
            n_cad, t_cad, &                        !cadence cotrols
            npl, n_tel, &                          !planets and telescopes
            size_rv, size_tr &                     !data sizes
@@ -74,9 +73,9 @@ implicit none
   integer, intent(in), dimension(0:size_tr-1) :: plab_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab
   double precision, intent(in), dimension(0:3) :: stellar_pars
-  double precision, intent(in), dimension(0:2*8*npl - 1):: lims, lims_p
-  double precision, intent(in), dimension(0:2*n_tel - 1) :: lims_rvs, lims_p_rvs
-  double precision, intent(in), dimension(0:3) :: lims_ldc, lims_p_ldc
+  double precision, intent(in), dimension(0:2*8*npl - 1):: lims !, lims_p
+  double precision, intent(in), dimension(0:2*n_tel - 1) :: lims_rvs !, lims_p_rvs
+  double precision, intent(in), dimension(0:3) :: lims_ldc !, lims_p_ldc
   double precision, intent(in) ::  t_cad
   character, intent(in) :: fit_trends(0:1)
   character, intent(in) :: fit_all(0:8*npl-1), fit_rvs(0:n_tel-1), fit_ldc(0:1)
@@ -105,7 +104,7 @@ implicit none
   double precision, dimension(0:nwalks-1) :: log_errs_old, log_errs_new
   integer, dimension(0:nwalks-1) :: r_int
   double precision  :: a_factor, dof, tds, qq
-  double precision  :: lims_ldc_dynamic(0:1), lims_e_dynamic(0:1,0:npl-1)
+  double precision  :: lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
   double precision  :: a_mean(0:npl-1), a_sigma(0:npl-1)
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0

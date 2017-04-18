@@ -162,8 +162,8 @@ def smart_priors():
 
     min_flux = min(megay)
     max_flux = max(megay)
-    min_phys_rp =[None]*len(xt)
-    max_phys_rp =[None]*len(xt)
+    min_phys_rp =[None]*nplanets
+    max_phys_rp =[None]*nplanets
     for o in range(0,nplanets):
       min_phys_rp[o] = 0.0
       max_phys_rp[o] = max_flux - min_flux
@@ -546,12 +546,12 @@ def joint_fit():
   if ( method == 'mcmc' ):
 
     vec_rv0_limits = []
-    vec_rv0_phys_limits = []
+#    vec_rv0_phys_limits = []
     for m in range(0,nt):
       vec_rv0_limits.append(min_rv0[m])
       vec_rv0_limits.append(max_rv0[m])
-      vec_rv0_phys_limits.append(min_phys_rv0[m])
-      vec_rv0_phys_limits.append(max_phys_rv0[m])
+#      vec_rv0_phys_limits.append(min_phys_rv0[m])
+#      vec_rv0_phys_limits.append(max_phys_rv0[m])
 
     dummy_lims = [None]*8*2*nplanets
     dummy_lims_physical = [None]*8*2*nplanets
@@ -561,18 +561,18 @@ def joint_fit():
       dummy_lims[o*8*2:(o+1)*8*2 ] = \
       [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
       , min_i[o], max_i[o], min_a[o], max_a[o], min_rp[o], max_rp[o], min_k[o], max_k[o] ]
-      dummy_lims_physical[o*8*2:(o+1)*8*2] = \
-      [min_phys_t0[o], max_phys_t0[o], min_phys_P[o], max_phys_P[o], min_phys_e[o], max_phys_e[o], min_phys_w[o], max_phys_w[o] \
-      , min_phys_i[o], max_phys_i[o], min_phys_a[o], max_phys_a[o], min_phys_rp[o], max_phys_rp[o],min_phys_k[o],max_phys_k[o] ]
+#      dummy_lims_physical[o*8*2:(o+1)*8*2] = \
+#      [min_phys_t0[o], max_phys_t0[o], min_phys_P[o], max_phys_P[o], min_phys_e[o], max_phys_e[o], min_phys_w[o], max_phys_w[o] \
+#      , min_phys_i[o], max_phys_i[o], min_phys_a[o], max_phys_a[o], min_phys_rp[o], max_phys_rp[o],min_phys_k[o],max_phys_k[o] ]
 
     limits = dummy_lims
-    limits_p = dummy_lims_physical
+#    limits_p = dummy_lims_physical
 
     limits_rvs = vec_rv0_limits
-    limits_p_rvs = vec_rv0_phys_limits
+#    limits_p_rvs = vec_rv0_phys_limits
 
     limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
-    limits_p_ldc = [ min_phys_q1, max_phys_q1, min_phys_q2, max_phys_q2]
+#    limits_p_ldc = [ min_phys_q1, max_phys_q1, min_phys_q2, max_phys_q2]
 
     stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
     is_jitter = [is_jitter_rv, is_jitter_tr]
@@ -582,8 +582,7 @@ def joint_fit():
     tlab,megap,stellar_pars,a_from_kepler,\
     flags,total_fit_flag,is_jitter,fit_all,fit_rvs,fit_ldc,fit_trends, \
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
-    limits_ldc,limits_p, limits_p_rvs, limits_p_ldc, \
-    n_cad, t_cad, nplanets, nt)
+    limits_ldc,n_cad, t_cad, nplanets, nt)
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'
