@@ -143,7 +143,15 @@ u2    = 0.2177398 - 0.0608878 + 0.0574922
 Super_telescope = 22.0719863 - 0.0000017 + 0.0000018 km/s
 --------------------------------------------------------------
 ```
-Once see this, you will see some plots similar to
+If you see this output it means that pyaneti ended succesfully!
+
+Now let us check the plots.
+
+```
+evince testb_rv.pdf testb_tr.pdf
+```
+
+You will see something like this
 
 
 <img src="./src/images/testb_tr.png" style="width: 250px;"/>
