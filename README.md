@@ -5,9 +5,9 @@
 </p>
 
 # __pyaneti__
-#### Written by Barragán O. et al. 2016
+#### Written by Barragán O. et al. 2017
 ##### email: oscaribv@gmail.com
-##### Updated Jun 29, 2016
+##### Updated April 19, 2017
 
 ### __Introduction__
 
@@ -17,7 +17,7 @@
 for a major coverage of the parameter space
 ([Godman & Weare, 2010](http://msp.org/camcos/2010/5-1/p04.xhtml)).
 * _Python_ does the nice things: Plots, call to functions, prints, input files.
-* _Fortran_ does the hard work: MCMC evolution, $\chi^2$ calculation, ensemble sampler evolution.
+* _Fortran_ does the hard work: MCMC evolution, Likelihood calculation, ensemble sampler evolution.
 * Open-source code (GPL v 3.0). No need to pay!
 * **Free and fast code with the robustness of _Fortran_ and the versatility of _Python_**.
 
@@ -32,7 +32,7 @@ for a major coverage of the parameter space
 * Systemic velocities for multiple instruments.
 * Stellar limb darkening [(Mandel & Agol, 2002)](http://iopscience.iop.org/article/10.1086/345520/meta#artAbst).
 * Correct treatment of short and long cadence data ([Kipping, 2010](http://mnras.oxfordjournals.org/content/408/3/1758)).
-* Single and joint RV-transit fits.
+* Single and joint RV and transit fits.
 
 ## Dependencies
 
@@ -53,15 +53,6 @@ git clone https://github.com/oscaribv/pyaneti
 
 The advantage about cloning the repository is the possibility to follow the changes to this package easily with git pull (learn more about git
 in [https://git-scm.com/](https://git-scm.com/)).
-Or if you want
-
-```
-wget https://github.com/oscaribv/pyaneti/archive/master.zip
-unzip master.zip
-mv pyaneti_master pyaneti
-```
-
-if you choose this option, you should repeat it every time the code is updated.
 
 The next step is to get inside the pyaneti folder and see what we can find inside it
 
@@ -155,8 +146,8 @@ Super_telescope = 22.0719863 - 0.0000017 + 0.0000018 km/s
 Once see this, you will see some plots similar to
 
 
-<img src="./src/images/testb_tr.png" style="width: 500px;"/>
-<img src="./src/images/testb_rv.png" style="width: 500px;"/>
+<img src="./src/images/testb_tr.png" style="width: 250px;"/>
+<img src="./src/images/testb_rv.png" style="width: 250px;"/>
 
 Let me explain you briefly what this is:
 > If you were an advanced alien civilization with really high technology, and "lucky" enough to see the Earth crossing in front of the Sun, **this is how the Earth would look like to you**.
@@ -174,12 +165,12 @@ Of course you would need a spectograph with a precision of a few cm/s and also a
 > If you are at this point, you learned two things. First, with good data you can obtain really nice planet parameters and second, you learned how to run pyaneti.
 
 
-## Create your own setup
-_Work in progress!_
-
 ## Documentation
 
-_Work in progress!_
+There is no a manual by now. But there are some examples on how to run different
+systems. The cases are:
+* test - Joint radial velocity and light curve fit.
+* kepler-10 - two planets radial velocity fit.
 
 ## Science  with pyaneti
 * Barragán et al., 2017, _EPIC 218916923 b: a low-mass warm Jupiter on a 29-day orbit transiting an active K0V star_,
