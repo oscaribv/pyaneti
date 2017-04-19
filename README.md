@@ -148,7 +148,8 @@ If you see this output it means that pyaneti ended succesfully!
 Now let us check the plots.
 
 ```
-evince testb_rv.pdf testb_tr.pdf
+evince outpy/test_out/testb_rv.pdf outpy/test_out/testb_tr.pdf
+
 ```
 
 You will see something like this
