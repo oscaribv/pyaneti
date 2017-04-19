@@ -93,6 +93,7 @@ else:
   mega_time = [None]
   mega_err  = [None]
   total_rv_fit = False
+  is_jitter_rv = False
 
 #RV DATA READY
 
@@ -147,6 +148,7 @@ else:
   megae = [1.]
   megap = [0]
   total_tr_fit = False
+  is_jitter_tr = False
   fit_q1 = 'f'
   fit_q2 = 'f'
 
@@ -156,15 +158,17 @@ else:
 #If we are not going to fit RV or TR data, let us turn off the variables
 #for the given case
 for o in range(0,nplanets):
-    if (fit_tr[o] == 'f' ):
+    if (fit_tr[o] == False ):
       fit_rp[o] = 'f'
       min_rp[o] = 0.0
-      fit_i[o]  = 'f'
-      min_i[o]  = np.pi/2.0
-      fit_b[o]  = 'f'
-      min_b[o]  = 0.0
+      if ( not is_b_factor ):
+        fit_i[o]  = 'f'
+        min_i[o]  = np.pi/2.0
+      else:
+        fit_b[o]  = 'f'
+        min_b[o]  = 0.0
       fit_a[o]  = 'f'
-    if (fit_rv[o] == 'f' ):
+    if (fit_rv[o] == False ):
       fit_k[o]  = 'f'
 
 #Let us turn off velocity offset for a pure TR fit

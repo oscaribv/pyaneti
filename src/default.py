@@ -168,37 +168,3 @@ min_beta = [-1.0]
 max_beta =[ 1.0]
 min_rv0 = [1.	 ]      #Systemic velocities
 max_rv0 = [100.	]       #systemic velocities
-
-#Physical Limits
-min_phys_t0  = [0.0 ]       #days
-max_phys_t0  = [1e10 ]        #days
-min_phys_P   = [0.1 ]	       #days
-max_phys_P   = [1e4 ]	       #days
-min_phys_e   = [0.0]             #zero
-max_phys_e   = [0.99999]	       #one
-min_phys_w   = [0.0]	       #rad
-max_phys_w   = [2.*np.pi]      #rad
-min_phys_ew  = [-1.0]
-max_phys_ew  = [1.0]
-#transit fit
-min_phys_i   = [0.0]     # 70 degrees
-max_phys_i   = [1.0]  # 90 degrees
-min_phys_b   = [0.0]
-max_phys_b   = [1.0]
-min_phys_a   = [3.0]	       # The planet is outside the star
-max_phys_a   = [1.e3]	       # The planet is really far
-min_phys_q1  = 0.0	       #
-max_phys_q1  = 1.0             #
-min_phys_q2  = 0.0	       #
-max_phys_q2  = 1.0	       #
-min_phys_rp  = [0.00]	       # Earth size planet / sun
-max_phys_rp  = [0.99]       # a really big planet
-#rv fit
-min_phys_k   = [0.00]           # m/s amplitudes
-max_phys_k   = [30]	       # a really big planet
-min_phys_alpha = -100.
-max_phys_alpha = 100.
-min_phys_beta = -100.
-max_phys_beta = 100.       
-min_phys_rv0 = -1.e3	       #Systemic velocities
-max_phys_rv0 = 1.e3	       #systemic velocities

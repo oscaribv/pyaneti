@@ -503,10 +503,6 @@ def joint_fit():
   global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
          max_a, min_q1, max_q1, min_q1, max_q1, min_rp, max_rp, min_k, max_k, min_alpha, max_alpha, \
          min_beta, max_beta, min_rv0, max_rv0
-  global min_phys_t0, max_phys_t0, min_phys_P, max_phys_P, min_phys_e, max_phys_e, min_phys_w, max_phys_w, \
-         min_phys_i, max_phys_i, min_phys_a, max_phys_a, min_phys_q1, max_phys_q1, min_phys_q1, \
-         max_phys_q1, min_phys_rp, max_phys_rp,min_phys_k,max_phys_k, min_phys_alpha, max_phys_alpha, \
-         min_phys_beta, max_phys_beta, min_phys_rv0, max_phys_rv0
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,rpo,ko,alphao,betao,vo, what_fit
   global new_nwalkers, good_index
   global jrvo, jtro, total_fit_flag, flags
@@ -550,8 +546,6 @@ def joint_fit():
     for m in range(0,nt):
       vec_rv0_limits.append(min_rv0[m])
       vec_rv0_limits.append(max_rv0[m])
-#      vec_rv0_phys_limits.append(min_phys_rv0[m])
-#      vec_rv0_phys_limits.append(max_phys_rv0[m])
 
     dummy_lims = [None]*8*2*nplanets
     dummy_lims_physical = [None]*8*2*nplanets
@@ -561,18 +555,12 @@ def joint_fit():
       dummy_lims[o*8*2:(o+1)*8*2 ] = \
       [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
       , min_i[o], max_i[o], min_a[o], max_a[o], min_rp[o], max_rp[o], min_k[o], max_k[o] ]
-#      dummy_lims_physical[o*8*2:(o+1)*8*2] = \
-#      [min_phys_t0[o], max_phys_t0[o], min_phys_P[o], max_phys_P[o], min_phys_e[o], max_phys_e[o], min_phys_w[o], max_phys_w[o] \
-#      , min_phys_i[o], max_phys_i[o], min_phys_a[o], max_phys_a[o], min_phys_rp[o], max_phys_rp[o],min_phys_k[o],max_phys_k[o] ]
 
     limits = dummy_lims
-#    limits_p = dummy_lims_physical
 
     limits_rvs = vec_rv0_limits
-#    limits_p_rvs = vec_rv0_phys_limits
 
     limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
-#    limits_p_ldc = [ min_phys_q1, max_phys_q1, min_phys_q2, max_phys_q2]
 
     stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
     is_jitter = [is_jitter_rv, is_jitter_tr]
