@@ -137,6 +137,9 @@ log_like_total = log_like_rv + log_like_tr
 bic_from_likelihood = np.log(ndata)*npars - 2.0*np.log(likelihood_total)
 bic_from_loglikelihood = np.log(ndata)*npars - 2.0*log_like_total
 
+aic_from_likelihood = 2.0*npars - 2.0*np.log(likelihood_total)
+aic_from_loglikelihood = 2.0*npars - 2.0*log_like_total
+
 #print np.log(likelihood_rv), log_like_rv
 #print np.log(likelihood_tr), log_like_tr
 #print np.log(likelihood_total),log_like_total
@@ -205,6 +208,7 @@ if ( method == 'mcmc' or method == 'plot' ):
   opars.write('ln likelihood_tr = %4.4f\n' %(log_like_tr))
   opars.write('ln likelihood    = %4.4f\n' %(log_like_total))
   opars.write('BIC              = %4.4f\n' %(bic_from_loglikelihood))
+  opars.write('AIC              = %4.4f\n' %(aic_from_loglikelihood))
   opars.write ('--------------------------------------------------------------\n')
   opars.write ('             INPUT STELLAR PARAMETERS\n')
   opars.write ('--------------------------------------------------------------\n')
