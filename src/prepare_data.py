@@ -5,6 +5,8 @@
 #                   O. Barragan, March 2016
 #-----------------------------------------------------------
 
+nconv    = niter
+nwalkers = nchains
 #What transit data are we fitting
 if ( lc_data == 'kepler_lc' ):
   n_cad = 10
