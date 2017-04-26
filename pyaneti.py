@@ -2,7 +2,7 @@
 
 #-----------------------------------------------------------
 #                         pyaneti.py
-#                        DESCRIPTION
+#                     Main pyaneti file
 #                   Barragan O, March 2016
 #-----------------------------------------------------------
 
@@ -49,9 +49,6 @@ if not os.path.exists(outdir):
 #Obtain smart priors based on iput data
 if (is_smart_priors ):
   smart_priors()
-
-#if is_circular is turned on, we ensure a circular orbit
-check_circular()
 
 print_init()
 
