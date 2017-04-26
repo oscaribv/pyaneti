@@ -154,8 +154,8 @@ if ( scale_error_bars ):
   s_factor = np.sqrt( chi2_val )
   if ( chi2_val > 1.0 ):
     s_factor = 1.0 / s_factor
-  else:
-    s_factor = 1.0
+else:
+  s_factor = 1.0
 
 
 if ( method == 'mcmc' or method == 'plot' ):
