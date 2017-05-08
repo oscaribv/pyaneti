@@ -210,7 +210,7 @@ implicit none
         do m = 0, npl-1
           lims_e_dynamic(:,m) = sqrt( 1.d0 - pars_old(nk,2+8*m)**2 )
           lims_e_dynamic(0,m) = - lims_e_dynamic(0,m)
-          if ( fit_all(3+8*m) == 'f' ) lims_e_dynamic(0,m) = lims(3*2+8*m)
+          if ( fit_all(3+8*m) == 'f' ) lims_e_dynamic(0,m) = lims(3*2+8*m*2)
           call create_chains(fit_all(3+8*m),lims_e_dynamic(:,m),pars_old(nk,3+8*m),1)
         end do
       end if
