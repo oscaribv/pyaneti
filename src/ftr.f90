@@ -116,7 +116,7 @@ implicit none
 !Local variables
   double precision, dimension(0:datas-1) :: muld_npl
   double precision, dimension(0:datas-1) :: res, muld, mu
-  double precision :: npl_dbl, small, u1, u2, rp(0:npl-1), zdum(0:0)
+  double precision :: npl_dbl, small, u1, u2, rp(0:npl-1)
   !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
   double precision, dimension(0:n_cad)  :: xd_ub, z, fmultip
   double precision, dimension(0:n_cad,0:npl-1)  :: flux_ub
@@ -232,7 +232,7 @@ implicit none
 !Local variables
   double precision, dimension(0:datas-1) :: muld_npl
   double precision, dimension(0:datas-1) :: res, muld, mu
-  double precision :: npl_dbl, small, dbl, u1, u2, pz(0:npl-1), q1k, q2k, zdum(0:0)
+  double precision :: npl_dbl, small, u1, u2, pz(0:npl-1), q1k, q2k
 
  !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
   double precision, dimension(0:n_cad-1)  :: xd_ub, z, flux_ub

@@ -59,7 +59,10 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   if ( select_y_tr ):
     plt.ylim(y_lim_min,y_lim_max)
   min_val_model = max(fd_reb) -  min(fd_reb)
-  plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='ro',alpha=0.8)
+  if ( plot_tr_errobars ):
+    plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='ro',alpha=0.8)
+  else:
+    plt.plot((xtime-local_T0)*tfc,yflux,'ro',ms=8,alpha=1.0)
   plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
@@ -69,7 +72,10 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   #Plot the residuals
   dplot = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos)
-  plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='ro',alpha=0.8)
+  if ( plot_tr_errobars ):
+    plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='ro',alpha=0.8)
+  else:
+    plt.plot((xmodel_res-local_T0)*tfc,res_res,'ro',ms=8,alpha=1.0)
   plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
   yylims = dplot.get_ylim()
   plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
@@ -338,7 +344,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
     label=telescopes_labels[j],\
     fmt=mark[j],\
     alpha=1.0 ,\
-    markersize=6)
+    markersize=rv_markersize,fillstyle=rv_fillstyle)
   plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.tick_params( axis='x',which='both',labelbottom='off')
@@ -352,7 +358,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
     plt.errorbar(p_all[j],res[j],errs_all[j],\
-    label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=6)
+    label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=rv_markersize,fillstyle=rv_fillstyle)
   yylims = ax1.get_ylim()
   plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.minorticks_on()
