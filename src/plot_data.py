@@ -59,10 +59,10 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   if ( select_y_tr ):
     plt.ylim(y_lim_min,y_lim_max)
   min_val_model = max(fd_reb) -  min(fd_reb)
-  if ( plot_tr_errobars ):
+  if ( plot_tr_errorbars ):
     plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='ro',alpha=0.8)
   else:
-    plt.plot((xtime-local_T0)*tfc,yflux,'ro',ms=8,alpha=1.0)
+    plt.plot((xtime-local_T0)*tfc,yflux,'ro',ms=8,alpha=0.9)
   plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
@@ -70,17 +70,21 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.ticklabel_format(useOffset=False, axis='y')
   plt.tick_params( axis='x',which='both',labelbottom='off')
   #Plot the residuals
-  dplot = plt.subplot(gs[1])
+  ax0 = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos)
-  if ( plot_tr_errobars ):
+  if ( plot_tr_errorbars ):
     plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='ro',alpha=0.8)
   else:
-    plt.plot((xmodel_res-local_T0)*tfc,res_res,'ro',ms=8,alpha=1.0)
+    plt.plot((xmodel_res-local_T0)*tfc,res_res,'ro',ms=8,alpha=0.9)
   plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
-  yylims = dplot.get_ylim()
-  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
+#  yylims = ax0.get_ylim()
+#  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
   plt.xlim(x_lim,-x_lim)
+  yylims = ax0.get_ylim()
+  miy = (max(abs(yylims[0]),abs(yylims[1])))
+  plt.yticks(np.arange(-miy,miy,miy/2.))
+  plt.ylim(-miy,miy)
   if ( select_y_tr ):
     plt.ylim( - ( y_lim_max - 1.0),y_lim_max - 1.0 )
   #Plot the residuals
@@ -333,22 +337,28 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   gs.update(hspace=0.00)
   ax0 = plt.subplot(gs[0])
   plt.tick_params(labelsize=fos)
+  color = ['r','b']
   plt.minorticks_on()
   #plt.subplot(311)
-  ax0 = plt.xlabel("")
-  ax0 = plt.ylabel("RV (m/s)",fontsize=fos)
-  ax0 = plt.plot([0.,1.],[0.,0.],'k--')
-  ax0 = plt.plot(p_rv,rvy,'k',linewidth=1.0)
+  plt.xlabel("")
+  plt.ylabel("RV (m/s)",fontsize=fos)
+  plt.plot([0.,1.],[0.,0.],'k--')
+  plt.plot(p_rv,rvy,'k',linewidth=1.0)
   for j in range(0,nt):
-    ax0 = plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
+    plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
     label=telescopes_labels[j],\
     fmt=mark[j],\
     alpha=1.0 ,\
-    markersize=rv_markersize,fillstyle=rv_fillstyle)
-  plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
+    markersize=rv_markersize,fillstyle=rv_fillstyle,color=color[j])
+  plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.7)
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.tick_params( axis='x',which='both',labelbottom='off')
-  #plt.subplot(312)
+  yylims = ax0.get_ylim()
+  miy = int(max(abs(yylims[0]),abs(yylims[1])))
+  plt.ylim(-miy,miy)
+  #plt.yticks(np.arange(-miy,miy,2.*miy/8.))
+#  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/7.))
+  #NEW SUBPLOT
   ax1 = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos)
   plt.xlabel("Orbital phase",fontsize=fos)
@@ -357,10 +367,13 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.ylabel('Residuals (m/s)',fontsize=fos*0.75)
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
-    plt.errorbar(p_all[j],res[j],errs_all[j],\
+    plt.errorbar(p_all[j],res[j],errs_all[j],color=color[j],\
     label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=rv_markersize,fillstyle=rv_fillstyle)
   yylims = ax1.get_ylim()
-  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
+  miy = int(max(abs(yylims[0]),abs(yylims[1])))
+  plt.ylim(-miy,miy)
+  plt.yticks(np.arange(-miy,miy,2.*miy/4.))
+  #plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.minorticks_on()
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
@@ -456,7 +469,7 @@ if ( nplanets > 0 ):
       rv_dum[j] = rv_datas[j] - v_val[j]*cfactor
       res_dum_all[j] = rv_dum[j] - res_dum_all[j]
 
-    plt.figure(1,figsize=(2*fsx,fsy))
+    plt.figure(1,figsize=(fsx,fsy))
     plt.plot(rvx,rvy,'k')
 
     plt.minorticks_on()
