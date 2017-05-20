@@ -12,7 +12,8 @@ implicit none
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
   double precision, intent(in) :: trends(0:1)
-  double precision, intent(in) :: jrv, jtr
+  double precision, dimension(0,n_tel-1), intent(in) :: jrv
+  double precision, intent(in) :: jtr
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
   double precision, intent(out) :: chi2_rv, chi2_tr
@@ -91,11 +92,13 @@ implicit none
   double precision, dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, chi2_old_tr
   double precision, dimension(0:nwalks-1) :: chi2_new_rv, chi2_new_tr
-  double precision, dimension(0:nwalks-1) :: jitter_rv_old, jitter_rv_new, jitter_tr_old, jitter_tr_new
+  double precision, dimension(0:nwalks-1) :: jitter_tr_old, jitter_tr_new
+  double precision, dimension(0:nwalks-1,0:n_tel-1) :: jitter_rv_old, jitter_rv_new
   double precision, dimension(0:nwalks-1,0:1) :: tds_old, tds_new !linear and quadratic terms
   double precision, dimension(0:nwalks-1,0:8*npl-1,0:nconv-1) :: pars_chains
   double precision, dimension(0:nwalks-1,0:nconv-1) :: chi2_rv_chains, chi2_tr_chains
-  double precision, dimension(0:nwalks-1,0:nconv-1) :: jitter_rv_chains, jitter_tr_chains
+  double precision, dimension(0:nwalks-1,0:nconv-1) :: jitter_tr_chains
+  double precision, dimension(0:nwalks-1,0:n_tel-1,0:nconv-1) :: jitter_rv_chains
   double precision, dimension(0:nwalks-1,0:1,0:nconv-1) :: tds_chains, ldc_chains
   double precision, dimension(0:nwalks-1,0:n_tel-1,0:nconv-1) :: rvs_chains
   double precision, dimension(0:3) :: lims_trends
@@ -146,7 +149,7 @@ implicit none
 
   spar = sum(wtf_all) + sum(wtf_ldc) + sum(wtf_rvs) + sum(wtf_trends)
   !spar -> size of parameters, dof -> degrees of freedom
-  if ( is_jit(0) ) spar = spar + 1
+  if ( is_jit(0) ) spar = spar + 1*n_tel
   if ( is_jit(1) ) spar = spar + 1
 
   spar1 = spar - 1
@@ -157,20 +160,26 @@ implicit none
   dof  = dof - spar
 
   !Jitter vars
-  jitter_rv_old(:) = 0.0d0
+  jitter_rv_old(:,:) = 0.0d0
   jitter_tr_old(:) = 0.0d0
-  jitter_rv_new(:) = 0.0d0
+  jitter_rv_new(:,:) = 0.0d0
   jitter_tr_new(:) = 0.0d0
-  if ( is_jit(0) ) &
-     call gauss_random_bm(e_rv(0)*1e-1,e_rv(0)*1e-2,jitter_rv_old,nwalks)
+  if ( is_jit(0) ) then
+    do m = 0, n_tel - 1
+      call gauss_random_bm(e_rv(0)*1e-1,e_rv(0)*1e-2,jitter_rv_old(:,m),nwalks)
+    end do
+  end if
   if ( is_jit(1) ) &
     call gauss_random_bm(e_tr(0)*1e-1,e_tr(0)*1e-2,jitter_tr_old,nwalks)
   log_errs_new = 0.0d0
   log_errs_old = 0.0d0
   do nk = 0, nwalks - 1
-    if ( total_fit_flag(0) ) &
-    log_errs_old(nk) = log_errs_old(nk) + &
-    sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_old(nk)**2 ) ) ) )
+    if ( total_fit_flag(0) ) then
+      do m = 0, size_rv - 1
+        log_errs_old(nk) = log_errs_old(nk) + &
+        log( 1.0d0/sqrt( two_pi * ( e_rv(m)**2 + jitter_rv_old(nk,tlab(m))**2 ) ) )
+      end do
+    end if
     if ( total_fit_flag(1) ) &
     log_errs_old(nk) = log_errs_old(nk) + &
     sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_old(nk)**2 ) ) ) )
@@ -241,7 +250,7 @@ implicit none
 
       call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
-           ldc_old(nk,:),tds_old(nk,:),jitter_rv_old(nk),jitter_tr_old(nk),&
+           ldc_old(nk,:),tds_old(nk,:),jitter_rv_old(nk,:),jitter_tr_old(nk),&
            chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,size_rv,size_tr)
 
       chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
@@ -287,7 +296,7 @@ implicit none
       rvs_new(nk,:)     = rvs_old(r_int(nk),:)
       ldc_new(nk,:)     = ldc_old(r_int(nk),:)
       tds_new(nk,:)     = tds_old(r_int(nk),:)
-      jitter_rv_new(nk) = jitter_rv_old(r_int(nk))
+      jitter_rv_new(nk,:) = jitter_rv_old(r_int(nk),:)
       jitter_tr_new(nk) = jitter_tr_old(r_int(nk))
     end do
 
@@ -310,8 +319,8 @@ implicit none
                         ( ldc_old(nk,:) - ldc_new(nk,:) )
       tds_new(nk,:)     = tds_new(nk,:) + wtf_trends(:) * z_rand(nk) * &
                         ( tds_old(nk,:) - tds_new(nk,:) )
-      jitter_rv_new(nk) = jitter_rv_new(nk) + z_rand(nk) *             &
-                         ( jitter_rv_old(nk) - jitter_rv_new(nk) )
+      jitter_rv_new(nk,:) = jitter_rv_new(nk,:) + z_rand(nk) *             &
+                         ( jitter_rv_old(nk,:) - jitter_rv_new(nk,:) )
       jitter_tr_new(nk) = jitter_tr_new(nk) + z_rand(nk) *             &
                          ( jitter_tr_old(nk) - jitter_tr_new(nk) )
 
@@ -333,7 +342,7 @@ implicit none
       is_limit_good = .true.
       if ( limit_prior < 1.d-20 ) is_limit_good = .false.
       if ( is_limit_good ) then
-        if ( jitter_rv_new(nk) < 0.0d0 .or. jitter_tr_new(nk) < 0.0d0 ) is_limit_good = .false.
+        if ( ANY( jitter_rv_new(nk,:) < 0.0d0 ) .or. jitter_tr_new(nk) < 0.0d0 ) is_limit_good = .false.
       end if
 
       chi2_new_total(nk) = huge(0.0d0) !A really big number!
@@ -342,7 +351,7 @@ implicit none
 
         call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,       &
              total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),  &
-             ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk),jitter_tr_new(nk), &
+             ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk,:),jitter_tr_new(nk), &
              chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,size_rv,size_tr)
 
         chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
@@ -351,9 +360,12 @@ implicit none
 
       !ADD JITTER TERMS
       log_errs_new(nk) = 0.0d0
-      if ( total_fit_flag(0) ) &
-         log_errs_new(nk) = log_errs_new(nk) + &
-         sum(log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jitter_rv_new(nk)**2 ) ) ) )
+      if ( total_fit_flag(0) ) then
+        do m = 0, size_rv - 1
+          log_errs_new(nk) = log_errs_new(nk) + &
+          log( 1.0d0/sqrt( two_pi * ( e_rv(m)**2 + jitter_rv_new(nk,tlab(m))**2 ) ) )
+        end do
+      end if
       if ( total_fit_flag(1) ) &
          log_errs_new(nk) = log_errs_new(nk) + &
          sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_new(nk)**2 ) ) ) )
@@ -379,7 +391,7 @@ implicit none
         rvs_old(nk,:)          = rvs_new(nk,:)
         ldc_old(nk,:)          = ldc_new(nk,:)
         tds_old(nk,:)          = tds_new(nk,:)
-        jitter_rv_old(nk)      = jitter_rv_new(nk)
+        jitter_rv_old(nk,:)    = jitter_rv_new(nk,:)
         jitter_tr_old(nk)      = jitter_tr_new(nk)
         priors_old(nk,:)       = priors_new(nk,:)
         priors_ldc_old(nk,:)   = priors_ldc_new(nk,:)
@@ -395,14 +407,14 @@ implicit none
       !If the chains have not converged, let us check convergence
       !Let us save a 3D array with the informations of the parameters,
       !the nk and the iteration. This array is used to perform GR test
-      pars_chains(:,:,n)    = pars_old(:,:)
-      chi2_rv_chains(:,n)   = chi2_old_rv(:)
-      chi2_tr_chains(:,n)   = chi2_old_tr(:)
-      ldc_chains(:,:,n)     = ldc_old(:,:)
-      rvs_chains(:,:,n)     = rvs_old(:,:)
-      tds_chains(:,:,n)     = tds_old(:,:)
-      jitter_rv_chains(:,n) = jitter_rv_old(:)
-      jitter_tr_chains(:,n) = jitter_tr_old(:)
+      pars_chains(:,:,n)      = pars_old(:,:)
+      chi2_rv_chains(:,n)     = chi2_old_rv(:)
+      chi2_tr_chains(:,n)     = chi2_old_tr(:)
+      ldc_chains(:,:,n)       = ldc_old(:,:)
+      rvs_chains(:,:,n)       = rvs_old(:,:)
+      tds_chains(:,:,n)       = tds_old(:,:)
+      jitter_rv_chains(:,:,n) = jitter_rv_old(:,:)
+      jitter_tr_chains(:,n)   = jitter_tr_old(:)
       n = n + 1
       !Is it time to check covergence=
       if ( n == nconv ) then
@@ -459,7 +471,7 @@ implicit none
       write(101,*) n, nk, chi2_rv_chains(nk,n),chi2_tr_chains(nk,n), pars_chains(nk,:,n), &
                    ldc_chains(nk,:,n), rvs_chains(nk,:,n)
       if ( is_jit(0) .or.  is_jit(1) ) &
-          write(201,*) jitter_rv_chains(nk,n), jitter_tr_chains(nk,n)
+          write(201,*) jitter_rv_chains(nk,:,n), jitter_tr_chains(nk,n)
       if ( sum(wtf_trends)  > 0 ) &
          write(301,*) tds_chains(nk,:,n)
     end do
