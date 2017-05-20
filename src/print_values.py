@@ -29,7 +29,7 @@ if ( is_jitter_rv or is_jitter_tr ):
   dparams_jitter = np.loadtxt(newfile_jitter, comments='#',unpack=True)
   params_jitter = list(dparams_jitter)
   if ( is_clustering ):
-    for o in range(0,2):
+    for o in range(0,nt+1):
       params_jitter[o] = clustering(dparams_jitter[o],good_index)
 
 
@@ -78,7 +78,7 @@ if ( is_linear_trend != 'f' ):
 if ( is_quadratic_trend != 'f' ):
   npars = npars + 1
 if ( is_jitter_rv ):
-  npars = npars + 1
+  npars = npars + 1*nt
 if ( is_jitter_tr ):
   npars = npars + 1
 
@@ -90,12 +90,13 @@ fit_pars = dummy_pars[4:4+8*nplanets]
 ldc_pars = dummy_pars[4+8*nplanets:6+8*nplanets]
 rvs_pars = dummy_pars[6+8*nplanets:6+8*nplanets+nt]
 
-fit_jrv = 0.0
+fit_jrv = [0.0]*nt
 fit_jtr = 0.0
 
 if ( is_jitter_rv or is_jitter_tr ) :
-  fit_jrv = best_value(params_jitter[0],get_value)
-  fit_jtr = best_value(params_jitter[1],get_value)
+  for o in range(0,nt):
+    fit_jrv[o] = best_value(params_jitter[o],get_value)
+  fit_jtr = best_value(params_jitter[nt],get_value)
 
 fit_trends = [0.0]*2
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
@@ -113,8 +114,8 @@ likelihood_rv = np.float64(1.0)
 log_like_rv = 0.0
 if ( total_rv_fit ):
   for o in range(0,len(mega_err)):
-    likelihood_rv = likelihood_rv / np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv**2))
-    log_like_rv = log_like_rv + np.log(1.0/np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv**2)))
+    likelihood_rv = likelihood_rv / np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv[tlab[o]]**2))
+    log_like_rv = log_like_rv + np.log(1.0/np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv[tlab[o]]**2)))
     #likelihood_rv = likelihood_rv * np.sqrt(( mega_err[o]**2+fit_jrv**2))
     #print likelihood_rv
   likelihood_rv = likelihood_rv * np.exp(-chi2tot_val_rv/2.0)
@@ -459,10 +460,11 @@ for o in range(0,nt):
   if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f    \n'%(mode_and_99(rv_vec[o])))
 opars.write ('--------------------------------------------------------------\n')
 if ( is_jitter_rv or is_jitter_tr ):
-  opars.write ('RV jitter = %4.7f - %4.7f + %4.7f m/s    \n'%(find_vals_perc(params_jitter[0]*1.e3,s_factor)))
-  if is_print_mode : opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[0]*1e3)))
-  opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux] \n'%(find_vals_perc(params_jitter[1],s_factor)))
-  if is_print_mode : opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[1])))
+  for o in range(0,nt):
+    opars.write ('RV jitter = %4.7f - %4.7f + %4.7f m/s    \n'%(find_vals_perc(params_jitter[o]*1.e3,s_factor)))
+    if is_print_mode : opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[o]*1e3)))
+  opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux] \n'%(find_vals_perc(params_jitter[nt],s_factor)))
+  if is_print_mode : opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[nt])))
   opars.write ('--------------------------------------------------------------\n')
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   opars.write ('linear trend    = %4.7f - %4.7f + %4.7f  m/s/days   \n'%(find_vals_perc(params_trends[0]*1.e3,s_factor)))
@@ -482,8 +484,9 @@ for o in range(0,nt):
   otex.write ('\\newcommand{\\vel%s}[1][$\mathrm{km\,s^{-1}}$]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}\n'%(telescopes_labels[o],v_val,v_val_r,v_val_l))
 #opars.write ('--------------------------------------------------------------\n')
 if ( is_jitter_rv or is_jitter_tr ):
-  otex.write ('\\newcommand{\\rvjitter}[1][$\mathrm{m\,s^{-1}}$]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}    \n'%(find_vals_perc(params_jitter[0]*1.e3,s_factor)))
-  otex.write ('\\newcommand{\\trjitter}[1][]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(params_jitter[1],s_factor)))
+  for o in range(nt):
+    otex.write ('\\newcommand{\\rvjitter}[1][$\mathrm{m\,s^{-1}}$]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}    \n'%(find_vals_perc(params_jitter[o]*1.e3,s_factor)))
+  otex.write ('\\newcommand{\\trjitter}[1][]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(params_jitter[nt],s_factor)))
   #otex.write ('--------------------------------------------------------------\n')
 otex.write('\n')
 

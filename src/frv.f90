@@ -83,7 +83,7 @@ implicit none
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1) :: tlab
   double precision, intent(in), dimension(0:6+nt,0:npl-1) :: params
-  double precision, dimension(nt-1), intent(in) :: jitter
+  double precision, dimension(0:nt-1), intent(in) :: jitter
   logical, intent(in)  :: flag(0:3)
   double precision, intent(out) :: chi2
 !Local variables

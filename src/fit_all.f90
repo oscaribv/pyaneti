@@ -12,7 +12,7 @@ implicit none
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
   double precision, intent(in) :: t_cad
   double precision, intent(in) :: trends(0:1)
-  double precision, dimension(0,n_tel-1), intent(in) :: jrv
+  double precision, dimension(0:n_tel-1), intent(in) :: jrv
   double precision, intent(in) :: jtr
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
