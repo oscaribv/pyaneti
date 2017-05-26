@@ -203,7 +203,7 @@ implicit none
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
   !Here I am assuming that we want limb darkening
   !If this is not true, use mu
-  res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
+ res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
   chi2 = dot_product(res,res)
 
   else

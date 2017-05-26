@@ -337,7 +337,6 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   gs.update(hspace=0.00)
   ax0 = plt.subplot(gs[0])
   plt.tick_params(labelsize=fos)
-  color = ['r','b']
   plt.minorticks_on()
   #plt.subplot(311)
   plt.xlabel("")
@@ -349,7 +348,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
     label=telescopes_labels[j],\
     fmt=mark[j],\
     alpha=1.0 ,\
-    markersize=rv_markersize,fillstyle=rv_fillstyle,color=color[j])
+    markersize=rv_markersize,fillstyle=rv_fillstyle)
   plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.7)
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.tick_params( axis='x',which='both',labelbottom='off')
@@ -367,7 +366,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.ylabel('Residuals (m/s)',fontsize=fos*0.75)
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
-    plt.errorbar(p_all[j],res[j],errs_all[j],color=color[j],\
+    plt.errorbar(p_all[j],res[j],errs_all[j],\
     label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=rv_markersize,fillstyle=rv_fillstyle)
   yylims = ax1.get_ylim()
   miy = int(max(abs(yylims[0]),abs(yylims[1])))

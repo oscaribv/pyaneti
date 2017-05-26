@@ -5,7 +5,7 @@
 </p>
 
 # __pyaneti__
-#### Written by Barragán O. et al. 2017
+#### Written by Barragán O., Gandolfi D., Antoniciello G.
 ##### email: oscaribv@gmail.com
 ##### Updated April 19, 2017
 
