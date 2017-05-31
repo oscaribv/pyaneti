@@ -115,11 +115,18 @@ if ( nplanets_tr > 0 ):
   xt= [None]*myn
   yt= [None]*myn
   et= [None]*myn
+
+
   for o in range(0,myn):
 
     filename = 'inpy/'+star+'/'+fname_tr[o]
-    dummyd,dummyf,dummye = np.loadtxt(filename,usecols=columns_tr, \
-    comments='#',unpack=True)
+    if ( my_tr_err == 0 ): #The error bars come from the input file
+        dummyd,dummyf,dummye = np.loadtxt(filename,usecols=columns_tr, \
+        comments='#',unpack=True)
+    else: #The error bars are given in the input
+        dummyd,dummyf = np.loadtxt(filename,usecols=[0,1], \
+        comments='#',unpack=True)
+        dummye = [my_tr_err]*len(dummyd)
 
     dummyd = dummyd + textra
 

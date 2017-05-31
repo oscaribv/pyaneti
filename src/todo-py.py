@@ -183,14 +183,17 @@ def create_transit_data(time,flux,errs,planet=0,span=0.0):
   tt = best_value(trt_vec[planet],get_value)
   tt = tt/24.0
 
+
   if ( span < 1e-5 ):
     #We have to calculate things
     span = 3*tt
 #  else:
     #We have to use the span given by the user
 
+
   #Let us fold the data to the period
   t_inicial = T0 - span/2
+
 
   folded_t = list(time)
   for o in range(0,len(time)):
@@ -202,6 +205,7 @@ def create_transit_data(time,flux,errs,planet=0,span=0.0):
   xt = []
   yt = []
   et = []
+
   for o in range(0,len(time)):
       if ( folded_t[o] > - span/2 and folded_t[o] < span/2 ):
           lt.append(time[o])

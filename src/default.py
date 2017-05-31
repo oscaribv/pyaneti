@@ -86,6 +86,7 @@ resize_tr = True
 span_tr  = []
 is_TTV = True
 textra = 0.0
+my_tr_err = 0
 select_y_tr = False
 y_lim_max = 1.05
 y_lim_min = 0.95
