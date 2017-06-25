@@ -48,8 +48,6 @@ implicit none
   end if
   ws  = w       !star periastron
   wp  = ws + pi !planet periastron
-  !Let us get the w of the planet
-  !w = w + pi
   if (flag(3)) a = 10.d0**a
   if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(wp) ) / ( 1.d0 - e*e ) )
 

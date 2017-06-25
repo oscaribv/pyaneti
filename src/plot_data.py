@@ -6,7 +6,8 @@ from matplotlib.colors import LogNorm
 if ( is_seaborn_plot ):
   import seaborn as sns
   sns.set(style='ticks')
-  sns.set_color_codes()
+  sns.set_color_codes('deep')
+  sns.set_color_codes('bright')
 
 fsx = figure_size_x
 fsy = figure_size_y
@@ -53,7 +54,7 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3.0, 1.])
   gs.update(hspace=0.00)
   ax1 = plt.subplot(gs[0])
-  plt.tick_params(labelsize=fos)
+  plt.tick_params(labelsize=fos,direction='in')
   x_lim = (min(xtime)-local_T0)*tfc
   plt.xlim(x_lim,-x_lim)
   if ( select_y_tr ):
@@ -65,13 +66,22 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
     plt.plot((xtime-local_T0)*tfc,yflux,'ro',ms=8,alpha=0.9)
   plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
-  plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
+  #Calculate the optimal step for the plot
+  step_plot = int(abs(x_lim)) #the value of the x_axis
+  step_plot = step_plot + int( step_plot % 2 ) # now we ensure the result is par
+  step_plot = int ( step_plot / 8. ) + 1 #The size of the jump depends
+  #let us get the new limit
+  nuevo = np.arange(0,int(abs(x_lim)) + step_plot ,step_plot)
+  mxv = np.max(nuevo)
+#  plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,step_plot))
+  plt.xticks( np.arange(-mxv,mxv+step_plot,step_plot))
   plt.minorticks_on()
   plt.ticklabel_format(useOffset=False, axis='y')
-  plt.tick_params( axis='x',which='both',labelbottom='off')
+  plt.xlim(x_lim,-x_lim)
+  plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
   #Plot the residuals
   ax0 = plt.subplot(gs[1])
-  plt.tick_params(labelsize=fos)
+  plt.tick_params(labelsize=fos,direction='in')
   if ( plot_tr_errorbars ):
     plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='ro',alpha=0.8)
   else:
@@ -79,14 +89,15 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
 #  yylims = ax0.get_ylim()
 #  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
-  plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,1))
+#  plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,step_plot))
+  plt.xticks( np.arange(-mxv,mxv+step_plot,step_plot))
   plt.xlim(x_lim,-x_lim)
   yylims = ax0.get_ylim()
   miy = (max(abs(yylims[0]),abs(yylims[1])))
   plt.yticks(np.arange(-miy,miy,miy/2.))
   plt.ylim(-miy,miy)
-  if ( select_y_tr ):
-    plt.ylim( - ( y_lim_max - 1.0),y_lim_max - 1.0 )
+#  if ( select_y_tr ):
+#    plt.ylim( - ( y_lim_max - 1.0),y_lim_max - 1.0 )
   #Plot the residuals
   plt.ylabel('Residuals',fontsize=fos*0.75)
   plt.xlabel("T - T0 (hours)",fontsize=fos)
@@ -336,7 +347,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
   gs.update(hspace=0.00)
   ax0 = plt.subplot(gs[0])
-  plt.tick_params(labelsize=fos)
+  plt.tick_params(labelsize=fos,direction='in')
   plt.minorticks_on()
   #plt.subplot(311)
   plt.xlabel("")
@@ -347,11 +358,11 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
     plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
     label=telescopes_labels[j],\
     fmt=mark[j],\
-    alpha=1.0 ,\
+    alpha=1.0 ,color=rv_colors[j],\
     markersize=rv_markersize,fillstyle=rv_fillstyle)
   plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.7)
   plt.xticks(np.arange(0.,1.01,0.1))
-  plt.tick_params( axis='x',which='both',labelbottom='off')
+  plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
   yylims = ax0.get_ylim()
   miy = int(max(abs(yylims[0]),abs(yylims[1])))
   plt.ylim(-miy,miy)
@@ -359,15 +370,16 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
 #  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/7.))
   #NEW SUBPLOT
   ax1 = plt.subplot(gs[1])
-  plt.tick_params(labelsize=fos)
+  plt.tick_params(labelsize=fos,direction='in')
   plt.xlabel("Orbital phase",fontsize=fos)
-  plt.tick_params( axis='x',which='minor',bottom='on',left='on',right='on',top='on')
+  plt.tick_params( axis='x',which='minor',direction='in',bottom='on',left='on',right='on',top='on')
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.ylabel('Residuals (m/s)',fontsize=fos*0.75)
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
     plt.errorbar(p_all[j],res[j],errs_all[j],\
-    label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=rv_markersize,fillstyle=rv_fillstyle)
+    label=telescopes_labels[j],fmt=mark[j],color=rv_colors[j], \
+    alpha=1.0,markersize=rv_markersize,fillstyle=rv_fillstyle)
   yylims = ax1.get_ylim()
   miy = int(max(abs(yylims[0]),abs(yylims[1])))
   plt.ylim(-miy,miy)
@@ -468,17 +480,18 @@ if ( nplanets > 0 ):
       rv_dum[j] = rv_datas[j] - v_val[j]*cfactor
       res_dum_all[j] = rv_dum[j] - res_dum_all[j]
 
-    plt.figure(1,figsize=(fsx,fsy))
+    plt.figure(1,figsize=(2*fsx,fsy))
     plt.plot(rvx,rvy,'k')
 
     plt.minorticks_on()
-    plt.xlabel("BJD - 2450000 (days)",fontsize=fos)
+    plt.xlabel(rv_xlabel,fontsize=fos)
     plt.ylabel('RV (m/s)',fontsize=fos)
     plt.xlim(xmin,xmax)
+    plt.tick_params(labelsize=fos,direction='in')
     for j in range(0,nt):
-      plt.errorbar(time_all[j],rv_dum[j],errs_datas[j],\
+      plt.errorbar(time_all[j],rv_dum[j],errs_datas[j],color=rv_colors[j],\
       label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=4)
-    plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize='small')
+    plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.8)
     fname = outdir+'/'+star+'_rv_all.pdf'
     print 'Creating ', fname
     plt.savefig(fname,format='pdf',bbox_inches='tight')
@@ -646,22 +659,22 @@ def create_plot_correlation(params,plabs,col='red',mark='.',num=[]):
     for j in n:
       if ( j < i ):
         plt.subplot(gs[o*len(n)+p])
-        plt.tick_params( axis='y',which='both',labelleft='off')
-        plt.tick_params( axis='x',which='both',labelbottom='off')
+        plt.tick_params( axis='y',which='both',direction='in',labelleft='off')
+        plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
         plt.ticklabel_format(useOffset=False, axis='both')
         if ( j == n[0] ):
            plt.ylabel(plabs[i],fontsize=25)
         elif ( j == i - 1 ):
-          plt.tick_params( axis='y',which='both',labelleft='off')
-          plt.tick_params( axis='x',which='both',labelbottom='off')
+          plt.tick_params( axis='y',which='both',direction='in',labelleft='off')
+          plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
         else:
-          plt.tick_params( axis='y',which='both',labelleft='off')
-          plt.tick_params( axis='x',which='both',labelbottom='off')
+          plt.tick_params( axis='y',which='both',direction='in',labelleft='off')
+          plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
         if ( i == n[len(n)-1]):
           plt.xlabel(plabs[j],fontsize=25)
         else:
-          plt.tick_params( axis='y',which='both',labelleft='off')
-          plt.tick_params( axis='x',which='both',labelbottom='off')
+          plt.tick_params( axis='y',which='both',direction='in',labelleft='off')
+          plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
         plt.hist2d(params[j],params[i],bins=100,norm=LogNorm())
         p = p + 1
     o = o + 1

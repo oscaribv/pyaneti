@@ -78,7 +78,7 @@ is_jitter_rv = False
 is_jitter_tr = False
 plot_parameters = []
 is_seaborn_plot = False
-plot_tr_errorbars = True
+plot_tr_errorbars = False
 rv_markersize  = 8
 rv_fillstyle = 'full'
 resize_rv = False
@@ -101,7 +101,10 @@ font_size_label = 18
 clustering_delta = 0.5
 get_value = 'median'
 #mark for plots
+rv_xlabel = "BJD - 2450000 (days)"
 mark = ['o', 'D', 's', 'p', 'h', '8', '^', '<', '*', 'v','>','.', 'H', 'd','+']
+rv_colors = ['r','b','g','y','m','c']
+tr_colors = 'r'
 
 #Fit nothing
 fit_rv = False

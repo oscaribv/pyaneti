@@ -280,7 +280,7 @@ if ( method == 'mcmc' or method == 'plot' ):
     trt_vec[o] = P_vec[o] / np.pi * np.arcsin(trt_vec[o]) * ec_factor * 24.0
     tri_vec[o] = np.sqrt( (1. - rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
     tri_vec[o] = P_vec[o] / np.pi * np.arcsin(tri_vec[o]) * ec_factor * 24.0
-    tri_vec[o] = ( trt_vec[o] - tri_vec[o] ) / 2.0 #ingress egress time
+    #tri_vec[o] = ( trt_vec[o] - tri_vec[o] ) / 2.0 #ingress egress time
     #Calculate the star density from transit data
     #Eq. (30) Winn 2014
     ds_vec[o] = get_rhostar(P_vec[o],ar_vec[o]) #cgs
@@ -396,7 +396,7 @@ if ( method == 'mcmc' or method == 'plot' ):
     if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  K \n'%(mode_and_99(Teq_vec[o])))
     opars.write ('T_tot= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(trt_vec[o],s_factor)))
     if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  hours\n'%(mode_and_99(trt_vec[o])))
-    opars.write ('T_i/e= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(tri_vec[o],s_factor)))
+    opars.write ('T_full= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(tri_vec[o],s_factor)))
     if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  hours\n'%(mode_and_99(tri_vec[o])))
     opars.write ('--------------------------------------------------------------\n')
     #LaTeX
@@ -492,16 +492,17 @@ otex.write('\n')
 
 #RESIZE TRANSIT ERROR BARS
 if ( is_jitter_tr and resize_tr ):
-  jit_tr = best_value(params_jitter[1],get_value)
+  jit_tr = best_value(params_jitter[nt],get_value)
   for o in range(0,len(et)):
       for m in range(0,len(et[o])):
               et[o][m] = np.sqrt(et[o][m]**2 + jit_tr**2)
   for o in range(0,len(megae)):
     megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 if ( is_jitter_rv and resize_rv ):
-    jit_rv = best_value(params_jitter[0],get_value)
-    for o in range(0,len(mega_err)):
-        mega_err[o] = np.sqrt(mega_err[o]**2 + jit_rv**2)
+    for j in range(0,nt):
+      jit_rv = best_value(params_jitter[j],get_value)
+      for o in range(0,len(errs_all[j])):
+        errs_all[j][o] = np.sqrt(errs_all[j][o]**2 + jit_rv**2)
 
 opars.close()
 otex.close()
