@@ -78,6 +78,7 @@ is_jitter_rv = False
 is_jitter_tr = False
 plot_parameters = []
 is_seaborn_plot = False
+seaborn_palette = 'deep'
 plot_tr_errorbars = False
 rv_markersize  = 8
 rv_fillstyle = 'full'

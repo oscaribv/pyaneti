@@ -6,8 +6,7 @@ from matplotlib.colors import LogNorm
 if ( is_seaborn_plot ):
   import seaborn as sns
   sns.set(style='ticks')
-  sns.set_color_codes('deep')
-  sns.set_color_codes('bright')
+  sns.set_color_codes(seaborn_palette)
 
 fsx = figure_size_x
 fsy = figure_size_y
@@ -79,6 +78,7 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.ticklabel_format(useOffset=False, axis='y')
   plt.xlim(x_lim,-x_lim)
   plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
+  plt.tick_params( axis='y',which='both',direction='in')
   #Plot the residuals
   ax0 = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos,direction='in')
@@ -99,9 +99,11 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
 #  if ( select_y_tr ):
 #    plt.ylim( - ( y_lim_max - 1.0),y_lim_max - 1.0 )
   #Plot the residuals
+  plt.minorticks_on()
+  plt.tick_params( axis='x',which='both',direction='in')
+  plt.tick_params( axis='y',which='both',direction='in')
   plt.ylabel('Residuals',fontsize=fos*0.75)
   plt.xlabel("T - T0 (hours)",fontsize=fos)
-  plt.minorticks_on()
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
   plt.close()
@@ -363,8 +365,11 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.7)
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
+  plt.tick_params( axis='y',which='both',direction='in')
   yylims = ax0.get_ylim()
   miy = int(max(abs(yylims[0]),abs(yylims[1])))
+  if ( miy == 0): #To avoid errors for really small RV variations
+    miy = max(abs(yylims[0]),abs(yylims[1]))
   plt.ylim(-miy,miy)
   #plt.yticks(np.arange(-miy,miy,2.*miy/8.))
 #  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/7.))
@@ -373,6 +378,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.tick_params(labelsize=fos,direction='in')
   plt.xlabel("Orbital phase",fontsize=fos)
   plt.tick_params( axis='x',which='minor',direction='in',bottom='on',left='on',right='on',top='on')
+  plt.tick_params( axis='y',which='both',direction='in')
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.ylabel('Residuals (m/s)',fontsize=fos*0.75)
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
@@ -382,9 +388,9 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
     alpha=1.0,markersize=rv_markersize,fillstyle=rv_fillstyle)
   yylims = ax1.get_ylim()
   miy = int(max(abs(yylims[0]),abs(yylims[1])))
-  plt.ylim(-miy,miy)
+  if ( miy == 0): #To avoid errors for really small RV variations
+    miy = max(abs(yylims[0]),abs(yylims[1]))
   plt.yticks(np.arange(-miy,miy,2.*miy/4.))
-  #plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
   plt.minorticks_on()
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
