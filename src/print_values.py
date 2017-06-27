@@ -275,7 +275,7 @@ if ( method == 'mcmc' or method == 'plot' ):
     w_p_deg = (w_s_deg + 180.) % 360
 
   #Transit durations aproximations (eq. 14, 15, 16 from Winn 2014)
-    ec_factor = np.sqrt(( 1. - e_vec[o]*e_vec[o] )) / ( 1.0 + e_vec[o]*np.sin(w_vec[o] ))
+    ec_factor = np.sqrt(( 1. - e_vec[o]*e_vec[o] )) / ( 1.0 + e_vec[o]*np.sin(w_vec[o] + np.pi ))
     trt_vec[o] = np.sqrt( (1. + rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
     trt_vec[o] = P_vec[o] / np.pi * np.arcsin(trt_vec[o]) * ec_factor * 24.0
     tri_vec[o] = np.sqrt( (1. - rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))

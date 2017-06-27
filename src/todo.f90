@@ -69,7 +69,7 @@ implicit none
   double precision, intent(in) :: t0, e, w, P
 !Local variables
   integer :: i,n
-  double precision, dimension(0:dt-1) :: ma, f, df, eimag, ereal
+  double precision, dimension(0:dt-1) :: ma, f, df, eimag, ereal, sinma
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   double precision :: uno, tp
   double precision :: fmin=1.d-8
@@ -88,14 +88,26 @@ implicit none
   f(:) = fmin * 1.0d1
   n = 0
 
-  do i = 0, dt-1
-    do while ( abs(f(i)) > fmin .and. n < imax )
-      f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
-      df(i)  = uno - e * cos(ta(i))
-      ta(i)  = ta(i) - f(i) / df(i)
-      n = n + 1
+  if ( e < 0.66 ) then !Avoid Newthon-Raphson if the eccentricity is small
+!  if ( e < 0.0 ) then !Avoid Newthon-Raphson if the eccentricity is small
+
+    sinma = sin(ma(:))
+    !Serie expantion, Murray and Dermott 1999, p.35
+    ta(:) = ma(:) + e * sinma(:) + 0.5d0 * e * e * sin(2.d0*ma(:)) + &
+            0.125d0 * e * e * e * ( 3.d0 * sin( 3.d0 * ma(:) ) - sinma(:)  )
+
+  else
+
+    do i = 0, dt-1
+      do while ( abs(f(i)) > fmin .and. n < imax )
+        f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
+        df(i)  = uno - e * cos(ta(i))
+        ta(i)  = ta(i) - f(i) / df(i)
+        n = n + 1
+      end do
     end do
-  end do
+
+  end if
 
   if ( n > imax ) then !This should never happen!
     print *, 'I am tired, too much Newton-Raphson for me!'
