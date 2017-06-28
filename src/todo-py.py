@@ -508,7 +508,7 @@ def joint_fit():
          max_a, min_q1, max_q1, min_q1, max_q1, min_rp, max_rp, min_k, max_k, min_alpha, max_alpha, \
          min_beta, max_beta, min_rv0, max_rv0
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,rpo,ko,alphao,betao,vo, what_fit
-  global new_nwalkers, good_index
+  global new_nwalkers, good_index, nwalkers
   global jrvo, jtro, total_fit_flag, flags
 
 
@@ -544,6 +544,10 @@ def joint_fit():
   flags = [is_log_P,is_ew,is_b_factor,is_log_a,is_log_k,is_log_rv0]
 
   if ( method == 'mcmc' ):
+
+    #Ensure nwalkers is divisible by 2
+    if ( nwalkers%2 != 0):
+         nwalkers = nwalkers + 1
 
     vec_rv0_limits = []
 #    vec_rv0_phys_limits = []

@@ -72,7 +72,7 @@ implicit none
   double precision, dimension(0:dt-1) :: ma, f, df, eimag, ereal, sinma
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   double precision :: uno, tp
-  double precision :: fmin=1.d-8
+  double precision :: fmin=1.d-8, small = 1.d-5
   integer :: imax = int(1e8)
 !
   uno = 1.0d0
@@ -82,53 +82,63 @@ implicit none
   !Calculate the mean anomaly
   ma = two_pi * ( t - tp ) / P
 
-  !calculate the eccentric anomaly
-  !Using Newthon-Raphson algorithm
-  ta(:) = ma(:)
-  f(:) = fmin * 1.0d1
-  n = 0
+  if ( e > small ) then !You have to calcuate your true anomaly, your orbit is not circular!
 
-  if ( e < 0.66 ) then !Avoid Newthon-Raphson if the eccentricity is small
-!  if ( e < 0.0 ) then !Avoid Newthon-Raphson if the eccentricity is small
+    if ( e < 0.66 ) then !Avoid Newthon-Raphson if the eccentricity is small
 
-    sinma = sin(ma(:))
-    !Serie expantion, Murray and Dermott 1999, p.35
-    ta(:) = ma(:) + e * sinma(:) + 0.5d0 * e * e * sin(2.d0*ma(:)) + &
-            0.125d0 * e * e * e * ( 3.d0 * sin( 3.d0 * ma(:) ) - sinma(:)  )
+      sinma = sin(ma(:))
+      !Serie expantion, Murray and Dermott 1999, p.35
+      ta(:) = ma(:) + e  * ( sinma(:) + &
+              e * ( 0.5d0 * sin(2.d0*ma(:)) +  &
+              e * 0.125d0 * ( 3.d0 * sin( 3.d0 * ma(:) ) - sinma(:)  ) &
+              ) )
+
+    else
+
+      !calculate the eccentric anomaly
+      !Using Newthon-Raphson algorithm
+      ta(:) = ma(:)
+      f(:) = fmin * 1.0d1
+      n = 0
+
+      do i = 0, dt-1
+        do while ( abs(f(i)) > fmin .and. n < imax )
+          f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
+          df(i)  = uno - e * cos(ta(i))
+          ta(i)  = ta(i) - f(i) / df(i)
+          n = n + 1
+        end do
+      end do
+
+      if ( n > imax ) then !This should never happen!
+        print *, 'I am tired, too much Newton-Raphson for me!'
+        print *, e, f
+        stop
+      end if
+
+    end if
+
+    !calculate the true anomaly
+    !Relation between true anomaly(ta) and eccentric anomaly(ea) is
+    !tan(ta) = sqrt(1-e^2) sin (ea) / ( cos(ea) - e ) https://en.wikipedia.org/wiki/True_anomaly
+    !In a complex plane, this is =  (cos(ea) - e) + i (sqrt(1-e^2) *sin(ea) )
+    !with modulus = 1 - e cos(ea)
+    eimag = ( sqrt(uno-e*e) * sin(ta) ) !/ (uno-e*cos(ta))
+    ereal = ( cos (ta) - e ) !/ (uno-e*cos(ta))
+    !Therefore, the tue anomaly is
+    ta = atan2(eimag,ereal)
 
   else
 
-    do i = 0, dt-1
-      do while ( abs(f(i)) > fmin .and. n < imax )
-        f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
-        df(i)  = uno - e * cos(ta(i))
-        ta(i)  = ta(i) - f(i) / df(i)
-        n = n + 1
-      end do
-    end do
+    !If your orbit is cirular, your true anomaly is the mean anomaly ;)
+    ta(:) = ma(:)
 
   end if
 
-  if ( n > imax ) then !This should never happen!
-    print *, 'I am tired, too much Newton-Raphson for me!'
-    print *, e, f
-    stop
-  end if 
-
-  !calculate the true anomaly
-  !Relation between true anomaly(ta) and eccentric anomaly(ea) is
-  !tan(ta) = sqrt(1-e^2) sin (ea) / ( cos(ea) - e ) https://en.wikipedia.org/wiki/True_anomaly
-  !In a complex plane, this is =  (cos(ea) - e) + i (sqrt(1-e^2) *sin(ea) ) 
-  !with modulus = 1 - e cos(ea) 
-  eimag = ( sqrt(uno-e*e) * sin(ta) ) !/ (uno-e*cos(ta))
-  ereal = ( cos (ta) - e ) !/ (uno-e*cos(ta))
-  !Therefore, the tue anomaly is 
-  ta = atan2(eimag,ereal)
 
 end subroutine
 
 !Get semi-major axis assuming we know the stellar parameters
-
 subroutine get_a_scaled(mstar,rstar,P,a,lenvec)
 implicit none
 
@@ -273,21 +283,22 @@ implicit none
 end subroutine
 
 !Subroutine to create random integers between 0 and n
-subroutine random_int(r_int,n)
+subroutine random_int(r_int,mnv,mxv)
 implicit none
 
   !In/Out variables
-  integer, intent(in) :: n
-  integer, intent(out), dimension(0:n-1) :: r_int
+  integer, intent(in) :: mnv,mxv
+  integer, intent(out), dimension(0:mxv-mnv-1) :: r_int
   !Local variables
-  double precision :: r_real
-  integer :: i
+  real :: r_real
+  integer :: i, j
 
-  do i = 0, n - 1
-    r_int(i) = i
-    do while ( r_int(i) == i )
-    call random_number(r_real)
-    r_int(i) = int( r_real *  n ) 
+  do i = mnv, mxv
+    j = i-mnv
+    r_int(j) = i
+    do while ( r_int(j) == i )
+      call random_number(r_real)
+      r_int(j) =  mnv + int ( r_real * ( 1 + mxv - mnv ) )
     end do
   end do
 

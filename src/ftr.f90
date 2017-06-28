@@ -50,7 +50,7 @@ implicit none
   if (flag(3)) a = 10.d0**a
   if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(wp) ) / ( 1.d0 - e*e ) )
 
-  !Obtain the eccentric anomaly by using find_anomaly
+  !Obtain the true anomaly by using find_anomaly
   call find_anomaly(t,t0,e,ws,P,ta,ts)
 
   swt = sin(wp+ta)
@@ -61,6 +61,7 @@ implicit none
     z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
         / ( 1.d0 + e * cos(ta) )
   elsewhere !We have the planet behind the star -> occulation
+  !z has avalue which gives flux = 1 in Mandel & Agol module
       z = 1.d1
   end where
 
@@ -217,13 +218,12 @@ implicit none
   double precision, dimension(0:datas-1) :: muld_npl
   double precision, dimension(0:datas-1) :: res, muld, mu
   double precision :: npl_dbl, small, u1, u2, pz(0:npl-1), q1k, q2k
-
- !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
-  double precision, dimension(0:n_cad-1)  :: xd_ub, z, flux_ub
+  double precision, dimension(0:n_cad-1,0:npl-1)  :: flux_ub
+  double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
   integer :: n, j, k
   logical :: is_good
 !External function
-  external :: occultquad
+  external :: occultquad, find_z
 
   small = 1.d-5
   npl_dbl = dble(npl)
@@ -254,43 +254,47 @@ implicit none
   muld_npl(:) = 0.d0
   do j = 0, datas - 1
 
-    !control the label of the planet
-    do n = 0, npl - 1
-
-    !Are we generating an eclipse?
-    !Take care with the pars
+    !Calculate the time-stamps for the binned model
     do k = 0, n_cad - 1
       xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
     end do
 
-    call find_z(xd_ub,pars(0:5,n),flag,z,n_cad)
+    !control the label of the planet
+    do n = 0, npl - 1
 
-    if ( ALL( z > 1.d0 + 2.0*pz(n) ) .or. pz(n) < small ) then
+      !Each z is independent for each planet
+      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad)
 
-      muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
+      if ( ALL( z > 1.d0 + pz(n) ) .or. pz(n) < small ) then
 
-    else
+        muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
 
+      else
 
-      !Now we have z, let us use Agol's routines
-      !call occultquad(z,u1,u2,pz,flux_ub,mu,n_cad)
-      call occultquad(z,u1,u2,pz(n),flux_ub,mu,n_cad)
+        !Now we have z, let us use Agol's routines
+        call occultquad(z,u1,u2,pz(n),flux_ub(:,n),mu,n_cad)
 
-      !Re-bin the data
-      muld_npl(j) = muld_npl(j) + sum(flux_ub) / n_cad
-
-
-    end if
+      end if
 
     end do !planets
 
-    !The final flux is F = (F1 + F2 + ... + Fn ) / n
+
+    fmultip(:) = 0.0
+    !Sum the flux of all each sub-division of the model due to each planet
+    do k = 0, n_cad - 1
+      fmultip(k) =  SUM(flux_ub(k,:))
+    end do
+
+    !Re-bin the model
+    muld_npl(j) = muld_npl(j) +  sum(fmultip) / n_cad
+
+    !Calcualte the flux received taking into account the transit of all planets
     muld(j) =  1.0d0 + muld_npl(j) - npl_dbl
 
-  end do !datas
-!print *, 'stop new tr chi2'
-  !stop
+    !Restart flux_ub
+    flux_ub(:,:) = 0.0
 
+  end do !datas
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
@@ -306,4 +310,3 @@ implicit none
   end if
 
 end subroutine
-

@@ -105,7 +105,7 @@ implicit none
   double precision, dimension(0:nwalks-1) :: log_prior_old, log_prior_new
   double precision, dimension(0:nwalks-1) :: log_likelihood_old, log_likelihood_new
   double precision, dimension(0:nwalks-1) :: log_errs_old, log_errs_new
-  integer, dimension(0:nwalks-1) :: r_int
+  integer, dimension(0:nwalks/2-1) :: r_int
   double precision  :: a_factor, dof, tds, qq
   double precision  :: lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
@@ -113,7 +113,8 @@ implicit none
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   double precision :: limit_prior
   logical :: continua, is_limit_good, is_cvg
-  integer :: nk, j, n, m, o, n_burn, spar, spar1
+  integer :: nk, j, n, m, o, n_burn, spar, spar1, iensemble, inverted(0:1)
+  integer :: nks, nke
   integer :: wtf_trends(0:1)
   integer :: wtf_all(0:8*npl-1), wtf_rvs(0:n_tel-1), wtf_ldc(0:1)
 !external calls
@@ -278,6 +279,7 @@ implicit none
   continua = .true.
   a_factor = 2.d0
   n_burn = 1
+  inverted = (/ 1 , 0 /)
 
   !The infinite cycle starts!
   print *, 'STARTING INFINITE LOOP!'
@@ -286,25 +288,33 @@ implicit none
     !Creating the random variables
     !Do the work for all the walkers
     call random_number(r_rand)
-    !Create random integers to be the index of the walks
-    !Note that r_ink(i) != i (avoid copy the same walker)
-    call random_int(r_int,nwalks)
 
-    !Pick a random walker
-    do nk = 0, nwalks - 1 !walkers
-      pars_new(nk,:)    = pars_old(r_int(nk),:)
-      rvs_new(nk,:)     = rvs_old(r_int(nk),:)
-      ldc_new(nk,:)     = ldc_old(r_int(nk),:)
-      tds_new(nk,:)     = tds_old(r_int(nk),:)
-      jitter_rv_new(nk,:) = jitter_rv_old(r_int(nk),:)
-      jitter_tr_new(nk) = jitter_tr_old(r_int(nk))
-    end do
+    !Perform the paralelization following Foreman-Mackey, 2013
+    do iensemble = 0, 1
+
+      nks = iensemble * nwalks/2
+      nke = (iensemble + 1) * nwalks/2 - 1
+
+      !Create random integers to be the index of the walks
+      !Note that r_ink(i) != i (avoid copy the same walker)
+      call random_int(r_int,inverted(iensemble)*nwalks/2,(inverted(iensemble)+1)*nwalks/2 - 1)
+
+
+      !Pick a random walker from the complementary ensemble
+      do nk = nks, nke
+        pars_new(nk,:)      = pars_old(r_int(nk-nks),:)
+        rvs_new(nk,:)       = rvs_old(r_int(nk-nks),:)
+        ldc_new(nk,:)       = ldc_old(r_int(nk-nks),:)
+        tds_new(nk,:)       = tds_old(r_int(nk-nks),:)
+        jitter_rv_new(nk,:) = jitter_rv_old(r_int(nk-nks),:)
+        jitter_tr_new(nk)   = jitter_tr_old(r_int(nk-nks))
+      end do
 
     !Paralellization calls
     !$OMP PARALLEL &
     !$OMP PRIVATE(is_limit_good,qq,m,limit_prior,a_mean,a_sigma)
     !$OMP DO SCHEDULE(DYNAMIC)
-    do nk = 0, nwalks - 1
+    do nk = nks, nke
 
       !Generate the random step to perform the stretch move
       call find_gz(a_factor,z_rand(nk))
@@ -399,6 +409,8 @@ implicit none
 
     end do !walkers
     !$OMP END PARALLEL
+
+    end do !iensemble
 
     !Compute the reduced chi square
     chi2_red(:) = chi2_old_total(:) / dof
