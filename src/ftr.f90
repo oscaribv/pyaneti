@@ -26,8 +26,7 @@ implicit none
 !Local variables
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: t0, P, e, w, i, a
-  double precision :: wp, ws
-  double precision :: si, new_t0, ttot
+  double precision :: wp, ws, si
   double precision :: pi = 3.1415926535897932384626d0
   integer :: n, j
 !External function
@@ -51,33 +50,20 @@ implicit none
   if (flag(3)) a = 10.d0**a
   if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(wp) ) / ( 1.d0 - e*e ) )
 
-  !Let us estimate the eclipse duration to rule out the no real recondary transits
-  !For a planet with radius 0.0. This would not affect the method
-  !and let us assume a central transit with i = 90 deg
-  !ttot = (1.d0 + 0.d0)**2 - ( a * cos(i) * (1.0d0 - e*e) / ( 1.0d0 + e * sin(w)) )**2
-  !ttot = asin( ttot / a / sin(i) )
-  !ttot = P * ttot / pi * sqrt(1.0 - e*e) / ( 1.d0 + e*sin(w) )
-  !ttot = 1.d0
-  ttot = asin( 1.0 / a )
-  ttot = P * ttot / pi
-
   !Obtain the eccentric anomaly by using find_anomaly
   call find_anomaly(t,t0,e,ws,P,ta,ts)
+
   swt = sin(wp+ta)
-
   si = sin(i)
-  z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
-      / ( 1.d0 + e * cos(ta) ) 
-  !z has been calculated
 
-  !Let us remove the secondary transits
-  do n = 0, ts - 1
-    j = int( ( t(n) - t0 ) / P )
-    new_t0 = t0 + j*P
-    if ( t(n) > t0 + j*P + ttot .and. t(n) < t0 + (j+1)*P - ttot ) &
-      z(n) = 1.d1
-  end do
-  
+  where (swt < 0.0 ) !We have the planet in front of the star -> transit
+  !z has been calculated
+    z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
+        / ( 1.d0 + e * cos(ta) )
+  elsewhere !We have the planet behind the star -> occulation
+      z = 1.d1
+  end where
+
 end subroutine
 
 !-----------------------------------------------------------
