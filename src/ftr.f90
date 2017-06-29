@@ -67,157 +67,24 @@ implicit none
 
 end subroutine
 
-!-----------------------------------------------------------
-! This routine calculates the chi square for a RV curve
-! given a set of xd-yd data points
-! It takes into acount the possible difference in systematic
-! velocities for different telescopes.
-!Input parameters are:
-! xd, yd, errs -> set of data to fit (array(datas))
-! tlab -> Telescope labels (array of integers number)
-! rv0  -> array for the different systemic velocities,
-!         its size is the number of telescopes
-! k, ec, w, t0, P -> typical planet parameters
-! ics -> is circular flag, True or False.
-! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)
-!Output parameter:
-! chi2 -> a double precision value with the chi2 value
-!-----------------------------------------------------------
-subroutine find_chi2_tr_trapezoidal(xd,yd,errs,plab_tr,pars,jitter,flag,ldc,&
-           n_cad,t_cad,chi2,datas,npl)
+subroutine flux_tr(xd,pars,jitter,flag,ldc,&
+           n_cad,t_cad,datas,npl,muld)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas, n_cad, npl
-  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  integer, intent(in), dimension(0:datas-1)  :: plab_tr
+  double precision, intent(in), dimension(0:datas-1)  :: xd
   double precision, intent(in), dimension(0:6,0:npl-1) :: pars
   !pars = T0, P, e, w, b, a/R*, Rp/R*
   double precision, intent(in) :: t_cad
   double precision, intent(in) :: jitter
   logical, intent(in), dimension(0:3) :: flag
   double precision, intent(in), dimension (0:1) :: ldc
-  double precision, intent(out) :: chi2
+  double precision, intent(out), dimension(0:datas-1) :: muld
 !Local variables
   double precision, dimension(0:datas-1) :: muld_npl
-  double precision, dimension(0:datas-1) :: res, muld, mu
-  double precision :: npl_dbl, small, u1, u2, rp(0:npl-1)
-  !double precision, dimension(0:datas-1,0:n_cad-1)  :: xd_ub, z, flux_ub
-  double precision, dimension(0:n_cad)  :: xd_ub, z, fmultip
-  double precision, dimension(0:n_cad,0:npl-1)  :: flux_ub
-  double precision :: t_cad2, t_cadn
-  integer :: n, j, k
-  logical :: is_good
-!External function
-  external :: occultquad
-
-  small = 1.d-5
-  npl_dbl = dble(npl)
-
-  t_cad2 = 0.5d0 * t_cad
-  t_cadn = t_cad / n_cad
-
-  !re-transform the parameters to u1 and u2
-  u1 = sqrt(ldc(0))
-  u2 = u1*( 1.d0 - 2.d0*ldc(1))
-  u1 = 2.d0*u1*ldc(1)
-
-  !Get planet radius
-  rp(:) = pars(6,:)
-
-  !are the u1 and u2 within a physical solution
-  call check_us(u1,u2,is_good)
-  if ( flag(1) ) then
-    do n = 0, npl - 1
-     call check_e(pars(2,n),pars(3,n),is_good)
-     if ( .not. is_good ) exit
-    end do
-  end if
-
-  if ( is_good ) then
-
-  !Selective re-sampling
-  muld_npl(:) = 0.d0
-  !Restart flux_ub
-  flux_ub(:,:) = 0.0
-  do j = 0, datas - 1
-
-    !The sime time stamps for all planets
-    do k = 0, n_cad
-      xd_ub(k) = xd(j) - t_cad2 + k*t_cadn
-    end do
-
-    do n = 0, npl - 1
-
-      !Are we generating an eclipse?
-      !Take care with the pars
-      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad+1)
-
-      if ( ( ALL( z > 1.d0 + 2.d0*rp(n) ) ) .or. rp(n) < small ) then
-
-        muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
-
-      else
-
-       !Each planet has a different orbit
-       !Each planet generates a different eclipse
-       call occultquad(z,u1,u2,rp(n),flux_ub(:,n),mu,n_cad+1)
-
-     end if
-
-    end do !planets
-
-    fmultip(:) = 0.0
-    !Get ready to rebin multiplanet flux
-    do k = 0, n_cad
-      fmultip(k) =  SUM(flux_ub(k,:))
-    end do
-
-    !Re-bin the model
-    muld_npl(j) = muld_npl(j) + ( sum(fmultip) + sum(fmultip(1:n_cad-1)) ) &
-                  / n_cad / 2.0d0
-
-    muld(j) =  1.0d0 + muld_npl(j) - npl_dbl
-
-  !Restart flux_ub
-  flux_ub(:,:) = 0.0
-
-  end do !datas
-
-  !Let us calculate the residuals
-  ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
-  !Here I am assuming that we want limb darkening
-  !If this is not true, use mu
- res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
-  chi2 = dot_product(res,res)
-
-  else
-
-    chi2 = huge(0.d0)
-
-  end if
-
-end subroutine
-
-subroutine find_chi2_tr(xd,yd,errs,plab_tr,pars,jitter,flag,ldc,&
-           n_cad,t_cad,chi2,datas,npl)
-implicit none
-
-!In/Out variables
-  integer, intent(in) :: datas, n_cad, npl
-  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  integer, intent(in), dimension(0:datas-1)  :: plab_tr
-  double precision, intent(in), dimension(0:6,0:npl-1) :: pars
-  !pars = T0, P, e, w, b, a/R*, Rp/R*
-  double precision, intent(in) :: t_cad
-  double precision, intent(in) :: jitter
-  logical, intent(in), dimension(0:3) :: flag
-  double precision, intent(in), dimension (0:1) :: ldc
-  double precision, intent(out) :: chi2
-!Local variables
-  double precision, dimension(0:datas-1) :: muld_npl
-  double precision, dimension(0:datas-1) :: res, muld, mu
-  double precision :: npl_dbl, small, u1, u2, pz(0:npl-1), q1k, q2k
+  double precision, dimension(0:datas-1) :: res, mu
+  double precision :: npl_dbl, small, q1k, q2k, u1, u2, pz(0:npl-1)
   double precision, dimension(0:n_cad-1,0:npl-1)  :: flux_ub
   double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
   integer :: n, j, k
@@ -237,17 +104,6 @@ implicit none
 
   !Get planet radius
   pz(:) = pars(6,:)
-
-!are the u1 and u2 within a physical solution
-  call check_us(u1,u2,is_good)
-  if ( flag(1) ) then
-    do n = 0, npl - 1
-     call check_e(pars(2,n),pars(3,n),is_good)
-     if ( .not. is_good ) exit
-    end do
-  end if
-
-  if ( is_good ) then
 
   !Selective re-sampling
   n = 0
@@ -278,7 +134,6 @@ implicit none
 
     end do !planets
 
-
     fmultip(:) = 0.0
     !Sum the flux of all each sub-division of the model due to each planet
     do k = 0, n_cad - 1
@@ -295,6 +150,54 @@ implicit none
     flux_ub(:,:) = 0.0
 
   end do !datas
+
+end subroutine
+
+subroutine find_chi2_tr(xd,yd,errs,plab_tr,pars,jitter,flag,ldc,&
+           n_cad,t_cad,chi2,datas,npl)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: datas, n_cad, npl
+  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  integer, intent(in), dimension(0:datas-1)  :: plab_tr
+  double precision, intent(in), dimension(0:6,0:npl-1) :: pars
+  !pars = T0, P, e, w, b, a/R*, Rp/R*
+  double precision, intent(in) :: t_cad
+  double precision, intent(in) :: jitter
+  logical, intent(in), dimension(0:3) :: flag
+  double precision, intent(in), dimension (0:1) :: ldc
+  double precision, intent(out) :: chi2
+!Local variables
+  double precision, dimension(0:datas-1) :: res, muld
+  double precision :: npl_dbl, small, u1, u2, pz(0:npl-1), q1k, q2k
+  logical :: is_good
+  integer :: n
+!External function
+  external :: occultquad, find_z, flux_tr
+
+  small = 1.d-5
+  npl_dbl = dble(npl)
+
+  q1k = ldc(0)
+  q2k = ldc(1)
+  !re-transform the parameters to u1 and u2
+  u1 = sqrt(q1k)
+  u2 = u1*( 1.d0 - 2.d0*q2k)
+  u1 = 2.d0*u1*q2k
+
+!are the u1 and u2 within a physical solution
+  call check_us(u1,u2,is_good)
+  if ( flag(1) ) then
+    do n = 0, npl - 1
+     call check_e(pars(2,n),pars(3,n),is_good)
+     if ( .not. is_good ) exit
+    end do
+  end if
+
+  if ( is_good ) then
+
+  call flux_tr(xd,pars,jitter,flag,ldc,n_cad,t_cad,datas,npl,muld)
 
   !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2

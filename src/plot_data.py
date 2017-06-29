@@ -628,6 +628,8 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50,num=[]):
     plt.axvline(x=vpar-lpar,c=cbars,ls='--')
     plt.axvline(x=vpar+rpar,c=cbars,ls='--')
     plt.xlabel(plabs[i])
+    plt.tick_params( axis='y',which='both',direction='in')
+    plt.tick_params( axis='x',which='both',direction='in')
     plt.hist(params[i],normed=True,bins=nb)
     j = j + 1
 

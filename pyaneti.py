@@ -42,7 +42,7 @@ execfile(inf_name)
 execfile('src/prepare_data.py')
 
 #Create ouput directory
-outdir = 'outpy/' + star + '_out'
+outdir = outdir + star + '_out'
 if not os.path.exists(outdir):
   os.makedirs(outdir)
 
