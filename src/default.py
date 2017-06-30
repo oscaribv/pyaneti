@@ -83,7 +83,6 @@ plot_tr_errorbars = False
 rv_markersize  = 8
 rv_fillstyle = 'full'
 outdir = 'outpy/'
-outdir = '/home/oscar/pyaneti_output/'
 resize_rv = False
 resize_tr = True
 span_tr  = []

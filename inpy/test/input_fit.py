@@ -1,7 +1,7 @@
 #Input file for test problem for pyaneti
 #Created by Barragan O.
 
-#Relescope labels
+#Telescope labels
 #This vector has to be filled with the label that we use for each telescope in the RV data file
 telescopes = ['S']
 #This vector has to be filled with the name of each telescope telescopes[i]
@@ -41,7 +41,7 @@ rstar_sigma = 0.1
 # earth, jupiter or solar
 unit_mass = 'earth'
 
-#If we want histogram, correlation and/or chain plots these options have to be set true
+#If we want posterior, correlation and/or chain plots these options have to be set True
 is_plot_histogram    = False
 is_plot_correlations = False
 is_plot_chains       = False
@@ -77,10 +77,10 @@ min_t0  = [2448285.05]
 max_t0  = [2448285.15]  
 min_P   = [365.206]
 max_P   = [365.306]
-min_e   = [0.0]
-min_w   = [0.0]
 min_ew1 = [0.0]
 min_ew2 = [0.0]
+max_ew1 = [1.0]
+max_ew2 = [1.0]
 min_b   = [0.0]
 max_b   = [1.0]
 min_a   = [200]
