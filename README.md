@@ -284,8 +284,8 @@ Of course you would need a spectograph with a precision of a few cm/s and also a
 Create your own test directory and copy all the files from _inpy/test_ directory.
 
 ```
-mkdir /inpy/my_test
-cp /inpy/test/* /inpy/my_test
+mkdir inpy/my_test
+cp inpy/test/* inpy/my_test
 ```
 
 Now you are ready to run _my_test_
@@ -295,9 +295,9 @@ Now you are ready to run _my_test_
 ```
 
 You will have an output similar to the one with the test case.
-Now the output files are inside _/outpy/my_test_out_.
+Now the output files are inside _outpy/my_test_out_.
 
-Now open the file _/inpy/my_test/input_fit.py_ and start to play with it.
+Now open the file _inpy/my_test/input_fit.py_ and start to play with it.
 
 The file is comented. I hope we are clear enough to make you follow.
 
