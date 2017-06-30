@@ -1,5 +1,4 @@
 #Let us do the plots here
-
 from matplotlib import gridspec
 from matplotlib.colors import LogNorm
 

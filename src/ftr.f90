@@ -170,14 +170,11 @@ implicit none
   double precision, intent(out) :: chi2
 !Local variables
   double precision, dimension(0:datas-1) :: res, muld
-  double precision :: npl_dbl, small, u1, u2, pz(0:npl-1), q1k, q2k
+  double precision :: u1, u2, q1k, q2k
   logical :: is_good
   integer :: n
 !External function
   external :: occultquad, find_z, flux_tr
-
-  small = 1.d-5
-  npl_dbl = dble(npl)
 
   q1k = ldc(0)
   q2k = ldc(1)
@@ -199,10 +196,7 @@ implicit none
 
   call flux_tr(xd,pars,jitter,flag,ldc,n_cad,t_cad,datas,npl,muld)
 
-  !Let us calculate the residuals
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
-  !Here I am assuming that we want limb darkening
-  !If this is not true, use mu
   res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
   chi2 = dot_product(res,res)
 
