@@ -194,7 +194,7 @@ if ( method == 'mcmc' or method == 'plot' ):
   opars.write ('--------------------------------------------------------------\n')
   opars.write('Summary:\n')
   opars.write('N_chains         = %8i \n'%nwalkers)
-  opars.write('N_conv           = %8i \n'%nconv)
+  opars.write('N_iter           = %8i \n'%nconv)
   opars.write('thin_factor      = %8i \n'%thin_factor)
   opars.write('N_rv_data        = %8i \n'%len(mega_time))
   opars.write('N_tr_data        = %8i \n'%len(megax))

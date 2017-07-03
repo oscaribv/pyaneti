@@ -361,7 +361,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
     fmt=mark[j],\
     alpha=1.0 ,color=rv_colors[j],\
     markersize=rv_markersize,fillstyle=rv_fillstyle)
-  plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.7)
+  if ( is_rv_legend ): plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.7)
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
   plt.tick_params( axis='y',which='both',direction='in')
