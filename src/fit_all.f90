@@ -1,4 +1,4 @@
-subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,tff,flags,&
+subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,tff,flags,&
            t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr,chi2_rv,chi2_tr,npl,n_tel,size_rv,size_tr)
 implicit none
 
@@ -6,7 +6,6 @@ implicit none
   integer, intent(in) :: size_rv, size_tr, npl, n_tel, n_cad !size of RV and LC data
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
-  integer, intent(in), dimension(0:size_tr-1) :: plab_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab
 !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
   double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
@@ -43,7 +42,7 @@ implicit none
   chi2_tr = 0.d0
 
   if (tff(1) ) &
-  call find_chi2_tr(x_tr,y_tr,e_tr,plab_tr,pars_tr,jtr,flag_tr,&
+  call find_chi2_tr(x_tr,y_tr,e_tr,pars_tr,jtr,flag_tr,&
                         ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
   if (tff(0) ) &
   call find_chi2_rv(x_rv,y_rv,e_rv,tlab,pars_rv,jrv,&
@@ -54,7 +53,6 @@ end subroutine
 
 subroutine multi_all_stretch_move( &
            x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &  !Data vars
-           plab_tr, &              !parameters vars
            stellar_pars,afk,&                     !Stellar parameters and flag|
            flags, total_fit_flag,is_jit, &        !flags
            fit_all, fit_rvs, fit_ldc,fit_trends, &!fitting controls
@@ -71,7 +69,6 @@ implicit none
   integer, intent(in) :: nwalks, maxi, thin_factor, nconv, n_cad
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
-  integer, intent(in), dimension(0:size_tr-1) :: plab_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab
   double precision, intent(in), dimension(0:3) :: stellar_pars
   double precision, intent(in), dimension(0:2*8*npl - 1):: lims !, lims_p
@@ -249,7 +246,7 @@ implicit none
 
       log_prior_old(nk) = sum( log(priors_old(nk,:) ) + sum( log(priors_ldc_old(nk,:) ) ) )
 
-      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr, &
+      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab, &
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
            ldc_old(nk,:),tds_old(nk,:),jitter_rv_old(nk,:),jitter_tr_old(nk),&
            chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,size_rv,size_tr)
@@ -359,7 +356,7 @@ implicit none
 
       if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
 
-        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,plab_tr,       &
+        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,       &
              total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),  &
              ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk,:),jitter_tr_new(nk), &
              chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,size_rv,size_tr)

@@ -104,7 +104,7 @@ clustering_delta = 0.5
 get_value = 'median'
 #mark for plots
 rv_xlabel = "BJD - 2450000 (days)"
-ir_rv_legend = True
+is_rv_legend = True
 mark = ['o', 'D', 's', 'p', 'h', '8', '^', '<', '*', 'v','>','.', 'H', 'd','+']
 rv_colors = ['b','r','g','y','m','c']
 tr_colors = 'r'

@@ -575,7 +575,7 @@ def joint_fit():
 
     pti.multi_all_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
-    tlab,megap,stellar_pars,a_from_kepler,\
+    tlab,stellar_pars,a_from_kepler,\
     flags,total_fit_flag,is_jitter,fit_all,fit_rvs,fit_ldc,fit_trends, \
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
     limits_ldc,n_cad, t_cad, nplanets, nt)

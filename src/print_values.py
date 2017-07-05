@@ -105,7 +105,7 @@ if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
 #Calculate the final chi2 for each case
 chi2tot_val_rv, chi2tot_val_tr = \
   pti.get_total_chi2(mega_time,mega_rv,megax,megay,mega_err,megae,\
-                     tlab,megap,total_fit_flag,flags,t_cad, n_cad, \
+                     tlab,total_fit_flag,flags,t_cad, n_cad, \
                      fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr \
                      )
 

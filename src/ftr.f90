@@ -28,7 +28,6 @@ implicit none
   double precision :: t0, P, e, w, i, a
   double precision :: wp, ws, si
   double precision :: pi = 3.1415926535897932384626d0
-  integer :: n, j
 !External function
   external :: find_anomaly
 !
@@ -67,7 +66,7 @@ implicit none
 
 end subroutine
 
-subroutine flux_tr(xd,pars,jitter,flag,ldc,&
+subroutine flux_tr(xd,pars,flag,ldc,&
            n_cad,t_cad,datas,npl,muld)
 implicit none
 
@@ -77,18 +76,16 @@ implicit none
   double precision, intent(in), dimension(0:6,0:npl-1) :: pars
   !pars = T0, P, e, w, b, a/R*, Rp/R*
   double precision, intent(in) :: t_cad
-  double precision, intent(in) :: jitter
   logical, intent(in), dimension(0:3) :: flag
   double precision, intent(in), dimension (0:1) :: ldc
   double precision, intent(out), dimension(0:datas-1) :: muld
 !Local variables
   double precision, dimension(0:datas-1) :: muld_npl
-  double precision, dimension(0:datas-1) :: res, mu
+  double precision, dimension(0:datas-1) :: mu
   double precision :: npl_dbl, small, q1k, q2k, u1, u2, pz(0:npl-1)
   double precision, dimension(0:n_cad-1,0:npl-1)  :: flux_ub
   double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
   integer :: n, j, k
-  logical :: is_good
 !External function
   external :: occultquad, find_z
 
@@ -153,14 +150,13 @@ implicit none
 
 end subroutine
 
-subroutine find_chi2_tr(xd,yd,errs,plab_tr,pars,jitter,flag,ldc,&
+subroutine find_chi2_tr(xd,yd,errs,pars,jitter,flag,ldc,&
            n_cad,t_cad,chi2,datas,npl)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas, n_cad, npl
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  integer, intent(in), dimension(0:datas-1)  :: plab_tr
   double precision, intent(in), dimension(0:6,0:npl-1) :: pars
   !pars = T0, P, e, w, b, a/R*, Rp/R*
   double precision, intent(in) :: t_cad
@@ -194,7 +190,7 @@ implicit none
 
   if ( is_good ) then
 
-  call flux_tr(xd,pars,jitter,flag,ldc,n_cad,t_cad,datas,npl,muld)
+  call flux_tr(xd,pars,flag,ldc,n_cad,t_cad,datas,npl,muld)
 
   ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
   res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
