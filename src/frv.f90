@@ -75,15 +75,15 @@ end subroutine
 !Output parameter:
 ! chi2 -> a double precision value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_rv(xd,yd,errs,tlab,params,jitter,flag,chi2,datas,nt,npl)
+subroutine find_chi2_rv(xd,yd,errs,tlab,jrvlab,params,jitter,flag,chi2,datas,nt,nj,npl)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, nt, npl
+  integer, intent(in) :: datas, nt, npl, nj
   double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  integer, intent(in), dimension(0:datas-1) :: tlab
+  integer, intent(in), dimension(0:datas-1) :: tlab, jrvlab
   double precision, intent(in), dimension(0:6+nt,0:npl-1) :: params
-  double precision, dimension(0:nt-1), intent(in) :: jitter
+  double precision, dimension(0:nj-1), intent(in) :: jitter
   logical, intent(in)  :: flag(0:3)
   double precision, intent(out) :: chi2
 !Local variables
@@ -130,7 +130,7 @@ implicit none
      if ( tel .ne. tlab(i)  ) tel = tel + 1
       call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,alpha,beta,model(i),1,npl)
       !Let us obtain chi^2
-      res(i) = ( model(i) - yd(i) ) / sqrt( errs(i)**2 + jitter(tel)**2 )
+      res(i) = ( model(i) - yd(i) ) / sqrt( errs(i)**2 + jitter(jrvlab(i))**2 )
     end do
       chi2 = dot_product(res,res)
 

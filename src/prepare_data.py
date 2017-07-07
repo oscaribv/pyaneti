@@ -31,63 +31,81 @@ for o in range(0,len(fit_rv)):
 #Let us ensure that we want to fit rv data
 if ( nplanets_rv > 0 ):
 
-	#Read the data file
-	#time, RV, errors, and Telescope label
-	time,rv,err,tspe = np.loadtxt('inpy/'+star+'/'+fname_rv[0],usecols=(0,1,2,3), \
-  	dtype={'names': ('time', 'rv', 'err','telescope'), \
-		'formats': ('float', 'float', 'float', 'S10')}, \
-		comments='#',unpack=True)
+  #Read the data file
+  #time, RV, errors, and Telescope label
+  time,rv,err,tspe = np.loadtxt('inpy/'+star+'/'+fname_rv[0],usecols=(0,1,2,3), \
+  dtype={'names': ('time', 'rv', 'err','telescope'), \
+    'formats': ('float', 'float', 'float', 'S10')}, \
+    comments='#',unpack=True)
+  if ( is_special_jitter ):
+    sjitter = np.loadtxt('inpy/'+star+'/'+fname_rv[0],usecols=(4),dtype=str,unpack=True)
 
-	#These lists have lists with data for
-	#the different telescopes
-	time_all = []
-	rv_all   = []
-	errs_all = []
+  #These lists have lists with data for
+  #the different telescopes
+  time_all = []
+  rv_all   = []
+  errs_all = []
 
-	#Number of telescopes
-	nt = len(telescopes)
+  #Number of telescopes
+  nt = len(telescopes)
 
-	if ( nt < 1 ):
-		print 'Please, indicate the telescope labels!'
-		sys.exit('')
+  if ( nt < 1 ):
+    print 'Please, indicate the telescope labels!'
+    sys.exit('')
 
-	#Separate the data for each telescope and create labels
-	for i in range(0,nt):
-		time_dum = []
-		rv_dum   = []
-		errs_dum = []
-		for j in range(0,len(tspe)):
-			if (tspe[j][0] == telescopes[i][0]):
-				time_dum.append(time[j])
-				rv_dum.append(rv[j])
-				errs_dum.append(err[j])
-	#The *all variables are lists of lists, each list constains
-	# a list with the data of each telescope
-		time_all.append(time_dum)
-		rv_all.append(rv_dum)
-		errs_all.append(errs_dum)
+  #Separate the data for each telescope and create labels
+  for i in range(0,nt):
+    time_dum = []
+    rv_dum   = []
+    errs_dum = []
+    for j in range(0,len(tspe)):
+      if (tspe[j][0] == telescopes[i][0]):
+        time_dum.append(time[j])
+        rv_dum.append(rv[j])
+        errs_dum.append(err[j])
+  #The *all variables are lists of lists, each list constains
+  # a list with the data of each telescope
+    time_all.append(time_dum)
+    rv_all.append(rv_dum)
+    errs_all.append(errs_dum)
 
-	#The mega* variables contains all the data 
-	#All this is neccesary because you do not have
-	#the same number of data for each telescope
-	mega_rv   = []
-	mega_time = []
-	mega_err  = []
-	tlab      = []
-	#create mega with data of all telescopes
-	for i in range(0,nt): 
-		#fill the mega variable with all the data of the
-		#telescope i
-		for j in range(0,len(rv_all[i])):
-			#tlab has the label of the telescope (an integer)
-			#this is useful because matches with the index of 
-			#the mega variables
-			tlab.append(i)
-			mega_rv.append(rv_all[i][j])
-			mega_time.append(time_all[i][j])
-			mega_err.append(errs_all[i][j])
+  #The mega* variables contains all the data
+  #All this is neccesary because you do not have
+  #the same number of data for each telescope
+  mega_rv   = []
+  mega_time = []
+  mega_err  = []
+  tlab      = []
+  jrvlab    = []
+  #create mega with data of all telescopes
+  for i in range(0,nt):
+    #fill the mega variable with all the data of the
+    #telescope i
+    for j in range(0,len(rv_all[i])):
+      #tlab has the label of the telescope (an integer)
+      #this is useful because matches with the index of
+      #the mega variables
+      tlab.append(i)
+      mega_rv.append(rv_all[i][j])
+      mega_time.append(time_all[i][j])
+      mega_err.append(errs_all[i][j])
 
-	total_rv_fit = True
+  if ( is_special_jitter ):
+    ndum = 0
+    n_jrv = len(jrvvec)
+    for o in range(0,len(tlab)):
+      if (sjitter[o][0] == jrvvec[ndum][0] ):
+        jrvlab.append(ndum)
+      else:
+        ndum = ndum + 1
+        jrvlab.append(ndum)
+  else:
+    jrvlab = list(tlab)
+    n_jrv = nt
+
+
+
+  total_rv_fit = True
 
 else:
   tlab = [0]

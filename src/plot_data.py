@@ -632,7 +632,7 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50,num=[]):
     plt.hist(params[i],normed=True,bins=nb)
     j = j + 1
 
-  fname = outdir+'/'+star+'_histogram.pdf'
+  fname = outdir+'/'+star+'_posterior.pdf'
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()

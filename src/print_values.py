@@ -29,7 +29,7 @@ if ( is_jitter_rv or is_jitter_tr ):
   dparams_jitter = np.loadtxt(newfile_jitter, comments='#',unpack=True)
   params_jitter = list(dparams_jitter)
   if ( is_clustering ):
-    for o in range(0,nt+1):
+    for o in range(0,n_jrv+1):
       params_jitter[o] = clustering(dparams_jitter[o],good_index)
 
 
@@ -78,7 +78,7 @@ if ( is_linear_trend != 'f' ):
 if ( is_quadratic_trend != 'f' ):
   npars = npars + 1
 if ( is_jitter_rv ):
-  npars = npars + 1*nt
+  npars = npars + 1*n_jrv
 if ( is_jitter_tr ):
   npars = npars + 1
 
@@ -94,9 +94,9 @@ fit_jrv = [0.0]*nt
 fit_jtr = 0.0
 
 if ( is_jitter_rv or is_jitter_tr ) :
-  for o in range(0,nt):
+  for o in range(0,n_jrv):
     fit_jrv[o] = best_value(params_jitter[o],get_value)
-  fit_jtr = best_value(params_jitter[nt],get_value)
+  fit_jtr = best_value(params_jitter[n_jrv],get_value)
 
 fit_trends = [0.0]*2
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
@@ -105,7 +105,7 @@ if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
 #Calculate the final chi2 for each case
 chi2tot_val_rv, chi2tot_val_tr = \
   pti.get_total_chi2(mega_time,mega_rv,megax,megay,mega_err,megae,\
-                     tlab,total_fit_flag,flags,t_cad, n_cad, \
+                     tlab,jrvlab,total_fit_flag,flags,t_cad, n_cad, \
                      fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr \
                      )
 
@@ -460,11 +460,11 @@ for o in range(0,nt):
   if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f    \n'%(mode_and_99(rv_vec[o])))
 opars.write ('--------------------------------------------------------------\n')
 if ( is_jitter_rv or is_jitter_tr ):
-  for o in range(0,nt):
+  for o in range(0,n_jrv):
     opars.write ('RV jitter = %4.7f - %4.7f + %4.7f m/s    \n'%(find_vals_perc(params_jitter[o]*1.e3,s_factor)))
     if is_print_mode : opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[o]*1e3)))
-  opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux] \n'%(find_vals_perc(params_jitter[nt],s_factor)))
-  if is_print_mode : opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[nt])))
+  opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux] \n'%(find_vals_perc(params_jitter[n_jrv],s_factor)))
+  if is_print_mode : opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[n_jrv])))
   opars.write ('--------------------------------------------------------------\n')
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   opars.write ('linear trend    = %4.7f - %4.7f + %4.7f  m/s/days   \n'%(find_vals_perc(params_trends[0]*1.e3,s_factor)))
@@ -486,20 +486,20 @@ for o in range(0,nt):
 if ( is_jitter_rv or is_jitter_tr ):
   for o in range(nt):
     otex.write ('\\newcommand{\\rvjitter}[1][$\mathrm{m\,s^{-1}}$]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}    \n'%(find_vals_perc(params_jitter[o]*1.e3,s_factor)))
-  otex.write ('\\newcommand{\\trjitter}[1][]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(params_jitter[nt],s_factor)))
+  otex.write ('\\newcommand{\\trjitter}[1][]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(params_jitter[n_jrv],s_factor)))
   #otex.write ('--------------------------------------------------------------\n')
 otex.write('\n')
 
 #RESIZE TRANSIT ERROR BARS
 if ( is_jitter_tr and resize_tr ):
-  jit_tr = best_value(params_jitter[nt],get_value)
+  jit_tr = best_value(params_jitter[n_jrv],get_value)
   for o in range(0,len(et)):
       for m in range(0,len(et[o])):
               et[o][m] = np.sqrt(et[o][m]**2 + jit_tr**2)
   for o in range(0,len(megae)):
     megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 if ( is_jitter_rv and resize_rv ):
-    for j in range(0,nt):
+    for j in range(0,n_jrv):
       jit_rv = best_value(params_jitter[j],get_value)
       for o in range(0,len(errs_all[j])):
         errs_all[j][o] = np.sqrt(errs_all[j][o]**2 + jit_rv**2)

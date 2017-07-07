@@ -49,6 +49,10 @@ columns_tr = [0,1,2]
 telescopes = []
 telescopes_labels = ['']
 
+#rv jitter controls
+is_special_jitter = False
+jrvvec = []
+
 #MCMC controls
 method = 'mcmc'
 is_circular = False
