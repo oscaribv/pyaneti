@@ -108,7 +108,10 @@ if ( nplanets_rv > 0 ):
   total_rv_fit = True
 
 else:
+  n_jrv = 1
+  nt = 1
   tlab = [0]
+  jrvlab = list(tlab)
   mega_rv = [None]
   mega_time = [None]
   mega_err  = [None]
