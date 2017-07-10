@@ -85,7 +85,7 @@ implicit none
   double precision :: npl_dbl, small, q1k, q2k, u1, u2, pz(0:npl-1)
   double precision, dimension(0:n_cad-1,0:npl-1)  :: flux_ub
   double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
-  integer :: n, j, k
+  integer :: n, j, k(0:n_cad-1)
 !External function
   external :: occultquad, find_z
 
@@ -102,15 +102,18 @@ implicit none
   !Get planet radius
   pz(:) = pars(6,:)
 
+
+  do j = 0, n_cad - 1
+    k(j) = j
+  end do
+
   !Selective re-sampling
   n = 0
   muld_npl(:) = 0.d0
   do j = 0, datas - 1
 
     !Calculate the time-stamps for the binned model
-    do k = 0, n_cad - 1
-      xd_ub(k) = xd(j) + t_cad*((k+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
-    end do
+    xd_ub(:) = xd(j) + t_cad*((k(:)+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
 
     !control the label of the planet
     do n = 0, npl - 1
@@ -133,8 +136,8 @@ implicit none
 
     fmultip(:) = 0.0
     !Sum the flux of all each sub-division of the model due to each planet
-    do k = 0, n_cad - 1
-      fmultip(k) =  SUM(flux_ub(k,:))
+    do n = 0, n_cad - 1
+      fmultip(n) =  SUM(flux_ub(n,:))
     end do
 
     !Re-bin the model
