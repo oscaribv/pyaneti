@@ -297,13 +297,26 @@ Now you are ready to run _my_test_
 ```
 
 You will have an output similar to the one with the test case.
-Now the output files are inside _outpy/my_test_out_.
+Now the output files are inside _outpy/my_test_out_. You will notice that inside this
+directory you will find a extra file with the posterior distribution and correlation plots of the fitted parameters.
 
-Now open the file _inpy/my_test/input_fit.py_ and start to play with it.
+Now open the file _inpy/my_test/input_fit.py_ and start to play with it. The file is comented.
+Let us change the priors for some parameters. Uncomment lines 56, 91 and 92
+to fit for the scaled semi-major axis and impact factor. Save the changes and
+re-run the code.
 
-The file is comented. I hope we are clear enough to make you follow.
+```
+./pyaneti.py my_test
+```
 
-**More documentations to come later!**
+Now you can see that the fitted parameters are different in comparison with
+the values given by _test_.
+
+If you have some RV and/or transit data, you only have to put the name
+of your data files, change the prior ranges and start to fit your data!
+
+
+**More documentation will come later!**
 
 
 ## Science  with pyaneti
@@ -325,6 +338,16 @@ A&A, 601A, 128.  (http://arxiv.org/abs/1604.01265).
 AJ, 153, 130 (https://arxiv.org/abs/1611.03704).
 * Barragán et al, 2016, _K2-98b: A 32-M⊕ Neptune-sized planet in a 10-day orbit transiting an F8 star_,
  AJ, 152, 6 (http://arxiv.org/abs/1608.01165).
+
+## To do list
+
+* Gaussian process.
+* TTV.
+* multiband photometry.
+* GUI.
+
+
+**If you have some recomendation, please let us now!**
 
 ## Acknowledgements
 * to Hannu Parviainen, to help us to interpret the first result of the PDF of the MCMC chains. We learned a lot!
