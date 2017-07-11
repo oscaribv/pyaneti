@@ -8,8 +8,8 @@ execfile('src/plot_data.py')
 if ( is_plot_chains ):
   plot_chains()
 
-if ( is_plot_histogram ):
-  plot_histogram()
+if ( is_plot_posterior ):
+  plot_posterior()
 
 if ( is_plot_correlations ):
   plot_correlations()

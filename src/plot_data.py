@@ -608,7 +608,7 @@ if ( nplanets > 0 ):
 #                   Histogram plots
 #===========================================================
 
-def create_plot_histogram(params,plabs,cbars='red',nb=50,num=[]):
+def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
   if ( len(num) < 2 ):
     n = range(0,len(params))
   else:
@@ -637,7 +637,7 @@ def create_plot_histogram(params,plabs,cbars='red',nb=50,num=[]):
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
 
-def plot_histogram():
+def plot_posterior():
     labs = []
     for o in range(0,nplanets):
       etiquetas = ['$T0$'+plabels[o]+' (days)','$P$'+plabels[o]+' (days)','$e$'+plabels[o], \
@@ -647,7 +647,7 @@ def plot_histogram():
     labs.append(['$q_1$','$q_2$'])
     labs.append(telescopes_labels)
     labels = np.concatenate(labs)
-    create_plot_histogram(params[4:],labels, cbars='red', nb=50, num=plot_parameters)
+    create_plot_posterior(params[4:],labels, cbars='red', nb=50, num=plot_parameters)
 
 #===========================================================
 #                   Correlation plots
