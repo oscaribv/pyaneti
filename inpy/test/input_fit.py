@@ -80,6 +80,7 @@ fit_ew2= ['f']   #We fix sqrt(e) cos w, it works only if is_ew = True
 fit_e  = ['f']   #We fix e, it works only if is_ew = False
 fit_w  = ['f']   #We fix w, it works only if is_ew = False
 fit_b  = ['f']   #We fix the impact factor
+fit_a  = ['g']   #We fit a with gaussian priors (given by the stellar parameters)
 fit_rp = ['u']   #We fit rp with uniform priors
 fit_k  = ['u']   #We fit k with uniform priors
 fit_v0 = 'u'     #We fit systemc velicities with uniform priors
@@ -87,8 +88,8 @@ fit_q1 = 'g'     #We fit q1 with gaussian priors
 fit_q2 = 'g'     #We fit q2 with gaussian priors
 
 #if you are in my_test uncomment the next two line
-#fit_b  = ['u']   #We fix the impact factor
-#fit_a  = ['u']   #We fit a with gaussian priors (given by the stellar parameters)
+#fit_b  = ['u']   #We fit the impact factor
+#fit_a  = ['u']   #We fit the scaled semi-major axis
 
 #Prior ranges for a parameter A
 #if 'f' is selected for the parameter A, A is fixed to the one given by min_A
@@ -102,7 +103,9 @@ min_ew1 = [0.0]
 min_ew2 = [0.0]
 max_ew1 = [1.0]
 max_ew2 = [1.0]
-min_b   = [-1.0]
+min_a   = [200.]
+max_a   = [250.]
+min_b   = [0.0]
 max_b   = [1.0]
 min_k   = [0.0]
 max_k   = [0.001]
