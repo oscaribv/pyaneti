@@ -44,6 +44,8 @@ for a major coverage of the parameter space
 * matplotlib
 * seaborn (optional)
 
+We have tested this code on Linux computers with Fedora and Ubuntu. This code has not been tested on a MAC computer.
+But it should work by changing the compilers inside the makefile.
 ## Start to use it now!
 
 Just clone or download pyaneti.

@@ -1,5 +1,9 @@
 #Input file for test problem for pyaneti
 #Created by Barragan O.
+#This file contains the basic parameters to change for simple pyaneti run
+#There are more flags which can control the input/output of the code
+#They can be found inside src/default.py, all the flags inside this file
+#can be changed inside the input file.
 
 #Telescope labels
 #This vector has to be filled with the label that we use for each telescope in the RV data file
@@ -42,16 +46,28 @@ rstar_sigma = 0.1
 unit_mass = 'earth'
 
 #If we want posterior, correlation and/or chain plots these options have to be set True
-is_plot_histogram    = False
-is_plot_correlations = False
+is_plot_posterior    = True
+is_plot_correlations = True
 is_plot_chains       = False
 
 #Are we setting gaussian priors on the semi-major axis based on the stellar parameters?
 a_from_kepler = [True]
+#if you are in my_test uncomment the next line
+#a_from_kepler = [False]
 
 #We want to fit transit and RV 
+#For a pure RV fit, fit_tr has to be False
+#For a pure TR fit, fit_rv has to be False
+#For multi-planet fits fit_rv and fit_tr have the form [True,True,False,...]
+#one element for each planet.
 fit_rv = [True]
 fit_tr = [True]
+
+#is_ew controls the parametrization sqrt(e)sin w and sqrt(e) cos w
+#if True we fit for the parametrization parameters
+#if False we fit for e and w
+#Default is True
+is_ew = True
 
 #Prior section
 # f -> fixed value
@@ -59,15 +75,20 @@ fit_tr = [True]
 # g -> Gaussian priors
 fit_t0 = ['u']   #We fit for t0 with uniform priors
 fit_P  = ['u']   #We fit for P with uniform priors
-fit_ew1= ['f']   #We fix sqrt(e) sin w
-fit_ew2= ['f']   #We fix sqrt(e) cos w
+fit_ew1= ['f']   #We fix sqrt(e) sin w, it works only if is_ew = True
+fit_ew2= ['f']   #We fix sqrt(e) cos w, it works only if is_ew = True
+fit_e  = ['f']   #We fix e, it works only if is_ew = False
+fit_w  = ['f']   #We fix w, it works only if is_ew = False
 fit_b  = ['f']   #We fix the impact factor
-fit_a  = ['g']   #We fit a with gaussian priors (given by the stellar parameters)
 fit_rp = ['u']   #We fit rp with uniform priors
 fit_k  = ['u']   #We fit k with uniform priors
 fit_v0 = 'u'     #We fit systemc velicities with uniform priors
 fit_q1 = 'g'     #We fit q1 with gaussian priors
 fit_q2 = 'g'     #We fit q2 with gaussian priors
+
+#if you are in my_test uncomment the next two line
+#fit_b  = ['u']   #We fix the impact factor
+#fit_a  = ['u']   #We fit a with gaussian priors (given by the stellar parameters)
 
 #Prior ranges for a parameter A
 #if 'f' is selected for the parameter A, A is fixed to the one given by min_A
@@ -81,10 +102,8 @@ min_ew1 = [0.0]
 min_ew2 = [0.0]
 max_ew1 = [1.0]
 max_ew2 = [1.0]
-min_b   = [0.0]
+min_b   = [-1.0]
 max_b   = [1.0]
-min_a   = [200]
-max_a   = [250]
 min_k   = [0.0]
 max_k   = [0.001]
 min_rp  = [0.0]
