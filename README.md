@@ -7,7 +7,7 @@
 # __pyaneti__
 #### Written by Barragán O., Gandolfi D. & Antoniciello G.
 ##### email: oscaribv@gmail.com
-##### Updated June 30, 2017
+##### Updated July 11, 2017
 
 ### __Introduction__
 
@@ -315,6 +315,31 @@ the values given by _test_.
 If you have some RV and/or transit data, you only have to put the name
 of your data files, change the prior ranges and start to fit your data!
 
+#### Parallel run
+
+Run the code in parallel is really easy.
+
+Just compile the code in parallel (you need openMP installed).
+
+```
+make para
+```
+
+if you have all the libraries installed, the compilation should finish without any problem.
+Now you only need to run the code.
+
+```
+./pyaneti.py test
+```
+
+This option will run the code will all the processors available in your computer.
+If you want to specify the number of CPUs to use, you have to run the
+env OMP_NUM_THREADS=N option, where N is the number of CPUs.
+
+```
+env OMP_NUM_THREADS=2 ./pyaneti.py test
+```
+
 
 **More documentation will come later!**
 
@@ -348,6 +373,10 @@ AJ, 153, 130 (https://arxiv.org/abs/1611.03704).
 
 
 **If you have some recomendation, please let us now!**
+
+##
+
+#### Warning: This code is under developement and it may contain bugs. If you detect something please email to oscaribv@gmail.com
 
 ## Acknowledgements
 * to Hannu Parviainen, to help us to interpret the first result of the PDF of the MCMC chains. We learned a lot!
