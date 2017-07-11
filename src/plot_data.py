@@ -370,6 +370,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   if ( miy == 0): #To avoid errors for really small RV variations
     miy = max(abs(yylims[0]),abs(yylims[1]))
   plt.ylim(-miy,miy)
+  plt.xlim(0.,1.)
   #plt.yticks(np.arange(-miy,miy,2.*miy/8.))
 #  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/7.))
   #NEW SUBPLOT
@@ -391,6 +392,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
     miy = max(abs(yylims[0]),abs(yylims[1]))
   plt.yticks(np.arange(-miy,miy,2.*miy/4.))
   plt.minorticks_on()
+  plt.xlim(0.,1.)
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
   plt.close()
