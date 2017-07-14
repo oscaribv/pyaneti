@@ -84,7 +84,7 @@ implicit none
 
   if ( e > small ) then !You have to calcuate your true anomaly, your orbit is not circular!
 
-    if ( e < 0.66 ) then !Avoid Newthon-Raphson if the eccentricity is small
+    if ( e < 0.3 ) then !Avoid Newthon-Raphson if the eccentricity is small
 
       sinma = sin(ma(:))
       !Serie expantion, Murray and Dermott 1999, p.35
@@ -361,10 +361,12 @@ implicit none
   double precision, intent(in) :: mu, sigma, x
   double precision, intent(out)  :: prob
   !Local variables
+  double precision  :: sigma2
   double precision  :: two_pi = 2.d0*3.1415926535897932384626d0
 
-  prob = sqrt(two_pi*sigma*sigma)
-  prob = exp(- 0.5d0 * (x - mu)**2 / sigma**2) / prob
+  sigma2 = sigma*sigma
+  prob = sqrt(two_pi*sigma2)
+  prob = exp(- 0.5d0 * (x - mu)**2 / sigma2) / prob
 
 end subroutine
 

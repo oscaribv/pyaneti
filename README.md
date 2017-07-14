@@ -7,34 +7,34 @@
 # __pyaneti__
 #### Written by Barragán O., Gandolfi D. & Antoniciello G.
 ##### email: oscaribv@gmail.com
-##### Updated July 11, 2017
+##### Updated July 14, 2017
 
 ### __Introduction__
 
 * _Pianeti_ is the Italian word for planets.
-* Multi-planet fitting for radial velocity and transit data!
-* It uses Marcov Chain Monte Carlo (MCMC) methods with a Bayesian approach.
+* Multi-planet fitting of radial velocity and transit data!
+* It uses Marcov chain Monte Carlo (MCMC) methods with a Bayesian approach.
 * Ensemble sampler with affine invariance algorithm
 for a major coverage of the parameter space
 ([Godman & Weare, 2010](http://msp.org/camcos/2010/5-1/p04.xhtml)).
-* _Python_ does the nice things: Plots, call to functions, prints, input files.
-* _Fortran_ does the hard work: MCMC evolution, Likelihood calculation, ensemble sampler evolution.
+* _Python_ does the nice things: plots, call functions, printing, in/output files.
+* _Fortran_ does the hard work: MCMC evolution, likelihood calculation, ensemble sampler evolution.
 * Open-source code (GPL v 3.0).
 * **Free and fast code with the robustness of _Fortran_ and the versatility of _Python_**.
 
 ## __Power of pyaneti__
 
-* Multiple independent Marcov Chains to sample the space parameters.
+* Multiple independent Marcov chains to sample the space parameters.
 * Easy-to-use: it runs by providing only one input_fit.py file.
 * Parallel computing with OpenMP.
-* Automatic creation of histograms, correlations, and ready-to-publish plots.
-* Circular and elliptical orbits.
-* Multi-planet fitting.
-* Includes jitter.
+* Automatic creation of posteriors, correlations, and ready-to-publish plots.
+* Circular and eccentric orbits.
+* Multi-planet fitting witn .
+* Inclusion of RV and photometry jitter.
 * Systemic velocities for multiple instruments.
 * Stellar limb darkening [(Mandel & Agol, 2002)](http://iopscience.iop.org/article/10.1086/345520/meta#artAbst).
 * Correct treatment of short and long cadence data ([Kipping, 2010](http://mnras.oxfordjournals.org/content/408/3/1758)).
-* Single and joint RV and transit fits.
+* Single joint RV + transit fitting.
 
 ## Dependencies
 
@@ -44,8 +44,8 @@ for a major coverage of the parameter space
 * matplotlib
 * seaborn (optional)
 
-We have tested this code on Linux computers with Fedora and Ubuntu. This code has not been tested on a MAC computer.
-But it should work by changing the compilers inside the makefile.
+We tested this code using Linux, including Fedora and Ubuntu. This code has not been tested on a MAC computer yet.
+Nevertheless, it should work by changing the compilers inside the makefile.
 ## Start to use it now!
 
 Just clone or download pyaneti.
@@ -55,9 +55,9 @@ git clone https://github.com/oscaribv/pyaneti
 ```
 
 The advantage about cloning the repository is the possibility to follow the changes to this package easily with git pull (learn more about git
-in [https://git-scm.com/](https://git-scm.com/)).
+at [https://git-scm.com/](https://git-scm.com/)).
 
-The next step is to get inside the pyaneti folder and see what we can find inside it
+The next step is to enter the pyaneti folder and see what we can find inside it
 
 ```
 cd pyaneti
@@ -65,7 +65,7 @@ ls
   LICENSE  src inpy  makefile  pyaneti.py  README.md
 ```
 
-Next step is to compile the code. Just type ``make``
+Now compile the code typing ``make``
 
 ```
 make
@@ -73,7 +73,7 @@ make
 
 If you have all the dependencies installed, the make procces should end without error.
 
-Now you are ready to run the code for the first time.
+Now you are ready to run the code for the first time! Just type
 
 
 ```
@@ -249,13 +249,13 @@ evince outpy/test_out/testb_tr.pdf outpy/test_out/testb_rv.pdf
 
 ```
 
-You will see something like this
+You will see some nice plots that look like this
 
 
 <img src="./src/images/testb_tr.png" style="width: 250px;"/>
 <img src="./src/images/testb_rv.png" style="width: 250px;"/>
 
-Let me explain you briefly what this is:
+Let me explain you briefly what this test fit was about:
 > If you were an advanced alien civilization with really high technology, and "lucky" enough to see an Earth-like planet crossing in front of a Sun-like star, **this is how the Earth would look like to you**.
 
 Look at those well-known parameters:
@@ -273,17 +273,17 @@ Of course you would need a spectograph with a precision of a few cm/s and also a
 
 ## Documentation
 
-#### Play with _test_ - Joint radial velocity and light curve fit.
+#### Play with _test_ - Joint radial velocity and transit light curve fitting.
 
-* There is a directory called called _inpy_, inside it you will find a directory called test.
+* There is a directory called _inpy_, inside this folder you will find a second directory called _test_.
 
 * This directory constains the input and data files to perform the test fit.
 
-* You can create an input director inside _inpy_ for each one of your systems!
+* You can create an input director inside _inpy_ for each of your systems!
 
 * We encorauge you to start to play with the code.
 
-Create your own test directory and copy all the files from _inpy/test_ directory.
+Create your own test directory and copy all the files from _inpy/test_ folder.
 
 ```
 mkdir inpy/my_test
@@ -296,7 +296,7 @@ Now you are ready to run _my_test_
 ./pyaneti.py my_test
 ```
 
-You will have an output similar to the one with the test case.
+You will see an output similar to that the _test_ case.
 Now the output files are inside _outpy/my_test_out_. You will notice that inside this
 directory you will find a extra file with the posterior distribution and correlation plots of the fitted parameters.
 
@@ -312,8 +312,8 @@ re-run the code.
 Now you can see that the fitted parameters are different in comparison with
 the values given by _test_.
 
-If you have some RV and/or transit data, you only have to put the name
-of your data files, change the prior ranges and start to fit your data!
+If you have some RV and/or transit data you only have to put the name
+of your data files, change the prior ranges, and start to fit your data!
 
 #### Parallel run
 
@@ -332,8 +332,8 @@ Now you only need to run the code.
 ./pyaneti.py test
 ```
 
-This option will run the code will all the processors available in your computer.
-If you want to specify the number of CPUs to use, you have to run the
+This option will run the code with all the processors available in your computer.
+If you want to specify the number of CPUs to be use by _pyaneti_, you have to run the
 env OMP_NUM_THREADS=N option, where N is the number of CPUs.
 
 ```
@@ -341,14 +341,14 @@ env OMP_NUM_THREADS=2 ./pyaneti.py test
 ```
 
 
-**More documentation will come later!**
+**More documentation will come soon!**
 
 
 ## Science  with pyaneti
 
 
 * Gandolfi et al., 2017, _The transiting multi-planet system HD3167: a 5.7 MEarth Super-Earth and a 8.3 MEarth mini-Neptune_,
-AJ, submitted. (https://arxiv.org/abs/1706.02532)
+AJ. (https://arxiv.org/abs/1706.02532)
 * Guenther et al., 2017, _K2-106, a system containing a metal rich planet and a planet of lower density_,
 A&A, submitted. (https://arxiv.org/abs/1705.04163).
 * Fridlund et al., 2017, _EPIC 210894022b - A short period super-Earth transiting a metal poor, evolved old star_,
@@ -364,24 +364,25 @@ AJ, 153, 130 (https://arxiv.org/abs/1611.03704).
 * Barragán et al, 2016, _K2-98b: A 32-M⊕ Neptune-sized planet in a 10-day orbit transiting an F8 star_,
  AJ, 152, 6 (http://arxiv.org/abs/1608.01165).
 
-## To do list
+## What will come next?
 
 * Gaussian process.
 * TTV.
-* multiband photometry.
-* GUI.
+* Multiband transit photometry fitting.
+* Graphical User Interface.
 
 
-**If you have some recomendation, please let us now!**
+**If you have any comments, requests, suggestions or just need any help, please don't think twice, just contact us!**
 
 ##
 
-#### Warning: This code is under developement and it may contain bugs. If you detect something please email to oscaribv@gmail.com
+#### Warning: This code is under developement and it may contain bugs. If you find something please contact us at oscaribv@gmail.com
 
 ## Acknowledgements
-* to Hannu Parviainen, to help us to interpret the first result of the PDF of the MCMC chains. We learned a lot!
-* to Salvador Curiel, for his suggestions to parallelize the code.
-* to Mabel Valerdi, to help me with as the first pyaneti user, to detect bugs and errors in this manual. As well for her idea for pyaneti's logo.
-* to Lauren Flor, for testing the code before release.
+* Hannu Parviainen, thank you for helping us to interpret the first result of the PDF of the MCMC chains. We learned a lot from you!
+* Salvador Curiel, thank you for  suggestions to parallelize the code.
+* Mabel Valerdi, thank you for being the first _pyaneti_ user, for spotting typos and errors in this document. And thank you much for the awesome idea for pyaneti's logo.
+* Lauren Flor, thank you for testing the code before release.
 
-**THANKS!**
+**THANKS A LOT!**
+
