@@ -29,7 +29,7 @@ for a major coverage of the parameter space
 * Parallel computing with OpenMP.
 * Automatic creation of posteriors, correlations, and ready-to-publish plots.
 * Circular and eccentric orbits.
-* Multi-planet fitting witn .
+* Multi-planet fitting.
 * Inclusion of RV and photometry jitter.
 * Systemic velocities for multiple instruments.
 * Stellar limb darkening [(Mandel & Agol, 2002)](http://iopscience.iop.org/article/10.1086/345520/meta#artAbst).
