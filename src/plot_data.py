@@ -104,7 +104,7 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.ylabel('Residuals',fontsize=fos*0.75)
   plt.xlabel("T - T0 (hours)",fontsize=fos)
   plt.savefig(fname,format='pdf',bbox_inches='tight')
-  plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
+  plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight',dpi=300)
   plt.close()
 
 
@@ -361,7 +361,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
     fmt=mark[j],\
     alpha=1.0 ,color=rv_colors[j],\
     markersize=rv_markersize,fillstyle=rv_fillstyle)
-  if ( is_rv_legend ): plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.7)
+  if ( is_rv_legend ): plt.legend(loc=2, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.7)
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
   plt.tick_params( axis='y',which='both',direction='in')
@@ -394,7 +394,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.minorticks_on()
   plt.xlim(0.,1.)
   plt.savefig(fname,format='pdf',bbox_inches='tight')
-  plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight')
+  plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight',dpi=300)
   plt.close()
 
 
