@@ -391,6 +391,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   if ( miy == 0): #To avoid errors for really small RV variations
     miy = max(abs(yylims[0]),abs(yylims[1]))
   plt.yticks(np.arange(-miy,miy,2.*miy/4.))
+  plt.ylim(-miy,miy)
   plt.minorticks_on()
   plt.xlim(0.,1.)
   plt.savefig(fname,format='pdf',bbox_inches='tight')
