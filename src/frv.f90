@@ -129,17 +129,10 @@ implicit none
 
   if ( is_limit_good ) then
 
-    !Telescope label counter
-    tel = 0
-
-    !get the Keplerian orbits solved assuming no offsets
-    call rv_curve_mp(xd,0.d0,tp,k,P,e,w,alpha,beta,model,datas,npl)
-    do i = 0, datas-1
-     if ( tel .ne. tlab(i)  ) tel = tel + 1
-     model(i) = model(i) + rv0(tlab(i))
-     res(i) = ( model(i) - yd(i) ) / sqrt( errs(i)**2 + jitter(jrvlab(i))**2 )
-    end do
-      chi2 = dot_product(res,res)
+    call rv_curve_mp(xd,0.0d0,t0,k,P,e,w,alpha,beta,model,datas,npl)
+    model(:) = model(:) + rv0(tlab(:))
+    res(:) = ( model(:) - yd(:) ) / sqrt( errs(:)**2 + jitter(jrvlab(:))**2 )
+    chi2 = dot_product(res,res)
 
   else
 
