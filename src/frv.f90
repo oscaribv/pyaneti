@@ -29,14 +29,14 @@
 !ts      -> size of t
 !npl     -> numper of planets
 !-------------------------------------------------------------------------------
-subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,alpha,beta,rv,ts,npl)
+subroutine rv_curve_mp(t,rv0,tp,k,P,e,w,alpha,beta,rv,ts,npl)
 implicit none
 
 !In/Out variables
   integer, intent(in) :: ts, npl
   double precision, intent(in), dimension(0:ts-1)  :: t
   double precision, intent(out), dimension(0:ts-1) :: rv
-  double precision, intent(in), dimension(0:npl-1) :: k, t0, P, e, w
+  double precision, intent(in), dimension(0:npl-1) :: k, tp, P, e, w
   double precision, intent(in) :: rv0, alpha, beta
 !Local variables
   double precision, dimension(0:ts-1) :: ta
@@ -46,13 +46,13 @@ implicit none
 !
 
   !Added systemic velocity and linear and quadratic trends
-  rv(:) = rv0 + (t(:)-t0(0))*alpha + (t(:)-t0(0))**2*beta
+  rv(:) = rv0 + (t(:)-tp(0))*alpha + (t(:)-tp(0))**2*beta
 
   !Now add the planet influence on the star
   !each i is for a different planet
   do i = 0, npl-1
    !Obtain the true anomaly by using find_anomaly
-   call find_anomaly(t,t0(i),e(i),w(i),P(i),ta,ts)
+   call find_anomaly(t,tp(i),e(i),w(i),P(i),ta,ts)
    !Now compute the RV for the planet i
    rv(:) = rv(:) + k(i) * ( cos(ta(:) + w(i) ) + e(i) * cos(w(i)) )
   end do
@@ -88,6 +88,7 @@ implicit none
   double precision, intent(out) :: chi2
 !Local variables
   double precision, dimension(0:npl-1) :: t0, P, e, w, k
+  double precision, dimension(0:npl-1) :: tp
   double precision, dimension(0:nt-1)  :: rv0
   double precision  :: alpha, beta
   double precision, dimension(0:datas-1) :: model, res
@@ -113,6 +114,11 @@ implicit none
   if ( flag(2) ) k(:) = 1.d1**params(4,:)
   if ( flag(3) ) rv0(:) = 1.d1**params(7:6+nt,0)
 
+  !Get the time of periastron
+  do i = 0, npl - 1
+    call find_tp(t0(i),e(i),w(i),P(i),tp(i))
+  end do
+
   is_limit_good = .true.
 
   do i = 0, npl - 1
@@ -126,11 +132,12 @@ implicit none
     !Telescope label counter
     tel = 0
 
+    !get the Keplerian orbits solved assuming no offsets
+    call rv_curve_mp(xd,0.d0,tp,k,P,e,w,alpha,beta,model,datas,npl)
     do i = 0, datas-1
      if ( tel .ne. tlab(i)  ) tel = tel + 1
-      call rv_curve_mp(xd(i),rv0(tel),t0,k,P,e,w,alpha,beta,model(i),1,npl)
-      !Let us obtain chi^2
-      res(i) = ( model(i) - yd(i) ) / sqrt( errs(i)**2 + jitter(jrvlab(i))**2 )
+     model(i) = model(i) + rv0(tlab(i))
+     res(i) = ( model(i) - yd(i) ) / sqrt( errs(i)**2 + jitter(jrvlab(i))**2 )
     end do
       chi2 = dot_product(res,res)
 

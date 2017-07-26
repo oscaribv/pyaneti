@@ -60,24 +60,22 @@ end subroutine
 !The output parameters are:
 ! ta -> True anomaly (vector with the same dimension that man)
 !------------------------------------------------------------
-subroutine find_anomaly(t,t0,e,w,P,ta,dt)
+subroutine find_anomaly(t,tp,e,w,P,ta,dt)
 implicit none
 !In/Out variables
   integer, intent(in) :: dt
   double precision, intent(in) , dimension(0:dt-1) :: t
   double precision, intent(out), dimension(0:dt-1) :: ta
-  double precision, intent(in) :: t0, e, w, P
+  double precision, intent(in) :: tp, e, w, P
 !Local variables
   integer :: i,n
   double precision, dimension(0:dt-1) :: ma, f, df, eimag, ereal, sinma
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
-  double precision :: uno, tp
+  double precision :: uno
   double precision :: fmin=1.d-8, small = 1.d-5
   integer :: imax = int(1e8)
 !
   uno = 1.0d0
-
-  call find_tp(t0,e,w,P,tp)
 
   !Calculate the mean anomaly
   ma = two_pi * ( t - tp ) / P
