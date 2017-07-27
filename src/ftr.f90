@@ -133,7 +133,7 @@ implicit none
 !Local variables
   double precision, dimension(0:datas-1) :: muld_npl
   double precision, dimension(0:datas-1) :: mu
-  double precision :: npl_dbl, small, q1k, q2k, u1, u2, pz(0:npl-1)
+  double precision :: npl_dbl, small, u1, u2, pz(0:npl-1)
   double precision, dimension(0:n_cad-1,0:npl-1)  :: flux_ub
   double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
   integer :: n, j, k(0:n_cad-1)
@@ -143,17 +143,11 @@ implicit none
   small = 1.d-5
   npl_dbl = dble(npl)
 
-
-  q1k = ldc(0)
-  q2k = ldc(1)
-  !re-transform the parameters to u1 and u2
-  u1 = sqrt(q1k)
-  u2 = u1*( 1.d0 - 2.d0*q2k)
-  u1 = 2.d0*u1*q2k
+  u1 = ldc(0)
+  u2 = ldc(1)
 
   !Get planet radius
   pz(:) = pars(6,:)
-
 
   do j = 0, n_cad - 1
     k(j) = j
@@ -224,6 +218,7 @@ implicit none
   double precision, dimension(0:6,0:npl-1) :: up_pars !updated parameters
   double precision, dimension(0:npl-1) :: t0, P, e, w, i, a, rp, tp, wp
   double precision :: u1, u2, q1k, q2k
+  double precision, dimension (0:1) :: up_ldc
   double precision :: pi = 3.1415926535897932384626d0
   logical :: is_good
   integer :: n
@@ -260,13 +255,14 @@ implicit none
   up_pars(5,:) = a
   up_pars(6,:) = rp
 
-
+  !Update limb darkening coefficients, pass from q's to u's
   q1k = ldc(0)
   q2k = ldc(1)
   !re-transform the parameters to u1 and u2
   u1 = sqrt(q1k)
   u2 = u1*( 1.d0 - 2.d0*q2k)
   u1 = 2.d0*u1*q2k
+  up_ldc = (/ u1 , u2 /)
 
 !are the u1 and u2 within a physical solution
   call check_us(u1,u2,is_good)
@@ -279,7 +275,7 @@ implicit none
 
   if ( is_good ) then
 
-  call flux_tr(xd,up_pars,flag,ldc,n_cad,t_cad,datas,npl,muld)
+  call flux_tr(xd,up_pars,flag,up_ldc,n_cad,t_cad,datas,npl,muld)
   res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
   chi2 = dot_product(res,res)
 
