@@ -66,6 +66,57 @@ implicit none
 
 end subroutine
 
+!-----------------------------------------------------------
+!                     find_z_tp
+!  This suborutine finds the projected distance between
+!  the star and planet centers. Eq. (5), ( z = r_sky) from
+!  Winn, 2010, Transit and Occultations.
+!------------------------------------------------------------
+subroutine find_z_tp(t,pars,flag,z,ts)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: ts
+  double precision, intent(in), dimension(0:ts-1) :: t
+  double precision, intent(in), dimension(0:5) :: pars
+  double precision, intent(out), dimension(0:ts-1) :: z
+  logical, intent(in), dimension(0:3) :: flag
+!Local variables
+  double precision, dimension(0:ts-1) :: ta, swt
+  double precision :: tp, P, e, w, i, a
+  double precision :: wp, ws, si
+  double precision :: pi = 3.1415926535897932384626d0
+!External function
+  external :: find_anomaly
+!
+
+  tp  = pars(0)
+  P   = pars(1)
+  e   = pars(2)
+  w   = pars(3)
+  i   = pars(4)
+  a   = pars(5)
+
+  ws  = w       !star periastron
+  wp  = ws + pi !planet periastron
+
+  !Obtain the true anomaly by using find_anomaly
+  call find_anomaly_tp(t,tp,e,P,ta,ts)
+
+  swt = sin(wp+ta)
+  si = sin(i)
+
+  where (swt < 0.0 ) !We have the planet in front of the star -> transit
+  !z has been calculated
+    z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
+        / ( 1.d0 + e * cos(ta) )
+  elsewhere !We have the planet behind the star -> occulation
+  !z has avalue which gives flux = 1 in Mandel & Agol module
+      z = 1.d1
+  end where
+
+end subroutine
+
 subroutine flux_tr(xd,pars,flag,ldc,&
            n_cad,t_cad,datas,npl,muld)
 implicit none
@@ -91,6 +142,7 @@ implicit none
 
   small = 1.d-5
   npl_dbl = dble(npl)
+
 
   q1k = ldc(0)
   q2k = ldc(1)
@@ -119,7 +171,7 @@ implicit none
     do n = 0, npl - 1
 
       !Each z is independent for each planet
-      call find_z(xd_ub,pars(0:5,n),flag,z,n_cad)
+      call find_z_tp(xd_ub,pars(0:5,n),flag,z,n_cad)
 
       if ( ALL( z > 1.d0 + pz(n) ) .or. pz(n) < small ) then
 
@@ -169,11 +221,45 @@ implicit none
   double precision, intent(out) :: chi2
 !Local variables
   double precision, dimension(0:datas-1) :: res, muld
+  double precision, dimension(0:6,0:npl-1) :: up_pars !updated parameters
+  double precision, dimension(0:npl-1) :: t0, P, e, w, i, a, rp, tp, wp
   double precision :: u1, u2, q1k, q2k
+  double precision :: pi = 3.1415926535897932384626d0
   logical :: is_good
   integer :: n
 !External function
   external :: occultquad, find_z, flux_tr
+
+  t0  = pars(0,:)
+  P   = pars(1,:)
+  e   = pars(2,:)
+  w   = pars(3,:)
+  i   = pars(4,:)
+  a   = pars(5,:)
+  rp  = pars(6,:)
+
+  if ( flag(0) ) P = 1.d0**pars(1,:)
+  if ( flag(1) ) then
+    e = pars(2,:) * pars(2,:) + pars(3,:) * pars(3,:)
+    w = atan2(pars(2,:),pars(3,:))
+  end if
+  wp(:) = w(:) + pi
+  if (flag(3)) a = 10.d0**a
+  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(wp) ) / ( 1.d0 - e*e ) )
+
+  do n = 0, npl - 1
+    call find_tp(t0(n),e(n),w(n),P(n),tp(n))
+  end do
+
+  !At this point the parameters to fit are tp,P,e,w,i,a without parametrization
+  up_pars(0,:) = tp
+  up_pars(1,:) = P
+  up_pars(2,:) = e
+  up_pars(3,:) = w
+  up_pars(4,:) = i
+  up_pars(5,:) = a
+  up_pars(6,:) = rp
+
 
   q1k = ldc(0)
   q2k = ldc(1)
@@ -193,9 +279,7 @@ implicit none
 
   if ( is_good ) then
 
-  call flux_tr(xd,pars,flag,ldc,n_cad,t_cad,datas,npl,muld)
-
-  ! chi^2 = \Sum_i ( M - O )^2 / \sigma^2
+  call flux_tr(xd,up_pars,flag,ldc,n_cad,t_cad,datas,npl,muld)
   res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
   chi2 = dot_product(res,res)
 

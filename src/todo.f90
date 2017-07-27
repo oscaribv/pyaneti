@@ -68,16 +68,38 @@ implicit none
   double precision, intent(out), dimension(0:dt-1) :: ta
   double precision, intent(in) :: t0, e, w, P
 !Local variables
+  double precision :: tp
+
+  call find_tp(t0,e,w,P,tp)
+  call find_anomaly_tp(t,tp,e,P,ta,dt)
+
+end subroutine
+
+!------------------------------------------------------------
+!This subroutine finds the true anomaly of an eccentric orbit
+!by using the Newton-Raphson (NR)  algorithm
+!The input parameters are:
+! man -> mean anomaly, ec -> eccentricity, delta -> NR limit
+! imax -> iteration limit for NR, dman -> man dimension
+!The output parameters are:
+! ta -> True anomaly (vector with the same dimension that man)
+!------------------------------------------------------------
+subroutine find_anomaly_tp(t,tp,e,P,ta,dt)
+implicit none
+!In/Out variables
+  integer, intent(in) :: dt
+  double precision, intent(in) , dimension(0:dt-1) :: t
+  double precision, intent(out), dimension(0:dt-1) :: ta
+  double precision, intent(in) :: tp, e, P
+!Local variables
   integer :: i,n
   double precision, dimension(0:dt-1) :: ma, f, df, eimag, ereal, sinma
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
-  double precision :: uno, tp
+  double precision :: uno
   double precision :: fmin=1.d-8, small = 1.d-5
   integer :: imax = int(1e8)
 !
   uno = 1.0d0
-
-  call find_tp(t0,e,w,P,tp)
 
   !Calculate the mean anomaly
   ma = two_pi * ( t - tp ) / P
