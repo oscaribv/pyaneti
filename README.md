@@ -7,7 +7,9 @@
 # __pyaneti__
 #### Written by Barragán O., Gandolfi D. & Antoniciello G.
 ##### email: oscaribv@gmail.com
-##### Updated July 14, 2017
+##### Updated July 31, 2017
+
+<a href="http://ascl.net/1707.003"><img src="https://img.shields.io/badge/ascl-1707.003-blue.svg?colorB=262255" alt="ascl:1707.003" /></a>
 
 ### __Introduction__
 
