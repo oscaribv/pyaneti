@@ -164,13 +164,20 @@ implicit none
   jitter_tr_old(:) = 0.0d0
   jitter_rv_new(:,:) = 0.0d0
   jitter_tr_new(:) = 0.0d0
+
   if ( is_jit(0) ) then
     do m = 0, n_jrv - 1
-      call gauss_random_bm(e_rv(0)*1e-1,e_rv(0)*1e-2,jitter_rv_old(:,m),nwalks)
+      do nk = 0, nwalks - 1
+        call create_chains('u',(/0.d0,e_rv(0)/),jitter_rv_old(nk,m),1)
+      end do
     end do
   end if
-  if ( is_jit(1) ) &
-    call gauss_random_bm(e_tr(0)*1e-1,e_tr(0)*1e-2,jitter_tr_old,nwalks)
+  if ( is_jit(1) ) then
+    do nk = 0, nwalks - 1
+      call create_chains('u',(/0.d0,e_tr(0)/),jitter_tr_old(nk),1)
+    end do
+  end if
+
   log_errs_new = 0.0d0
   log_errs_old = 0.0d0
   do nk = 0, nwalks - 1
