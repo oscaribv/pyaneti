@@ -217,7 +217,8 @@ implicit none
   double precision :: npl_dbl, small, u1, u2, rp(0:npl-1)
   double precision, dimension(0:n_cad-1,0:npl-1)  :: flux_ub
   double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
-  double precision, dimension(0:n_cad*datas-1)  :: super_x, super_z
+  double precision, dimension(0:n_cad*datas-1)  :: super_x
+  double precision, dimension(0:n_cad*datas-1,0:npl-1)  :: super_z
   integer :: n, j, k(0:n_cad-1)
 !External function
   external :: occultquad, find_z
@@ -246,7 +247,9 @@ implicit none
 
   !Z is calculated outside the do cycle
   !This speed up the code
-  call find_z_tp(super_x,pars,flag,super_z,n_cad*datas)
+  do n = 0, npl-1
+    call find_z_tp(super_x,pars(0:5,n),flag,super_z(:,n),n_cad*datas)
+  end do
 
   do j = 0, datas - 1
 
@@ -254,7 +257,7 @@ implicit none
     do n = 0, npl - 1
 
       !Each z is independent for each planet
-      z = super_z(j*n_cad:(j+1)*n_cad-1)
+      z = super_z(j*n_cad:(j+1)*n_cad-1,n)
 
       if ( ALL( z > 1.d0 + rp(n) ) .or. rp(n) < small ) then
 
