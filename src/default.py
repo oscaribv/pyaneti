@@ -72,6 +72,7 @@ a_factor = 2.0
 is_plot_posterior = True
 is_plot_correlations = True
 is_plot_chains = True
+is_corner_plot = False
 is_smart_priors = True
 is_print_mode = False
 is_clustering = True

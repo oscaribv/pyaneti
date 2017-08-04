@@ -8,11 +8,14 @@ execfile('src/plot_data.py')
 if ( is_plot_chains ):
   plot_chains()
 
-if ( is_plot_posterior ):
-  plot_posterior()
+if ( is_corner_plot ):
+  create_corner_plot()
+else:
+  if ( is_plot_posterior ):
+    plot_posterior()
 
-if ( is_plot_correlations ):
-  plot_correlations()
+  if ( is_plot_correlations ):
+    plot_correlations()
 
  #PLOT TRANSIT
 if ( total_tr_fit ):

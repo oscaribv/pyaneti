@@ -706,3 +706,44 @@ def plot_correlations():
   labels = np.concatenate(labs)
   create_plot_correlation(params[4:],labels,col='blue',num=plot_parameters)
 
+
+def create_corner_plot():
+  import corner
+  labs = []
+  for o in range(0,nplanets):
+    etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \
+                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_\star$'+plabels[o], \
+                 '$R_{\mathrm{p}}/R_\star$'+plabels[o],'$k$'+plabels[o]]
+    labs.append(etiquetas)
+  labs.append(['$q_1$','$q_2$'])
+  labs.append(telescopes_labels)
+  labels = np.concatenate(labs)
+
+  #update plot_parameters vector
+  npp = list(plot_parameters)
+  for o in range(0,len(plot_parameters)):
+      npp[o] = 4 + plot_parameters[o]
+
+  #Let us take only the values to be plotted
+  newpars = [0.0]*len(npp)
+  newlabs = [0.0]*len(npp)
+  for o in range(0,len(npp)):
+      newpars[o] = params[npp[o]]
+      newlabs[o] = labels[plot_parameters[o]]
+
+  #Let us prepare the vector for corner
+  data = np.zeros(shape=(len(newpars[0]),len(npp)))
+  for o in range(0,len(newpars[0])):
+      dumvec = []
+      for m in range(0,len(npp)):
+          dumvec.append(newpars[m][o])
+      data[o] = dumvec
+
+
+  figure = corner.corner(data, labels=newlabs, \
+                       quantiles=[0.16, 0.5, 0.84], \
+                        show_titles=True )
+  fname = outdir+'/'+star+'_corner.pdf'
+  print 'Creating ', fname
+  plt.savefig(fname,format='pdf',bbox_inches='tight')
+  figure.savefig(fname,format='pdf')
