@@ -438,52 +438,42 @@ def good_clustering(chi2,chain_lab,nconv,nwalkers):
 
   return good_index, new_nwalkers
 
-def good_clustering_likelihood(chi2,chain_lab,nconv,nwalkers):
+
+#-----------------------------------------------------------
+#This routine assumes that all the chains are organized from 0 to nwakers-1
+def good_clustering_fast(chi2,nconv,nwalkers):
   #Let us find the good indixes for the cluster
   #We have n walkers
 
   print 'STARTING CHAIN CLUSTERING'
   print 'Initial number of chains:', nwalkers
 
-  #Extract all the chains
+  #This variable will have each walker information
   chi2_walkers = [None]*nwalkers
   chi2_mean = [None]*nwalkers
-  walk_dummy = []
-  for i in range(0,nwalkers):
-    for j in range (0,len(chain_lab)):
-      if (chain_lab[j] == i ):
-        walk_dummy.append(chi2[j])
-    chi2_walkers[i] = walk_dummy
-    walk_dummy = []
+  for i in range (0,nwalkers):
+   chi2_walkers[i] = chi2[i::nconv]
 
-
-  #The mean of each walker
+ #The mean of each walker
   for i in range (0,nwalkers):
     chi2_mean[i] = np.mean(chi2_walkers[i])
 
   #get the minimum chi2
-  total_min = max(chi2_mean)
+  total_min = min(chi2_mean)
 
   good_chain = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( not chi2_mean[i] < total_min - clustering_delta ):
+    if ( chi2_mean[i]/total_min < 1.0 + clustering_delta ):
       #We are saving the good chain labels
       good_chain.append(i)
 
-  #Now we know how many good chains we have
   new_nwalkers = len(good_chain)
 
   print 'Final number of chains:', new_nwalkers
+  return good_chain, new_nwalkers
 
-  #Let us save the good index
-  good_index = []
-  for i in range(0, len(chain_lab)):
-      for j in range(0,len(good_chain)):
-          if ( chain_lab[i] == good_chain[j] ):
-              good_index.append(i)
 
-  return good_index, new_nwalkers
 #-----------------------------------------------------------
 
 def clustering(par,good_index):
@@ -492,6 +482,24 @@ def clustering(par,good_index):
   for i in range(0,len(good_index)):
     n = good_index[i]
     cluster_par[i] = par[n]
+
+  return cluster_par
+
+#-----------------------------------------------------------
+
+def clustering_fast(par,good_index,nconv):
+
+  dummy_par = []
+  for i in good_index:
+    dummy_par.append(par[i::nwalkers])
+
+  cluster_par = np.ndarray(len(good_index)*nconv)
+
+  n = 0
+  for i in range(0,len(dummy_par)):
+    for j in range(0,len(dummy_par[i])):
+      cluster_par[n] = dummy_par[i][j]
+      n = n + 1
 
   return cluster_par
 

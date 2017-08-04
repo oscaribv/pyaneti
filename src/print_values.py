@@ -20,9 +20,9 @@ params_jitter = [0.0]*2
 new_nwalkers = nwalkers
 if ( is_clustering ):
   #Starting clustering
-  good_index, new_nwalkers = good_clustering(dparams[2]+dparams[3],dparams[1],nconv,nwalkers)
+  good_index, new_nwalkers = good_clustering_fast(dparams[2]+dparams[3],nconv,nwalkers)
   for o in range(0,len(dparams)):
-    params[o] = clustering(dparams[o],good_index)
+    params[o] = clustering_fast(dparams[o],good_index,nconv)
 
 if ( is_jitter_rv or is_jitter_tr ):
   newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
@@ -30,7 +30,7 @@ if ( is_jitter_rv or is_jitter_tr ):
   params_jitter = list(dparams_jitter)
   if ( is_clustering ):
     for o in range(0,n_jrv+1):
-      params_jitter[o] = clustering(dparams_jitter[o],good_index)
+      params_jitter[o] = clustering_fast(dparams_jitter[o],good_index,nconv)
 
 
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
@@ -39,7 +39,7 @@ if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   params_trends = list(dparams_trends)
   if ( is_clustering ):
     for o in range(0,2):
-      params_trends[o] = clustering(dparams_trends[o],good_index)
+      params_trends[o] = clustering_fast(dparams_trends[o],good_index,nconv)
 
 #Create the stellar data
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
