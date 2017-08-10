@@ -252,7 +252,7 @@ def plot_all_transits():
   flag = [is_log_P, is_ew, is_b_factor, is_log_a]
 
   t0_val = [None]*nplanets
-  P_val  = [None]*nplanets
+  p_val  = [None]*nplanets
   e_val  = [None]*nplanets
   w_val  = [None]*nplanets
   i_val  = [None]*nplanets
@@ -262,7 +262,7 @@ def plot_all_transits():
   base = 4
   for m in range(0,nplanets):
     t0_val[m] = best_value(params[base + 0],get_value)
-    P_val[m]  = best_value(params[base + 1],get_value)
+    p_val[m]  = best_value(params[base + 1],get_value)
     e_val[m]  = best_value(params[base + 2],get_value)
     w_val[m]  = best_value(params[base + 3],get_value)
     i_val[m]  = best_value(params[base + 4],get_value)
@@ -277,7 +277,7 @@ def plot_all_transits():
   for i in range(0,nplanets):
     if ( fit_tr[i] ):
 
-      xt[i], dt[i], yt[i], et[i] = create_transit_data(megax,megay,megae,i)
+      xt[i], dt[i], yt[i], et[i] = create_transit_data(megax,megay,megae,i,span_tr[i])
       if ( is_plot_all_tr[i] ):
         for j in range(0,len(xt[i])):
 
@@ -296,25 +296,25 @@ def plot_all_transits():
           fd_reb_res = [0.0]*len(xvec_model)
 
           for m in range(0,len(xvec)):
-          #This vector has the model fit
+          #this vector has the model fit
             for n in range(0,n_cad):
               xd_ub[m][n] = xvec[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1 ))/n_cad
-              #This vector has the residuals
+              #this vector has the residuals
           for m in range(0,len(xvec_model)):
             for n in range(0,n_cad):
               xd_ub_res[m][n] = xvec_model[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1))/n_cad
 
-          #Calculate the transit curve for all the planets
+          #calculate the transit curve for all the planets
           for o in range(0,nplanets):
             for m in range(0,len(xvec)):
-              zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
+              zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val[o],p_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
               fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,rp_val[o])
               for n in range(0,n_cad):
                 fd_reb[m] = fd_reb[m] + fd_ub[m][n]/n_cad
               fd_ub_total[m] = fd_ub_total[m] + fd_reb[m]
               fd_reb[m] = 0.0
             for m in range(0,len(xvec_model)):
-              zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
+              zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val[o],p_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
               fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,rp_val[o])
               for n in range(0,n_cad):
                 fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[m][n]/n_cad
@@ -335,8 +335,92 @@ def plot_all_transits():
           #fd_reb is the modeled light cuve
           #res_res are the residuals
           n = xvec[len(xvec)-1] - xt[i][0][0]
-          n = int(n/P_val[i])
-          fancy_tr_plot(t0_val[i]+P_val[i]*n,xvec,yflux_local,et[i][j],xvec_model,xvec,fd_ub_res_total,res_res,fname)
+          n = int(n/p_val[i])
+          fancy_tr_plot(t0_val[i]+p_val[i]*n,xvec,yflux_local,et[i][j],xvec_model,xvec,fd_ub_res_total,res_res,fname)
+
+
+#===========================================================
+#              clean transits
+#  This function cleans the light curve with a N-sigma aogorithm
+#===========================================================
+
+def clean_transits(sigma=3):
+
+  ldc = [ best_value(params[4+8*nplanets],get_value), best_value(params[5+8*nplanets],get_value) ]
+  q1_val = ldc[0]
+  q2_val = ldc[1]
+  u1_val = np.sqrt(q1_val)
+  u2_val = u1_val * (1.0 -2.0*q2_val)
+  u1_val = 2.0*u1_val*q2_val
+  flag = [False]*4
+  my_ldc = [u1_val,u2_val]
+
+  t0_val = [None]*nplanets
+  tp_val = [None]*nplanets
+  p_val  = [None]*nplanets
+  e_val  = [None]*nplanets
+  w_val  = [None]*nplanets
+  i_val  = [None]*nplanets
+  a_val  = [None]*nplanets
+  rp_val = [None]*nplanets
+
+  base = 4
+  for m in range(0,nplanets):
+    t0_val[m] = best_value(params[base + 0],get_value)
+    p_val[m]  = best_value(params[base + 1],get_value)
+    e_val[m]  = best_value(params[base + 2],get_value)
+    w_val[m]  = best_value(params[base + 3],get_value)
+    i_val[m]  = best_value(params[base + 4],get_value)
+    a_val[m]  = best_value(params[base + 5],get_value)
+    rp_val[m] = best_value(params[base + 6],get_value)
+    base = base + 8
+
+    #Check flags
+    #Change between b and i
+    if ( is_b_factor ):
+      i_val[m] = np.arccos( i_val[m] / a_val[m] * \
+              ( 1.0 + e_val[m] * np.sin(w_val[m] + np.pi) / ( 1.0 - e_val[m]**2 ) ) )
+
+    if ( is_ew ):
+      e_dum = e_val[m]
+      w_dum = w_val[m]
+      e_val[m] = e_val[m]**2 + w_val[m]**2
+      w_val[m] = np.arctan2(e_dum,w_val[m])
+      w_val[m] = w_val[m] % (2*np.pi)
+
+    tp_val[m] = pti.find_tp(t0_val[m],e_val[m],w_val[m],P_val[m])
+
+    #Create parameters vector
+    pars_tr = np.zeros(shape=(7,nplanets))
+    for m in range(0,nplanets):
+        pars_tr[0,m] = tp_val[m]
+        pars_tr[1,m] = P_val[m]
+        pars_tr[2,m] = e_val[m]
+        pars_tr[3,m] = w_val[m]
+        pars_tr[4,m] = i_val[m]
+        pars_tr[5,m] = a_val[m]
+        pars_tr[6,m] = rp_val[m]
+
+    #Now we are ready to call the function in fortran
+    #All the data is in megax, megay and megae
+    model_flux = pti.flux_tr_fast(megax,pars_tr,flag,my_ldc,n_cad,t_cad)
+
+    #Calcualte the residuals
+    res_flux = megay - model_flux
+
+    #Call the sigma clipping functions
+    new_t, new_f = sigma_clip(megax,megay,res_flux,limit_sigma=sigma)
+
+    #Write the cleaned light curve into a file
+    #Let us create or detrended file
+    out_f = outdir+'/'+star+'_new_lc.dat'
+    of = open(out_f,'w')
+    #of.write('#This detrended light curve was created with pyaneti/lunas\n')
+    for i in range(0,len(new_t)):
+      of.write(' %8.8f   %8.8f  %8.8f \n'%(new_t[i],new_f[i],megae[i]))
+
+    of.close()
+
 
 #===========================================================
 #              plot rv fancy function
@@ -747,3 +831,4 @@ def create_corner_plot():
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   figure.savefig(fname,format='pdf')
+  figure.close()

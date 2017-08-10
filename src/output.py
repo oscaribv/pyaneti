@@ -21,6 +21,7 @@ else:
 if ( total_tr_fit ):
   plot_transit_nice()
   plot_all_transits()
+  clean_transits()
 
 #PLOT RV CURVE
 if ( total_rv_fit ):
