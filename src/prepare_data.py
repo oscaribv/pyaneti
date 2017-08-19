@@ -183,6 +183,9 @@ else:
   fit_q2 = 'f'
 
 #TRANSIT DATA READY
+#Take care with span_tr
+if ( len(span_tr) == 1 and nplanets > 1): #The user did not change this option in input_file.py
+  span_tr = [0.0]*nplanets
 
 #CHECK WHAT WE HAVE TO FIT
 #If we are not going to fit RV or TR data, let us turn off the variables

@@ -95,7 +95,7 @@ implicit none
   double precision, dimension(0:nwalks-1,0:n_jrv-1) :: jitter_rv_old, jitter_rv_new
   double precision, dimension(0:nwalks-1,0:1) :: tds_old, tds_new !linear and quadratic terms
   double precision, dimension(0:nwalks-1,0:8*npl-1,0:nconv-1) :: pars_chains
-  double precision, dimension(0:nwalks-1,0:nconv-1) :: chi2_rv_chains, chi2_tr_chains
+  double precision, dimension(0:nwalks-1,0:nconv-1) :: chi2_rv_chains, chi2_tr_chains, loglike_chains
   double precision, dimension(0:nwalks-1,0:nconv-1) :: jitter_tr_chains
   double precision, dimension(0:nwalks-1,0:n_tel-1,0:nconv-1) :: jitter_rv_chains
   double precision, dimension(0:nwalks-1,0:1,0:nconv-1) :: tds_chains, ldc_chains
@@ -428,6 +428,7 @@ implicit none
       pars_chains(:,:,n)      = pars_old(:,:)
       chi2_rv_chains(:,n)     = chi2_old_rv(:)
       chi2_tr_chains(:,n)     = chi2_old_tr(:)
+      loglike_chains(:,n)     = log_likelihood_old(:)
       ldc_chains(:,:,n)       = ldc_old(:,:)
       rvs_chains(:,:,n)       = rvs_old(:,:)
       tds_chains(:,:,n)       = tds_old(:,:)
@@ -451,6 +452,9 @@ implicit none
           end if
           if ( .not. is_cvg ) exit
         end do
+
+        if ( j < thin_factor*nconv + 1 ) is_cvg = .False.
+
         if ( .not. is_cvg  ) then
           print *, '=================================='
           print *, 'CHAINS HAVE NOT CONVERGED YET!'
@@ -486,7 +490,7 @@ implicit none
 
   do n = 0, nconv - 1
     do nk = 0, nwalks - 1
-      write(101,*) n, nk, chi2_rv_chains(nk,n),chi2_tr_chains(nk,n), pars_chains(nk,:,n), &
+      write(101,*) n, loglike_chains(nk,n), chi2_rv_chains(nk,n),chi2_tr_chains(nk,n), pars_chains(nk,:,n), &
                    ldc_chains(nk,:,n), rvs_chains(nk,:,n)
       if ( is_jit(0) .or.  is_jit(1) ) &
           write(201,*) jitter_rv_chains(nk,:,n), jitter_tr_chains(nk,n)
