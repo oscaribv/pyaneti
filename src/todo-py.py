@@ -131,7 +131,7 @@ def check_circular():
 
 #Sigma clipping functions copied from exotrending
 #x and y are the original arrays, z is the vector with the residuals
-def sigma_clip(x,y,z,limit_sigma=3,is_plot=False):
+def sigma_clip(x,y,z,limit_sigma=5,is_plot=False):
   control = True
   new_y = list(y)
   new_x = list(x)

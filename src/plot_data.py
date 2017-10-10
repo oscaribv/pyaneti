@@ -59,9 +59,12 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
     plt.ylim(y_lim_min,y_lim_max)
   min_val_model = max(fd_reb) -  min(fd_reb)
   if ( plot_tr_errorbars ):
-    plt.errorbar((xtime-local_T0)*tfc,yflux,errors,fmt='ro',alpha=0.8)
+    plt.errorbar((xtime-local_T0)*tfc,yflux,errors,color=tr_colors,fmt='.',alpha=1.0)
   else:
-    plt.plot((xtime-local_T0)*tfc,yflux,'ro',ms=8,alpha=0.9)
+    plt.plot((xtime-local_T0)*tfc,yflux,'o',color=tr_colors,ms=8,alpha=0.8)
+    y0,yyyy = ax1.get_ylim()
+    plt.errorbar(-x_lim*(0.95),y0 +errors[0]*2,errors[0],color=tr_colors,fmt='o',alpha=1.0)
+    plt.annotate('Error bar',xy=(-x_lim*(0.70),y0 +errors[0]*1.75),fontsize=fos*0.7)
   plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
   #Calculate the optimal step for the plot
@@ -82,9 +85,9 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   ax0 = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos,direction='in')
   if ( plot_tr_errorbars ):
-    plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,fmt='ro',alpha=0.8)
+    plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,color=tr_colors,fmt='.',alpha=1.0)
   else:
-    plt.plot((xmodel_res-local_T0)*tfc,res_res,'ro',ms=8,alpha=0.9)
+    plt.plot((xmodel_res-local_T0)*tfc,res_res,'o',color=tr_colors,ms=8,alpha=0.8)
   plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
 #  yylims = ax0.get_ylim()
 #  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
@@ -344,7 +347,7 @@ def plot_all_transits():
 #  This function cleans the light curve with a N-sigma aogorithm
 #===========================================================
 
-def clean_transits(sigma=3):
+def clean_transits(sigma=5):
 
   ldc = [ best_value(params[4+8*nplanets],get_value), best_value(params[5+8*nplanets],get_value) ]
   q1_val = ldc[0]
@@ -437,7 +440,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   #plt.subplot(311)
   plt.xlabel("")
   plt.ylabel("RV (m/s)",fontsize=fos)
-  plt.plot([0.,1.],[0.,0.],'k--')
+  #plt.plot([0.,1.],[0.,0.],'k--')
   plt.plot(p_rv,rvy,'k',linewidth=1.0)
   for j in range(0,nt):
     plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
@@ -582,11 +585,12 @@ if ( nplanets > 0 ):
     plt.tick_params(labelsize=fos,direction='in')
     for j in range(0,nt):
       plt.errorbar(time_all[j],rv_dum[j],errs_datas[j],color=rv_colors[j],\
-      label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=4)
+      label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=rv_markersize)
     plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.8)
     fname = outdir+'/'+star+'_rv_all.pdf'
     print 'Creating ', fname
     plt.savefig(fname,format='pdf',bbox_inches='tight')
+    plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight',dpi=300)
     plt.close()
 
     #Let us create or detrended file
@@ -831,4 +835,4 @@ def create_corner_plot():
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   figure.savefig(fname,format='pdf')
-  figure.close()
+  plt.close()
