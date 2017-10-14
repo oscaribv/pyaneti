@@ -20,6 +20,7 @@ S_vol_SI       = 4./3.*np.pi*S_radius_SI**3  #m^3
 S_vol_cgs      = 4./3.*np.pi*S_radius_cgs**3 #cm^3
 S_den_SI       = S_GM_SI/G_SI/S_vol_SI    #kg/m^3
 S_den_cgs      = S_GM_cgs/G_cgs/S_vol_cgs #g/cm^3
+S_Teff         = 5772.0 # K
 #Earth
 E_GM_SI        = 3.986004e14      #m^3 s^{-1} 
 E_radius_e_SI  = 6.3781e6         # ecuatorial radius [m]
