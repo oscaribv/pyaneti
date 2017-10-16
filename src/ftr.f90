@@ -259,7 +259,7 @@ implicit none
       !Each z is independent for each planet
       z = super_z(j*n_cad:(j+1)*n_cad-1,n)
 
-      if ( ALL( z > 1.d0 + rp(n) ) .or. rp(n) < small ) then
+      if ( ALL( z > ( 1.d0 + rp(n) ) ) .or. rp(n) < small ) then
 
         muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
 

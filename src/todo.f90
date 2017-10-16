@@ -106,38 +106,32 @@ implicit none
 
   if ( e > small ) then !You have to calcuate your true anomaly, your orbit is not circular!
 
-    if ( e < 0.3 ) then !Avoid Newthon-Raphson if the eccentricity is small
+    sinma = sin(ma(:))
+    !make guesses based on the expantion
+    !Serie expantion, Murray and Dermott 1999, p.35
+    ta(:) = ma(:) + e  * ( sinma(:) + &
+            e * ( 0.5d0 * sin(2.d0*ma(:)) +  &
+            e * 0.125d0 * ( 3.d0 * sin( 3.d0 * ma(:) ) - sinma(:)  ) &
+            ) )
 
-      sinma = sin(ma(:))
-      !Serie expantion, Murray and Dermott 1999, p.35
-      ta(:) = ma(:) + e  * ( sinma(:) + &
-              e * ( 0.5d0 * sin(2.d0*ma(:)) +  &
-              e * 0.125d0 * ( 3.d0 * sin( 3.d0 * ma(:) ) - sinma(:)  ) &
-              ) )
+    !calculate the eccentric anomaly
+    !Using Newthon-Raphson algorithm
+    f(:)   = ta(:) - e * sin(ta(:)) - ma(:)
+    n = 0
 
-    else
-
-      !calculate the eccentric anomaly
-      !Using Newthon-Raphson algorithm
-      ta(:) = ma(:)
-      f(:) = fmin * 1.0d1
-      n = 0
-
-      do i = 0, dt-1
-        do while ( abs(f(i)) > fmin .and. n < imax )
-          f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
-          df(i)  = uno - e * cos(ta(i))
-          ta(i)  = ta(i) - f(i) / df(i)
-          n = n + 1
-        end do
+    do i = 0, dt-1
+      do while ( abs(f(i)) > fmin .and. n < imax )
+        f(i)   = ta(i) - e * sin(ta(i)) - ma(i)
+        df(i)  = uno - e * cos(ta(i))
+        ta(i)  = ta(i) - f(i) / df(i)
+        n = n + 1
       end do
+    end do
 
-      if ( n > imax ) then !This should never happen!
-        print *, 'I am tired, too much Newton-Raphson for me!'
-        print *, e, f
-        stop
-      end if
-
+    if ( n > imax ) then !This should never happen!
+      print *, 'I am tired, too much Newton-Raphson for me!'
+      print *, e, f
+      stop
     end if
 
     !calculate the true anomaly
@@ -404,6 +398,7 @@ implicit none
   double precision :: S_GM_SI = 1.3271244d20 ! G M_sun
   double precision :: R_SI, M_SI, G_SI
   double precision :: R_sigma_SI, M_sigma_SI
+  double precision :: tercio, cpi2
   double precision  :: pi = 3.1415926535897932384626d0
 
   G_SI = 6.67408e-11
@@ -412,14 +407,16 @@ implicit none
   M_SI = mstar_mean * S_GM_SI / G_SI
   M_sigma_SI = mstar_sigma * S_GM_SI / G_SI
   per  = P * 3600.d0 * 24.d0
+  tercio = 1.d0/3.d0
+  cpi2 = 4.d0 * pi**2
 
-  amean = per**2 * G_SI * M_SI / ( 4.d0 * pi**2 * R_SI**3 )
-  amean = amean**(1.d0/3.d0)
+  amean = per**2 * G_SI * M_SI / ( cpi2 * R_SI**3 )
+  amean = amean**(tercio)
 
-  dadm = ( G_SI * per**2 / ( 4.d0*pi**2 * M_SI**2) ) **(1.d0/3.d0)
-  dadm = dadm / 3.d0 / R_SI
+  dadm = ( G_SI * per**2 / ( cpi2 * M_SI**2) )**(tercio)
+  dadm = dadm * tercio / R_SI
 
-  dadr = - ( G_SI * M_SI*per**2 / (4.d0*pi**2) )**(1.d0/3.d0) / R_SI**2
+  dadr = - ( G_SI * M_SI*per**2 / cpi2 )**(tercio) / R_SI**2
 
   aerr = dadm**2 * M_sigma_SI**2 + dadr**2 * R_sigma_SI**2
   aerr = sqrt(aerr)

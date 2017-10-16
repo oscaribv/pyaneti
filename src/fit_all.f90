@@ -356,7 +356,7 @@ implicit none
 
       !Let us check if the new parameters are inside the limits
       is_limit_good = .true.
-      if ( limit_prior < 1.d-20 ) is_limit_good = .false.
+      if ( limit_prior < 1.d-100 ) is_limit_good = .false.
       if ( is_limit_good ) then
         if ( ANY( jitter_rv_new(nk,:) < 0.0d0 ) .or. jitter_tr_new(nk) < 0.0d0 ) is_limit_good = .false.
       end if
