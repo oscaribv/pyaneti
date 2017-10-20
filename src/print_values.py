@@ -498,11 +498,18 @@ if ( is_jitter_tr and resize_tr ):
               et[o][m] = np.sqrt(et[o][m]**2 + jit_tr**2)
   for o in range(0,len(megae)):
     megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
+
+new_errs_all = [None]*len(errs_all)
+for o in range(0,len(errs_all)):
+  new_errs_all[o] = list(errs_all[o])
+
+
 if ( is_jitter_rv and resize_rv ):
     for j in range(0,n_jrv):
       jit_rv = best_value(params_jitter[j],get_value)
       for o in range(0,len(errs_all[j])):
-        errs_all[j][o] = np.sqrt(errs_all[j][o]**2 + jit_rv**2)
+#          errs_all[j][o] = np.sqrt(errs_all[j][o]**2 + jit_rv**2)
+          new_errs_all[j][o] = 1.e3*np.sqrt(errs_all[j][o]**2 + jit_rv**2)
 
 opars.close()
 otex.close()

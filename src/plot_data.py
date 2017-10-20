@@ -443,6 +443,12 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   #plt.plot([0.,1.],[0.,0.],'k--')
   plt.plot(p_rv,rvy,'k',linewidth=1.0)
   for j in range(0,nt):
+    #
+    plt.errorbar(p_all[j],rv_dum[j],new_errs_all[j],\
+    fmt=mark[j],\
+    alpha=1.0 ,color='#C0C0C0',\
+    markersize=rv_markersize,fillstyle=rv_fillstyle)
+    #
     plt.errorbar(p_all[j],rv_dum[j],errs_all[j],\
     label=telescopes_labels[j],\
     fmt=mark[j],\
@@ -470,6 +476,12 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.ylabel('Residuals (m/s)',fontsize=fos*0.75)
   plt.plot([0.,1.],[0.,0.],'k--',linewidth=1.0)
   for j in range(0,nt):
+    #
+    plt.errorbar(p_all[j],res[j],new_errs_all[j],\
+    fmt=mark[j],\
+    alpha=1.0 ,color='#C0C0C0',\
+    markersize=rv_markersize,fillstyle=rv_fillstyle)
+    #
     plt.errorbar(p_all[j],res[j],errs_all[j],\
     label=telescopes_labels[j],fmt=mark[j],color=rv_colors[j], \
     alpha=1.0,markersize=rv_markersize,fillstyle=rv_fillstyle)
@@ -584,6 +596,9 @@ if ( nplanets > 0 ):
     plt.xlim(xmin,xmax)
     plt.tick_params(labelsize=fos,direction='in')
     for j in range(0,nt):
+      plt.errorbar(time_all[j],rv_dum[j],new_errs_all[j],color='#C0C0C0',\
+      fmt=mark[j],alpha=1.0,markersize=rv_markersize)
+      #
       plt.errorbar(time_all[j],rv_dum[j],errs_datas[j],color=rv_colors[j],\
       label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=rv_markersize)
     plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.8)
