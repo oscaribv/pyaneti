@@ -499,9 +499,10 @@ if ( is_jitter_tr and resize_tr ):
   for o in range(0,len(megae)):
     megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 
-new_errs_all = [None]*len(errs_all)
-for o in range(0,len(errs_all)):
-  new_errs_all[o] = list(errs_all[o])
+if ( total_rv_fit ):
+  new_errs_all = [None]*len(errs_all)
+  for o in range(0,len(errs_all)):
+    new_errs_all[o] = list(errs_all[o])
 
 
 if ( is_jitter_rv and resize_rv ):
