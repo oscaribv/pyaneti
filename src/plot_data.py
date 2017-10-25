@@ -406,7 +406,7 @@ def clean_transits(sigma=5):
 
     #Now we are ready to call the function in fortran
     #All the data is in megax, megay and megae
-    model_flux = pti.flux_tr_fast(megax,pars_tr,flag,my_ldc,n_cad,t_cad)
+    model_flux = pti.flux_tr(megax,pars_tr,flag,my_ldc,n_cad,t_cad)
 
     #Calcualte the residuals
     res_flux = megay - model_flux
