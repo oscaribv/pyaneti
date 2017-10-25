@@ -533,9 +533,9 @@ for o in range(0,nplanets):
   w_val[o]  = best_value(params[base + 3],get_value)
   k_val[o]  = best_value(params[base + 7],get_value)
   if ( is_log_P ):
-    P_val[o] = 10.0**(P_val)
+    P_val[o] = 10.0**(P_val[o])
   if ( is_log_k ):
-    k_val[o] = 10.0**(k_val)
+    k_val[o] = 10.0**(k_val[o])
   if ( is_ew ):
     edum_val = e_val[o]
     e_val[o] = e_val[o]**2 + w_val[o]**2
