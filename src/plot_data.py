@@ -414,13 +414,20 @@ def clean_transits(sigma=5):
     #Call the sigma clipping functions
     new_t, new_f = sigma_clip(megax,megay,res_flux,limit_sigma=sigma)
 
+    #Let us reestimate the error bars
+    new_res_flux = pti.flux_tr(new_t,pars_tr,flag,my_ldc,n_cad,t_cad)
+    new_res_flux = new_f - new_res_flux
+
+    #New errors, now the error bars come from the residuals
+    new_sigma = np.std(new_res_flux)
+
     #Write the cleaned light curve into a file
     #Let us create or detrended file
     out_f = outdir+'/'+star+'_new_lc.dat'
     of = open(out_f,'w')
     #of.write('#This detrended light curve was created with pyaneti/lunas\n')
     for i in range(0,len(new_t)):
-      of.write(' %8.8f   %8.8f  %8.8f \n'%(new_t[i],new_f[i],megae[i]))
+      of.write(' %8.8f   %8.8f  %8.8f \n'%(new_t[i],new_f[i],new_sigma))
 
     of.close()
 
