@@ -110,38 +110,69 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight',dpi=300)
   plt.close()
 
+#-----------------------------------------------------------------
+#       TRANSIT PARAMERS TO BE USED TO GENERATE PLOTS
+#-----------------------------------------------------------------
+
+ldc = [ best_value(params[4+8*nplanets],get_value), best_value(params[5+8*nplanets],get_value) ]
+q1_val = ldc[0]
+q2_val = ldc[1]
+u1_val = np.sqrt(q1_val)
+u2_val = u1_val * (1.0 -2.0*q2_val)
+u1_val = 2.0*u1_val*q2_val
+flag = [False]*4
+my_ldc = [u1_val,u2_val]
+
+t0_val = [None]*nplanets
+tp_val = [None]*nplanets
+P_val  = [None]*nplanets
+e_val  = [None]*nplanets
+w_val  = [None]*nplanets
+i_val  = [None]*nplanets
+a_val  = [None]*nplanets
+rp_val = [None]*nplanets
+
+base = 4
+for m in range(0,nplanets):
+  t0_val[m] = best_value(params[base + 0],get_value)
+  P_val[m]  = best_value(params[base + 1],get_value)
+  e_val[m]  = best_value(params[base + 2],get_value)
+  w_val[m]  = best_value(params[base + 3],get_value)
+  i_val[m]  = best_value(params[base + 4],get_value)
+  a_val[m]  = best_value(params[base + 5],get_value)
+  rp_val[m] = best_value(params[base + 6],get_value)
+  base = base + 8
+
+  #Check flags
+  #Change between b and i
+  if ( is_b_factor ):
+    i_val[m] = np.arccos( i_val[m] / a_val[m] * \
+            ( 1.0 + e_val[m] * np.sin(w_val[m] + np.pi) / ( 1.0 - e_val[m]**2 ) ) )
+
+  if ( is_ew ):
+    e_dum = e_val[m]
+    w_dum = w_val[m]
+    e_val[m] = e_val[m]**2 + w_val[m]**2
+    w_val[m] = np.arctan2(e_dum,w_val[m])
+    w_val[m] = w_val[m] % (2*np.pi)
+
+  tp_val[m] = pti.find_tp(t0_val[m],e_val[m],w_val[m],P_val[m])
+
+  #Create parameters vector
+  pars_tr = np.zeros(shape=(7,nplanets))
+  for m in range(0,nplanets):
+      pars_tr[0,m] = tp_val[m]
+      pars_tr[1,m] = P_val[m]
+      pars_tr[2,m] = e_val[m]
+      pars_tr[3,m] = w_val[m]
+      pars_tr[4,m] = i_val[m]
+      pars_tr[5,m] = a_val[m]
+      pars_tr[6,m] = rp_val[m]
 
 #===========================================================
 #              plot the folded data for each transit
 #===========================================================
 def plot_transit_nice():
-#Move all the points to T0
-  ldc = [ best_value(params[4+8*nplanets],get_value), best_value(params[5+8*nplanets],get_value) ]
-  q1_val = ldc[0]
-  q2_val = ldc[1]
-  u1_val = np.sqrt(q1_val)
-  u2_val = u1_val * (1.0 -2.0*q2_val)
-  u1_val = 2.0*u1_val*q2_val
-  flag = [is_log_P, is_ew, is_b_factor, is_log_a]
-
-  t0_val = [None]*nplanets
-  P_val  = [None]*nplanets
-  e_val  = [None]*nplanets
-  w_val  = [None]*nplanets
-  i_val  = [None]*nplanets
-  a_val  = [None]*nplanets
-  rp_val = [None]*nplanets
-
-  base = 4
-  for m in range(0,nplanets):
-    t0_val[m] = best_value(params[base + 0],get_value)
-    P_val[m]  = best_value(params[base + 1],get_value)
-    e_val[m]  = best_value(params[base + 2],get_value)
-    w_val[m]  = best_value(params[base + 3],get_value)
-    i_val[m]  = best_value(params[base + 4],get_value)
-    a_val[m]  = best_value(params[base + 5],get_value)
-    rp_val[m] = best_value(params[base + 6],get_value)
-    base = base + 8
 
   for o in range(0,nplanets):
 
@@ -164,69 +195,24 @@ def plot_transit_nice():
       xmodel = np.arange(min(xtime), max(xtime),1.0/20./24.)
       #Let us create the model
 
-      xd_ub = np.ndarray(shape=(len(xmodel),n_cad))
-      xd_ub_res = np.ndarray(shape=(len(xmodel_res),n_cad))
-      zd_ub = [None]*len(xmodel)
-      zd_ub_res = [None]*len(xmodel_res)
-      fd_ub = [None]*len(xmodel)
-      fd_ub_res = [None]*len(xmodel_res)
-      #Use the long cadence data
-      for m in range(0,len(xmodel)):
-        #This vector has the model fit
-        for n in range(0,n_cad):
-          xd_ub[m][n] = xmodel[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1 ))/n_cad
-        #This vector has the residuals
-      for m in range(0,len(xmodel_res)):
-        for n in range(0,n_cad):
-          xd_ub_res[m][n] = xmodel_res[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1))/n_cad
-
-    #Calculate the transit curve for all the data
-      for m in range(0,len(xmodel)):
-        zd_ub[m] = pti.find_z(xd_ub[m][:],[0.0,P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
-        fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,rp_val[o])
-      for m in range(0,len(xmodel_res)):
-        zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[0.0,P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
-        fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,rp_val[o])
-
-      #Bin the data
-      fd_reb = [0.0]*len(xmodel)
-      fd_reb_res = [0.0]*len(xmodel_res)
-      for m in range(0,len(xmodel)):
-        for n in range(0,n_cad):
-          fd_reb[m] = fd_reb[m] + fd_ub[m][n]/n_cad
-      for m in range(0,len(xmodel_res)):
-        for n in range(0,n_cad):
-          #This is the flux caused by the time stams which come from the data
-          fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[m][n]/n_cad
+      dparstr = np.concatenate([[0],pars_tr[1:,o]])
+      fd_ub = pti.flux_tr(xmodel,dparstr,flag,my_ldc,n_cad,t_cad)
+      fd_ub_res = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
+      fd_ub_total = list(fd_ub_res)
+      fd_ub_total = np.zeros(shape=len(fd_ub_res))
 
      #############################################################################
      # Let us calculate the flux caused by the other planets
-#      xmodel_vec = np.concatenate(list(local_time))
-      xmodel_vec = local_time
-      xd_ub_vec = np.ndarray(shape=(len(xmodel_vec),n_cad))
-      for m in range(0,len(xmodel_vec)):
-        for n in range(0,n_cad):
-          xd_ub_vec[m][n] = xmodel_vec[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1))/n_cad
-
-      fd_ub_dum = [None]*len(xmodel_vec)
-      fd_ub_total = [0.0]*len(xmodel_vec)
-      zd_ub_dum = [None]*len(xmodel_vec)
       for p in range(0,nplanets):
-        fd_reb_dum  = [0.0]*len(xmodel_vec)
         if ( p != o ):
-          for m in range(0,len(xmodel_vec)):
-            zd_ub_dum[m] = pti.find_z(xd_ub_vec[m][:],[t0_val[p],P_val[p],e_val[p],w_val[p],i_val[p],a_val[p]],flag)
-            fd_ub_dum[m], dummm = pti.occultquad(zd_ub_dum[m],u1_val,u2_val,rp_val[p])
-            for n in range(0,n_cad):
-              #This is the flux caused by the time stams which come from the data
-              fd_reb_dum[m] = fd_reb_dum[m] + fd_ub_dum[m][n]/n_cad
-            fd_ub_total[m] = fd_ub_total[m] + fd_reb_dum[m]
+          dparstr = np.concatenate([[0],pars_tr[1:,p]])
+          fd_ub_total = fd_ub_total + pti.flux_tr(local_time,pars_tr[:,p],flag,my_ldc,n_cad,t_cad)
 
       yflux_local = yflux - fd_ub_total
       yflux_local = yflux_local - 1 + nplanets
       #The flux has been corrected for the other planets
 
-      res_res = yflux_local - fd_reb_res
+      res_res = yflux_local - fd_ub_res
 
      #############################################################################
 
@@ -238,40 +224,13 @@ def plot_transit_nice():
       #xmodel_res is the residuals time_stamps
       #fd_reb is the modeled light cuve
       #res_res are the residuals
-      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,fd_reb,res_res,fname)
+      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,fd_ub,res_res,fname)
 
 #===========================================================
 #              plot all transits
 #===========================================================
 
 def plot_all_transits():
-
-  ldc = [ best_value(params[4+8*nplanets],get_value), best_value(params[5+8*nplanets],get_value) ]
-  q1_val = ldc[0]
-  q2_val = ldc[1]
-  u1_val = np.sqrt(q1_val)
-  u2_val = u1_val * (1.0 -2.0*q2_val)
-  u1_val = 2.0*u1_val*q2_val
-  flag = [is_log_P, is_ew, is_b_factor, is_log_a]
-
-  t0_val = [None]*nplanets
-  p_val  = [None]*nplanets
-  e_val  = [None]*nplanets
-  w_val  = [None]*nplanets
-  i_val  = [None]*nplanets
-  a_val  = [None]*nplanets
-  rp_val = [None]*nplanets
-
-  base = 4
-  for m in range(0,nplanets):
-    t0_val[m] = best_value(params[base + 0],get_value)
-    p_val[m]  = best_value(params[base + 1],get_value)
-    e_val[m]  = best_value(params[base + 2],get_value)
-    w_val[m]  = best_value(params[base + 3],get_value)
-    i_val[m]  = best_value(params[base + 4],get_value)
-    a_val[m]  = best_value(params[base + 5],get_value)
-    rp_val[m] = best_value(params[base + 6],get_value)
-    base = base + 8
 
   xt = [None]*nplanets
   dt = [None]*nplanets
@@ -349,60 +308,7 @@ def plot_all_transits():
 
 def clean_transits(sigma=5):
 
-  ldc = [ best_value(params[4+8*nplanets],get_value), best_value(params[5+8*nplanets],get_value) ]
-  q1_val = ldc[0]
-  q2_val = ldc[1]
-  u1_val = np.sqrt(q1_val)
-  u2_val = u1_val * (1.0 -2.0*q2_val)
-  u1_val = 2.0*u1_val*q2_val
-  flag = [False]*4
-  my_ldc = [u1_val,u2_val]
 
-  t0_val = [None]*nplanets
-  tp_val = [None]*nplanets
-  p_val  = [None]*nplanets
-  e_val  = [None]*nplanets
-  w_val  = [None]*nplanets
-  i_val  = [None]*nplanets
-  a_val  = [None]*nplanets
-  rp_val = [None]*nplanets
-
-  base = 4
-  for m in range(0,nplanets):
-    t0_val[m] = best_value(params[base + 0],get_value)
-    p_val[m]  = best_value(params[base + 1],get_value)
-    e_val[m]  = best_value(params[base + 2],get_value)
-    w_val[m]  = best_value(params[base + 3],get_value)
-    i_val[m]  = best_value(params[base + 4],get_value)
-    a_val[m]  = best_value(params[base + 5],get_value)
-    rp_val[m] = best_value(params[base + 6],get_value)
-    base = base + 8
-
-    #Check flags
-    #Change between b and i
-    if ( is_b_factor ):
-      i_val[m] = np.arccos( i_val[m] / a_val[m] * \
-              ( 1.0 + e_val[m] * np.sin(w_val[m] + np.pi) / ( 1.0 - e_val[m]**2 ) ) )
-
-    if ( is_ew ):
-      e_dum = e_val[m]
-      w_dum = w_val[m]
-      e_val[m] = e_val[m]**2 + w_val[m]**2
-      w_val[m] = np.arctan2(e_dum,w_val[m])
-      w_val[m] = w_val[m] % (2*np.pi)
-
-    tp_val[m] = pti.find_tp(t0_val[m],e_val[m],w_val[m],P_val[m])
-
-    #Create parameters vector
-    pars_tr = np.zeros(shape=(7,nplanets))
-    for m in range(0,nplanets):
-        pars_tr[0,m] = tp_val[m]
-        pars_tr[1,m] = P_val[m]
-        pars_tr[2,m] = e_val[m]
-        pars_tr[3,m] = w_val[m]
-        pars_tr[4,m] = i_val[m]
-        pars_tr[5,m] = a_val[m]
-        pars_tr[6,m] = rp_val[m]
 
     #Now we are ready to call the function in fortran
     #All the data is in megax, megay and megae
