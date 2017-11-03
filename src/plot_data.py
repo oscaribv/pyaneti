@@ -195,9 +195,14 @@ def plot_transit_nice():
       xmodel = np.arange(min(xtime), max(xtime),1.0/20./24.)
       #Let us create the model
 
-      dparstr = np.concatenate([[0],pars_tr[1:,o]])
+      #The model has T0 = 0
+      dumtp = pti.find_tp(0.0,e_val[o],w_val[o],P_val[o])
+      dparstr = np.concatenate([[dumtp],pars_tr[1:,o]])
       fd_ub = pti.flux_tr(xmodel,dparstr,flag,my_ldc,n_cad,t_cad)
+      #Calculate the flux to copute the residuals
       fd_ub_res = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
+
+      #Define a vector which will contain the data of other planers for multi fits
       fd_ub_total = list(fd_ub_res)
       fd_ub_total = np.zeros(shape=len(fd_ub_res))
 
@@ -205,20 +210,22 @@ def plot_transit_nice():
      # Let us calculate the flux caused by the other planets
       for p in range(0,nplanets):
         if ( p != o ):
-          dparstr = np.concatenate([[0],pars_tr[1:,p]])
+          #fd_ub_total stores the flux of a star for each independent
           fd_ub_total = fd_ub_total + pti.flux_tr(local_time,pars_tr[:,p],flag,my_ldc,n_cad,t_cad)
 
+      #Remove extra planets from the data
       yflux_local = yflux - fd_ub_total
       yflux_local = yflux_local - 1 + nplanets
       #The flux has been corrected for the other planets
 
+      #Get the residuals
       res_res = yflux_local - fd_ub_res
 
      #############################################################################
 
       fname = outdir+'/'+star+plabels[o]+'_tr.pdf'
       #xtime is the folded time
-      #yflux is the data flux
+      #yflux_local is the data flux
       #eflux is the error related to yflux
       #xmodel is the light curve model timestamps
       #xmodel_res is the residuals time_stamps
