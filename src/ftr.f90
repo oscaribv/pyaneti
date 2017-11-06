@@ -138,7 +138,7 @@ implicit none
   double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
   integer :: n, j, k(0:n_cad-1)
 !External function
-  external :: occultquad, find_z
+  external :: occultquad, find_z_tp
 
   small = 1.d-5
   npl_dbl = dble(npl)
@@ -154,6 +154,7 @@ implicit none
   end do
 
   muld_npl(:) = 0.d0
+  flux_ub(:,:) = 0.d0
   do j = 0, datas - 1
 
     !Calculate the time-stamps for the binned model
@@ -168,6 +169,7 @@ implicit none
       if ( ALL( z > 1.d0 + rp(n) ) .or. rp(n) < small ) then
 
         muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
+        flux_ub(:,n) = 0.d0
 
       else
 
