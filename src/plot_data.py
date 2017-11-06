@@ -276,14 +276,14 @@ def plot_all_transits():
           #calculate the transit curve for all the planets
           for o in range(0,nplanets):
             for m in range(0,len(xvec)):
-              zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val[o],p_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
+              zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
               fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,rp_val[o])
               for n in range(0,n_cad):
                 fd_reb[m] = fd_reb[m] + fd_ub[m][n]/n_cad
               fd_ub_total[m] = fd_ub_total[m] + fd_reb[m]
               fd_reb[m] = 0.0
             for m in range(0,len(xvec_model)):
-              zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val[o],p_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
+              zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
               fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,rp_val[o])
               for n in range(0,n_cad):
                 fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[m][n]/n_cad
@@ -304,8 +304,8 @@ def plot_all_transits():
           #fd_reb is the modeled light cuve
           #res_res are the residuals
           n = xvec[len(xvec)-1] - xt[i][0][0]
-          n = int(n/p_val[i])
-          fancy_tr_plot(t0_val[i]+p_val[i]*n,xvec,yflux_local,et[i][j],xvec_model,xvec,fd_ub_res_total,res_res,fname)
+          n = int(n/P_val[i])
+          fancy_tr_plot(t0_val[i]+P_val[i]*n,xvec,yflux_local,et[i][j],xvec_model,xvec,fd_ub_res_total,res_res,fname)
 
 
 #===========================================================
