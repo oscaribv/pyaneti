@@ -19,10 +19,11 @@ params = list(dparams)
 params_jitter = [0.0]*2
 new_nwalkers = nwalkers
 #The maximum log(likelihood)
-maxloglike = dparams[1]
+dmaxloglike = dparams[1]
 if ( is_clustering ):
   #Starting clustering
   good_index, new_nwalkers = good_clustering_fast(dparams[2]+dparams[3],nconv,nwalkers)
+  maxloglike = clustering_fast(dmaxloglike,good_index,nconv)
   for o in range(0,len(dparams)):
     params[o] = clustering_fast(dparams[o],good_index,nconv)
 

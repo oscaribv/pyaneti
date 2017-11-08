@@ -648,7 +648,10 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     plt.xlabel(plabs[i])
     plt.tick_params( axis='y',which='both',direction='in')
     plt.tick_params( axis='x',which='both',direction='in')
-    plt.hist(params[i],normed=True,bins=nb)
+    if ( is_seaborn_plot ):
+      sns.kdeplot(params[i], shade=True)
+    else:
+      plt.hist(params[i],normed=True,bins=nb)
     j = j + 1
 
   fname = outdir+'/'+star+'_posterior.pdf'
