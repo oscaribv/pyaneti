@@ -18,6 +18,8 @@ params = list(dparams)
 #par_likelihood = list(ldparams[2])
 params_jitter = [0.0]*2
 new_nwalkers = nwalkers
+#The maximum log(likelihood)
+maxloglike = dparams[1]
 if ( is_clustering ):
   #Starting clustering
   good_index, new_nwalkers = good_clustering_fast(dparams[2]+dparams[3],nconv,nwalkers)
@@ -84,7 +86,7 @@ if ( is_jitter_tr ):
 
 dummy_pars = [0.0]*len(params)
 for o in range(0,len(params)):
-    dummy_pars[o] = best_value(params[o],get_value)
+    dummy_pars[o] = best_value(params[o],maxloglike,get_value)
 
 fit_pars = dummy_pars[4:4+8*nplanets]
 ldc_pars = dummy_pars[4+8*nplanets:6+8*nplanets]
@@ -95,12 +97,12 @@ fit_jtr = 0.0
 
 if ( is_jitter_rv or is_jitter_tr ) :
   for o in range(0,n_jrv):
-    fit_jrv[o] = best_value(params_jitter[o],get_value)
-  fit_jtr = best_value(params_jitter[n_jrv],get_value)
+    fit_jrv[o] = best_value(params_jitter[o],maxloglike,get_value)
+  fit_jtr = best_value(params_jitter[n_jrv],maxloglike,get_value)
 
 fit_trends = [0.0]*2
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
- fit_trends = [best_value(params_trends[0],get_value),best_value(params_trends[1],get_value)]
+ fit_trends = [best_value(params_trends[0],maxloglike,get_value),best_value(params_trends[1],maxloglike,get_value)]
 
 #Calculate the final chi2 for each case
 chi2tot_val_rv, chi2tot_val_tr = \
@@ -492,7 +494,7 @@ otex.write('\n')
 
 #RESIZE TRANSIT ERROR BARS
 if ( is_jitter_tr and resize_tr ):
-  jit_tr = best_value(params_jitter[n_jrv],get_value)
+  jit_tr = best_value(params_jitter[n_jrv],maxloglike,get_value)
   for o in range(0,len(et)):
       for m in range(0,len(et[o])):
               et[o][m] = np.sqrt(et[o][m]**2 + jit_tr**2)
@@ -507,7 +509,7 @@ if ( total_rv_fit ):
 
 if ( is_jitter_rv and resize_rv ):
     for j in range(0,n_jrv):
-      jit_rv = best_value(params_jitter[j],get_value)
+      jit_rv = best_value(params_jitter[j],maxloglike,get_value)
       for o in range(0,len(errs_all[j])):
 #          errs_all[j][o] = np.sqrt(errs_all[j][o]**2 + jit_rv**2)
           new_errs_all[j][o] = 1.e3*np.sqrt(errs_all[j][o]**2 + jit_rv**2)

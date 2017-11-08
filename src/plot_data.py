@@ -114,7 +114,7 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
 #       TRANSIT PARAMERS TO BE USED TO GENERATE PLOTS
 #-----------------------------------------------------------------
 
-ldc = [ best_value(params[4+8*nplanets],get_value), best_value(params[5+8*nplanets],get_value) ]
+ldc = [ best_value(params[4+8*nplanets],maxloglike,get_value), best_value(params[5+8*nplanets],maxloglike,get_value) ]
 q1_val = ldc[0]
 q2_val = ldc[1]
 u1_val = np.sqrt(q1_val)
@@ -134,13 +134,13 @@ rp_val = [None]*nplanets
 
 base = 4
 for m in range(0,nplanets):
-  t0_val[m] = best_value(params[base + 0],get_value)
-  P_val[m]  = best_value(params[base + 1],get_value)
-  e_val[m]  = best_value(params[base + 2],get_value)
-  w_val[m]  = best_value(params[base + 3],get_value)
-  i_val[m]  = best_value(params[base + 4],get_value)
-  a_val[m]  = best_value(params[base + 5],get_value)
-  rp_val[m] = best_value(params[base + 6],get_value)
+  t0_val[m] = best_value(params[base + 0],maxloglike,get_value)
+  P_val[m]  = best_value(params[base + 1],maxloglike,get_value)
+  e_val[m]  = best_value(params[base + 2],maxloglike,get_value)
+  w_val[m]  = best_value(params[base + 3],maxloglike,get_value)
+  i_val[m]  = best_value(params[base + 4],maxloglike,get_value)
+  a_val[m]  = best_value(params[base + 5],maxloglike,get_value)
+  rp_val[m] = best_value(params[base + 6],maxloglike,get_value)
   base = base + 8
 
   #Check flags
@@ -420,7 +420,7 @@ v_val = [None]*nt
 #3 + npars + ldc
 v_vec_val[:] = params[4+8*nplanets+2:4+8*nplanets+2+nt]
 for o in range(0,nt):
-  v_val[o] = best_value(v_vec_val[o],get_value)
+  v_val[o] = best_value(v_vec_val[o],maxloglike,get_value)
   if ( is_log_rv0 ):
     v_val[o] = 10.0**(v_val[o])
 
@@ -428,8 +428,8 @@ for o in range(0,nt):
 alpha_val = 0.0
 beta_val = 0.0
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
-  alpha_val = best_value(params_trends[0],get_value)
-  beta_val  = best_value(params_trends[1],get_value)
+  alpha_val = best_value(params_trends[0],maxloglike,get_value)
+  beta_val  = best_value(params_trends[1],maxloglike,get_value)
 
 
 base = 4
@@ -440,11 +440,11 @@ w_val  = np.ndarray(nplanets)
 k_val  = np.ndarray(nplanets)
 
 for o in range(0,nplanets):
-  t0_val[o] = best_value(params[base + 0],get_value)
-  P_val[o]  = best_value(params[base + 1],get_value)
-  e_val[o]  = best_value(params[base + 2],get_value)
-  w_val[o]  = best_value(params[base + 3],get_value)
-  k_val[o]  = best_value(params[base + 7],get_value)
+  t0_val[o] = best_value(params[base + 0],maxloglike,get_value)
+  P_val[o]  = best_value(params[base + 1],maxloglike,get_value)
+  e_val[o]  = best_value(params[base + 2],maxloglike,get_value)
+  w_val[o]  = best_value(params[base + 3],maxloglike,get_value)
+  k_val[o]  = best_value(params[base + 7],maxloglike,get_value)
   if ( is_log_P ):
     P_val[o] = 10.0**(P_val[o])
   if ( is_log_k ):
@@ -514,7 +514,7 @@ if ( nplanets > 0 ):
       #
       plt.errorbar(time_all[j],rv_dum[j],errs_datas[j],color=rv_colors[j],\
       label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=rv_markersize)
-    plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=False,fontsize=fos*0.8)
+    plt.legend(loc=2, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.8)
     fname = outdir+'/'+star+'_rv_all.pdf'
     print 'Creating ', fname
     plt.savefig(fname,format='pdf',bbox_inches='tight')

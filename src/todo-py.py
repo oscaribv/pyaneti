@@ -212,9 +212,9 @@ def smart_priors():
 def create_transit_data(time,flux,errs,planet=0,span=0.0):
   global trt_vec, P_vec, T0_vec #vector with the transit durations calculated in print_values.py
 
-  P  = best_value(P_vec[planet],get_value)
-  T0 = best_value(T0_vec[planet],get_value)
-  tt = best_value(trt_vec[planet],get_value)
+  P  = best_value(P_vec[planet],maxloglike,get_value)
+  T0 = best_value(T0_vec[planet],maxloglike,get_value)
+  tt = best_value(trt_vec[planet],maxloglike,get_value)
   tt = tt/24.0
 
 
@@ -380,11 +380,14 @@ def find_vals_perc(x,sf=1.0,prob=68.3):
 
 
 #-----------------------------------------------------------
-def best_value(vector,cual):
+def best_value(vector,loglike,cual):
     if ( cual == 'median'):
         result = np.median(vector)
     elif( cual == 'mode' ):
         result = my_mode(vector)
+    elif( cual == 'maxlike' ):
+        maxindex = np.argmax(loglike)
+        result = vector[maxindex]
 
     return result
 
