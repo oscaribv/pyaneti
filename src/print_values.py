@@ -20,6 +20,7 @@ params_jitter = [0.0]*2
 new_nwalkers = nwalkers
 #The maximum log(likelihood)
 dmaxloglike = dparams[1]
+maxloglike = dmaxloglike
 if ( is_clustering ):
   #Starting clustering
   good_index, new_nwalkers = good_clustering_fast(dparams[2]+dparams[3],nconv,nwalkers)

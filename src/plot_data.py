@@ -85,26 +85,28 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   ax0 = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos,direction='in')
   if ( plot_tr_errorbars ):
-    plt.errorbar((xmodel_res-local_T0)*tfc,res_res,errors,color=tr_colors,fmt='.',alpha=1.0)
+    plt.errorbar((xmodel_res-local_T0)*tfc,res_res*1e6,errors,color=tr_colors,fmt='.',alpha=1.0)
   else:
-    plt.plot((xmodel_res-local_T0)*tfc,res_res,'o',color=tr_colors,ms=8,alpha=0.8)
+    plt.plot((xmodel_res-local_T0)*tfc,res_res*1e6,'o',color=tr_colors,ms=8,alpha=0.8)
   plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
-#  yylims = ax0.get_ylim()
-#  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/4.))
-#  plt.xticks( np.arange(int(x_lim),int(-x_lim)+1,step_plot))
   plt.xticks( np.arange(-mxv,mxv+step_plot,step_plot))
   plt.xlim(x_lim,-x_lim)
   yylims = ax0.get_ylim()
   miy = (max(abs(yylims[0]),abs(yylims[1])))
   plt.yticks(np.arange(-miy,miy,miy/2.))
-  plt.ylim(-miy,miy)
+  plt.ylim(-miy,miy*1.25)
+  #Calcualte the rms
+  trsigma = np.std(res_res*1e6,ddof=1)
+  trsstr = ('%4.0f ppm'%(trsigma))
+  y0,yyyy = ax0.get_ylim()
+  plt.annotate('$\sigma = $'+trsstr,xy=(x_lim*(0.80),y0 + 1.8*miy),fontsize=fos*0.7)
 #  if ( select_y_tr ):
 #    plt.ylim( - ( y_lim_max - 1.0),y_lim_max - 1.0 )
   #Plot the residuals
   plt.minorticks_on()
   plt.tick_params( axis='x',which='both',direction='in')
   plt.tick_params( axis='y',which='both',direction='in')
-  plt.ylabel('Residuals',fontsize=fos*0.75)
+  plt.ylabel('Residuals (ppm)',fontsize=fos*0.75)
   plt.xlabel("T - T0 (hours)",fontsize=fos)
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight',dpi=300)
@@ -313,7 +315,7 @@ def plot_all_transits():
 #  This function cleans the light curve with a N-sigma aogorithm
 #===========================================================
 
-def clean_transits(sigma=5):
+def clean_transits(sigma=10):
 
 
 
