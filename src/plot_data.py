@@ -731,9 +731,14 @@ def plot_correlations():
 def create_corner_plot():
   import corner
   labs = []
+  elab = '$e$'
+  wlab = '$\omega$'
+  if ( is_ew ):
+      elab = '$\sqrt{e} \sin \omega$'
+      wlab = '$\sqrt{e} \cos \omega$'
   for o in range(0,nplanets):
-    etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \
-                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_\star$'+plabels[o], \
+    etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],elab+plabels[o], \
+                 wlab+plabels[o],'$b$'+plabels[o],'$a/R_\star$'+plabels[o], \
                  '$R_{\mathrm{p}}/R_\star$'+plabels[o],'$k$'+plabels[o]]
     labs.append(etiquetas)
   labs.append(['$q_1$','$q_2$'])

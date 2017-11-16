@@ -47,15 +47,15 @@ implicit none
   ws  = w       !star periastron
   wp  = ws + pi !planet periastron
   if (flag(3)) a = 10.d0**a
-  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(wp) ) / ( 1.d0 - e*e ) )
+  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(ws) ) / ( 1.d0 - e*e ) )
 
   !Obtain the true anomaly by using find_anomaly
   call find_anomaly(t,t0,e,ws,P,ta,ts)
 
-  swt = sin(wp+ta)
+  swt = sin(ws+ta)
   si = sin(i)
 
-  where (swt < 0.0 ) !We have the planet in front of the star -> transit
+  where (swt > 0.0 ) !We have the planet in front of the star -> transit
   !z has been calculated
     z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
         / ( 1.d0 + e * cos(ta) )

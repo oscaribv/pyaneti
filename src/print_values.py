@@ -245,13 +245,13 @@ if ( method == 'mcmc' or method == 'plot' ):
     if ( is_b_factor ):
       i_vec[o] = list(b_vec[o])
       i_vec[o] = np.arccos( b_vec[o] / ar_vec[o] * \
-              ( 1.0 + e_vec[o] * np.sin(w_vec[o] + np.pi) / ( 1.0 - e_vec[o]**2 ) ) )
+              ( 1.0 + e_vec[o] * np.sin(w_vec[o] ) / ( 1.0 - e_vec[o]**2 ) ) )
     else:
       #calculate the impact parameter (eq. 7 Winn 2014)
       #wo is the star periastron, add pi to have the planet one
       i_vec[o] = list(b_vec[o])
       b_vec[o] =  ar_vec[o] * np.cos(b_vec[o]) * ( ( 1. - e_vec[o]**2 ) \
-               / ( 1.0 + e_vec[o]*np.sin(w_vec[o] + np.pi )))
+               / ( 1.0 + e_vec[o]*np.sin(w_vec[o] )))
       i_vec[o] = np.array(i_vec[o])
 
 
