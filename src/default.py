@@ -143,11 +143,11 @@ is_linear_trend = 'f'
 is_quadratic_trend = 'f'
 
 #flags
-is_log_P     = False
-is_ew        = True
-is_b_factor  = True
-is_log_a     = False
-is_log_k     = False
+is_log_P     = False #Allows sampling for the log10 of the period
+is_ew        = True  #allows sampling for sqrt(e)sinw and sqrt(e)cosw
+is_b_factor  = True  #allows sampling for b instead of i
+is_den_a     = False #allows sampling for stellar density instead of a
+is_log_k     = False #allows sampling for log of K
 is_log_rv0   = False
 
 #Default priors rages (wide)

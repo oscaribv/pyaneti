@@ -147,7 +147,7 @@ for m in range(0,nplanets):
   base = base + 8
 
 
-  if ( is_log_a ):
+  if ( is_den_a ):
     a_val[m] = (a_val[m]*P_val[m]*P_val[m]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
 
   #Check flags

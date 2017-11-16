@@ -586,7 +586,7 @@ def joint_fit():
   #Let us check what do we want to fit
   total_fit_flag = [ total_rv_fit, total_tr_fit ]
 
-  flags = [is_log_P,is_ew,is_b_factor,is_log_a,is_log_k,is_log_rv0]
+  flags = [is_log_P,is_ew,is_b_factor,is_den_a,is_log_k,is_log_rv0]
 
   if ( method == 'mcmc' ):
 
