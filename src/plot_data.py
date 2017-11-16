@@ -96,10 +96,11 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,fd_reb,res_res,fna
   plt.yticks(np.arange(-miy,miy,miy/2.))
   plt.ylim(-miy,miy*1.25)
   #Calcualte the rms
-  trsigma = np.std(res_res*1e6,ddof=1)
-  trsstr = ('%4.0f ppm'%(trsigma))
-  y0,yyyy = ax0.get_ylim()
-  plt.annotate('$\sigma = $'+trsstr,xy=(x_lim*(0.80),y0 + 1.8*miy),fontsize=fos*0.7)
+  if ( is_plot_std_tr ):
+    trsigma = np.std(res_res*1e6,ddof=1)
+    trsstr = ('%4.0f ppm'%(trsigma))
+    y0,yyyy = ax0.get_ylim()
+    plt.annotate('$\sigma = $'+trsstr,xy=(x_lim*(0.80),y0 + 1.8*miy),fontsize=fos*0.7)
 #  if ( select_y_tr ):
 #    plt.ylim( - ( y_lim_max - 1.0),y_lim_max - 1.0 )
   #Plot the residuals

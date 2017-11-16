@@ -86,6 +86,7 @@ plot_parameters = []
 is_seaborn_plot = False
 seaborn_palette = 'deep'
 plot_tr_errorbars = False
+is_plot_std_tr = False
 rv_markersize  = 8
 rv_fillstyle = 'full'
 outdir = 'outpy/'
