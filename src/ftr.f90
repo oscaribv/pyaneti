@@ -221,6 +221,7 @@ implicit none
   double precision :: u1, u2, q1k, q2k
   double precision, dimension (0:1) :: up_ldc
   double precision :: pi = 3.1415926535897932384626d0
+  double precision :: G = 6.67508d-11*1.d3 !Gravitational constant
   logical :: is_good
   integer :: n
 !External function
@@ -240,7 +241,7 @@ implicit none
     w = atan2(pars(2,:),pars(3,:))
   end if
   wp(:) = w(:) + pi
-  if (flag(3)) a = 10.d0**a
+  if (flag(3)) a(:) = (G*a*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
   if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(wp) ) / ( 1.d0 - e*e ) )
 
   do n = 0, npl - 1

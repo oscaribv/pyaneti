@@ -146,6 +146,10 @@ for m in range(0,nplanets):
   rp_val[m] = best_value(params[base + 6],maxloglike,get_value)
   base = base + 8
 
+
+  if ( is_log_a ):
+    a_val[m] = (a_val[m]*P_val[m]*P_val[m]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
+
   #Check flags
   #Change between b and i
   if ( is_b_factor ):
