@@ -107,42 +107,21 @@ if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
  fit_trends = [best_value(params_trends[0],maxloglike,get_value),best_value(params_trends[1],maxloglike,get_value)]
 
 #Calculate the final chi2 for each case
-chi2tot_val_rv, chi2tot_val_tr = \
-  pti.get_total_chi2(mega_time,mega_rv,megax,megay,mega_err,megae,\
-                     tlab,jrvlab,total_fit_flag,flags,t_cad, n_cad, \
+log_like_rv, chi2tot_val_rv, dummy = \
+  pti.get_loglike(mega_time,mega_rv,megax,megay,mega_err,megae,\
+                     tlab,jrvlab,[True,False],flags,t_cad, n_cad, \
                      fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr \
                      )
 
-#Calculate likelihoods
-likelihood_rv = np.float64(1.0)
-log_like_rv = 0.0
-if ( total_rv_fit ):
-  for o in range(0,len(mega_err)):
-    likelihood_rv = likelihood_rv / np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv[tlab[o]]**2))
-    log_like_rv = log_like_rv + np.log(1.0/np.sqrt(2.*np.pi*( mega_err[o]**2+fit_jrv[tlab[o]]**2)))
-    #likelihood_rv = likelihood_rv * np.sqrt(( mega_err[o]**2+fit_jrv**2))
-    #print likelihood_rv
-  likelihood_rv = likelihood_rv * np.exp(-chi2tot_val_rv/2.0)
-  log_like_rv = log_like_rv - 0.5 * chi2tot_val_rv
+log_like_tr, dummy, chi2tot_val_tr = \
+  pti.get_loglike(mega_time,mega_rv,megax,megay,mega_err,megae,\
+                     tlab,jrvlab,[False,True],flags,t_cad, n_cad, \
+                     fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr \
+                     )
 
-likelihood_tr = np.float64(1.0)
-log_like_tr = 0.0
-if ( total_tr_fit ):
-  for o in range(0,len(megae)):
-    likelihood_tr = likelihood_tr / np.sqrt(2.*np.pi*( megae[o]**2+fit_jtr**2))
-    log_like_tr = log_like_tr + np.log(1./np.sqrt(2.*np.pi*( megae[o]**2+fit_jtr**2)))
-    #likelihood_tr = likelihood_tr * np.sqrt(( megae[o]**2+fit_jtr**2))
-  likelihood_tr = likelihood_tr * np.exp(-chi2tot_val_tr/2.0)
-  log_like_tr = log_like_tr - 0.5 * chi2tot_val_tr
-
-likelihood_total = likelihood_rv * likelihood_tr
 log_like_total = log_like_rv + log_like_tr
 
-
-bic_from_likelihood = np.log(ndata)*npars - 2.0*np.log(likelihood_total)
 bic_from_loglikelihood = np.log(ndata)*npars - 2.0*log_like_total
-
-aic_from_likelihood = 2.0*npars - 2.0*np.log(likelihood_total)
 aic_from_loglikelihood = 2.0*npars - 2.0*log_like_total
 
 chi2tot_val  = chi2tot_val_rv + chi2tot_val_tr

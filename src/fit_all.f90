@@ -17,9 +17,9 @@ implicit none
   double precision, intent(in) :: jtr
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
-  double precision, intent(out) :: loglike
+  double precision, intent(out) :: loglike, chi2_rv, chi2_tr
 !Local variables
-  double precision :: chi2_rv, chi2_tr, chi2_total
+  double precision :: chi2_total
   double precision :: log_errs
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   integer :: m
