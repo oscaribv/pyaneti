@@ -1,3 +1,55 @@
+subroutine get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
+           tlab,jrvlab,tff,flags,&
+           t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr, &
+           loglike,chi2_rv,chi2_tr,npl,n_tel,n_jrv,size_rv,size_tr)
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: size_rv, size_tr, npl, n_tel,n_jrv,n_cad !size of RV and LC data
+  double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
+  double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
+  integer, intent(in), dimension(0:size_rv-1) :: tlab, jrvlab
+!pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
+  double precision, intent(in) :: pars(0:8*npl-1), rvs(0:n_tel-1), ldc(0:1)
+  double precision, intent(in) :: t_cad
+  double precision, intent(in) :: trends(0:1)
+  double precision, dimension(0:n_jrv-1), intent(in) :: jrv
+  double precision, intent(in) :: jtr
+  logical, intent(in) :: flags(0:5)
+  logical, intent(in) :: tff(0:1) !total_fit_flag
+  double precision, intent(out) :: loglike
+!Local variables
+  double precision :: chi2_rv, chi2_tr, chi2_total
+  double precision :: log_errs
+  double precision :: two_pi = 2.d0*3.1415926535897932384626d0
+  integer :: m
+  external:: get_total_chi2
+
+  !Calcualte the chi2
+  call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
+           tlab,jrvlab,tff,flags,&
+           t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr, &
+           chi2_rv,chi2_tr,npl,n_tel,n_jrv,size_rv,size_tr)
+
+  chi2_total = chi2_rv + chi2_tr
+
+  !Calculate the normalization term
+    log_errs = 0.0
+    if ( tff(0) ) then
+      do m = 0, size_rv - 1
+        log_errs = log_errs + &
+        log( 1.0d0/sqrt( two_pi * ( e_rv(m)**2 + jrv(jrvlab(m))**2 ) ) )
+      end do
+    end if
+    if ( tff(1) ) &
+    log_errs = log_errs + &
+    sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jtr**2 ) ) ) )
+
+    loglike = log_errs - 0.5d0 * chi2_total
+
+end subroutine
+
+
 subroutine get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
            tlab,jrvlab,tff,flags,&
            t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr, &
@@ -103,13 +155,11 @@ implicit none
   double precision, dimension(0:3) :: lims_trends
   double precision, dimension(0:nwalks-1) :: log_prior_old, log_prior_new
   double precision, dimension(0:nwalks-1) :: log_likelihood_old, log_likelihood_new
-  double precision, dimension(0:nwalks-1) :: log_errs_old, log_errs_new
   integer, dimension(0:nwalks/2-1) :: r_int
   double precision  :: a_factor, dof, tds, qq
   double precision  :: lims_e_dynamic(0:1,0:npl-1)
   double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
   double precision  :: a_mean(0:npl-1), a_sigma(0:npl-1)
-  double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   double precision :: limit_prior
   logical :: continua, is_limit_good, is_cvg
   integer :: nk, j, n, m, o, n_burn, spar, spar1, iensemble, inverted(0:1)
@@ -178,20 +228,6 @@ implicit none
     end do
   end if
 
-  log_errs_new = 0.0d0
-  log_errs_old = 0.0d0
-  do nk = 0, nwalks - 1
-    if ( total_fit_flag(0) ) then
-      do m = 0, size_rv - 1
-        log_errs_old(nk) = log_errs_old(nk) + &
-        log( 1.0d0/sqrt( two_pi * ( e_rv(m)**2 + jitter_rv_old(nk,jrvlab(m))**2 ) ) )
-      end do
-    end if
-    if ( total_fit_flag(1) ) &
-    log_errs_old(nk) = log_errs_old(nk) + &
-    sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_old(nk)**2 ) ) ) )
-  end do
-
   !Linear and quadratic terms
   lims_trends(:) = 0.0d0
   tds = 0.0d0
@@ -255,14 +291,13 @@ implicit none
 
       log_prior_old(nk) = sum( log(priors_old(nk,:) ) + sum( log(priors_ldc_old(nk,:) ) ) )
 
-      call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,jrvlab, &
+      call get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,jrvlab, &
            total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
            ldc_old(nk,:),tds_old(nk,:),jitter_rv_old(nk,:),jitter_tr_old(nk),&
-           chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,n_jrv,size_rv,size_tr)
+           log_likelihood_old(nk),chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,n_jrv,size_rv,size_tr)
 
       chi2_old_total(nk) = chi2_old_rv(nk) + chi2_old_tr(nk)
-
-      log_likelihood_old(nk) = log_prior_old(nk) + log_errs_old(nk) - 0.5d0 * chi2_old_total(nk)
+      log_likelihood_old(nk) = log_prior_old(nk) + log_likelihood_old(nk)
 
   end do
 
@@ -365,31 +400,20 @@ implicit none
 
       if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
 
-        call get_total_chi2(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,jrvlab,       &
-             total_fit_flag,flags, t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:),  &
-             ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk,:),jitter_tr_new(nk), &
-             chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,n_jrv,size_rv,size_tr)
+      call get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,jrvlab, &
+           total_fit_flag,flags,t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
+           ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk,:),jitter_tr_new(nk),&
+           log_likelihood_new(nk),chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,n_jrv,size_rv,size_tr)
 
-        chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
+      chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
+      log_likelihood_new(nk) = log_prior_new(nk) + log_likelihood_new(nk)
 
       end if
-
-      !ADD JITTER TERMS
-      log_errs_new(nk) = 0.0d0
-      if ( total_fit_flag(0) ) then
-        do m = 0, size_rv - 1
-          log_errs_new(nk) = log_errs_new(nk) + &
-          log( 1.0d0/sqrt( two_pi * ( e_rv(m)**2 + jitter_rv_new(nk,jrvlab(m))**2 ) ) )
-        end do
-      end if
-      if ( total_fit_flag(1) ) &
-         log_errs_new(nk) = log_errs_new(nk) + &
-         sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jitter_tr_new(nk)**2 ) ) ) )
 
       log_prior_new(nk) = sum( log(priors_new(nk,:) ) ) + &
                           sum( log(priors_ldc_new(nk,:) ) )
 
-      log_likelihood_new(nk) = log_prior_new(nk) + log_errs_new(nk) - 0.5d0 * chi2_new_total(nk)
+      log_likelihood_new(nk) = log_prior_new(nk) + log_likelihood_new(nk)
 
       qq = log_likelihood_new(nk) - log_likelihood_old(nk)
       !z^(pars-1) normalization factor needed to perform the stretch move

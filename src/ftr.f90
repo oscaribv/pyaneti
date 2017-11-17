@@ -72,7 +72,7 @@ end subroutine
 !  the star and planet centers. Eq. (5), ( z = r_sky) from
 !  Winn, 2010, Transit and Occultations.
 !------------------------------------------------------------
-subroutine find_z_tp(t,pars,flag,z,ts)
+subroutine find_z_tp(t,pars,z,ts)
 implicit none
 
 !In/Out variables
@@ -80,7 +80,6 @@ implicit none
   double precision, intent(in), dimension(0:ts-1) :: t
   double precision, intent(in), dimension(0:5) :: pars
   double precision, intent(out), dimension(0:ts-1) :: z
-  logical, intent(in), dimension(0:3) :: flag
 !Local variables
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: tp, P, e, w, i, a
@@ -164,7 +163,7 @@ implicit none
     do n = 0, npl - 1
 
       !Each z is independent for each planet
-      call find_z_tp(xd_ub,pars(0:5,n),flag,z,n_cad)
+      call find_z_tp(xd_ub,pars(0:5,n),z,n_cad)
 
       if ( ALL( z > 1.d0 + rp(n) ) .or. rp(n) < small ) then
 

@@ -145,15 +145,8 @@ bic_from_loglikelihood = np.log(ndata)*npars - 2.0*log_like_total
 aic_from_likelihood = 2.0*npars - 2.0*np.log(likelihood_total)
 aic_from_loglikelihood = 2.0*npars - 2.0*log_like_total
 
-#print np.log(likelihood_rv), log_like_rv
-#print np.log(likelihood_tr), log_like_tr
-#print np.log(likelihood_total),log_like_total
-#print bic_from_likelihood, bic_from_loglikelihood
-
-
 chi2tot_val  = chi2tot_val_rv + chi2tot_val_tr
 chi2_val = chi2tot_val / ( ndata - npars )
-#bic2 = get_BIC(chi2tot_val)
 
 if ( scale_error_bars ):
   s_factor = np.sqrt( chi2_val )
@@ -241,12 +234,9 @@ if ( method == 'mcmc' or method == 'plot' ):
 
 #STARTING CALCULATIONS
 
-
-
     if ( is_log_P ):
       P_vec[o] = 10.0**(P_vec[o])
     if ( is_den_a ):
-#      ar_vec[o] = (ar_vec[o]*P_vec[o]*P_vec[o]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
       ar_vec[o] = ar_vec[o]*(P_vec[o]*P_vec[o]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
       if ( o > 0 ):
         ar_vec[o] = (P_vec[o]/P_vec[0])**(2./3.)*ar_vec[0]
@@ -346,7 +336,10 @@ if ( method == 'mcmc' or method == 'plot' ):
     opars.write ('--------------------------------------------------------------\n')
     opars.write ('                   Parameters %s\n' %( star +' '+ plabels[o]))
     opars.write ('-------------------------Fitted-------------------------------\n')
-    opars.write ('T0   = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(T0_vec[o],s_factor)))
+    print_values(opars,T0_vec[o],'T0','days','median')
+    if is_print_mode : print_values(opars,T0_vec[o],'T0','days','mode')
+    print_values(opars,P_vec[o],'P','days','median')
+    if is_print_mode : print_values(opars,P_vec[o],'P','days','mode')
     if is_print_mode :  opars.write ('       %4.7f , %4.7f , %4.7f  days \n'%(mode_and_99(T0_vec[o])))
     opars.write ('P    = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(P_vec[o],s_factor)))
     if is_print_mode :  opars.write ('       %4.7f , %4.7f , %4.7f  days \n'%(mode_and_99(P_vec[o])))
@@ -394,12 +387,6 @@ if ( method == 'mcmc' or method == 'plot' ):
     if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  cm/s^w\n'%(mode_and_99(pgra_vec)))
     opars.write ('Tperi= %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(Tpe_vec[o],s_factor)))
     if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  days \n'%(mode_and_99(Tpe_vec[o])))
-#    opars.write ('a(T0)= %4.7f - %4.7f + %4.7f    (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec,s_factor)))
-#    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f   \n'%(mode_and_99(psd_vec)))
-#    opars.write ('r(T0)= %4.7f - %4.7f + %4.7f  AU (Planet-star distance at T0) \n'%(find_vals_perc(psd_vec_units,s_factor)))
-#    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  AU \n'%(mode_and_99(psd_vec_units)))
-#    opars.write ('P2/a3= %4.7f - %4.7f + %4.7f     (P^2 G (m1 + m2) ) / ( 4 pi^2 a^3)  \n'%(find_vals_perc(pa_vec,s_factor)))
-#    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f   \n'%(mode_and_99(pa_vec)))
     opars.write ('Teq  = %4.7f - %4.7f + %4.7f  K (albedo=0)   \n'%(find_vals_perc(Teq_vec[o],s_factor)))
     if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  K \n'%(mode_and_99(Teq_vec[o])))
     opars.write ('T_tot= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(trt_vec[o],s_factor)))
