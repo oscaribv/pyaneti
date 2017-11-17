@@ -299,10 +299,8 @@ if ( method == 'mcmc' or method == 'plot' ):
 
     #Stellar luminosity in solar units
     Ls = (rstar)**2*(tstar/S_Teff)**4
-
     #planet insolation in Flux received at Earth
     Fp = Ls/a_vec[o]**2
-
 
     #Convert units
     usymbol = '{\odot}'
@@ -378,49 +376,24 @@ for o in range(0,nt):
   rv_vec[o] = params[base+2+o]
 
 opars.write ('--------------------  Other parameters -----------------------\n')
-opars.write ('q1    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(q1_vec,s_factor)))
-if is_print_mode : opars.write ('        %4.7f , %4.7f , %4.7f    \n'%(mode_and_99(q1_vec)))
-opars.write ('q2    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(q2_vec,s_factor)))
-if is_print_mode : opars.write ('        %4.7f , %4.7f , %4.7f    \n'%(mode_and_99(q2_vec)))
-opars.write ('u1    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(u1_vec,s_factor)))
-if is_print_mode : opars.write ('        %4.7f , %4.7f , %4.7f    \n'%(mode_and_99(u1_vec)))
-opars.write ('u2    = %4.7f - %4.7f + %4.7f    \n'%(find_vals_perc(u2_vec,s_factor)))
-if is_print_mode : opars.write ('        %4.7f , %4.7f , %4.7f    \n'%(mode_and_99(u2_vec)))
+print_values(q1_vec,'q1','qone','','')
+print_values(q2_vec,'q2','qtwo','','')
+print_values(u1_vec,'u1','uone','','')
+print_values(u2_vec,'u2','utwo','','')
 for o in range(0,nt):
-  v_val, v_val_r, v_val_l = find_vals_perc(rv_vec[o],s_factor)
-  opars.write ('%s = %4.7f - %4.7f + %4.7f km/s\n'%(telescopes_labels[o],v_val,v_val_r,v_val_l))
-  if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f    \n'%(mode_and_99(rv_vec[o])))
+  print_values(rv_vec[o],'Sys. vel. '+telescopes_labels[o],telescopes_labels[o],'m/s','${\\rm m\,s^{-1}$')
 opars.write ('--------------------------------------------------------------\n')
+
 if ( is_jitter_rv or is_jitter_tr ):
   for o in range(0,n_jrv):
-    opars.write ('RV jitter = %4.7f - %4.7f + %4.7f m/s    \n'%(find_vals_perc(params_jitter[o]*1.e3,s_factor)))
-    if is_print_mode : opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[o]*1e3)))
-  opars.write ('TR jitter = %4.7f - %4.7f + %4.7f [flux] \n'%(find_vals_perc(params_jitter[n_jrv],s_factor)))
-  if is_print_mode : opars.write ('            %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_jitter[n_jrv])))
+    print_values(params_jitter[o]*1.e3,telescopes_labels[o]+' jitter','j'+telescopes_labels[o],'m/s','${\\rm m\,s^{-1}$')
+  print_values[params_jitter[n_jrv],'tr jitter','jtr','','']
   opars.write ('--------------------------------------------------------------\n')
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
-  opars.write ('linear trend    = %4.7f - %4.7f + %4.7f  m/s/days   \n'%(find_vals_perc(params_trends[0]*1.e3,s_factor)))
-  if is_print_mode : opars.write ('                  %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_trends[0]*1e3)))
-  opars.write ('quadratic trend = %4.7f - %4.7f + %4.7f  m/s/days^2 \n'%(find_vals_perc(params_trends[1]*1.e3,s_factor)))
-  if is_print_mode : opars.write ('                  %4.7f , %4.7f , %4.7f        \n'%(mode_and_99(params_trends[1]*1e3)))
+  print_values(params_trends[0]*1.e3,'linear trend','ltrend','m/s/days','${\\rm m\,s^{-1}\,d^{-1}$')
+  print_values(params_trends[1]*1.e3,'quadratic trend','qtrend','m/s/days^2','${\\rm m\,s^{-1}\,d^{-2}$')
   opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
-#LaTeX
-#otex.write ('--------------------  Other parameters -----------------------\n')
-otex.write ('\\newcommand{\qone}[1][]{ $%4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(q1_vec,s_factor)))
-otex.write ('\\newcommand{\qtwo}[1][]{ $%4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(q2_vec,s_factor)))
-otex.write ('\\newcommand{\uone}[1][]{ $%4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(u1_vec,s_factor)))
-otex.write ('\\newcommand{\utwo}[1][]{ $%4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(u2_vec,s_factor)))
-for o in range(0,nt):
-  v_val, v_val_r, v_val_l = find_vals_perc(rv_vec[o],s_factor)
-  otex.write ('\\newcommand{\\vel%s}[1][$\mathrm{km\,s^{-1}}$]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}\n'%(star+telescopes_labels[o],v_val,v_val_r,v_val_l))
-#opars.write ('--------------------------------------------------------------\n')
-if ( is_jitter_rv or is_jitter_tr ):
-  for o in range(nt):
-    otex.write ('\\newcommand{\\rvjitter}[1][$\mathrm{m\,s^{-1}}$]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}    \n'%(find_vals_perc(params_jitter[o]*1.e3,s_factor)))
-  otex.write ('\\newcommand{\\trjitter}[1][]{ $ %4.7f_{ - %4.7f}^{ + %4.7f } $ #1}   \n'%(find_vals_perc(params_jitter[n_jrv],s_factor)))
-  #otex.write ('--------------------------------------------------------------\n')
-otex.write('\n')
 
 #RESIZE TRANSIT ERROR BARS
 if ( is_jitter_tr and resize_tr ):
@@ -436,12 +409,10 @@ if ( total_rv_fit ):
   for o in range(0,len(errs_all)):
     new_errs_all[o] = list(errs_all[o])
 
-
 if ( is_jitter_rv and resize_rv ):
     for j in range(0,n_jrv):
       jit_rv = best_value(params_jitter[j],maxloglike,get_value)
       for o in range(0,len(errs_all[j])):
-#          errs_all[j][o] = np.sqrt(errs_all[j][o]**2 + jit_rv**2)
           new_errs_all[j][o] = 1.e3*np.sqrt(errs_all[j][o]**2 + jit_rv**2)
 
 opars.close()
