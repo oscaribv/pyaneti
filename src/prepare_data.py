@@ -216,3 +216,7 @@ if ( not total_rv_fit ):
   telescopes = ['O']
   telescopes_labels = ['']
 
+if ( is_den_a ): #For a multiplanet system the density has to be the same
+  if ( nplanets > 1 ):
+    for o in range(1,nplanets):
+      fit_a[o] = 'f'

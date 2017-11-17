@@ -241,7 +241,7 @@ implicit none
     w = atan2(pars(2,:),pars(3,:))
   end if
   wp(:) = w(:) + pi
-  if (flag(3)) a(:) = (G*a*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
+  if (flag(3)) a(:) = (G*a(0)*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
   if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(wp) ) / ( 1.d0 - e*e ) )
 
   do n = 0, npl - 1
