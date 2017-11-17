@@ -148,7 +148,7 @@ for m in range(0,nplanets):
 
 
   if ( is_den_a ):
-    a_val[m] = (a_val[0]*P_val[m]*P_val[m]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
+    a_val[m] = a_val[0]*(P_val[m]*P_val[m]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
     if ( m > 0):
       a_val[m] = (P_val[m]/P_val[0])**(2./3.)*a_val[0]
 

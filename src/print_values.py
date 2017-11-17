@@ -246,7 +246,8 @@ if ( method == 'mcmc' or method == 'plot' ):
     if ( is_log_P ):
       P_vec[o] = 10.0**(P_vec[o])
     if ( is_den_a ):
-      ar_vec[o] = (ar_vec[o]*P_vec[o]*P_vec[o]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
+#      ar_vec[o] = (ar_vec[o]*P_vec[o]*P_vec[o]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
+      ar_vec[o] = ar_vec[o]*(P_vec[o]*P_vec[o]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
       if ( o > 0 ):
         ar_vec[o] = (P_vec[o]/P_vec[0])**(2./3.)*ar_vec[0]
     if ( is_log_k ):
