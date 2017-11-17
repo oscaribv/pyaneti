@@ -636,6 +636,38 @@ if ( nplanets > 0 ):
 #                   Histogram plots
 #===========================================================
 
+#Define the labels to be used in the plots
+
+labs = []
+elab = '$e$'
+wlab = '$\omega$'
+ilab = '$i$ (deg)'
+klab = '$K$'
+alab = '$a/R_\star$'
+if ( is_ew ):
+    elab = '$\sqrt{e} \sin \omega$'
+    wlab = '$\sqrt{e} \cos \omega$'
+if ( is_b_factor ):
+    ilab = 'b'
+if ( is_log_k ):
+    klab = '$\log_{10} K$'
+if ( is_den_a ):
+    alab = '$\\rho_{\star}^{-3}$'
+for o in range(0,nplanets):
+  etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],elab+plabels[o], \
+               wlab+plabels[o],ilab+plabels[o],alab+plabels[o], \
+               '$R_{\mathrm{p}}/R_\star$'+plabels[o],klab+plabels[o]]
+  labs.append(etiquetas)
+labs.append(['$q_1$','$q_2$'])
+labs.append(telescopes_labels)
+labels = np.concatenate(labs)
+
+def plot_correlations():
+  create_plot_correlation(params[4:],labels,col='blue',num=plot_parameters)
+
+def plot_posterior():
+    create_plot_posterior(params[4:],labels, cbars='red', nb=50, num=plot_parameters)
+
 def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
   if ( len(num) < 2 ):
     n = range(0,len(params))
@@ -668,21 +700,6 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
 
-def plot_posterior():
-    labs = []
-    for o in range(0,nplanets):
-      etiquetas = ['$T0$'+plabels[o]+' (days)','$P$'+plabels[o]+' (days)','$e$'+plabels[o], \
-                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_\star$'+plabels[o], \
-                 '$R_{\mathrm{p}}/R_\star$'+plabels[o],'$k$'+plabels[o]+' (kms$^{-1}$)']
-      labs.append(etiquetas)
-    labs.append(['$q_1$','$q_2$'])
-    labs.append(telescopes_labels)
-    labels = np.concatenate(labs)
-    create_plot_posterior(params[4:],labels, cbars='red', nb=50, num=plot_parameters)
-
-#===========================================================
-#                   Correlation plots
-#===========================================================
 
 def create_plot_correlation(params,plabs,col='red',mark='.',num=[]):
   if ( len(num) < 1 ):
@@ -722,35 +739,8 @@ def create_plot_correlation(params,plabs,col='red',mark='.',num=[]):
   plt.savefig(fname,format='pdf',bbox_inches='tight')
   plt.close()
 
-def plot_correlations():
-  labs = []
-  for o in range(0,nplanets):
-    etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],'$e$'+plabels[o], \
-                 '$\omega$'+plabels[o],'$b$'+plabels[o],'$a/R_\star$'+plabels[o], \
-                 '$R_{\mathrm{p}}/R_\star$'+plabels[o],'$k$'+plabels[o]]
-    labs.append(etiquetas)
-  labs.append(['$q_1$','$q_2$'])
-  labs.append(telescopes_labels)
-  labels = np.concatenate(labs)
-  create_plot_correlation(params[4:],labels,col='blue',num=plot_parameters)
-
-
 def create_corner_plot():
   import corner
-  labs = []
-  elab = '$e$'
-  wlab = '$\omega$'
-  if ( is_ew ):
-      elab = '$\sqrt{e} \sin \omega$'
-      wlab = '$\sqrt{e} \cos \omega$'
-  for o in range(0,nplanets):
-    etiquetas = ['$T0$'+plabels[o],'$P$'+plabels[o],elab+plabels[o], \
-                 wlab+plabels[o],'$b$'+plabels[o],'$a/R_\star$'+plabels[o], \
-                 '$R_{\mathrm{p}}/R_\star$'+plabels[o],'$k$'+plabels[o]]
-    labs.append(etiquetas)
-  labs.append(['$q_1$','$q_2$'])
-  labs.append(telescopes_labels)
-  labels = np.concatenate(labs)
 
   #update plot_parameters vector
   npp = list(plot_parameters)
@@ -771,7 +761,6 @@ def create_corner_plot():
       for m in range(0,len(npp)):
           dumvec.append(newpars[m][o])
       data[o] = dumvec
-
 
   figure = corner.corner(data, labels=newlabs, \
                        quantiles=[0.16, 0.5, 0.84], \
