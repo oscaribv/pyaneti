@@ -541,18 +541,19 @@ def clustering_fast(par,good_index,nconv):
   return cluster_par
 
 #-----------------------------------------------------------
-def print_values(fname,vector,var,unit,vals):
+def print_values(vector,var,vartex,unit,unittex):
 #fname is the variable where we are writting the numbers
 #vector is the posterior vectors
 #var is the label of the variable to save
 #unit is the label of the variable to save
 #vals do we want to print median or mode
-  if ( vals == 'median' ):
-    medv, minv, maxv = find_vals_perc(vector,s_factor)
-    fname.write('%8s = %4.7f - %4.7f + %4.7f %8s \n'%(var,medv,minv,maxv,unit))
-  if ( vals == 'mode' ):
+  medv, minv, maxv = find_vals_perc(vector,s_factor)
+  opars.write('%8s = %4.7f - %4.7f + %4.7f %8s \n'%(var,medv,minv,maxv,unit))
+  otex.write('\\newcommand{\\%s}[1][%s]{$%4.7f _{ - %4.7f } ^ { + %4.7f } $#1} \n' \
+              %(vartex,unittex,medv,minv,maxv))
+  if ( is_print_mode ):
     medv, minv, maxv = mode_and_99(vector)
-    fname.write('%8s = %4.7f , %4.7f , %4.7f %8s \n'%(var,medv,minv,maxv,unit))
+    opars.write('%8s = %4.7f , %4.7f , %4.7f %8s \n'%(var,medv,minv,maxv,unit))
 
 #-----------------------------------------------------------
 #         FIT JOINT RV-TRANSIT DATA

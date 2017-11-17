@@ -36,7 +36,6 @@ if ( is_jitter_rv or is_jitter_tr ):
     for o in range(0,n_jrv+1):
       params_jitter[o] = clustering_fast(dparams_jitter[o],good_index,nconv)
 
-
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   newfile_trends = outdir+'/'+star+'_trends_data.dat'
   dparams_trends = np.loadtxt(newfile_trends, comments='#',unpack=True)
@@ -294,6 +293,17 @@ if ( method == 'mcmc' or method == 'plot' ):
     pgra_vec = (P_vec[o]*24.*3600.) * (rr_vec[o]/ar_vec[o])**2 * np.sin(i_vec[o])
     pgra_vec = 2. * np.pi * np.sqrt(1. - e_vec[o]**2) * (k_vec[o]*1.e5) / pgra_vec #cm/s^2
 
+    #Estimate surface gravity from the derived parameters
+    pgra_vec2 = m_vec[o] / r_vec[o]**2 #in solar units
+    pgra_vec2 = pgra_vec2 * 28.02 * 981.
+
+    #Stellar luminosity in solar units
+    Ls = (rstar)**2*(tstar/S_Teff)**4
+
+    #planet insolation in Flux received at Earth
+    Fp = Ls/a_vec[o]**2
+
+
     #Convert units
     usymbol = '{\odot}'
     if ( unit_mass == 'earth'):
@@ -309,100 +319,48 @@ if ( method == 'mcmc' or method == 'plot' ):
       if ( fit_tr ):
         r_vec[o] = r_vec[o] * S_radius_SI / J_radius_e_SI
 
-
     #Print the parameters
     #Fitted parameters
     opars.write ('--------------------------------------------------------------\n')
     opars.write ('                   Parameters %s\n' %( star +' '+ plabels[o]))
     opars.write ('-------------------------Fitted-------------------------------\n')
-    print_values(opars,T0_vec[o],'T0','days','median')
-    if is_print_mode : print_values(opars,T0_vec[o],'T0','days','mode')
-    print_values(opars,P_vec[o],'P','days','median')
-    if is_print_mode : print_values(opars,P_vec[o],'P','days','mode')
-    if is_print_mode :  opars.write ('       %4.7f , %4.7f , %4.7f  days \n'%(mode_and_99(T0_vec[o])))
-    opars.write ('P    = %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(P_vec[o],s_factor)))
-    if is_print_mode :  opars.write ('       %4.7f , %4.7f , %4.7f  days \n'%(mode_and_99(P_vec[o])))
+    pl = plabels[o]
+    print_values(T0_vec[o],'T0','Tzero'+pl,'days','days')
+    print_values(P_vec[o],'P','P'+pl,'days','days')
     if ( is_ew ):
-      opars.write ('ew 1 = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_dum,s_factor)))
-      if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f       \n'%(mode_and_99(e_dum)))
-      opars.write ('ew 2 = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(w_dum,s_factor)))
-      if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f       \n'%(mode_and_99(w_dum)))
+      print_values(e_dum,'ew 1','esin'+pl,' ',' ')
+      print_values(w_dum,'ew 2','ecos'+pl,' ',' ')
     else:
-      opars.write ('e    = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_vec[o],s_factor)))
-      if is_print_mode  : opars.write ('       %4.7f , %4.7f , %4.7f       \n'%(mode_and_99(e_vec[o])))
-      opars.write ('w*   = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
-      if is_print_mode  : opars.write ('       %4.7f , %4.7f , %4.7f  deg  \n'%(mode_and_99(w_vec[o]*180./np.pi)))
-    opars.write ('b    = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(b_vec[o],s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f       \n'%(mode_and_99(b_vec[o])))
-    opars.write ('a/R* = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(ar_vec[o],s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f       \n'%(mode_and_99(ar_vec[o])))
-    opars.write ('Rp/R*= %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(rr_vec[o],s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f       \n'%(mode_and_99(rr_vec[o])))
-    opars.write ('K    = %4.7f - %4.7f + %4.7f  m/s  \n'%(find_vals_perc(k_vec[o]*1e3,s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  m/s  \n'%(mode_and_99(k_vec[o]*1e3)))
+      print_values(e_vec[o],'e','e'+pl,' ',' ')
+      print_values(w_vec[o]*180./np.pi,'w','w'+pl,'deg','deg')
+    print_values(b_vec[o],'b','b'+pl,' ',' ')
+    if ( is_den_a ):
+      print_values(params[4+5],'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}$')
+    else:
+      print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
+    print_values(rr_vec[o],'rp/R*','rr'+pl,' ',' ')
+    print_values(k_vec[o]*1e3,'K','k'+pl,'m/s','${\\rm m\,s^{-1}}$')
     opars.write ('-------------------------Derived------------------------------\n')
+    print_values(m_vec[o],'Mp','mp'+pl,'M_'+unit_mass,'$M_'+usymbol+'$')
+    print_values(r_vec[o],'Rp','rp'+pl,'R_'+unit_mass,'$R_'+usymbol+'$')
     if ( is_ew ):
-      opars.write ('e    = %4.7f - %4.7f + %4.7f       \n'%(find_vals_perc(e_vec[o],s_factor)))
-      if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f       \n'%(mode_and_99(e_vec[o])))
-      opars.write ('w*   = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
-      if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  deg  \n'%(mode_and_99(w_vec[o]*180./np.pi)))
-    opars.write ('i    = %4.7f - %4.7f + %4.7f  deg  \n'%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  deg  \n'%(mode_and_99(i_vec[o]*180./np.pi)))
-    opars.write ('a    = %4.7f - %4.7f + %4.7f  AU   \n'%(find_vals_perc(a_vec[o],s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  AU   \n'%(mode_and_99(a_vec[o])))
-    opars.write ('rho* = %4.7f - %4.7f + %4.7f  g/cm^3 (transit light curve)\n'%(find_vals_perc(ds_vec[o],s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  g/cm^3  \n'%(mode_and_99(ds_vec[o])))
-    opars.write ('rho* = %4.7f - %4.7f + %4.7f  g/cm^3 (input stellar parameters)\n'%(find_vals_perc(irho_vec,s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  g/cm^3  \n'%(mode_and_99(irho_vec)))
-    r_val, r_val_r, r_val_l = find_vals_perc(r_vec[o],s_factor)
-    m_val, m_val_r, m_val_l = find_vals_perc(m_vec[o],s_factor)
-    opars.write ('Mp   = %4.7f - %4.7f + %4.7f M_%s  \n'%(m_val,m_val_r,m_val_l,unit_mass))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f    \n'%(mode_and_99(m_vec[o])))
-    opars.write ('Rp   = %4.7f - %4.7f + %4.7f R_%s  \n'%(r_val,r_val_r,r_val_l,unit_mass))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f    \n'%(mode_and_99(r_vec[o])))
-    opars.write ('rho_p= %4.7f - %4.7f + %4.7f  g/cm^3\n'%(find_vals_perc(pden_vec,s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  g/cm^3\n'%(mode_and_99(pden_vec)))
-    opars.write ('g_p  = %4.7f - %4.7f + %4.7f  cm/s^2\n'%(find_vals_perc(pgra_vec,s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  cm/s^w\n'%(mode_and_99(pgra_vec)))
-    opars.write ('Tperi= %4.7f - %4.7f + %4.7f  days \n'%(find_vals_perc(Tpe_vec[o],s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  days \n'%(mode_and_99(Tpe_vec[o])))
-    opars.write ('Teq  = %4.7f - %4.7f + %4.7f  K (albedo=0)   \n'%(find_vals_perc(Teq_vec[o],s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  K \n'%(mode_and_99(Teq_vec[o])))
-    opars.write ('T_tot= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(trt_vec[o],s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  hours\n'%(mode_and_99(trt_vec[o])))
-    opars.write ('T_full= %4.7f - %4.7f + %4.7f  hours\n'%(find_vals_perc(tri_vec[o],s_factor)))
-    if is_print_mode : opars.write ('       %4.7f , %4.7f , %4.7f  hours\n'%(mode_and_99(tri_vec[o])))
+      print_values(e_vec[o],'e','e'+pl,' ',' ')
+      print_values(w_vec[o]*180./np.pi,'w','w'+pl,'deg','deg')
+    print_values(i_vec[o]*180./np.pi,'i','i'+pl,'deg','deg')
+    if ( is_den_a ):
+      print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
+    print_values(a_vec[o],'a','a'+pl,'AU','AU')
+    print_values(Fp,'Insolation','insolation'+pl,'F_Earth','${\\rm F_{\\oplus}$')
+    print_values(ds_vec[o],'rho*','denstr'+pl,'g/cm^3 (transit)','${\\rm g\,cm^{-3}}$')
+    print_values(irho_vec,'rho*','denssp'+pl,'g/cm^3 (stellar paramters)','${\\rm g\,cm^{-3}}$')
+    print_values(pden_vec,'rho_p','denp'+pl,'g/cm^3','${\\rm g\,cm^{-3}}$')
+    print_values(pgra_vec,'g_p','grap'+pl,'cm/s^2 (K and Rp/R*)','${\\rm cm\,s^{-2}}$')
+    print_values(pgra_vec2,'g_p','grappars'+pl,'cm/s^2 (planet parameters)','${\\rm cm\,s^{-2}}$')
+    print_values(Tpe_vec[o],'Tperi','Tperi'+pl,'days','days')
+    print_values(Teq_vec[o],'Teq','Teq'+pl,'K (albedo=0)','K')
+    print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')
+    print_values(tri_vec[o],'T_full','tful'+pl,'hours','hours')
     opars.write ('--------------------------------------------------------------\n')
-    #LaTeX
-    #otex.write ('%--------------------------------------------------------------\n')
-    #otex.write ('%                   Parameters %s\n' %( star + plabels[o]))
-    #otex.write ('%--------------------------------------------------------------\n')
-    #otex.write ('%-------------------------Fitted-------------------------------\n')
-    otex.write ('\\newcommand{\Tzero'+plabels[o]+'}[1][days]{$%4.7f _{ - %4.7f } ^ { + %4.7f } $#1} \n'%(find_vals_perc(T0_vec[o],s_factor)))
-    otex.write ('\\newcommand{\P'+plabels[o]+'}[1][days]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1} \n'%(find_vals_perc(P_vec[o],s_factor)))
-    if ( is_ew ):
-      otex.write ('\\newcommand{\esin'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1 } \n'%(find_vals_perc(e_dum,s_factor)))
-      otex.write ('\\newcommand{\ecos'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1 } \n'%(find_vals_perc(w_dum,s_factor)))
-    otex.write ('\\newcommand{\e'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1}      \n'%(find_vals_perc(e_vec[o],s_factor)))
-    otex.write ('\\newcommand{\w'+plabels[o]+'}[1][deg]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1} \n'%(find_vals_perc(w_vec[o]*180./np.pi,s_factor)))
-    otex.write ('\\newcommand{\\b'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1}       \n'%(find_vals_perc(b_vec[o],s_factor)))
-    otex.write ('\\newcommand{\\ar'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f }$ #1}       \n'%(find_vals_perc(ar_vec[o],s_factor)))
-    otex.write ('\\newcommand{\\rr'+plabels[o]+'}[1][]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1}       \n'%(find_vals_perc(rr_vec[o],s_factor)))
-    otex.write ('\\newcommand{\k'+plabels[o]+'}[1][$m \, s^{-1}$]{$%4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1} \n'%(find_vals_perc(k_vec[o]*1e3,s_factor)))
-    #otex.write ('%-------------------------Derived------------------------------\n')
-    otex.write ('\\newcommand{\i'+plabels[o]+'}[1][deg]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1} \n'%(find_vals_perc(i_vec[o]*180./np.pi,s_factor)))
-    otex.write ('\\newcommand{\\a'+plabels[o]+'}[1][AU]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1}   \n'%(find_vals_perc(a_vec[o],s_factor)))
-    otex.write ('\\newcommand{\dens'+plabels[o]+'}[1][$\mathrm{g\,cm^{-3}}$]{$ %4.7f _{ - %4.7f } ^ { + %4.7f }$  #1}\n'%(find_vals_perc(ds_vec[o],s_factor)))
-    otex.write ('\\newcommand{\mp'+plabels[o]+'}[1][$M_%s$]{$%4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1} \n'%(usymbol,m_val,m_val_r,m_val_l))
-    otex.write ('\\newcommand{\\rp'+plabels[o]+'}[1][$R_%s$]{$%4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1}   \n'%(usymbol,r_val,r_val_r,r_val_l))
-    otex.write ('\\newcommand{\denp'+plabels[o]+'}[1][$\mathrm{g\,cm^{-3}}$]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1}\n'%(find_vals_perc(pden_vec,s_factor)))
-    otex.write ('\\newcommand{\gp'+plabels[o]+'}[1][$\mathrm{cm\,s^{-2}}$]{$%4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1}\n'%(find_vals_perc(pgra_vec,s_factor)))
-    otex.write ('\\newcommand{\wp'+plabels[o]+'}[1][deg]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$ #1}  \n'%(w_p_deg,w_s_deg_l,w_s_deg_r))
-    otex.write ('\\newcommand{\Tperi'+plabels[o]+'}[1][days]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f  }$ #1} \n'%(find_vals_perc(Tpe_vec[o],s_factor)))
-    otex.write ('\\newcommand{\Tequi'+plabels[o]+'}[1][K]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$  #1}    \n'%(find_vals_perc(Teq_vec[o],s_factor)))
-    otex.write ('\\newcommand{\\ttot'+plabels[o]+'}[1][hours]{$ %4.7f _{ - %4.7f  } ^ {+ %4.7f }$  #1}\n'%(find_vals_perc(trt_vec[o],s_factor)))
-    otex.write ('\\newcommand{\\tineg'+plabels[o]+'}[1][hours]{$ %4.7f _{ - %4.7f } ^ { + %4.7f  }$ #1}\n'%(find_vals_perc(tri_vec[o],s_factor)))
-    #otex.write ('%--------------------------------------------------------------\n')
 
     #Let us change to the next planet
     base = base + 8
