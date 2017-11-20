@@ -331,33 +331,36 @@ if ( method == 'mcmc' or method == 'plot' ):
     else:
       print_values(e_vec[o],'e','e'+pl,' ',' ')
       print_values(w_vec[o]*180./np.pi,'w','w'+pl,'deg','deg')
-    print_values(b_vec[o],'b','b'+pl,' ',' ')
-    if ( is_den_a ):
-      print_values(params[4+5],'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}$')
-    else:
-      print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
-    print_values(rr_vec[o],'rp/R*','rr'+pl,' ',' ')
-    print_values(k_vec[o]*1e3,'K','k'+pl,'m/s','${\\rm m\,s^{-1}}$')
+    if ( fit_tr[o] ):
+      print_values(b_vec[o],'b','b'+pl,' ',' ')
+      if ( is_den_a ):
+        print_values(params[4+5],'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}$')
+      else:
+        print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
+      print_values(rr_vec[o],'rp/R*','rr'+pl,' ',' ')
+    if ( fit_rv[o] ):
+      print_values(k_vec[o]*1e3,'K','k'+pl,'m/s','${\\rm m\,s^{-1}}$')
     opars.write ('-------------------------Derived------------------------------\n')
-    print_values(m_vec[o],'Mp','mp'+pl,'M_'+unit_mass,'$M_'+usymbol+'$')
-    print_values(r_vec[o],'Rp','rp'+pl,'R_'+unit_mass,'$R_'+usymbol+'$')
+    if (fit_rv[o]): print_values(m_vec[o],'Mp','mp'+pl,'M_'+unit_mass,'$M_'+usymbol+'$')
+    if (fit_tr[o]): print_values(r_vec[o],'Rp','rp'+pl,'R_'+unit_mass,'$R_'+usymbol+'$')
     if ( is_ew ):
       print_values(e_vec[o],'e','e'+pl,' ',' ')
       print_values(w_vec[o]*180./np.pi,'w','w'+pl,'deg','deg')
-    print_values(i_vec[o]*180./np.pi,'i','i'+pl,'deg','deg')
-    if ( is_den_a ):
-      print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
-    print_values(a_vec[o],'a','a'+pl,'AU','AU')
-    print_values(Fp,'Insolation','insolation'+pl,'F_Earth','${\\rm F_{\\oplus}$')
-    print_values(ds_vec[o],'rho*','denstr'+pl,'g/cm^3 (transit)','${\\rm g\,cm^{-3}}$')
-    print_values(irho_vec,'rho*','denssp'+pl,'g/cm^3 (stellar paramters)','${\\rm g\,cm^{-3}}$')
-    print_values(pden_vec,'rho_p','denp'+pl,'g/cm^3','${\\rm g\,cm^{-3}}$')
-    print_values(pgra_vec,'g_p','grap'+pl,'cm/s^2 (K and Rp/R*)','${\\rm cm\,s^{-2}}$')
-    print_values(pgra_vec2,'g_p','grappars'+pl,'cm/s^2 (planet parameters)','${\\rm cm\,s^{-2}}$')
-    print_values(Tpe_vec[o],'Tperi','Tperi'+pl,'days','days')
-    print_values(Teq_vec[o],'Teq','Teq'+pl,'K (albedo=0)','K')
-    print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')
-    print_values(tri_vec[o],'T_full','tful'+pl,'hours','hours')
+    if ( fit_tr[o]):
+      print_values(i_vec[o]*180./np.pi,'i','i'+pl,'deg','deg')
+      if ( is_den_a ):
+        print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
+      print_values(a_vec[o],'a','a'+pl,'AU','AU')
+      print_values(Fp,'Insolation','insolation'+pl,'F_Earth','${\\rm F_{\\oplus}$')
+      print_values(ds_vec[o],'rho*','denstr'+pl,'g/cm^3 (transit)','${\\rm g\,cm^{-3}}$')
+      print_values(irho_vec,'rho*','denssp'+pl,'g/cm^3 (stellar paramters)','${\\rm g\,cm^{-3}}$')
+      print_values(pden_vec,'rho_p','denp'+pl,'g/cm^3','${\\rm g\,cm^{-3}}$')
+      print_values(pgra_vec,'g_p','grap'+pl,'cm/s^2 (K and Rp/R*)','${\\rm cm\,s^{-2}}$')
+      print_values(pgra_vec2,'g_p','grappars'+pl,'cm/s^2 (planet parameters)','${\\rm cm\,s^{-2}}$')
+      print_values(Tpe_vec[o],'Tperi','Tperi'+pl,'days','days')
+      print_values(Teq_vec[o],'Teq','Teq'+pl,'K (albedo=0)','K')
+      print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')
+      print_values(tri_vec[o],'T_full','tful'+pl,'hours','hours')
     opars.write ('--------------------------------------------------------------\n')
 
     #Let us change to the next planet
@@ -376,22 +379,27 @@ for o in range(0,nt):
   rv_vec[o] = params[base+2+o]
 
 opars.write ('--------------------  Other parameters -----------------------\n')
-print_values(q1_vec,'q1','qone','','')
-print_values(q2_vec,'q2','qtwo','','')
-print_values(u1_vec,'u1','uone','','')
-print_values(u2_vec,'u2','utwo','','')
-for o in range(0,nt):
-  print_values(rv_vec[o],'Sys. vel. '+telescopes_labels[o],telescopes_labels[o],'m/s','${\\rm m\,s^{-1}$')
+if ( total_tr_fit ):
+  print_values(q1_vec,'q1','qone','','')
+  print_values(q2_vec,'q2','qtwo','','')
+  print_values(u1_vec,'u1','uone','','')
+  print_values(u2_vec,'u2','utwo','','')
+if ( total_rv_fit ):
+  for o in range(0,nt):
+    print_values(rv_vec[o],'Sys. vel. '+telescopes_labels[o],telescopes_labels[o],'m/s','${\\rm m\,s^{-1}$')
 opars.write ('--------------------------------------------------------------\n')
 
 if ( is_jitter_rv or is_jitter_tr ):
-  for o in range(0,n_jrv):
-    print_values(params_jitter[o]*1.e3,telescopes_labels[o]+' jitter','j'+telescopes_labels[o],'m/s','${\\rm m\,s^{-1}$')
-  print_values[params_jitter[n_jrv],'tr jitter','jtr','','']
+  if ( total_rv_fit ):
+    for o in range(0,n_jrv):
+      print_values(params_jitter[o]*1.e3,telescopes_labels[o]+' jitter','j'+telescopes_labels[o],'m/s','${\\rm m\,s^{-1}$')
+  if ( total_tr_fit ):
+    print_values(params_jitter[n_jrv],'tr jitter','jtr','','')
   opars.write ('--------------------------------------------------------------\n')
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
-  print_values(params_trends[0]*1.e3,'linear trend','ltrend','m/s/days','${\\rm m\,s^{-1}\,d^{-1}$')
-  print_values(params_trends[1]*1.e3,'quadratic trend','qtrend','m/s/days^2','${\\rm m\,s^{-1}\,d^{-2}$')
+  if ( total_rv_fit ):
+    print_values(params_trends[0]*1.e3,'linear trend','ltrend','m/s/days','${\\rm m\,s^{-1}\,d^{-1}$')
+    print_values(params_trends[1]*1.e3,'quadratic trend','qtrend','m/s/days^2','${\\rm m\,s^{-1}\,d^{-2}$')
   opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
 

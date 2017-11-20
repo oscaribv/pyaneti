@@ -548,7 +548,7 @@ def print_values(vector,var,vartex,unit,unittex):
 #unit is the label of the variable to save
 #vals do we want to print median or mode
   medv, minv, maxv = find_vals_perc(vector,s_factor)
-  opars.write('%8s = %4.7f - %4.7f + %4.7f %8s \n'%(var,medv,minv,maxv,unit))
+  opars.write('%10s = %4.7f - %4.7f + %4.7f %8s \n'%(var,medv,minv,maxv,unit))
   otex.write('\\newcommand{\\%s}[1][%s]{$%4.7f _{ - %4.7f } ^ { + %4.7f } $#1} \n' \
               %(vartex,unittex,medv,minv,maxv))
   if ( is_print_mode ):
