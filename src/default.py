@@ -35,7 +35,7 @@ AU_SI = 1.4960e11 # m
 #Default stellar parameters
 mstar_mean = 1.0
 rstar_mean = 1.0
-tstar_mean = 5600.
+tstar_mean = S_Teff
 mstar_sigma = 1.e-1
 rstar_sigma = 1.e-1
 tstar_sigma = 100.

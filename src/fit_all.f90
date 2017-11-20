@@ -35,13 +35,14 @@ implicit none
 
   !Calculate the normalization term
     log_errs = 0.0
-    if ( tff(0) ) then
+    if ( tff(0)  .and. size_rv > 1) then
       do m = 0, size_rv - 1
         log_errs = log_errs + &
         log( 1.0d0/sqrt( two_pi * ( e_rv(m)**2 + jrv(jrvlab(m))**2 ) ) )
       end do
     end if
-    if ( tff(1) ) &
+
+    if ( tff(1) .and. size_tr > 1 ) &
     log_errs = log_errs + &
     sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jtr**2 ) ) ) )
 
@@ -397,16 +398,17 @@ implicit none
       end if
 
       chi2_new_total(nk) = huge(0.0d0) !A really big number!
+      log_likelihood_new(nk) = -huge(0.e0)
 
       if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
 
       call get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,jrvlab, &
            total_fit_flag,flags,t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
            ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk,:),jitter_tr_new(nk),&
-           log_likelihood_new(nk),chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,n_jrv,size_rv,size_tr)
+           log_likelihood_new(nk),chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,&
+           n_jrv,size_rv,size_tr)
 
       chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
-      log_likelihood_new(nk) = log_prior_new(nk) + log_likelihood_new(nk)
 
       end if
 
