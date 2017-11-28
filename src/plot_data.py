@@ -324,8 +324,6 @@ def plot_all_transits():
 
 def clean_transits(sigma=10):
 
-
-
     #Now we are ready to call the function in fortran
     #All the data is in megax, megay and megae
     model_flux = pti.flux_tr(megax,pars_tr,flag,my_ldc,n_cad,t_cad)
@@ -336,13 +334,19 @@ def clean_transits(sigma=10):
     #Call the sigma clipping functions
     new_t, new_f = sigma_clip(megax,megay,res_flux,limit_sigma=sigma)
 
+    #Recalculate the error bars
+    new_model_flux = pti.flux_tr(new_t,pars_tr,flag,my_ldc,n_cad,t_cad)
+    #New residuals
+    new_res_flux = new_f - new_model_flux
+    #Recompute the error bars from the std of the residuals
+    new_err = np.std(new_res_flux,ddof=1)
+
     #Write the cleaned light curve into a file
     #Let us create or detrended file
     out_f = outdir+'/'+star+'_new_lc.dat'
     of = open(out_f,'w')
-    #of.write('#This detrended light curve was created with pyaneti/lunas\n')
     for i in range(0,len(new_t)):
-      of.write(' %8.8f   %8.8f  %8.8f \n'%(new_t[i],new_f[i],megae[i]))
+      of.write(' %8.8f   %8.8f  %8.8f \n'%(new_t[i],new_f[i],new_err))
 
     of.close()
 
