@@ -334,7 +334,7 @@ if ( method == 'mcmc' or method == 'plot' ):
     if ( fit_tr[o] ):
       print_values(b_vec[o],'b','b'+pl,' ',' ')
       if ( is_den_a ):
-        print_values(params[4+5],'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}$')
+        print_values(params[4+5],'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}}$')
       else:
         print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
       print_values(rr_vec[o],'rp/R*','rr'+pl,' ',' ')
@@ -351,7 +351,7 @@ if ( method == 'mcmc' or method == 'plot' ):
       if ( is_den_a ):
         print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
       print_values(a_vec[o],'a','a'+pl,'AU','AU')
-      print_values(Fp,'Insolation','insolation'+pl,'F_Earth','${\\rm F_{\\oplus}$')
+      print_values(Fp,'Insolation','insolation'+pl,'F_Earth','${\\rm F_{\\oplus}}$')
       print_values(ds_vec[o],'rho*','denstr'+pl,'g/cm^3 (transit)','${\\rm g\,cm^{-3}}$')
       print_values(irho_vec,'rho*','denssp'+pl,'g/cm^3 (stellar paramters)','${\\rm g\,cm^{-3}}$')
       print_values(pden_vec,'rho_p','denp'+pl,'g/cm^3','${\\rm g\,cm^{-3}}$')
@@ -386,20 +386,20 @@ if ( total_tr_fit ):
   print_values(u2_vec,'u2','utwo','','')
 if ( total_rv_fit ):
   for o in range(0,nt):
-    print_values(rv_vec[o],'Sys. vel. '+telescopes_labels[o],telescopes_labels[o],'m/s','${\\rm m\,s^{-1}$')
+    print_values(rv_vec[o],'Sys. vel. '+telescopes_labels[o],telescopes_labels[o],'m/s','${\\rm m\,s^{-1}}$')
 opars.write ('--------------------------------------------------------------\n')
 
 if ( is_jitter_rv or is_jitter_tr ):
   if ( total_rv_fit ):
     for o in range(0,n_jrv):
-      print_values(params_jitter[o]*1.e3,telescopes_labels[o]+' jitter','j'+telescopes_labels[o],'m/s','${\\rm m\,s^{-1}$')
+      print_values(params_jitter[o]*1.e3,telescopes_labels[o]+' jitter','j'+telescopes_labels[o],'m/s','${\\rm m\,s^{-1}}$')
   if ( total_tr_fit ):
     print_values(params_jitter[n_jrv],'tr jitter','jtr','','')
   opars.write ('--------------------------------------------------------------\n')
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   if ( total_rv_fit ):
-    print_values(params_trends[0]*1.e3,'linear trend','ltrend','m/s/days','${\\rm m\,s^{-1}\,d^{-1}$')
-    print_values(params_trends[1]*1.e3,'quadratic trend','qtrend','m/s/days^2','${\\rm m\,s^{-1}\,d^{-2}$')
+    print_values(params_trends[0]*1.e3,'linear trend','ltrend','m/s/days','${\\rm m\,s^{-1}\,d^{-1}}$')
+    print_values(params_trends[1]*1.e3,'quadratic trend','qtrend','m/s/days^2','${\\rm m\,s^{-1}\,d^{-2}}$')
   opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
 

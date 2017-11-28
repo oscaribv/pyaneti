@@ -633,7 +633,7 @@ def joint_fit():
     stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
     is_jitter = [is_jitter_rv, is_jitter_tr]
 
-    pti.multi_all_stretch_move(\
+    pti.mcmc_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
     tlab,jrvlab,stellar_pars,a_from_kepler,\
     flags,total_fit_flag,is_jitter,fit_all,fit_rvs,fit_ldc,fit_trends, \

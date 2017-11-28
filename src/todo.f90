@@ -116,7 +116,7 @@ implicit none
 
     !calculate the eccentric anomaly
     !Using Newthon-Raphson algorithm
-    f(:)   = ta(:) - e * sin(ta(:)) - ma(:)
+    f(:) = ta(:) - e * sin(ta(:)) - ma(:)
     n = 0
 
     do i = 0, dt-1
@@ -223,33 +223,6 @@ implicit none
 
 end subroutine
 
-!Subroutine to check if the chi2 minimization is working
-subroutine fit_a_line(x_vec,chi2_vec,a,b,svec)
-implicit none
-
-!In/Out variables
-  integer, intent(in) :: svec
-  double precision, intent(in), dimension(0:svec-1) :: chi2_vec, x_vec
-  double precision, intent(out) :: a, b
-
-!Local variables
-  double precision :: meanx, meany
-  double precision, dimension(0:svec-1) :: resx, resy
-
-!Compute the linear fit by the least square method
-  meanx = sum(x_vec) / float(svec)
-  meany = sum(chi2_vec) / float(svec)
-
-  resx = x_vec - meanx
-  resy = chi2_vec - meany
-
-  b = sum( resx * resy )
-  b = b / sum ( resx * resx )
-
-  a = meany - b * meanx
-
-end subroutine
-
 !Subroutine to get Z <- g(z)
 !Goodman & Weare, 2010 paper
 subroutine find_gz(a,z)
@@ -318,34 +291,6 @@ implicit none
     end do
   end do
 
-
-end subroutine
-
-
-!Subroutine to check the limits of the parameters
-subroutine check_limits(params,limits,is_true,npar)
-implicit none
-
-  !In/Out variables
-  integer, intent(in) :: npar
-  double precision, intent(in) :: params(0:npar-1), &
-                                  limits(0:2*npar-1)
-  logical, intent(out) :: is_true
-  !Local variables
-  integer :: i, j
-
-  is_true = .true.
-  j = 0
-  do i = 0, npar - 1
-    if ( params(i) <= limits(j) .or. &
-         params(i) >= limits(j+1) ) then
-         print *, i
-      is_true = .false.
-      exit
-    end if
-    j = j + 2
-  end do
-
 end subroutine
 
 !Create a normal distribution based on Box-Muller
@@ -369,22 +314,7 @@ implicit none
 
 end subroutine
 
-!Create a normal distribution
-subroutine gauss_prior(mu,sigma,x,prob)
-implicit none
 
-  !In/Out variables
-  double precision, intent(in) :: mu, sigma, x
-  double precision, intent(out)  :: prob
-  !Local variables
-  double precision  :: sigma2
-  double precision  :: two_pi = 2.d0*3.1415926535897932384626d0
-
-  sigma2 = sigma*sigma
-  prob = sqrt(two_pi*sigma2)
-  prob = exp(- 0.5d0 * (x - mu)**2 / sigma2) / prob
-
-end subroutine
 
 subroutine get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,P,amean,aerr)
 implicit none
@@ -438,9 +368,7 @@ implicit none
   write(*,fto) ' mean  : ', sum(chi2) / n
   write(*,*) '=================================='
 
-
 end subroutine
-
 
 subroutine uniform_chains(pars,npars,wtf,lims,pars_out)
 implicit none
@@ -468,7 +396,6 @@ implicit none
 
 end subroutine
 
-
 subroutine create_chains(fit_pars,lims,pars_out,npars)
 implicit none
 
@@ -494,27 +421,4 @@ implicit none
 
 end subroutine
 
-subroutine get_priors(fit_pars,lims,pars_in,priors_out,npars)
-implicit none
 
-  integer, intent(in) :: npars
-  double precision, intent(in), dimension(0:2*npars-1) :: lims
-  double precision, intent(in), dimension(0:npars-1) :: pars_in
-  double precision, intent(out), dimension(0:npars-1) :: priors_out
-  character, intent(in), dimension(0:npars-1) :: fit_pars
-!Local
-  integer :: j
-
-  priors_out = 1.d0
-  do j = 0, npars - 1
-    if ( fit_pars(j) == 'u' ) then
-      if ( pars_in(j) < lims(2*j) .or. pars_in(j) > lims(2*j+1) ) then
-        priors_out(j) = 0.d0
-        exit
-      end if
-    else if ( fit_pars(j) == 'g' ) then
-      call gauss_prior(lims(2*j),lims(2*j+1),pars_in(j),priors_out(j))
-    end if
-  end do
-
-end subroutine
