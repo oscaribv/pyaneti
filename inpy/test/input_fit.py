@@ -40,6 +40,8 @@ mstar_mean  = 1.0
 mstar_sigma = 0.1
 rstar_mean  = 1.0
 rstar_sigma = 0.1
+tstar_mean  = 5772.0
+tstar_sigma = 50.
 
 #What units do you prefer for your planet parameters?
 # earth, jupiter or solar
