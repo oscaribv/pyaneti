@@ -31,7 +31,6 @@ implicit none
            t_cad,n_cad,pars,rvs,ldc,trends,jrv,jtr, &
            chi2_rv,chi2_tr,npl,n_tel,n_jrv,size_rv,size_tr)
 
-  chi2_total = chi2_rv + chi2_tr
 
   !Calculate the normalization term
     log_errs = 0.0
@@ -40,11 +39,18 @@ implicit none
         log_errs = log_errs + &
         log( 1.0d0/sqrt( two_pi * ( e_rv(m)**2 + jrv(jrvlab(m))**2 ) ) )
       end do
+    else
+      chi2_rv = 0.d0
     end if
 
-    if ( tff(1) .and. size_tr > 1 ) &
-    log_errs = log_errs + &
-    sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jtr**2 ) ) ) )
+    if ( tff(1) .and. size_tr > 1 ) then
+      log_errs = log_errs + &
+      sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jtr**2 ) ) ) )
+    else
+      chi2_tr = 0.d0
+    end if
+
+    chi2_total = chi2_rv + chi2_tr
 
     loglike = log_errs - 0.5d0 * chi2_total
 
