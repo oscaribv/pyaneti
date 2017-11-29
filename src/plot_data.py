@@ -248,73 +248,25 @@ def plot_transit_nice():
 
 def plot_all_transits():
 
-  xt = [None]*nplanets
-  dt = [None]*nplanets
-  yt = [None]*nplanets
-  et = [None]*nplanets
+  #Create the plot of the whole light
+  model_flux = pti.flux_tr(megax,pars_tr,flag,my_ldc,n_cad,t_cad)
+  res_flux = megay - model_flux
+
   for i in range(0,nplanets):
     if ( fit_tr[i] ):
 
-      xt[i], dt[i], yt[i], et[i] = create_transit_data(megax,megay,megae,i,span_tr[i])
+      xt, dt, yt, et = create_transit_data(megax,megay,megae,i,span_tr[i])
+      xt2, dt2, yt2, et2 = create_transit_data(megax,res_flux,megae,i,span_tr[i])
+
       if ( is_plot_all_tr[i] ):
-        for j in range(0,len(xt[i])):
-
-          xvec = np.array(xt[i][j])
-          xvec_model = np.arange(min(xvec),max(xvec),1./20./24.)
-
-          xd_ub = np.ndarray(shape=(len(xvec),n_cad))
-          xd_ub_res = np.ndarray(shape=(len(xvec_model),n_cad))
-          zd_ub = [None]*len(xvec)
-          zd_ub_res = [None]*len(xvec_model)
-          fd_ub = [None]*len(xvec)
-          fd_ub_res = [None]*len(xvec_model)
-          fd_ub_total = [0.0]*len(xvec)
-          fd_ub_res_total = [0.0]*len(xvec_model)
-          fd_reb = [0.0]*len(xvec)
-          fd_reb_res = [0.0]*len(xvec_model)
-
-          for m in range(0,len(xvec)):
-          #this vector has the model fit
-            for n in range(0,n_cad):
-              xd_ub[m][n] = xvec[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1 ))/n_cad
-              #this vector has the residuals
-          for m in range(0,len(xvec_model)):
-            for n in range(0,n_cad):
-              xd_ub_res[m][n] = xvec_model[m] + t_cad * ( (n+1) - 0.5 * (n_cad + 1))/n_cad
-
-          #calculate the transit curve for all the planets
-          for o in range(0,nplanets):
-            for m in range(0,len(xvec)):
-              zd_ub[m] = pti.find_z(xd_ub[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
-              fd_ub[m], dummm = pti.occultquad(zd_ub[m],u1_val,u2_val,rp_val[o])
-              for n in range(0,n_cad):
-                fd_reb[m] = fd_reb[m] + fd_ub[m][n]/n_cad
-              fd_ub_total[m] = fd_ub_total[m] + fd_reb[m]
-              fd_reb[m] = 0.0
-            for m in range(0,len(xvec_model)):
-              zd_ub_res[m] = pti.find_z(xd_ub_res[m][:],[t0_val[o],P_val[o],e_val[o],w_val[o],i_val[o],a_val[o]],flag)
-              fd_ub_res[m], dummm = pti.occultquad(zd_ub_res[m],u1_val,u2_val,rp_val[o])
-              for n in range(0,n_cad):
-                fd_reb_res[m] = fd_reb_res[m] + fd_ub_res[m][n]/n_cad
-              fd_ub_res_total[m] = fd_ub_res_total[m] + fd_reb_res[m]
-              fd_reb_res[m] = 0.0
-
-          yflux_local  = list(yt[i][j])
-          fd_ub_total = np.array(fd_ub_total) - nplanets + 1
-          fd_ub_res_total = np.array(fd_ub_res_total) - nplanets + 1
-          res_res = np.array(yflux_local) - np.array(fd_ub_total)
+        for j in range(0,len(xt)):
+          xtm = np.arange(min(xt[j]),max(xt[j]),1./20./24.)
+          ytm = pti.flux_tr(xtm,pars_tr,flag,my_ldc,n_cad,t_cad)
 
           fname = outdir+'/'+star+plabels[i]+'_transit'+str(j)+'.pdf'
-          #xtime is the folded time
-          #yflux is the data flux
-          #eflux is the error related to yflux
-          #xmodel is the light curve model timestamps
-          #xmodel_res is the residuals time_stamps
-          #fd_reb is the modeled light cuve
-          #res_res are the residuals
-          n = xvec[len(xvec)-1] - xt[i][0][0]
+          n = xt[j][len(xt[j])-1] - xt[0][0]
           n = int(n/P_val[i])
-          fancy_tr_plot(t0_val[i]+P_val[i]*n,xvec,yflux_local,et[i][j],xvec_model,xvec,fd_ub_res_total,res_res,fname)
+          fancy_tr_plot(t0_val[i]+P_val[i]*n,xt[j],yt[j],et[j],xtm,xt2[j],ytm,np.array(yt2[j]),fname)
 
 
 #===========================================================
@@ -327,6 +279,8 @@ def clean_transits(sigma=10):
     #Now we are ready to call the function in fortran
     #All the data is in megax, megay and megae
     model_flux = pti.flux_tr(megax,pars_tr,flag,my_ldc,n_cad,t_cad)
+    xvec_model = np.arange(min(megax),max(megax),1./20./24.)
+    solution_flux = pti.flux_tr(xvec_model,pars_tr,flag,my_ldc,n_cad,t_cad)
 
     #Calcualte the residuals
     res_flux = megay - model_flux
@@ -340,6 +294,21 @@ def clean_transits(sigma=10):
     new_res_flux = new_f - new_model_flux
     #Recompute the error bars from the std of the residuals
     new_err = np.std(new_res_flux,ddof=1)
+
+
+    plt.figure(3,figsize=(5*fsx,fsy))
+    fname = outdir+'/'+star+'_lightcurve.pdf'
+    print 'Creating ', fname
+    plt.plot(megax,megay,'ro')
+    plt.plot(xvec_model,solution_flux,'k-')
+    plt.plot(new_t,new_f,'bo')
+    plt.ylabel('Flux',fontsize=fos*0.75)
+    plt.xlabel(tr_xlabel,fontsize=fos)
+    plt.xlim(min(megax),max(megax))
+    plt.minorticks_on()
+    plt.savefig(fname,format='pdf',bbox_inches='tight')
+    plt.savefig(fname[:-3]+'png',format='png',bbox_inches='tight',dpi=300)
+    plt.close()
 
     #Write the cleaned light curve into a file
     #Let us create or detrended file

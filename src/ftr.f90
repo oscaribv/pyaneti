@@ -14,65 +14,7 @@
 !  the star and planet centers. Eq. (5), ( z = r_sky) from
 !  Winn, 2010, Transit and Occultations.
 !------------------------------------------------------------
-subroutine find_z(t,pars,flag,z,ts)
-implicit none
-
-!In/Out variables
-  integer, intent(in) :: ts
-  double precision, intent(in), dimension(0:ts-1) :: t
-  double precision, intent(in), dimension(0:5) :: pars
-  double precision, intent(out), dimension(0:ts-1) :: z
-  logical, intent(in), dimension(0:3) :: flag 
-!Local variables
-  double precision, dimension(0:ts-1) :: ta, swt
-  double precision :: t0, P, e, w, i, a
-  double precision :: wp, ws, si
-  double precision :: pi = 3.1415926535897932384626d0
-!External function
-  external :: find_anomaly
-!
-
-  t0  = pars(0)
-  P   = pars(1)
-  e   = pars(2)
-  w   = pars(3)
-  i   = pars(4)
-  a   = pars(5)
-
-  if ( flag(0) ) P = 1.d0**pars(1)
-  if ( flag(1) ) then
-    e = pars(2) * pars(2) + pars(3) * pars(3)
-    w = atan2(pars(2),pars(3))
-  end if
-  ws  = w       !star periastron
-  wp  = ws + pi !planet periastron
-  if (flag(3)) a = 10.d0**a
-  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(ws) ) / ( 1.d0 - e*e ) )
-
-  !Obtain the true anomaly by using find_anomaly
-  call find_anomaly(t,t0,e,ws,P,ta,ts)
-
-  swt = sin(ws+ta)
-  si = sin(i)
-
-  where (swt > 0.0 ) !We have the planet in front of the star -> transit
-  !z has been calculated
-    z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
-        / ( 1.d0 + e * cos(ta) )
-  elsewhere !We have the planet behind the star -> occulation
-  !z has avalue which gives flux = 1 in Mandel & Agol module
-      z = 1.d1
-  end where
-
-end subroutine
-
-!-----------------------------------------------------------
-!                     find_z_tp
-!  This suborutine finds the projected distance between
-!  the star and planet centers. Eq. (5), ( z = r_sky) from
-!  Winn, 2010, Transit and Occultations.
-!------------------------------------------------------------
-subroutine find_z_tp(t,pars,z,ts)
+subroutine find_z(t,pars,z,ts)
 implicit none
 
 !In/Out variables
@@ -137,7 +79,7 @@ implicit none
   double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
   integer :: n, j, k(0:n_cad-1)
 !External function
-  external :: occultquad, find_z_tp
+  external :: occultquad, find_z
 
   small = 1.d-5
   npl_dbl = dble(npl)
@@ -163,7 +105,7 @@ implicit none
     do n = 0, npl - 1
 
       !Each z is independent for each planet
-      call find_z_tp(xd_ub,pars(0:5,n),z,n_cad)
+      call find_z(xd_ub,pars(0:5,n),z,n_cad)
 
       if ( ALL( z > 1.d0 + rp(n) ) .or. rp(n) < small ) then
 
@@ -224,7 +166,7 @@ implicit none
   logical :: is_good
   integer :: n
 !External function
-  external :: occultquad, find_z, flux_tr
+  external :: flux_tr
 
   t0  = pars(0,:)
   P   = pars(1,:)

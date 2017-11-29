@@ -109,8 +109,10 @@ figure_size_y = 23./2.56/1.618
 font_size_label = 18
 clustering_delta = 0.5
 get_value = 'median'
+sigma_clean = 10
 #mark for plots
 rv_xlabel = "BJD - 2450000 (days)"
+tr_xlabel = "BJD - 2450000 (days)"
 is_rv_legend = True
 mark = ['o', 'D', 's', 'p', 'h', '8', '^', '<', '*', 'v','>','.', 'H', 'd','+']
 rv_colors = ['b','r','g','y','m','c']
