@@ -723,9 +723,12 @@ def create_corner_plot():
   #Let us take only the values to be plotted
   newpars = [0.0]*len(npp)
   newlabs = [0.0]*len(npp)
+  true_params = [0.0]*len(npp)
   for o in range(0,len(npp)):
       newpars[o] = params[npp[o]]
       newlabs[o] = labels[plot_parameters[o]]
+      true_params[o] = best_value(newpars[o],maxloglike,get_value)
+
 
   #Let us prepare the vector for corner
   data = np.zeros(shape=(len(newpars[0]),len(npp)))
@@ -737,7 +740,7 @@ def create_corner_plot():
 
   figure = corner.corner(data, labels=newlabs, \
                        quantiles=[0.16, 0.5, 0.84], \
-                        show_titles=True )
+                        show_titles=True,truths=true_params )
   fname = outdir+'/'+star+'_corner.pdf'
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
