@@ -424,3 +424,270 @@ implicit none
   close(301)
 
 end subroutine
+
+
+subroutine loglike_general(        &
+           x,y,e,                            &  !Data vars
+           flags, prior_flags, prior_limits, &          !flags
+           data_labels, jitter_labels,       &
+           integer_vec, double_vec,          &
+           sizex,fsize,pars_size, ivec_size, dvec_size & !data sizes
+           )
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: sizex, fsize, pars_size, ivec_size, dvec_size
+  double precision, intent(in), dimension(0:sizex-1) :: x, y, e
+  integer, intent(in), dimension(0:sizex-1) :: data_labels, jitter_labels
+  character, intent(in), dimension(0:pars_size - 1):: prior_flags
+  double precision, intent(in), dimension(0:2*pars_size - 1) :: prior_limits
+  double precision, intent(in), dimension(0:dvec_size - 1) :: double_vec
+  integer, intent(in), dimension(0:dvec_size - 1) :: integer_vec
+  logical, intent(in), dimension(0,fsize-1) :: flags
+!Local variables
+  double precision :: loglike
+
+  loglike = 1.0
+
+end subroutine
+
+subroutine mcmc_general_stretch_move(        &
+           x,y,e,                            &  !Data vars
+           flags, prior_flags, prior_limits, &          !flags
+           nwalks, maxi, thin_factor, nconv, &          !mcmc evolution controls
+           data_labels, jitter_labels,       &
+           integer_vec, double_vec,          &
+           sizex,fsize,pars_size, ivec_size, dvec_size & !data sizes
+           )
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: sizex, fsize, pars_size, ivec_size, dvec_size
+  integer, intent(in) :: nwalks, maxi, thin_factor, nconv
+  double precision, intent(in), dimension(0:sizex-1) :: x, y, e
+  integer, intent(in), dimension(0:sizex-1) :: data_labels, jitter_labels
+  character, intent(in), dimension(0:pars_size - 1):: prior_flags
+  double precision, intent(in), dimension(0:2*pars_size - 1) :: prior_limits
+  double precision, intent(in), dimension(0:dvec_size - 1) :: double_vec
+  integer, intent(in), dimension(0:dvec_size - 1) :: integer_vec
+  logical, intent(in), dimension(0,fsize-1) :: flags
+!Local variables
+  double precision, dimension(0:nwalks-1,0:pars_size-1) :: pars_old, pars_new
+  double precision, dimension(0:nwalks-1,0:pars_size-1) :: priors_old, priors_new
+  double precision, dimension(0:nwalks-1) :: r_rand, z_rand
+  double precision, dimension(0:nwalks-1) :: chi2_old, chi2_new, chi2_red
+  double precision, dimension(0:nwalks-1,0:pars_size-1,0:nconv-1) :: pars_chains
+  double precision, dimension(0:nwalks-1,0:nconv-1) :: loglike_chains, chi2_chains
+  double precision, dimension(0:nwalks-1) :: log_prior_old, log_prior_new
+  double precision, dimension(0:nwalks-1) :: log_likelihood_old, log_likelihood_new
+  integer, dimension(0:nwalks/2-1) :: r_int
+  double precision  :: a_factor, dof, tds, qq
+  double precision :: limit_prior
+  logical :: continua, is_limit_good, is_cvg
+  integer :: nk, j, n, m, o, n_burn, spar, spar1, iensemble, inverted(0:1)
+  integer :: nks, nke
+!external calls
+  external :: init_random_seed
+
+  !call the random seed
+  print *, 'CREATING RANDOM SEED'
+  call init_random_seed()
+
+  spar = 0
+  do o = 0, pars_size - 1
+    if ( prior_flags(o) .ne. 'f' ) spar = spar + 1
+  end do
+  spar1 = spar - 1
+
+  dof  = sizex - spar
+
+  print *, 'CREATING CHAINS'
+
+  priors_old(:,:) = 1.d0
+  priors_new(:,:) = 1.d0
+
+  !Let us create uniformative random priors
+  is_limit_good = .false.
+  do nk = 0, nwalks - 1
+
+      call create_chains(prior_flags,prior_limits,pars_old(nk,:),sizex)
+      call get_priors(prior_flags,prior_limits,pars_old(nk,:),priors_old(nk,:),sizex)
+
+      log_prior_old(nk) = sum( log(priors_old(nk,:) ) )
+
+      call loglike_general(x,y,e,flags,prior_flags,prior_limits,data_labels, &
+                           jitter_labels,integer_vec,double_vec,sizex,fsize, &
+                           pars_size,ivec_size,dvec_size)
+
+      chi2_old = 1.0
+      log_likelihood_old(nk) = log_prior_old(nk) + log_likelihood_old(nk)
+
+  end do
+
+  chi2_red(:) = chi2_old(:) / dof
+
+  !Print the initial cofiguration
+  print *, ''
+  print *, 'STARTING MCMC CALCULATION'
+  print *, 'Datapoints  = ', sizex
+  print *, 'No. parameters = ', int(spar)
+  print *, 'dof            = ', int(dof)
+  call print_chain_data(chi2_red,nwalks)
+
+  !Initialize the values
+  j = 1
+  n = 0
+  continua = .true.
+  a_factor = 2.d0
+  n_burn = 1
+  inverted = (/ 1 , 0 /)
+
+  !The infinite cycle starts!
+  print *, 'STARTING INFINITE LOOP!'
+  do while ( continua )
+
+    !Creating the random variables
+    !Do the work for all the walkers
+    call random_number(r_rand)
+
+    !Perform the paralelization following Foreman-Mackey, 2013
+    do iensemble = 0, 1
+
+      nks = iensemble * nwalks/2
+      nke = (iensemble + 1) * nwalks/2 - 1
+
+      !Create random integers to be the index of the walks
+      !Note that r_ink(i) != i (avoid copy the same walker)
+      call random_int(r_int,inverted(iensemble)*nwalks/2,(inverted(iensemble)+1)*nwalks/2 - 1)
+
+      !Pick a random walker from the complementary ensemble
+      do nk = nks, nke
+        pars_new(nk,:) = pars_old(r_int(nk-nks),:)
+      end do
+
+    !Paralellization calls
+    !$OMP PARALLEL &
+    !$OMP PRIVATE(is_limit_good,qq,m,limit_prior,a_mean,a_sigma)
+    !$OMP DO SCHEDULE(DYNAMIC)
+    do nk = nks, nke
+
+      !Generate the random step to perform the stretch move
+      call find_gz(a_factor,z_rand(nk))
+
+      !Perform the stretch move
+      !Eq. (7), Goodman & Weare (2010)
+      pars_new(nk,:)    = pars_new(nk,:) + z_rand(nk) *   &
+                        ( pars_old(nk,:) - pars_new(nk,:) )
+
+      call get_priors(prior_flags,prior_limits,pars_new(nk,:),priors_new(nk,:),sizex)
+
+      limit_prior = PRODUCT(priors_new(nk,:))
+
+      chi2_new(nk) = huge(0.0d0) !A really big number!
+      log_likelihood_new(nk) = -huge(0.e0)
+
+     if ( limit_prior < 1.d-100 ) is_limit_good = .false.
+
+      if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
+
+      call loglike_general(x,y,e,flags,prior_flags,prior_limits,data_labels, &
+                           jitter_labels,integer_vec,double_vec,sizex,fsize, &
+                           pars_size,ivec_size,dvec_size)
+
+      end if
+
+      log_prior_new(nk) = sum( log(priors_new(nk,:) ) )
+
+      log_likelihood_new(nk) = log_prior_new(nk) + log_likelihood_new(nk)
+
+      qq = log_likelihood_new(nk) - log_likelihood_old(nk)
+      !z^(pars-1) normalization factor needed to perform the stretch move
+      !Goodman & Weare (2010)
+      qq = z_rand(nk)**spar1 * exp(qq)
+
+      !Check if the new likelihood is better
+      if ( qq > r_rand(nk) ) then
+        !If yes, let us save it as the old vectors
+        log_likelihood_old(nk) = log_likelihood_new(nk)
+        chi2_old(nk)           = chi2_new(nk)
+        pars_old(nk,:)         = pars_new(nk,:)
+        priors_old(nk,:)       = priors_new(nk,:)
+      end if
+
+    end do !walkers
+    !$OMP END PARALLEL
+
+    end do !iensemble
+
+    !Compute the reduced chi square
+    chi2_red(:) = chi2_old(:) / dof
+
+    if ( mod(j,thin_factor) == 0 ) then
+      !If the chains have not converged, let us check convergence
+      !Let us save a 3D array with the informations of the parameters,
+      !the nk and the iteration. This array is used to perform GR test
+      pars_chains(:,:,n)      = pars_old(:,:)
+      chi2_chains(:,n)        = chi2_old(:)
+      loglike_chains(:,n)     = log_likelihood_old(:)
+      n = n + 1
+      !Is it time to check covergence=
+      if ( n == nconv ) then
+        !Perform G-R test
+        n = 0 !reinitilize n
+        call print_chain_data(chi2_red,nwalks)
+        print *, '=================================='
+        print *, '     PERFOMING GELMAN-RUBIN'
+        print *, '      TEST FOR CONVERGENCE'
+        print *, '=================================='
+        !Check convergence for all the parameters
+        is_cvg = .true.
+        do o = 0, pars_size
+          if ( prior_flags(o) == 'f' ) then !perform G-R test
+            call gr_test(pars_chains(:,o,:),nwalks,nconv,is_cvg)
+          end if
+          if ( .not. is_cvg ) exit
+        end do
+
+        if ( j < thin_factor*nconv + 1 ) is_cvg = .False.
+
+        if ( .not. is_cvg  ) then
+          print *, '=================================='
+          print *, 'CHAINS HAVE NOT CONVERGED YET!'
+          print *,  nconv*thin_factor,' ITERATIONS MORE!'
+          print *, '=================================='
+        else
+          print *, '=================================='
+          print *, '      CHAINS HAVE CONVERGED'
+          print *, '=================================='
+          print *, '   CREATING OUTPUT DATA FILES'
+          print *, '=================================='
+          !Let us start the otput file
+          continua = .false.
+        end if ! is_cvg
+      end if !nconv
+    end if !j/thin_factor
+
+    !check if we exceed the maximum number of iterations
+    if ( j > maxi ) then
+      print *, 'Maximum number of iteration reached!'
+      continua = .FALSE.
+    end if
+
+  j = j + 1
+
+  end do !infinite loop
+  !the MCMC part has ended
+
+  !Let us create the output file
+  open(unit=101,file='all_data.dat',status='unknown')
+
+  do n = 0, nconv - 1
+    do nk = 0, nwalks - 1
+      write(101,*) n, loglike_chains(nk,n), chi2_chains(nk,n), pars_chains(nk,:,n)
+    end do
+  end do
+
+  !Close file
+  close(101)
+
+end subroutine
