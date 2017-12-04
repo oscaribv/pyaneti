@@ -10,26 +10,6 @@ import matplotlib.pyplot as plt
 import sys
 
 #-----------------------------------------------------------
-#This suborutine calculates the Bayesian Information Criteria
-#Calculated as of http://arxiv.org/abs/1501.05415
-# Input  -> chi2 (not reduced)
-# output -> BIC
-#-----------------------------------------------------------
-def get_BIC(chi2tot_val):
-
-  npars = sum(fit_all) + sum(fit_ldc) + sum(fit_rvs)
-  ndata = len(megax) + len(mega_rv)
-
-  if ( is_linear_trend ):
-      npars = npars + 1
-  if ( is_quadratic_trend):
-      npars = npars + 1
-
-  BIC = chi2tot_val + npars * np.log(ndata)
-
-  return BIC
-
-#-----------------------------------------------------------
 #This function returns the phase of a temporal array given
 #the period
 #input: jd -> time vector in julian date to be escaled (days)
@@ -104,30 +84,12 @@ def get_rhostar(P,a):
 
 
 #-----------------------------------------------------------
-
+#Return the equilibrium temeprature given the stellar temperature
+#albedo, stellar radius and distance to the star
 def get_teq(Tstar,albedo,rstar,a):
   Tp = Tstar*( 1.0 - albedo)**(0.25)
   Tp = (rstar/2.0/a)**(0.5) * Tp
   return Tp
-
-#-----------------------------------------------------------
-# check if we force a circular orbit
-#-----------------------------------------------------------
-def check_circular():
- 
-  if (nplanets == 1 ):
-    if ( is_circular ):
-      fit_e = False
-      fit_w = False
-      is_ew = False
-      e = 1e-5
-      w = np.pi / 2.0
-  else:
-      fit_e = [False]*nplanets
-      fit_w = [False]*nplanets
-      is_ew = False
-      e = [1e-5]*nplanets
-      w = [np.pi / 2.0]*nplanets
 
 #Sigma clipping functions copied from exotrending
 #x and y are the original arrays, z is the vector with the residuals
@@ -164,8 +126,8 @@ def sigma_clip(x,y,z,limit_sigma=5,is_plot=False):
   return new_x, new_y
 
 #-----------------------------------------------------------
-#  Smart priors, get the best values of the physical and 
-#  priors limits 
+#  Smart priors, get the best values of the physical and
+#  priors limits
 #-----------------------------------------------------------
 def smart_priors():
   #We are using global variables
@@ -217,17 +179,14 @@ def create_transit_data(time,flux,errs,planet=0,span=0.0):
   tt = best_value(trt_vec[planet],maxloglike,get_value)
   tt = tt/24.0
 
-
   if ( span < 1e-5 ):
     #We have to calculate things
     span = 3*tt
 #  else:
     #We have to use the span given by the user
 
-
   #Let us fold the data to the period
   t_inicial = T0 - span/2
-
 
   folded_t = list(time)
   for o in range(0,len(time)):
@@ -289,74 +248,6 @@ def create_transit_data(time,flux,errs,planet=0,span=0.0):
   return lt_out, xt_out, yt_out, et_out
 
 #-----------------------------------------------------------
-#Get transit ranges, assumes that the consecutive
-#data is almost equally spaced
-# it assumes the times vector has a gap between transit sets
-#   ----          ---       (GAP)      ----          ----
-#       -        -                         -        -
-#        --------                           --------
-#Input:
-# times -> vector with the time stamps
-#Output:
-# lims  -> transit limits list size (ntr), each list has
-#          two values, the first and last transit datapoint
-# ntr   -> number of transits
-#-----------------------------------------------------------
-def get_transit_ranges(times,gap):
-
-  xlimits = []
-  xlimits.append(times[0])
-  dx = times[gap] - times[0] #the between transit gap
-  for i in range(1,len(times)-1):
-    if ( times[i+1] - times[i] > dx ):
-      # We are in other transit
-      xlimits.append(times[i])
-      xlimits.append(times[i+1])
-  xlimits.append(times[len(times)-1])
-  #xlims has all the data points when the transit data sets
-  #start and end
-
-  #Let us put them in lims
-  lims = [None]*(len(xlimits)/2)
-  for i in range(0,len(xlimits),2):
-    lims[i/2] = [xlimits[i],xlimits[i+1]]
-
-  ntr = len(lims)
-  print 'Number of transits = ', ntr
-  print 'Transit limits ='
-  print lims
-
-  return lims, ntr
-
-#-----------------------------------------------------------
-# This subroutine separate the transit data in different
-# data sets, each data set has a transit signal
-# Input:
-#   x      -> time array
-#   y      -> flux array
-#   err    -> error array
-#   limits -> time limits for a given transit
-# Output:
-#   dummyx   ->  time vector with the time data between
-#                limits[0] and limits[1]
-#   dummyy   ->  flux vector with the time data between 
-#                limits[0] and limits[1]
-#   dummyerr ->  errors vector with the time data between
-#                limits[0] and limits[1]
-#-----------------------------------------------------------
-def separate_transits(x,y,err,limits):
-  dummyx  = []
-  dummyy  = []
-  dummyerr= []
-  for i in range(0,len(x)):
-    if ( x[i] > limits[0] and x[i] < limits[1] ):
-      dummyx.append(x[i])
-      dummyy.append(y[i])
-      dummyerr.append(err[i])
-
-  return dummyx, dummyy, dummyerr
-
-#-----------------------------------------------------------
 # find_vals_perc -> find the median and the errors within
 #  a 68% credible interval
 #input: 
@@ -375,7 +266,7 @@ def find_vals_perc(x,sf=1.0,prob=68.3):
   mine, med, maxe = np.percentile(x,[mnval,50.0,mxval])
   maxe = ( maxe - med ) / sf
   mine = ( med - mine ) / sf
-  
+
   return med, mine, maxe
 
 
@@ -553,7 +444,7 @@ def print_values(vector,var,vartex,unit,unittex):
               %(vartex,unittex,medv,minv,maxv))
   if ( is_print_mode ):
     medv, minv, maxv = mode_and_99(vector)
-    opars.write('%8s = %4.7f , %4.7f , %4.7f %8s \n'%(var,medv,minv,maxv,unit))
+    opars.write('%10s  %4.7f , %4.7f , %4.7f %8s \n'%('',medv,minv,maxv,unit))
 
 #-----------------------------------------------------------
 #         FIT JOINT RV-TRANSIT DATA
