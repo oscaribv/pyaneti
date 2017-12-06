@@ -64,16 +64,16 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
   if ( select_y_tr ):
     plt.ylim(y_lim_min,y_lim_max)
   min_val_model = max(fd_reb) -  min(fd_reb)
-  if ( plot_tr_errorbars  or is_special ):
+  if ( plot_tr_errorbars  ):
     plt.errorbar((xtime-local_T0)*tfc,yflux,errors,color=tr_colors,fmt='.',alpha=1.0)
   else:
-    plt.plot((xtime-local_T0)*tfc,yflux,'o',color=tr_colors,ms=8,alpha=0.8)
+    plt.plot((xtime-local_T0)*tfc,yflux,'o',color=tr_colors,ms=7,alpha=0.8)
     y0,yyyy = ax1.get_ylim()
-    plt.errorbar(-x_lim*(0.95),y0 +errors[0]*2,errors[0],color=tr_colors,fmt='o',alpha=1.0)
+    plt.errorbar(-x_lim*(0.95),y0 +errors[0]*2,errors[0],color=tr_colors,ms=7,fmt='o',alpha=1.0)
     plt.annotate('Error bar',xy=(-x_lim*(0.70),y0 +errors[0]*1.75),fontsize=fos*0.7)
-  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
+  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0,alpha=1.0)
   if ( is_special ):
-    [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='b') for i in range(1,6,2)]
+    [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='k') for i in range(1,6,2)]
   plt.ylabel('Relative flux',fontsize=fos)
   #Calculate the optimal step for the plot
   step_plot = int(abs(x_lim)) #the value of the x_axis
@@ -92,10 +92,10 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
   #Plot the residuals
   ax0 = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos,direction='in')
-  if ( plot_tr_errorbars or is_special ):
+  if ( plot_tr_errorbars  ):
     plt.errorbar((xmodel_res-local_T0)*tfc,res_res*1e6,errors*1e6,color=tr_colors,fmt='.',alpha=1.0)
   else:
-    plt.plot((xmodel_res-local_T0)*tfc,res_res*1e6,'o',color=tr_colors,ms=8,alpha=0.8)
+    plt.plot((xmodel_res-local_T0)*tfc,res_res*1e6,'o',color=tr_colors,ms=7,alpha=0.8)
   plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
   plt.xticks( np.arange(-mxv,mxv+step_plot,step_plot))
   plt.xlim(x_lim,-x_lim)
@@ -251,86 +251,6 @@ def pars_tr_chain(params,nchain):
 
   return pars_tr
 
-
-#Plot nchains different models coming from random MCMC samples
-def plot_muchos_tr(nc):
-
-  for o in range(0,nplanets):
-
-    if ( fit_tr[o] ):
-
-      if ( len(span_tr) < 1 ):
-          local_span = 0.0
-      else:
-          local_span = span_tr[o]
-
-      local_time_d, xtime_d, yflux_d, eflux_d = create_transit_data(megax,megay,megae,o,local_span)
-
-      local_time = np.concatenate(local_time_d)
-      xtime = np.concatenate(xtime_d)
-      yflux = np.concatenate(yflux_d)
-      eflux = np.concatenate(eflux_d)
-
-      xmodel_res = xtime
-      xmodel = np.arange(min(xtime), max(xtime),1.0/20./24.)
-      #Let us create the model
-
-      #len of the chain vector
-      len_chain = len(params[0])
-
-      flux_vector = [None]*nc
-      flux_vector_res = [None]*nc
-      for l in range(0,nc):
-        #generate a random chain number
-        mi_chain = int(np.random.uniform(0,len_chain))
-        #Call the parameters
-        lpars_tr = pars_tr_chain(params,mi_chain)
-        lpars_tr = np.concatenate(lpars_tr)
-        #The model has T0 = 0
-        dumtp = pti.find_tp(0.0,lpars_tr[2],lpars_tr[3],lpars_tr[1])
-        dparstr = np.concatenate([[dumtp],lpars_tr[1:]])
-        #This is the flux of the actual planet
-        flux_vector[l] = pti.flux_tr(xmodel,dparstr,flag,my_ldc,n_cad,t_cad)
-        flux_vector_res[l] = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
-        #We have to consider the flux of the other planets
-
-      flux_vector = np.array(flux_vector)
-      flux_vector_res = np.array(flux_vector_res)
-      flux_pc = np.percentile(flux_vector, [50, 0.15,99.85, 2.5,97.5, 16,84], 0)
-      flux_pc_res = np.percentile(flux_vector_res, [50,0.15,99.85, 2.5,97.5, 16,84], 0)
-      fd_ub_res = flux_pc_res[0]
-
-      #Define a vector which will contain the data of other planers for multi fits
-      fd_ub_total = list(fd_ub_res)
-      fd_ub_total = np.zeros(shape=len(fd_ub_res))
-
-     #############################################################################
-     # Let us calculate the flux caused by the other planets
-      for p in range(0,nplanets):
-        if ( p != o ):
-          #fd_ub_total stores the flux of a star for each independent
-          fd_ub_total = fd_ub_total + pti.flux_tr(local_time,pars_tr[:,p],flag,my_ldc,n_cad,t_cad)
-
-      #Remove extra planets from the data
-      yflux_local = yflux - fd_ub_total
-      yflux_local = yflux_local - 1 + nplanets
-      #The flux has been corrected for the other planets
-
-      #Get the residuals
-      res_res = yflux_local - fd_ub_res
-
-     #############################################################################
-
-      fname = outdir+'/'+star+plabels[o]+'_tr.pdf'
-      #xtime is the folded time
-      #yflux_local is the data flux
-      #eflux is the error related to yflux
-      #xmodel is the light curve model timestamps
-      #xmodel_res is the residuals time_stamps
-      #fd_reb is the modeled light cuve
-      #res_res are the residuals
-      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,flux_pc,res_res,fname,is_special=True)
-
 #===========================================================
 #              plot the folded data for each transit
 #===========================================================
@@ -363,6 +283,34 @@ def plot_transit_nice():
       #Calculate the flux to copute the residuals
       fd_ub_res = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
 
+      if ( is_special_plot_tr ):
+        #len of the chain vector
+        len_chain = len(params[0])
+
+        nc = len_chain/100
+
+        flux_vector = [None]*nc
+        flux_vector_res = [None]*nc
+        for l in range(0,nc):
+          #generate a random chain number
+          mi_chain = int(np.random.uniform(0,len_chain))
+          #Call the parameters
+          lpars_tr = pars_tr_chain(params,mi_chain)
+          #lpars_tr = np.concatenate(lpars_tr)
+          #The model has T0 = 0
+          dumtp = pti.find_tp(0.0,lpars_tr[2,o],lpars_tr[3,o],lpars_tr[1,o])
+          dparstr = np.concatenate([[dumtp],lpars_tr[1:,o]])
+          #This is the flux of the actual planet
+          flux_vector[l] = pti.flux_tr(xmodel,dparstr,flag,my_ldc,n_cad,t_cad)
+          flux_vector_res[l] = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
+          #We have to consider the flux of the other planets
+
+        flux_vector = np.array(flux_vector)
+        flux_vector_res = np.array(flux_vector_res)
+        fd_ub = np.percentile(flux_vector, [50, 0.15,99.85, 2.5,97.5, 16,84], 0)
+        flux_pc_res = np.percentile(flux_vector_res, [50,0.15,99.85, 2.5,97.5, 16,84], 0)
+        fd_ub_res = flux_pc_res[0]
+
       #Define a vector which will contain the data of other planers for multi fits
       fd_ub_total = list(fd_ub_res)
       fd_ub_total = np.zeros(shape=len(fd_ub_res))
@@ -392,7 +340,7 @@ def plot_transit_nice():
       #xmodel_res is the residuals time_stamps
       #fd_reb is the modeled light cuve
       #res_res are the residuals
-      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,fd_ub,res_res,fname)
+      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,fd_ub,res_res,fname,is_special_plot_tr)
 
 #===========================================================
 #              plot all transits
