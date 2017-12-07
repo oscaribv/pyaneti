@@ -72,8 +72,8 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
     plt.errorbar(-x_lim*(0.95),y0 +errors[0]*2,errors[0],color=tr_colors,ms=7,fmt='o',alpha=1.0)
     plt.annotate('Error bar',xy=(-x_lim*(0.70),y0 +errors[0]*1.75),fontsize=fos*0.7)
   plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0,alpha=1.0)
-  if ( is_special ):
-    [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='k') for i in range(1,6,2)]
+#  if ( is_special ):
+#    [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='k') for i in range(1,6,2)]
   plt.ylabel('Relative flux',fontsize=fos)
   #Calculate the optimal step for the plot
   step_plot = int(abs(x_lim)) #the value of the x_axis
@@ -424,8 +424,13 @@ def clean_transits(sigma=10):
 #              plot rv fancy function
 #===========================================================
 
-def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
+def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname,is_special=False):
   print 'Creating ', fname
+  if ( not is_special ):
+      rv_model = rvy
+  else:
+      rv_model = rvy[0]
+  #
   plt.figure(3,figsize=(fsx,fsy))
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3., 1.])
   gs.update(hspace=0.00)
@@ -436,7 +441,9 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname):
   plt.xlabel("")
   plt.ylabel("RV (m/s)",fontsize=fos)
   #plt.plot([0.,1.],[0.,0.],'k--')
-  plt.plot(p_rv,rvy,'k',linewidth=1.0)
+  plt.plot(p_rv,rv_model,'k',linewidth=1.0)
+#  if ( is_special ):
+#    [plt.fill_between(p_rv,*rvy[i:i+2,:],alpha=0.3,facecolor='k') for i in range(1,6,2)]
   for j in range(0,nt):
     #
     plt.errorbar(p_all[j],rv_dum[j],new_errs_all[j],\
@@ -538,6 +545,49 @@ for o in range(0,nplanets):
 
   base = base + 8
 
+def pars_rv_chain(params,nchain):
+
+  #v_vec_val = [None]*nt
+  #v_val = [None]*nt
+  ##3 + npars + ldc
+  #v_vec_val[:] = params[4+8*nplanets+2:4+8*nplanets+2+nt]
+  #for o in range(0,nt):
+    #v_val[o] = best_value(v_vec_val[o],maxloglike,get_value)
+    #if ( is_log_rv0 ):
+      #v_val[o] = 10.0**(v_val[o])
+
+  alpha_val = 0.0
+  beta_val = 0.0
+  if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
+    alpha_val = params_trends[0][nchain]
+    beta_val  = params_trends[1][nchain]
+
+  base = 4
+  t0_val = np.ndarray(nplanets)
+  P_val  = np.ndarray(nplanets)
+  e_val  = np.ndarray(nplanets)
+  w_val  = np.ndarray(nplanets)
+  k_val  = np.ndarray(nplanets)
+
+  for o in range(0,nplanets):
+    t0_val[o] = params[base + 0][nchain]
+    P_val[o]  = params[base + 1][nchain]
+    e_val[o]  = params[base + 2][nchain]
+    w_val[o]  = params[base + 3][nchain]
+    k_val[o]  = params[base + 7][nchain]
+    if ( is_log_P ):
+      P_val[o] = 10.0**(P_val[o])
+    if ( is_log_k ):
+      k_val[o] = 10.0**(k_val[o])
+    if ( is_ew ):
+      edum_val = e_val[o]
+      e_val[o] = e_val[o]**2 + w_val[o]**2
+      w_val[o] = np.arctan2(edum_val,w_val[o])
+
+    base = base + 8
+
+  return t0_val, P_val, e_val, w_val, k_val
+
 if ( nplanets > 0 ):
   #Plot without fold the data
   #===========================================================
@@ -623,8 +673,6 @@ if ( nplanets > 0 ):
 #===========================================================
   def plot_rv_mp():
     cfactor = np.float(1.e3)
-    rvy = [None]*nplanets
-    p_rv = [None]*nplanets
     k_dum = [None]*nplanets
     for i in range(0,nplanets):
       k_dum[i] = cfactor*k_val[i]
@@ -639,17 +687,35 @@ if ( nplanets > 0 ):
       for j in range(0,nt):
         rv_dum.append(list(rv_all[j]))
       #Create the RV fitted model for the planet i
-      n = 5000
-      xmin = t0_val[i]
-      xmax = t0_val[i] + P_val[i]
-      dn = (xmax - xmin) /  n
-      rvx = np.empty([n])
-      rvx[0] = xmin
-      for j in range(1,n):
-        rvx[j] = rvx[j-1] + dn
-      rvy[i] = pti.rv_curve_mp(rvx,0.0,t0_val[i],\
-      k_dum[i],P_val[i],e_val[i],w_val[i],0.0 \
-      ,0.0)
+      rvx = np.arange(t0_val[i],t0_val[i]+P_val[i]*0.999,P_val[i]/4999.)
+      rvy = pti.rv_curve_mp(rvx,0.0,t0_val[i],\
+      k_dum[i],P_val[i],e_val[i],w_val[i],0.0 ,0.0)
+
+      #If we want to plot the percentiles
+      if ( is_special_plot_rv ):
+
+        #len of the chain vector
+        len_chain = len(params[0])
+
+        nc = len_chain/10
+
+        rv_vector = [None]*nc
+        rv_vector_res = [None]*nc
+        for l in range(0,nc):
+          #generate a random chain number
+          mi_chain = int(np.random.uniform(0,len_chain))
+          #Call the parameters
+          lt0, lp, le, lw, lk = pars_rv_chain(params,mi_chain)
+          rv_vector[l] = pti.rv_curve_mp(rvx,0.0,lt0[i],\
+          lk[i]*cfactor,lp[i],le[i],lw[i],0.0 ,0.0)
+          #rv_vector_res[l] = pti.rv_curve_mp(time_all,0.0,lt0,\
+          #lk*cfactor,lp,le,lw,0.0 ,0.0)
+
+        rv_vector = np.array(rv_vector)
+        #rv_vector_res = np.array(rv_vector_res)
+        rvy = np.percentile(rv_vector, [50, 0.15,99.85, 2.5,97.5, 16,84], 0)
+        #rvy_res = np.percentile(res_vector_res, [50,0.15,99.85, 2.5,97.5, 16,84], 0)
+        #fd_ub_res = res_pc_res[0]
 
       dt0_val = []
       dk_dum = []
@@ -697,13 +763,13 @@ if ( nplanets > 0 ):
             rv_dum[j][o] = rv_dum[j][o] - v_val[j] - drvy[j] - alpha_time[o] - beta_time[o]
           res[j][o] = rv_dum[j][o] - res[j][o]
 
-      p_rv[i] = scale_period(rvx,t0_val[i],P_val[i])
+      p_rv = scale_period(rvx,t0_val[i],P_val[i])
       p_all = [None]*nt
       for j in range(0,nt):
         p_all[j] = scale_period(time_all[j],t0_val[i],P_val[i])
 
       fname = outdir+'/'+star+plabels[i]+'_rv.pdf'
-      plot_rv_fancy(p_rv[i],rvy[i],p_all,rv_dum,errs_all,res,telescopes_labels,fname)
+      plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname,is_special_plot_rv)
 
 #===========================================================
 #                   Histogram plots
