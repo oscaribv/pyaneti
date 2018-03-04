@@ -40,6 +40,8 @@ if ( nplanets_rv > 0 ):
   if ( is_special_jitter ):
     sjitter = np.loadtxt('inpy/'+star+'/'+fname_rv[0],usecols=(4),dtype=str,unpack=True)
 
+
+
   #These lists have lists with data for
   #the different telescopes
   time_all = []
@@ -91,14 +93,12 @@ if ( nplanets_rv > 0 ):
       mega_err.append(errs_all[i][j])
 
   if ( is_special_jitter ):
-    ndum = 0
     n_jrv = len(jrvvec)
     for o in range(0,len(tlab)):
-      if (sjitter[o][0] == jrvvec[ndum][0] ):
-        jrvlab.append(ndum)
-      else:
-        ndum = ndum + 1
-        jrvlab.append(ndum)
+      for ndum in range(0,len(jrvvec)):
+        if (sjitter[o][0] == jrvvec[ndum][0] ):
+          jrvlab.append(ndum)
+          break
   else:
     jrvlab = list(tlab)
     n_jrv = nt
