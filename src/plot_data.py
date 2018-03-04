@@ -651,7 +651,7 @@ if ( nplanets > 0 ):
       #
       plt.errorbar(time_all[j],rv_dum[j],errs_datas[j],color=rv_colors[j],\
       label=telescopes_labels[j],fmt=mark[j],alpha=1.0,markersize=rv_markersize)
-    plt.legend(loc=2, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.8)
+    if ( is_rv_legend ): plt.legend(loc=2, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.8)
     fname = outdir+'/'+star+'_rv_all.pdf'
     print 'Creating ', fname
     plt.savefig(fname,format='pdf',bbox_inches='tight')
