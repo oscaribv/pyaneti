@@ -38,16 +38,13 @@ implicit none
   i   = pars(4)
   a   = pars(5)
 
-  ws  = w       !star periastron
-  wp  = ws + pi !planet periastron
-
   !Obtain the true anomaly by using find_anomaly
   call find_anomaly_tp(t,tp,e,P,ta,ts)
 
-  swt = sin(wp+ta)
+  swt = sin(w+ta)
   si = sin(i)
 
-  where (swt < 0.0 ) !We have the planet in front of the star -> transit
+  where (swt > 0.0 ) !We have the planet in front of the star -> transit
   !z has been calculated
     z = a * ( 1.d0 - e * e ) * sqrt( 1.d0 - swt * swt * si * si ) &
         / ( 1.d0 + e * cos(ta) )
@@ -181,9 +178,8 @@ implicit none
     e = pars(2,:) * pars(2,:) + pars(3,:) * pars(3,:)
     w = atan2(pars(2,:),pars(3,:))
   end if
-  wp(:) = w(:) + pi
   if (flag(3)) a(:) = a(0)*(G*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
-  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(wp) ) / ( 1.d0 - e*e ) )
+  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(w) ) / ( 1.d0 - e*e ) )
 
   do n = 0, npl - 1
     call find_tp(t0(n),e(n),w(n),P(n),tp(n))

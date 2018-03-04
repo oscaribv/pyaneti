@@ -58,23 +58,25 @@ if ( total_tr_fit ):
 
 npars = 0
 
-#plot_parameters stores the flag of each fitted parameter
-plot_parameters = []
+if ( len(plot_parameters) < 2):
 
-for o in range(0,len(fit_all)):
-    if ( fit_all[o] != 'f' ):
-        npars = npars + 1
-        plot_parameters.append(o)
+  #plot_parameters stores the flag of each fitted parameter
+  plot_parameters = []
 
-for o in range(0,len(fit_ldc)):
-    if ( fit_ldc[o] != 'f' ):
-        npars = npars + 1
-        plot_parameters.append(o+8*nplanets)
+  for o in range(0,len(fit_all)):
+      if ( fit_all[o] != 'f' ):
+          npars = npars + 1
+          plot_parameters.append(o)
 
-for o in range(0,len(telescopes)):
-    if ( fit_v0 != 'f' ):
-        npars = npars + 1
-        plot_parameters.append(o+2+8*nplanets)
+  for o in range(0,len(fit_ldc)):
+      if ( fit_ldc[o] != 'f' ):
+          npars = npars + 1
+          plot_parameters.append(o+8*nplanets)
+
+  for o in range(0,len(telescopes)):
+      if ( fit_v0 != 'f' ):
+          npars = npars + 1
+          plot_parameters.append(o+2+8*nplanets)
 
 if ( is_linear_trend != 'f' ):
   npars = npars + 1

@@ -22,7 +22,7 @@ S_den_SI       = S_GM_SI/G_SI/S_vol_SI    #kg/m^3
 S_den_cgs      = S_GM_cgs/G_cgs/S_vol_cgs #g/cm^3
 S_Teff         = 5772.0 # K
 #Earth
-E_GM_SI        = 3.986004e14      #m^3 s^{-1} 
+E_GM_SI        = 3.986004e14      #m^3 s^{-2}
 E_radius_e_SI  = 6.3781e6         # ecuatorial radius [m]
 E_radius_p_SI  = 6.3568e6         # polar radius [m]
 #Jupiter
@@ -156,12 +156,12 @@ is_log_rv0   = False
 
 #Default priors rages (wide)
 min_t0  = [0.0]          #days
-max_t0  = [1e6 ]         #days
-min_P   = [0.1 	]       #days
-max_P   = [1e4 	 ]      #days
-min_e   = [1.e-10 ]      #zero
-max_e   = [0.999]	       #one
-min_w   = [0.0	 ]      #rad
+max_t0  = [1e6]         #days
+min_P   = [0.1]       #days
+max_P   = [1e4]      #days
+min_e   = [1.e-10]      #zero
+max_e   = [0.999]       #one
+min_w   = [0.0]      #rad
 max_w   = [2.0*np.pi]      #rad
 min_ew1  = [-1.0]
 max_ew1  = [1.0]
@@ -173,7 +173,7 @@ max_i   = [np.pi/2.0]  # 90 degrees
 min_b   = [0.0]
 max_b   = [1.0]
 min_a   = [1.5]       # The planet is outside the star
-max_a   = [1.e3]	       # The planet is really far
+max_a   = [1.e3]       # The planet is really far
 min_q1  = 0.0   #
 max_q1  = 1.0     #
 min_q2  = 0.0     #

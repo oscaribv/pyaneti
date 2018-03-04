@@ -283,6 +283,10 @@ implicit none
           call gauss_prior(a_mean(m),a_sigma(m),pars_new(nk,5+8*m),priors_new(nk,5+8*m))
         end if
       end do
+     ! pars_new(nk,1+8*4) = pars_new(nk,1+8*3)/2.0
+     ! print *, pars_new(nk,1+8*4), pars_new(nk,1+8*3)
+     ! stop
+
 
       limit_prior = PRODUCT(priors_new(nk,:)) * PRODUCT(priors_ldc_new(nk,:) )
 

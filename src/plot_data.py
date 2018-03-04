@@ -14,7 +14,6 @@ fos = font_size_label
 vari = params[0]
 chi2 = params[2] + params[3]
 
-
 #===========================================================
 #              plot chains
 #===========================================================
@@ -71,9 +70,10 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
     y0,yyyy = ax1.get_ylim()
     plt.errorbar(-x_lim*(0.95),y0 +errors[0]*2,errors[0],color=tr_colors,ms=7,fmt='o',alpha=1.0)
     plt.annotate('Error bar',xy=(-x_lim*(0.70),y0 +errors[0]*1.75),fontsize=fos*0.7)
-  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0,alpha=1.0)
 #  if ( is_special ):
-#    [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='k') for i in range(1,6,2)]
+#    [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='b') for i in range(1,6,2)]
+#    plt.fill_between((xmodel-local_T0)*tfc,*flux_model[5:7,:],alpha=0.5,facecolor='k')
+  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
   #Calculate the optimal step for the plot
   step_plot = int(abs(x_lim)) #the value of the x_axis
@@ -164,7 +164,7 @@ for m in range(0,nplanets):
   #Change between b and i
   if ( is_b_factor ):
     i_val[m] = np.arccos( i_val[m] / a_val[m] * \
-            ( 1.0 + e_val[m] * np.sin(w_val[m] + np.pi) / ( 1.0 - e_val[m]**2 ) ) )
+            ( 1.0 + e_val[m] * np.sin(w_val[m] ) / ( 1.0 - e_val[m]**2 ) ) )
 
   if ( is_ew ):
     e_dum = e_val[m]
@@ -227,7 +227,7 @@ def pars_tr_chain(params,nchain):
     #Change between b and i
     if ( is_b_factor ):
       i_val[m] = np.arccos( i_val[m] / a_val[m] * \
-              ( 1.0 + e_val[m] * np.sin(w_val[m] + np.pi) / ( 1.0 - e_val[m]**2 ) ) )
+              ( 1.0 + e_val[m] * np.sin(w_val[m] ) / ( 1.0 - e_val[m]**2 ) ) )
 
     if ( is_ew ):
       e_dum = e_val[m]
@@ -288,6 +288,7 @@ def plot_transit_nice():
         len_chain = len(params[0])
 
         nc = len_chain/100
+        nc = 1000
 
         flux_vector = [None]*nc
         flux_vector_res = [None]*nc
@@ -303,7 +304,6 @@ def plot_transit_nice():
           #This is the flux of the actual planet
           flux_vector[l] = pti.flux_tr(xmodel,dparstr,flag,my_ldc,n_cad,t_cad)
           flux_vector_res[l] = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
-          #We have to consider the flux of the other planets
 
         flux_vector = np.array(flux_vector)
         flux_vector_res = np.array(flux_vector_res)
@@ -347,6 +347,7 @@ def plot_transit_nice():
 #===========================================================
 
 def plot_all_transits():
+  global plot_tr_errorbars
 
   #Create the plot of the whole light
   model_flux = pti.flux_tr(megax,pars_tr,flag,my_ldc,n_cad,t_cad)
@@ -366,7 +367,10 @@ def plot_all_transits():
           fname = outdir+'/'+star+plabels[i]+'_transit'+str(j)+'.pdf'
           n = xt[j][len(xt[j])-1] - xt[0][0]
           n = int(n/P_val[i])
+          #is_err = plot_tr_errorbars
+          #plot_tr_errorbars = True
           fancy_tr_plot(t0_val[i]+P_val[i]*n,xt[j],yt[j],et[j],xtm,xt2[j],ytm,np.array(yt2[j]),fname)
+          #plot_tr_errorbars = is_err
 
 
 #===========================================================
@@ -441,9 +445,10 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname,is_
   plt.xlabel("")
   plt.ylabel("RV (m/s)",fontsize=fos)
   #plt.plot([0.,1.],[0.,0.],'k--')
-  plt.plot(p_rv,rv_model,'k',linewidth=1.0)
 #  if ( is_special ):
 #    [plt.fill_between(p_rv,*rvy[i:i+2,:],alpha=0.3,facecolor='k') for i in range(1,6,2)]
+#    plt.fill_between(p_rv,*rvy[5:7,:],alpha=0.5,facecolor='k')
+  plt.plot(p_rv,rv_model,'k',linewidth=1.0)
   for j in range(0,nt):
     #
     plt.errorbar(p_all[j],rv_dum[j],new_errs_all[j],\
@@ -697,7 +702,7 @@ if ( nplanets > 0 ):
         #len of the chain vector
         len_chain = len(params[0])
 
-        nc = len_chain/10
+        nc = len_chain/50
 
         rv_vector = [None]*nc
         rv_vector_res = [None]*nc
@@ -906,9 +911,8 @@ def create_corner_plot():
 
   figure = corner.corner(data, labels=newlabs, \
                        quantiles=[0.16, 0.5, 0.84], \
-                        show_titles=True,truths=true_params )
+                        show_titles=True,  )
   fname = outdir+'/'+star+'_corner.pdf'
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
-  figure.savefig(fname,format='pdf')
   plt.close()
