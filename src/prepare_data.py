@@ -59,7 +59,7 @@ if ( nplanets_rv > 0 ):
     rv_dum   = []
     errs_dum = []
     for j in range(0,len(tspe)):
-      if (tspe[j][0] == telescopes[i][0]):
+      if (tspe[j] == telescopes[i]):
         time_dum.append(time[j])
         rv_dum.append(rv[j])
         errs_dum.append(err[j])

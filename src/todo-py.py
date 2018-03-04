@@ -149,10 +149,10 @@ def smart_priors():
     min_phys_rv0 = [None]*nt
     max_phys_rv0 = [None]*nt
     for o in range(0,nt):
-        min_rv0[o] = min(rv_all[o]) - 1.0
-        max_rv0[o] = max(rv_all[o]) + 1.0
-        min_phys_rv0[o] = min(rv_all[o]) - 1.
-        max_phys_rv0[o] = max(rv_all[o]) + 1.
+        min_rv0[o] = min(rv_all[o]) - 1.0e-2
+        max_rv0[o] = max(rv_all[o]) + 1.0e-2
+        min_phys_rv0[o] = min(rv_all[o]) - 1.e-2
+        max_phys_rv0[o] = max(rv_all[o]) + 1.e-2
 
   if ( total_tr_fit ):
 
@@ -523,6 +523,7 @@ def joint_fit():
 
     stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
     is_jitter = [is_jitter_rv, is_jitter_tr]
+
 
     pti.mcmc_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
