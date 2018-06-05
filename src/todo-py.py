@@ -149,7 +149,7 @@ def smart_priors():
     min_phys_rv0 = [None]*nt
     max_phys_rv0 = [None]*nt
     for o in range(0,nt):
-        if fit_v0:
+        if (fit_v0 == 'u'):
           min_rv0[o] = min(rv_all[o]) - 1.0e-2
           max_rv0[o] = max(rv_all[o]) + 1.0e-2
           min_phys_rv0[o] = min(rv_all[o]) - 1.e-2
