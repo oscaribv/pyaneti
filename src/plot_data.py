@@ -470,6 +470,8 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname,is_
   if ( miy == 0): #To avoid errors for really small RV variations
     miy = max(abs(yylims[0]),abs(yylims[1]))
   plt.ylim(-miy,miy)
+  if ( select_y_rv ):
+    plt.ylim(rv_lim_min,rv_lim_max)
   plt.xlim(0.,1.)
   #plt.yticks(np.arange(-miy,miy,2.*miy/8.))
 #  plt.yticks(np.arange(yylims[0],yylims[1],(yylims[1]-yylims[0])/7.))

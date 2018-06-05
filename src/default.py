@@ -101,6 +101,9 @@ my_tr_err = 0
 select_y_tr = False
 y_lim_max = 1.05
 y_lim_min = 0.95
+select_y_rv = False
+rv_lim_max = -100 #m/s
+rv_lim_min = 100  #m/s
 #The defaul number of planets is 1
 nplanets = 1
 #The default planet labels
