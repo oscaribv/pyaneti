@@ -40,7 +40,7 @@ def plot_likelihood():
 #===========================================================
 
 #Ntransit is the number of the transit that we want to plot
-def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res,fname,is_special=False):
+def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res,fd_ub_unbinned,fname,is_special=False):
 
   print 'Creating ', fname
   #Do the plot
@@ -73,6 +73,8 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
 #  if ( is_special ):
 #    [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='b') for i in range(1,6,2)]
 #    plt.fill_between((xmodel-local_T0)*tfc,*flux_model[5:7,:],alpha=0.5,facecolor='k')
+  if (plot_unbinned_model):
+    plt.plot((xmodel-local_T0)*tfc,fd_ub_unbinned,'b',linewidth=1.0,alpha=1.0)
   plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
   #Calculate the optimal step for the plot
@@ -280,8 +282,11 @@ def plot_transit_nice():
       dumtp = pti.find_tp(0.0,e_val[o],w_val[o],P_val[o])
       dparstr = np.concatenate([[dumtp],pars_tr[1:,o]])
       fd_ub = pti.flux_tr(xmodel,dparstr,flag,my_ldc,n_cad,t_cad)
+      #Let us create an unbinned model plot
+      fd_ub_unbinned = pti.flux_tr(xmodel,dparstr,flag,my_ldc,1,t_cad)
       #Calculate the flux to copute the residuals
       fd_ub_res = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
+
 
       if ( is_special_plot_tr ):
         #len of the chain vector
@@ -340,7 +345,7 @@ def plot_transit_nice():
       #xmodel_res is the residuals time_stamps
       #fd_reb is the modeled light cuve
       #res_res are the residuals
-      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,fd_ub,res_res,fname,is_special_plot_tr)
+      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,fd_ub,res_res,fd_ub_unbinned,fname,is_special_plot_tr)
 
 #===========================================================
 #              plot all transits
@@ -369,7 +374,7 @@ def plot_all_transits():
           n = int(n/P_val[i])
           #is_err = plot_tr_errorbars
           #plot_tr_errorbars = True
-          fancy_tr_plot(t0_val[i]+P_val[i]*n,xt[j],yt[j],et[j],xtm,xt2[j],ytm,np.array(yt2[j]),fname)
+          fancy_tr_plot(t0_val[i]+P_val[i]*n,xt[j],yt[j],et[j],xtm,xt2[j],ytm,np.array(yt2[j]),ytm,fname)
           #plot_tr_errorbars = is_err
 
 

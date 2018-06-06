@@ -82,6 +82,7 @@ is_plot_all_tr = [False]
 is_special_plot_tr = False #Plot percentiles in the phase pholded transit plots
 is_special_plot_rv = False #Plot percentiles in the phase pholded RV plots
 is_fit_tr_errorbars = True
+plot_unbinned_model = False #If True, overplots an unbinned model in the light curve
 is_jitter_rv = False
 is_jitter_tr = False
 plot_parameters = []
