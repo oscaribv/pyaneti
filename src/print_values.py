@@ -296,13 +296,23 @@ if ( method == 'mcmc' or method == 'plot' ):
     pgra_vec = 2. * np.pi * np.sqrt(1. - e_vec[o]**2) * (k_vec[o]*1.e5) / pgra_vec #cm/s^2
 
     #Estimate surface gravity from the derived parameters
-    pgra_vec2 = m_vec[o] / r_vec[o]**2 #in solar units
-    pgra_vec2 = pgra_vec2 * 28.02 * 981.
+    pgra_vec2 = m_vec[o] / r_vec[o]**2   #in solar units
+    pgra_vec2 = pgra_vec2 * 28.02 * 981. #cm/s^2
 
     #Stellar luminosity in solar units
     Ls = (rstar)**2*(tstar/S_Teff)**4
     #planet insolation in Flux received at Earth
     Fp = Ls/a_vec[o]**2
+
+    #Estimate the stellar mass assuming the surface gravity of the planet is true
+    #Planet mass from surface gravity of the planet
+    mpgra = pgra_vec*(r_vec[o]*S_radius_cgs)**2/G_cgs #g
+    #Stellar mass from surface gravity of the planet
+    msgra = (k_vec[o]*1.e5)*np.sqrt(1. - e_vec[o]**2)/np.sin(i_vec[o])
+    msgra = msgra * ( (P_vec[o]*24.*3600.) / 2. / np.pi / G_cgs )**(1./3.)
+    msgra = (mpgra / msgra)**(3./2.)
+    msgra = msgra - mpgra
+    msgra = msgra / S_GM_cgs * G_cgs
 
     #Convert units
     usymbol = '{\odot}'
@@ -359,6 +369,7 @@ if ( method == 'mcmc' or method == 'plot' ):
       print_values(pden_vec,'rho_p','denp'+pl,'g/cm^3','${\\rm g\,cm^{-3}}$')
       print_values(pgra_vec,'g_p','grap'+pl,'cm/s^2 (K and Rp/R*)','${\\rm cm\,s^{-2}}$')
       print_values(pgra_vec2,'g_p','grappars'+pl,'cm/s^2 (planet parameters)','${\\rm cm\,s^{-2}}$')
+      print_values(msgra,'M_*','mspars'+pl,' solar masses (scaled parameters)','$M_\odot$')
       print_values(Tpe_vec[o],'Tperi','Tperi'+pl,'days','days')
       print_values(Teq_vec[o],'Teq','Teq'+pl,'K (albedo=0)','K')
       print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')

@@ -76,7 +76,7 @@ fit_tr = [False]
 #If True, the code sample for log10(P) instead of P
 is_log_P    = False
 #If True, the code sample for sqrt(e) sin w and sqrt(e) cos w instead of e and w
-is_ew       = True
+is_ew       = False
 #If True, the code sample for impact parameter insted of inclination
 is_b_factor = True
 #If True, the code sample for the stellar density to the 1/3 power (rho^{1/3})
