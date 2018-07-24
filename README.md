@@ -7,7 +7,7 @@
 # __pyaneti__
 #### Written by Barragán O., Gandolfi D. & Antoniciello G.
 ##### email: oscaribv@gmail.com
-##### Updated November 20, 2017
+##### Updated July 24, 2018
 
 <a href="http://ascl.net/1707.003"><img src="https://img.shields.io/badge/ascl-1707.003-blue.svg?colorB=262255" alt="ascl:1707.003" /></a>
 
@@ -15,9 +15,8 @@
 
 * _Pianeti_ is the Italian word for planets.
 * Multi-planet fitting of radial velocity and transit data!
-* It uses Marcov chain Monte Carlo (MCMC) methods with a Bayesian approach.
+* It uses Markov chain Monte Carlo (MCMC) methods with a Bayesian approach.
 * Ensemble sampler with affine invariance algorithm
-for a major coverage of the parameter space
 ([Godman & Weare, 2010](http://msp.org/camcos/2010/5-1/p04.xhtml)).
 * _Python_ does the nice things: plots, call functions, printing, in/output files.
 * _Fortran_ does the hard work: MCMC evolution, likelihood calculation, ensemble sampler evolution.
@@ -26,7 +25,7 @@ for a major coverage of the parameter space
 
 ## __Power of pyaneti__
 
-* Multiple independent Marcov chains to sample the space parameters.
+* Multiple independent Markov chains to sample the parameter space.
 * Easy-to-use: it runs by providing only one input_fit.py file.
 * Parallel computing with OpenMP.
 * Automatic creation of posteriors, correlations, and ready-to-publish plots.
@@ -46,8 +45,8 @@ for a major coverage of the parameter space
 * matplotlib
 * seaborn (optional)
 
-We tested this code using Linux, including Fedora and Ubuntu. This code has not been tested on a MAC computer yet.
-Nevertheless, it should work by changing the compilers inside the makefile.
+We tested this code using Linux, including Fedora and Ubuntu. This code has also be being built on MAC computers.
+
 ## Start to use it now!
 
 Just clone or download pyaneti.
@@ -359,8 +358,10 @@ env OMP_NUM_THREADS=2 ./pyaneti.py test
 
 ## Science  with pyaneti
 
-* Barragán et al., 2017, _EPIC 246393474 b: A 5-M_Earth super-Earth transiting a K7 V star every 6.7 hours_
-[submitted to A&A](http://adsabs.harvard.edu/abs/2017arXiv171102097B)
+* Prieto-Arranz et al., 2018, _Mass determination of the 1:3:5 near-resonant planets transiting GJ 9827 (K2-135)_, 
+[A&A, submitted](https://arxiv.org/abs/1802.09557)
+* Barragán et al., 2018, _K2-141 b: A 5-M_Earth super-Earth transiting a K7 V star every 6.7 hours_
+[A&A, 612, A95](http://adsabs.harvard.edu/abs/2017arXiv171102097B)
 * Niraula et al., 2017, _Three Small Super-Earths Transiting the nearby star GJ 9827_, [AJ, in press.](http://adsabs.harvard.edu/abs/2017arXiv170901527N).
 * Gandolfi et al., 2017, _The transiting multi-planet system HD3167: a 5.7 MEarth Super-Earth and a 8.3 MEarth mini-Neptune_,
 [AJ, 154, 123.](http://adsabs.harvard.edu/abs/2017AJ....154..123G)
@@ -378,6 +379,8 @@ env OMP_NUM_THREADS=2 ./pyaneti.py test
 [AJ, 153, 130](http://adsabs.harvard.edu/abs/2017AJ....153..130E).
 * Barragán et al, 2016, _K2-98b: A 32-M⊕ Neptune-sized planet in a 10-day orbit transiting an F8 star_,
  [AJ, 152, 6](http://adsabs.harvard.edu/abs/2016AJ....152..193B).
+
+*See the list of citations to the code [here](https://ui.adsabs.harvard.edu/#abs/2017ascl.soft08003B/citations)*
 
 ## Citing
 
