@@ -89,7 +89,7 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
   plt.minorticks_on()
   plt.ticklabel_format(useOffset=False, axis='y')
   plt.xlim(x_lim,-x_lim)
-  plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
+  plt.tick_params( axis='x',which='both',direction='in',labelbottom=False)
   plt.tick_params( axis='y',which='both',direction='in')
   #Plot the residuals
   ax0 = plt.subplot(gs[1])
@@ -127,14 +127,10 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
 #       TRANSIT PARAMERS TO BE USED TO GENERATE PLOTS
 #-----------------------------------------------------------------
 
-ldc = [ best_value(params[4+8*nplanets],maxloglike,get_value), best_value(params[5+8*nplanets],maxloglike,get_value) ]
-q1_val = ldc[0]
-q2_val = ldc[1]
-u1_val = np.sqrt(q1_val)
-u2_val = u1_val * (1.0 -2.0*q2_val)
-u1_val = 2.0*u1_val*q2_val
-flag = [False]*4
+u1_val =best_value(u1_vec,maxloglike,get_value)
+u2_val =best_value(u2_vec,maxloglike,get_value)
 my_ldc = [u1_val,u2_val]
+flag = [False]*4
 
 t0_val = [None]*nplanets
 tp_val = [None]*nplanets
@@ -145,37 +141,15 @@ i_val  = [None]*nplanets
 a_val  = [None]*nplanets
 rp_val = [None]*nplanets
 
-base = 4
 for m in range(0,nplanets):
-  t0_val[m] = best_value(params[base + 0],maxloglike,get_value)
-  P_val[m]  = best_value(params[base + 1],maxloglike,get_value)
-  e_val[m]  = best_value(params[base + 2],maxloglike,get_value)
-  w_val[m]  = best_value(params[base + 3],maxloglike,get_value)
-  i_val[m]  = best_value(params[base + 4],maxloglike,get_value)
-  a_val[m]  = best_value(params[base + 5],maxloglike,get_value)
-  rp_val[m] = best_value(params[base + 6],maxloglike,get_value)
-  base = base + 8
-
-
-  if ( is_den_a ):
-    a_val[m] = a_val[0]*(P_val[m]*P_val[m]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
-    if ( m > 0):
-      a_val[m] = (P_val[m]/P_val[0])**(2./3.)*a_val[0]
-
-  #Check flags
-  #Change between b and i
-  if ( is_b_factor ):
-    i_val[m] = np.arccos( i_val[m] / a_val[m] * \
-            ( 1.0 + e_val[m] * np.sin(w_val[m] ) / ( 1.0 - e_val[m]**2 ) ) )
-
-  if ( is_ew ):
-    e_dum = e_val[m]
-    w_dum = w_val[m]
-    e_val[m] = e_val[m]**2 + w_val[m]**2
-    w_val[m] = np.arctan2(e_dum,w_val[m])
-    w_val[m] = w_val[m] % (2*np.pi)
-
-  tp_val[m] = pti.find_tp(t0_val[m],e_val[m],w_val[m],P_val[m])
+  t0_val[m] = best_value(T0_vec[m],maxloglike,get_value)
+  tp_val[m] = best_value(Tpe_vec[m],maxloglike,get_value)
+  P_val[m]  = best_value(P_vec[m],maxloglike,get_value)
+  e_val[m]  = best_value(e_vec[m],maxloglike,get_value)
+  w_val[m]  = best_value(w_vec[m],maxloglike,get_value)
+  i_val[m]  = best_value(i_vec[m],maxloglike,get_value)
+  a_val[m]  = best_value(ar_vec[m],maxloglike,get_value)
+  rp_val[m] = best_value(rr_vec[m],maxloglike,get_value)
 
   #Create parameters vector
   pars_tr = np.zeros(shape=(7,nplanets))
@@ -275,7 +249,8 @@ def plot_transit_nice():
       eflux = np.concatenate(eflux_d)
 
       xmodel_res = xtime
-      xmodel = np.arange(min(xtime), max(xtime),1.0/20./24.)
+      mimax = abs(min(abs(min(xtime)),abs(max(xtime))))
+      xmodel = np.arange(-mimax, mimax,1.0/40./24.)
       #Let us create the model
 
       #The model has T0 = 0
@@ -468,7 +443,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname,is_
     markersize=rv_markersize,fillstyle=rv_fillstyle)
   if ( is_rv_legend ): plt.legend(loc=2, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.7)
   plt.xticks(np.arange(0.,1.01,0.1))
-  plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
+  plt.tick_params( axis='x',which='both',direction='in',labelbottom=False)
   plt.tick_params( axis='y',which='both',direction='in')
   yylims = ax0.get_ylim()
   miy = int(max(abs(yylims[0]),abs(yylims[1])))
@@ -484,7 +459,7 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname,is_
   ax1 = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos,direction='in')
   plt.xlabel("Orbital phase",fontsize=fos)
-  plt.tick_params( axis='x',which='minor',direction='in',bottom='on',left='on',right='on',top='on')
+  plt.tick_params( axis='x',which='minor',direction='in',bottom=True,left=True,right=True,top=True)
   plt.tick_params( axis='y',which='both',direction='in')
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.ylabel('Residuals (m/s)',fontsize=fos*0.75)
@@ -532,8 +507,6 @@ if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   alpha_val = best_value(params_trends[0],maxloglike,get_value)
   beta_val  = best_value(params_trends[1],maxloglike,get_value)
 
-
-base = 4
 t0_val = np.ndarray(nplanets)
 P_val  = np.ndarray(nplanets)
 e_val  = np.ndarray(nplanets)
@@ -541,21 +514,11 @@ w_val  = np.ndarray(nplanets)
 k_val  = np.ndarray(nplanets)
 
 for o in range(0,nplanets):
-  t0_val[o] = best_value(params[base + 0],maxloglike,get_value)
-  P_val[o]  = best_value(params[base + 1],maxloglike,get_value)
-  e_val[o]  = best_value(params[base + 2],maxloglike,get_value)
-  w_val[o]  = best_value(params[base + 3],maxloglike,get_value)
-  k_val[o]  = best_value(params[base + 7],maxloglike,get_value)
-  if ( is_log_P ):
-    P_val[o] = 10.0**(P_val[o])
-  if ( is_log_k ):
-    k_val[o] = 10.0**(k_val[o])
-  if ( is_ew ):
-    edum_val = e_val[o]
-    e_val[o] = e_val[o]**2 + w_val[o]**2
-    w_val[o] = np.arctan2(edum_val,w_val[o])
-
-  base = base + 8
+  t0_val[o] = best_value(T0_vec[o],maxloglike,get_value)
+  P_val[o]  = best_value(P_vec[o],maxloglike,get_value)
+  e_val[o]  = best_value(e_vec[o],maxloglike,get_value)
+  w_val[o]  = best_value(w_vec[o],maxloglike,get_value)
+  k_val[o]  = best_value(k_vec[o],maxloglike,get_value)
 
 def pars_rv_chain(params,nchain):
 
@@ -725,7 +688,7 @@ if ( nplanets > 0 ):
 
         rv_vector = np.array(rv_vector)
         #rv_vector_res = np.array(rv_vector_res)
-        rvy = np.percentile(rv_vector, [50, 0.15,99.85, 2.5,97.5, 16,84], 0)
+        rvy = np.percentile(rv_vector, [50.,0.15,99.85, 2.5,97.5,16.,84.], 0)
         #rvy_res = np.percentile(res_vector_res, [50,0.15,99.85, 2.5,97.5, 16,84], 0)
         #fd_ub_res = res_pc_res[0]
 
@@ -838,12 +801,13 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     plt.axvline(x=vpar-lpar,c=cbars,ls='--')
     plt.axvline(x=vpar+rpar,c=cbars,ls='--')
     plt.xlabel(plabs[i])
+    plt.ylabel('Frequency')
     plt.tick_params( axis='y',which='both',direction='in')
     plt.tick_params( axis='x',which='both',direction='in')
     if ( is_seaborn_plot ):
       sns.kdeplot(params[i], shade=True)
     else:
-      plt.hist(params[i],normed=True,bins=nb)
+      plt.hist(params[i],density=True,bins=nb)
     j = j + 1
 
   fname = outdir+'/'+star+'_posterior.pdf'
@@ -865,22 +829,22 @@ def create_plot_correlation(params,plabs,col='red',mark='.',num=[]):
     for j in n:
       if ( j < i ):
         plt.subplot(gs[o*len(n)+p])
-        plt.tick_params( axis='y',which='both',direction='in',labelleft='off')
-        plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
+        plt.tick_params( axis='y',which='both',direction='in',labelleft=False)
+        plt.tick_params( axis='x',which='both',direction='in',labelbottom=False)
         plt.ticklabel_format(useOffset=False, axis='both')
         if ( j == n[0] ):
            plt.ylabel(plabs[i],fontsize=25)
         elif ( j == i - 1 ):
-          plt.tick_params( axis='y',which='both',direction='in',labelleft='off')
-          plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
+          plt.tick_params( axis='y',which='both',direction='in',labelleft=False)
+          plt.tick_params( axis='x',which='both',direction='in',labelbottom=False)
         else:
-          plt.tick_params( axis='y',which='both',direction='in',labelleft='off')
-          plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
+          plt.tick_params( axis='y',which='both',direction='in',labelleft=False)
+          plt.tick_params( axis='x',which='both',direction='in',labelbottom=False)
         if ( i == n[len(n)-1]):
           plt.xlabel(plabs[j],fontsize=25)
         else:
-          plt.tick_params( axis='y',which='both',direction='in',labelleft='off')
-          plt.tick_params( axis='x',which='both',direction='in',labelbottom='off')
+          plt.tick_params( axis='y',which='both',direction='in',labelleft=False)
+          plt.tick_params( axis='x',which='both',direction='in',labelbottom=False)
         plt.hist2d(params[j],params[i],bins=100,norm=LogNorm())
         p = p + 1
     o = o + 1
