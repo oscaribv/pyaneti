@@ -787,11 +787,11 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     n = range(0,len(params))
   else:
     n = num
-  plt.figure(1,figsize=(12,4*(len(n))/2))
-  gs = gridspec.GridSpec(nrows=(len(n)+1)/2,ncols=2)
+  plt.figure(1,figsize=(12,4*(len(n))/3))
+  gs = gridspec.GridSpec(nrows=(len(n)+1)/3,ncols=3)
   j = 0
   for i in n:
-    plt.subplot(gs[j])
+    ax0 = plt.subplot(gs[j])
     vpar, lpar, rpar = find_vals_perc(params[i],1.0)
     moda = my_mode(params[i])
     #best_val = params[i][minchi2_index]
@@ -801,13 +801,26 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     plt.axvline(x=vpar-lpar,c=cbars,ls='--')
     plt.axvline(x=vpar+rpar,c=cbars,ls='--')
     plt.xlabel(plabs[i])
-    plt.ylabel('Frequency')
+    if ( j % 3 == 0 ): plt.ylabel('Frequency')
     plt.tick_params( axis='y',which='both',direction='in')
     plt.tick_params( axis='x',which='both',direction='in')
     if ( is_seaborn_plot ):
-      sns.kdeplot(params[i], shade=True)
+      #sns.kdeplot(params[i], shade=True)
+      plt.hist(params[i],density=True,bins=nb)
     else:
       plt.hist(params[i],density=True,bins=nb)
+    #Let us plot the prior ranges over the posterior distributions
+#    if is_plot_prior:
+#      lx,rx = ax0.get_xlim()
+#      #lx,rx = limits[i*2], limits[i*2+1]
+#      locx = np.arange(lx,rx,(rx-lx)/1000.)
+#      lp = [None]*len(locx)
+#      for k in range(0,len(locx)):
+#        if fit_all[i] == 'u': lp[k] = pti.uniform_prior(limits[i*2],limits[i*2+1],locx[k])
+#        if fit_all[i] == 'g': lp[k] = pti.gauss_prior(limits[i*2],limits[i*2+1],locx[k])
+#      plt.plot(locx,lp)
+#      #if fit_all[i] == 'u': plt.xlim(limits[i*2],limits[i*2+1])
+#    #
     j = j + 1
 
   fname = outdir+'/'+star+'_posterior.pdf'
