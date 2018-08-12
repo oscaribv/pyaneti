@@ -128,6 +128,19 @@ implicit none
 
 end subroutine
 
+
+subroutine uniform_prior(lx,rx,x,prob)
+implicit none
+
+  !In/Out variables
+  double precision, intent(in) :: lx, rx, x
+  double precision, intent(out)  :: prob
+
+  prob = 1.d0/(rx - lx)
+  if ( x < lx .or. x > rx ) prob = 0.d0
+
+end subroutine
+
 subroutine get_priors(fit_pars,lims,pars_in,priors_out,npars)
 implicit none
 
@@ -142,10 +155,11 @@ implicit none
   priors_out = 1.d0
   do j = 0, npars - 1
     if ( fit_pars(j) == 'u' ) then
-      if ( pars_in(j) < lims(2*j) .or. pars_in(j) > lims(2*j+1) ) then
-        priors_out(j) = 0.d0
-        exit
-      end if
+!      if ( pars_in(j) < lims(2*j) .or. pars_in(j) > lims(2*j+1) ) then
+!        priors_out(j) = 0.d0
+!        exit
+      call uniform_prior(lims(2*j),lims(2*j+1),pars_in(j),priors_out(j))
+      !end if
     else if ( fit_pars(j) == 'g' ) then
       call gauss_prior(lims(2*j),lims(2*j+1),pars_in(j),priors_out(j))
     end if
