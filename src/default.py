@@ -202,6 +202,8 @@ jrvvec = []
 is_plot_posterior = True
 #If True, it plots the prior disribution over the posterior distribution if is_plot_posterio == True
 is_plot_prior = True
+#how many colums do we want in the posterior plot?
+n_columns_posterior = 3
 #If True it creates a correlation plot
 is_plot_correlations = True
 #If True it creates a iterations vs chains plot

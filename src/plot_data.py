@@ -791,8 +791,8 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
   priorf = np.concatenate([fit_all,fit_ldc,fit_rvs])
   priorl = np.concatenate([limits,limits_ldc,limits_rvs])
 
-  plt.figure(1,figsize=(12,4*(len(n))/3))
-  gs = gridspec.GridSpec(nrows=(len(n)+2)/3,ncols=3)
+  plt.figure(1,figsize=(12,4*(len(n))/n_columns_posterior))
+  gs = gridspec.GridSpec(nrows=(len(n)+n_columns_posterior-1)/n_columns_posterior,ncols=n_columns_posterior)
   j = 0
   for i in n:
     ax0 = plt.subplot(gs[j])
@@ -805,7 +805,7 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     plt.axvline(x=vpar-lpar,c=cbars,ls='--')
     plt.axvline(x=vpar+rpar,c=cbars,ls='--')
     plt.xlabel(plabs[i])
-    if ( j % 3 == 0 ): plt.ylabel('Frequency')
+    if ( j % n_columns_posterior == 0 ): plt.ylabel('Frequency')
     plt.tick_params( axis='y',which='both',direction='in')
     plt.tick_params( axis='x',which='both',direction='in')
     if ( is_seaborn_plot ):
@@ -827,7 +827,7 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
       if priorf[i] == 'g': plt.fill(locx,lp,alpha=0.3,color='g',label='P(M)')
       #if priorf[i] == 'u': plt.xlim(priorl[i*2],priorl[i*2+1])
     #
-    if ( i == n[0] ): plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.7)
+    if ( i == n[0] ): plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.5)
     j = j + 1
 
   fname = outdir+'/'+star+'_posterior.pdf'
