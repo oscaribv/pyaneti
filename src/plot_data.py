@@ -787,8 +787,12 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     n = range(0,len(params))
   else:
     n = num
+
+  priorf = np.concatenate([fit_all,fit_ldc,fit_rvs])
+  priorl = np.concatenate([limits,limits_ldc,limits_rvs])
+
   plt.figure(1,figsize=(12,4*(len(n))/3))
-  gs = gridspec.GridSpec(nrows=(len(n)+1)/3,ncols=3)
+  gs = gridspec.GridSpec(nrows=(len(n)+2)/3,ncols=3)
   j = 0
   for i in n:
     ax0 = plt.subplot(gs[j])
@@ -806,21 +810,24 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     plt.tick_params( axis='x',which='both',direction='in')
     if ( is_seaborn_plot ):
       #sns.kdeplot(params[i], shade=True)
-      plt.hist(params[i],density=True,bins=nb)
+      plt.hist(params[i],density=True,bins=nb,label='P(M|D)')
     else:
       plt.hist(params[i],density=True,bins=nb)
     #Let us plot the prior ranges over the posterior distributions
-#    if is_plot_prior:
-#      lx,rx = ax0.get_xlim()
-#      #lx,rx = limits[i*2], limits[i*2+1]
-#      locx = np.arange(lx,rx,(rx-lx)/1000.)
-#      lp = [None]*len(locx)
-#      for k in range(0,len(locx)):
-#        if fit_all[i] == 'u': lp[k] = pti.uniform_prior(limits[i*2],limits[i*2+1],locx[k])
-#        if fit_all[i] == 'g': lp[k] = pti.gauss_prior(limits[i*2],limits[i*2+1],locx[k])
-#      plt.plot(locx,lp)
-#      #if fit_all[i] == 'u': plt.xlim(limits[i*2],limits[i*2+1])
-#    #
+    if is_plot_prior:
+      lx,rx = ax0.get_xlim()
+      #lx,rx = priorl[i*2], priorl[i*2+1]
+      locx = np.arange(lx,rx,(rx-lx)/1000.)
+      lp = [None]*len(locx)
+      for k in range(0,len(locx)):
+        if priorf[i] == 'u': lp[k] = pti.uniform_prior(priorl[i*2],priorl[i*2+1],locx[k])
+        if priorf[i] == 'g': lp[k] = pti.gauss_prior(priorl[i*2],priorl[i*2+1],locx[k])
+      plt.plot(locx,lp,alpha=0.8,color='g')
+      if priorf[i] == 'u': plt.fill_between(locx,lp,alpha=0.3,color='g',label='P(M)')
+      if priorf[i] == 'g': plt.fill(locx,lp,alpha=0.3,color='g',label='P(M)')
+      #if priorf[i] == 'u': plt.xlim(priorl[i*2],priorl[i*2+1])
+    #
+    if ( i == n[0] ): plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.7)
     j = j + 1
 
   fname = outdir+'/'+star+'_posterior.pdf'

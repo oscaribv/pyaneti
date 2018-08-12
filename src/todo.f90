@@ -214,6 +214,7 @@ implicit none
   B = nconv * B / ( nchains - 1 )
 
   !Estimated variance
+  !equation 11.4  Gelman et al., 2004, Bayesian Data Analysis, 3rd edition
   V = W - (W - B) / nconv
 
   !Potential scale reduction factor

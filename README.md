@@ -367,20 +367,16 @@ env OMP_NUM_THREADS=2 ./pyaneti.py test
 [AJ, 154, 123.](http://adsabs.harvard.edu/abs/2017AJ....154..123G)
 * Guenther et al., 2017, _K2-106, a system containing a metal rich planet and a planet of lower density_,
 [A&A, in press.](https://arxiv.org/abs/1705.04163).
-* Fridlund et al., 2017, _EPIC 210894022b - A short period super-Earth transiting a metal poor, evolved old star_,
+* Fridlund et al., 2017, _K2-111 b - A short period super-Earth transiting a metal poor, evolved old star_,
 [A&A, 604, A16](http://adsabs.harvard.edu/abs/2017A%26A...604A..16F).
-* Barragán et al., 2017, _EPIC 218916923 b: a low-mass warm Jupiter on a 29-day orbit transiting an active K0V star_,
+* Barragán et al., 2017, _K2-139 b: a low-mass warm Jupiter on a 29-day orbit transiting an active K0V star_,
 [MNRAS, submitted](https://arxiv.org/abs/1702.00691).
 * Nespral et al., 2017, _Mass determination of K2-19b and K2-19c from radial velocities and transit timing variations_,
 [A&A, 601A, 128.](http://adsabs.harvard.edu/abs/2017A%26A...601A.128N).
-* Nowak et al., 2017, _EPIC 219388192 b - an inhabitant of the brown dwarf desert in the Ruprecht 147 open cluster_,
- [AJ, 153, 131](http://adsabs.harvard.edu/abs/2017AJ....153..131N).
-* Eigmüller et al., 2017, _K2-60b and K2-107b. A sub-jovian and a jovian planet from the k2 mission_,
-[AJ, 153, 130](http://adsabs.harvard.edu/abs/2017AJ....153..130E).
 * Barragán et al, 2016, _K2-98b: A 32-M⊕ Neptune-sized planet in a 10-day orbit transiting an F8 star_,
  [AJ, 152, 6](http://adsabs.harvard.edu/abs/2016AJ....152..193B).
 
-*See the list of citations to the code [here](https://ui.adsabs.harvard.edu/#abs/2017ascl.soft08003B/citations)*
+**See the list of citations to the code [here](https://ui.adsabs.harvard.edu/#abs/2017ascl.soft08003B/citations)**
 
 ## Citing
 

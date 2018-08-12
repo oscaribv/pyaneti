@@ -467,6 +467,7 @@ def joint_fit():
   global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,rpo,ko,alphao,betao,vo, what_fit
   global new_nwalkers, good_index, nwalkers
   global jrvo, jtro, total_fit_flag, flags
+  global limits, priorf, priorl, limits_ldc, limits_rvs
 
 
   if ( is_ew ):
@@ -500,36 +501,36 @@ def joint_fit():
 
   flags = [is_log_P,is_ew,is_b_factor,is_den_a,is_log_k,is_log_rv0]
 
+
+  vec_rv0_limits = []
+#    vec_rv0_phys_limits = []
+  for m in range(0,nt):
+    vec_rv0_limits.append(min_rv0[m])
+    vec_rv0_limits.append(max_rv0[m])
+
+  dummy_lims = [None]*8*2*nplanets
+  dummy_lims_physical = [None]*8*2*nplanets
+
+  for o in range(0,nplanets):
+
+    dummy_lims[o*8*2:(o+1)*8*2 ] = \
+    [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
+    , min_i[o], max_i[o], min_a[o], max_a[o], min_rp[o], max_rp[o], min_k[o], max_k[o] ]
+
+  limits = dummy_lims
+
+  limits_rvs = vec_rv0_limits
+
+  limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
+
+  stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
+  is_jitter = [is_jitter_rv, is_jitter_tr]
+
   if ( method == 'mcmc' ):
 
     #Ensure nwalkers is divisible by 2
     if ( nwalkers%2 != 0):
          nwalkers = nwalkers + 1
-
-    vec_rv0_limits = []
-#    vec_rv0_phys_limits = []
-    for m in range(0,nt):
-      vec_rv0_limits.append(min_rv0[m])
-      vec_rv0_limits.append(max_rv0[m])
-
-    dummy_lims = [None]*8*2*nplanets
-    dummy_lims_physical = [None]*8*2*nplanets
-
-    for o in range(0,nplanets):
-
-      dummy_lims[o*8*2:(o+1)*8*2 ] = \
-      [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
-      , min_i[o], max_i[o], min_a[o], max_a[o], min_rp[o], max_rp[o], min_k[o], max_k[o] ]
-
-    limits = dummy_lims
-
-    limits_rvs = vec_rv0_limits
-
-    limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
-
-    stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
-    is_jitter = [is_jitter_rv, is_jitter_tr]
-
 
     pti.mcmc_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
