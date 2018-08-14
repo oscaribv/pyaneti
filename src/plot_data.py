@@ -70,12 +70,12 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
     y0,yyyy = ax1.get_ylim()
     plt.errorbar(-x_lim*(0.95),y0 +errors[0]*2,errors[0],color=tr_colors,ms=7,fmt='o',alpha=1.0)
     plt.annotate('Error bar',xy=(-x_lim*(0.70),y0 +errors[0]*1.75),fontsize=fos*0.7)
-#  if ( is_special ):
-#    [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='b') for i in range(1,6,2)]
-#    plt.fill_between((xmodel-local_T0)*tfc,*flux_model[5:7,:],alpha=0.5,facecolor='k')
+  if ( is_special ):
+    [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='b') for i in range(1,6,2)]
+    plt.fill_between((xmodel-local_T0)*tfc,*flux_model[5:7,:],alpha=0.5,facecolor='k')
   if (plot_unbinned_model):
-    plt.plot((xmodel-local_T0)*tfc,fd_ub_unbinned,'b',linewidth=1.0,alpha=1.0)
-  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=1.0,alpha=1.0)
+    plt.plot((xmodel-local_T0)*tfc,fd_ub_unbinned,'b',linewidth=2.0,alpha=1.0)
+  plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
   plt.ylabel('Relative flux',fontsize=fos)
   #Calculate the optimal step for the plot
   step_plot = int(abs(x_lim)) #the value of the x_axis
@@ -143,24 +143,28 @@ rp_val = [None]*nplanets
 
 for m in range(0,nplanets):
   t0_val[m] = best_value(T0_vec[m],maxloglike,get_value)
-  tp_val[m] = best_value(Tpe_vec[m],maxloglike,get_value)
   P_val[m]  = best_value(P_vec[m],maxloglike,get_value)
   e_val[m]  = best_value(e_vec[m],maxloglike,get_value)
   w_val[m]  = best_value(w_vec[m],maxloglike,get_value)
   i_val[m]  = best_value(i_vec[m],maxloglike,get_value)
   a_val[m]  = best_value(ar_vec[m],maxloglike,get_value)
   rp_val[m] = best_value(rr_vec[m],maxloglike,get_value)
+  #tp_val[m] = best_value(Tpe_vec[m],maxloglike,get_value)
+  tp_val[m] = pti.find_tp(t0_val[m],e_val[m],w_val[m],P_val[m])
+
 
   #Create parameters vector
   pars_tr = np.zeros(shape=(7,nplanets))
   for m in range(0,nplanets):
-      pars_tr[0,m] = tp_val[m]
-      pars_tr[1,m] = P_val[m]
-      pars_tr[2,m] = e_val[m]
-      pars_tr[3,m] = w_val[m]
-      pars_tr[4,m] = i_val[m]
-      pars_tr[5,m] = a_val[m]
-      pars_tr[6,m] = rp_val[m]
+      pars_tr[0][m] = tp_val[m]
+      pars_tr[1][m] = P_val[m]
+      pars_tr[2][m] = e_val[m]
+      pars_tr[3][m] = w_val[m]
+      pars_tr[4][m] = i_val[m]
+      pars_tr[5][m] = a_val[m]
+      pars_tr[6][m] = rp_val[m]
+
+
 
 #Returns the pars_tr array for a given chain number
 def pars_tr_chain(params,nchain):
@@ -217,13 +221,13 @@ def pars_tr_chain(params,nchain):
     #Create parameters vector
     pars_tr = np.zeros(shape=(7,nplanets))
     for m in range(0,nplanets):
-        pars_tr[0,m] = tp_val[m]
-        pars_tr[1,m] = P_val[m]
-        pars_tr[2,m] = e_val[m]
-        pars_tr[3,m] = w_val[m]
-        pars_tr[4,m] = i_val[m]
-        pars_tr[5,m] = a_val[m]
-        pars_tr[6,m] = rp_val[m]
+      pars_tr[0][m] = tp_val[m]
+      pars_tr[1][m] = P_val[m]
+      pars_tr[2][m] = e_val[m]
+      pars_tr[3][m] = w_val[m]
+      pars_tr[4][m] = i_val[m]
+      pars_tr[5][m] = a_val[m]
+      pars_tr[6][m] = rp_val[m]
 
   return pars_tr
 
@@ -250,7 +254,7 @@ def plot_transit_nice():
 
       xmodel_res = xtime
       mimax = abs(min(abs(min(xtime)),abs(max(xtime))))
-      xmodel = np.arange(-mimax, mimax,1.0/40./24.)
+      xmodel = np.arange(-mimax, mimax,1.0/20./24.)
       #Let us create the model
 
       #The model has T0 = 0
@@ -824,8 +828,7 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
         if priorf[i] == 'g': lp[k] = pti.gauss_prior(priorl[i*2],priorl[i*2+1],locx[k])
       plt.plot(locx,lp,alpha=0.8,color='g')
       if priorf[i] == 'u': plt.fill_between(locx,lp,alpha=0.3,color='g',label='P(M)')
-      if priorf[i] == 'g': plt.fill(locx,lp,alpha=0.3,color='g',label='P(M)')
-      #if priorf[i] == 'u': plt.xlim(priorl[i*2],priorl[i*2+1])
+      if priorf[i] == 'g': plt.fill_between(locx,lp,alpha=0.3,color='g',label='P(M)')
     #
     if ( i == n[0] ): plt.legend(loc=0, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.5)
     j = j + 1
