@@ -133,10 +133,10 @@ def smart_priors():
   #We are using global variables
   global fit_tr, fit_rv
   global tota_rv_fit, total_tr_fit
-  global min_rv0, max_rv0, v0, min_k, max_k, min_phys_k, max_phys_k
-  global min_P, max_P, min_phys_P, max_phys_P, min_t0, max_t0, \
-         min_phys_t0, max_phys_t0, min_rp, max_rp, min_phys_rp, \
-         max_phys_rp, min_i, max_i, min_phys_i, max_phys_i, min_phys_rv0, max_phys_rv0
+  global min_rv0, max_rv0, v0, min_k, max_k
+  global min_P, max_P, min_t0, max_t0, \
+         min_rp, max_rp, \
+         min_i, max_i
 
   #Let us try to do a guess for the init values
   if ( total_rv_fit ):
@@ -146,30 +146,21 @@ def smart_priors():
     #be between the smallest and larger RV datapoint
     min_rv0 = [None]*nt
     max_rv0 = [None]*nt
-    min_phys_rv0 = [None]*nt
-    max_phys_rv0 = [None]*nt
     for o in range(0,nt):
         if (fit_v0 == 'u'):
-          min_rv0[o] = min(rv_all[o]) - 1.0e-2
-          max_rv0[o] = max(rv_all[o]) + 1.0e-2
-          min_phys_rv0[o] = min(rv_all[o]) - 1.e-2
-          max_phys_rv0[o] = max(rv_all[o]) + 1.e-2
+          min_rv0[o] = min(rv_all[o]) - 1.0e-1
+          max_rv0[o] = max(rv_all[o]) + 1.0e-1
         else:
           min_rv0[o] = 0.0
           max_rv0[o] = 0.0
-          min_phys_rv0[o] = 0.0
-          max_phys_rv0[o] = 0.0
 
   if ( total_tr_fit ):
 
     min_flux = min(megay)
     max_flux = max(megay)
-    min_phys_rp =[None]*nplanets
     max_phys_rp =[None]*nplanets
     for o in range(0,nplanets):
-      min_phys_rp[o] = 0.0
       max_phys_rp[o] = max_flux - min_flux
-      max_phys_rp[o] = 10.*np.sqrt(max_phys_rp[o])
       max_phys_rp[o] = min(1.0,max_phys_rp[o])
       #Let us assume that the smallest planet in the data
       #is around 10% of the maximum depth

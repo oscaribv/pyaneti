@@ -355,6 +355,7 @@ if ( method == 'mcmc' or method == 'plot' ):
     opars.write ('-------------------------Derived------------------------------\n')
     if (fit_rv[o]): print_values(m_vec[o],'Mp','mp'+pl,'M_'+unit_mass,'$M_'+usymbol+'$')
     if (fit_tr[o]): print_values(r_vec[o],'Rp','rp'+pl,'R_'+unit_mass,'$R_'+usymbol+'$')
+    print_values(Tpe_vec[o],'Tperi','Tperi'+pl,'days','days')
     if ( is_ew ):
       print_values(e_vec[o],'e','e'+pl,' ',' ')
       print_values(w_vec[o]*180./np.pi,'w','w'+pl,'deg','deg')
@@ -370,7 +371,6 @@ if ( method == 'mcmc' or method == 'plot' ):
       print_values(pgra_vec,'g_p','grap'+pl,'cm/s^2 (K and Rp/R*)','${\\rm cm\,s^{-2}}$')
       print_values(pgra_vec2,'g_p','grappars'+pl,'cm/s^2 (planet parameters)','${\\rm cm\,s^{-2}}$')
       print_values(msgra,'M_*','mspars'+pl,' solar masses (scaled parameters)','$M_\odot$')
-      print_values(Tpe_vec[o],'Tperi','Tperi'+pl,'days','days')
       print_values(Teq_vec[o],'Teq','Teq'+pl,'K (albedo=0)','K')
       print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')
       print_values(tri_vec[o],'T_full','tful'+pl,'hours','hours')
