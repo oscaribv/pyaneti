@@ -150,22 +150,12 @@ def smart_priors():
         if (fit_v0 == 'u'):
           min_rv0[o] = min(rv_all[o]) - 1.0e-1
           max_rv0[o] = max(rv_all[o]) + 1.0e-1
+          if is_linear_trend == 'u':
+            min_rv0[o] = min(rv_all[o]) - 1.0
+            max_rv0[o] = max(rv_all[o]) + 1.0
         else:
           min_rv0[o] = 0.0
           max_rv0[o] = 0.0
-
-  if ( total_tr_fit ):
-
-    min_flux = min(megay)
-    max_flux = max(megay)
-    max_phys_rp =[None]*nplanets
-    for o in range(0,nplanets):
-      max_phys_rp[o] = max_flux - min_flux
-      max_phys_rp[o] = min(1.0,max_phys_rp[o])
-      #Let us assume that the smallest planet in the data
-      #is around 10% of the maximum depth
-      #If we gave a worst prior for planet size, take a better
-      max_rp[o] = min([max_rp[o],max_phys_rp[o]])
 
 #Create function to create xt vectors
 def create_transit_data(time,flux,errs,planet=0,span=0.0):
@@ -365,7 +355,6 @@ def good_clustering(chi2,chain_lab,nconv,nwalkers):
 
 
 #-----------------------------------------------------------
-#This routine assumes that all the chains are organized from 0 to nwakers-1
 def good_clustering_fast(chi2,nconv,nwalkers):
   #Let us find the good indixes for the cluster
   #We have n walkers
@@ -398,6 +387,39 @@ def good_clustering_fast(chi2,nconv,nwalkers):
   print 'Final number of chains:', new_nwalkers
   return good_chain, new_nwalkers
 
+
+def good_clustering_likelihood(like,nconv,nwalkers):
+  #Let us find the good indixes for the cluster
+  #We have n walkers
+
+  print 'STARTING CHAIN CLUSTERING'
+  print 'Initial number of chains:', nwalkers
+
+  #This variable will have each walker information
+  like_walkers = [None]*nwalkers
+  like_mean = [None]*nwalkers
+  for i in range (0,nwalkers):
+   like_walkers[i] = like[i::nconv]
+
+ #The mean of each walker
+  for i in range (0,nwalkers):
+    like_mean[i] = np.mean(like_walkers[i])
+
+  #get the minimum chi2
+  total_max = max(like_mean)
+
+  good_chain = []
+  #Let us kill all the walkers 5 times the minimum
+  for i in range(0,nwalkers):
+    if ( like_mean[i] > total_max * 0.99 ):
+      #We are saving the good chain labels
+      good_chain.append(i)
+
+  new_nwalkers = len(good_chain)
+
+  print 'Final number of chains:', new_nwalkers
+
+  return good_chain, new_nwalkers
 
 #-----------------------------------------------------------
 
@@ -494,13 +516,11 @@ def joint_fit():
 
 
   vec_rv0_limits = []
-#    vec_rv0_phys_limits = []
   for m in range(0,nt):
     vec_rv0_limits.append(min_rv0[m])
     vec_rv0_limits.append(max_rv0[m])
 
   dummy_lims = [None]*8*2*nplanets
-  dummy_lims_physical = [None]*8*2*nplanets
 
   for o in range(0,nplanets):
 
