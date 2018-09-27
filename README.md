@@ -7,9 +7,11 @@
 # __pyaneti__
 #### Written by Barragán O., Gandolfi D. & Antoniciello G.
 ##### email: oscaribv@gmail.com
-##### Updated July 24, 2018
+##### Updated September 27, 2018
 
-<a href="http://ascl.net/1707.003"><img src="https://img.shields.io/badge/ascl-1707.003-blue.svg?colorB=262255" alt="ascl:1707.003" /></a>
+<a href="https://arxiv.org/abs/1809.04609"><img src="https://img.shields.io/badge/arXiv-1809.04609-blue.svg" alt="arXiv:1809.04609" /></a>
+<a href="https://academic.oup.com/mnras/advance-article/doi/10.1093/mnras/sty2472/5094600"><img src="https://img.shields.io/badge/MNRAS-in%20press.-blue.svg" alt="MNRAS" /></a>
+<a href="http://ascl.net/1707.003"><img src="https://img.shields.io/badge/ascl-1707.003-blue.svg" alt="ascl:1707.003" /></a>
 
 ### __Introduction__
 
@@ -383,22 +385,25 @@ env OMP_NUM_THREADS=2 ./pyaneti.py test
 If you use pyaneti in your research, please cite it as
 
 ```
-Barragán, Gandolfi, & Antoniciello, 2017, Astrophysics Source Code Library, ascl:1707.003
+Barragán, O., Gandolfi, D., & Antoniciello, G. 2018, ArXiv e-prints [arXiv:1809.04609]
 ```
 
 you can use the bibTeX entry
 
 ```
-@MISC{2017ascl.soft07003B,
-   author = {{Barrag{\'a}n}, O. and {Gandolfi}, D. and {Antoniciello}, G.},
-    title = "{pyaneti: Multi-planet radial velocity and transit fitting}",
- keywords = {Software },
-howpublished = {Astrophysics Source Code Library},
-     year = 2017,
-    month = jul,
-archivePrefix = "ascl",
-   eprint = {1707.003},
-   adsurl = {http://adsabs.harvard.edu/abs/2017ascl.soft07003B},
+@ARTICLE{pyaneti,
+   author = {{Barrag{\'a}n}, O. and {Gandolfi}, D. and {Antoniciello}, G.
+	},
+    title = "{pyaneti: a fast and powerful software suite for multi-planet radial velocity and transit fitting}",
+  journal = {\mnras},
+archivePrefix = "arXiv",
+   eprint = {1809.04609},
+ primaryClass = "astro-ph.EP",
+ keywords = {methods: numerical, planets and satellites: general, techniques: photometry, techniques: spectroscopy},
+     year = 2018,
+    month = sep,
+      doi = {10.1093/mnras/sty2472},
+   adsurl = {http://adsabs.harvard.edu/abs/2018MNRAS.tmp.2361B},
   adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
@@ -422,6 +427,7 @@ archivePrefix = "ascl",
 * Salvador Curiel, thank you for  suggestions to parallelize the code.
 * Mabel Valerdi, thank you for being the first _pyaneti_ user, for spotting typos and errors in this document. And thank you much for the awesome idea for pyaneti's logo.
 * Lauren Flor, thank you for testing the code before release.
+* Jorge Prieto-Arranz, thank you for all the suggestions which have helped to improve the code.
 
 **THANKS A LOT!**
 
