@@ -12,6 +12,7 @@ fsy = figure_size_y
 fos = font_size_label
 
 vari = params[0]
+posterior = params[1]
 chi2 = params[2] + params[3]
 
 #===========================================================
@@ -27,10 +28,10 @@ def plot_chains():
   plt.savefig(fname,bbox_inches='tight')
   plt.close()
 
-def plot_likelihood():
+def plot_postiter():
   plt.xlabel('iteration')
   plt.ylabel('$\ln \mathcal{L}$')
-  plt.hist2d(vari,par_likelihood,bins=50)
+  plt.hist2d(vari,posterior,bins=50)
   fname = outdir+'/'+star+'_likelihood.pdf'
   print 'Creating ', fname
   plt.savefig(fname,bbox_inches='tight')
@@ -40,7 +41,8 @@ def plot_likelihood():
 #===========================================================
 
 #Ntransit is the number of the transit that we want to plot
-def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res,fd_ub_unbinned,fname,is_special=False):
+def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res,\
+                  fd_ub_unbinned,fname,is_special=False,xbined=[1],fbined=[1]):
 
   print 'Creating ', fname
   #Do the plot
@@ -68,14 +70,17 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
   else:
     plt.plot((xtime-local_T0)*tfc,yflux,'o',color=tr_colors,ms=7,alpha=0.8)
     y0,yyyy = ax1.get_ylim()
-    plt.errorbar(-x_lim*(0.95),y0 +errors[0]*2,errors[0],color=tr_colors,ms=7,fmt='o',alpha=1.0)
-    plt.annotate('Error bar',xy=(-x_lim*(0.70),y0 +errors[0]*1.75),fontsize=fos*0.7)
+    plt.errorbar(-x_lim*(0.95),y0 +errors[0]*1.5,errors[0],color=tr_colors,ms=7,fmt='o',alpha=1.0)
+    plt.annotate('Error bar',xy=(-x_lim*(0.70),y0 +errors[0]*1.65),fontsize=fos*0.7)
   if ( is_special ):
     [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='b') for i in range(1,6,2)]
     plt.fill_between((xmodel-local_T0)*tfc,*flux_model[5:7,:],alpha=0.5,facecolor='k')
   if (plot_unbinned_model):
     plt.plot((xmodel-local_T0)*tfc,fd_ub_unbinned,'b',linewidth=2.0,alpha=1.0)
   plt.plot((xmodel-local_T0)*tfc,fd_reb,'k',linewidth=2.0,alpha=1.0)
+  ##plot binned data
+  #plt.plot(np.asarray(xbined)*tfc,fbined,'ko')
+  ##
   plt.ylabel('Relative flux',fontsize=fos)
   #Calculate the optimal step for the plot
   step_plot = int(abs(x_lim)) #the value of the x_axis
@@ -91,7 +96,9 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
   plt.xlim(x_lim,-x_lim)
   plt.tick_params( axis='x',which='both',direction='in',labelbottom=False)
   plt.tick_params( axis='y',which='both',direction='in')
+  #------------------------------------------------------------
   #Plot the residuals
+  #------------------------------------------------------------
   ax0 = plt.subplot(gs[1])
   plt.tick_params(labelsize=fos,direction='in')
   if ( plot_tr_errorbars  ):
@@ -267,6 +274,8 @@ def plot_transit_nice():
       fd_ub_res = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
 
 
+
+
       if ( is_special_plot_tr ):
         #len of the chain vector
         len_chain = len(params[0])
@@ -316,6 +325,26 @@ def plot_transit_nice():
 
      #############################################################################
 
+
+      #Let us make a binning
+      nbins  = 20
+      fbined = [0.]*nbins
+      xbined = [0.]*nbins
+      deltax = (max(xtime) - min(xtime))/nbins
+      mim = min(xtime)
+      mix = mim + deltax
+      mindex = []
+      for l in range(0,20):
+          for k in range(0,len(xtime)):
+              if (xtime[k] > mim and xtime[k] < mix):
+                  mindex.append(k)
+          xbined[l] = np.mean(xtime[mindex])
+          fbined[l] = np.mean(yflux_local[mindex])
+          mindex = []
+          mim = mix
+          mix = mix + deltax
+
+
       fname = outdir+'/'+star+plabels[o]+'_tr.pdf'
       #xtime is the folded time
       #yflux_local is the data flux
@@ -324,7 +353,8 @@ def plot_transit_nice():
       #xmodel_res is the residuals time_stamps
       #fd_reb is the modeled light cuve
       #res_res are the residuals
-      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,fd_ub,res_res,fd_ub_unbinned,fname,is_special_plot_tr)
+      fancy_tr_plot(0.0,xtime,yflux_local,eflux,xmodel,xmodel_res,fd_ub,res_res,fd_ub_unbinned,\
+                    fname,is_special_plot_tr,xbined,fbined)
 
 #===========================================================
 #              plot all transits
@@ -432,7 +462,6 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname,is_
 #  if ( is_special ):
 #    [plt.fill_between(p_rv,*rvy[i:i+2,:],alpha=0.3,facecolor='k') for i in range(1,6,2)]
 #    plt.fill_between(p_rv,*rvy[5:7,:],alpha=0.5,facecolor='k')
-  plt.plot(p_rv,rv_model,'k',linewidth=1.0)
   for j in range(0,nt):
     #
     plt.errorbar(p_all[j],rv_dum[j],new_errs_all[j],\
@@ -445,6 +474,9 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname,is_
     fmt=mark[j],\
     alpha=1.0 ,color=rv_colors[j],\
     markersize=rv_markersize,fillstyle=rv_fillstyle)
+  #
+  plt.plot(p_rv,rv_model,'k',linewidth=2.0,alpha=0.9,zorder=3)
+  #
   if ( is_rv_legend ): plt.legend(loc=2, ncol=1,scatterpoints=1,numpoints=1,frameon=True,fontsize=fos*0.7)
   plt.xticks(np.arange(0.,1.01,0.1))
   plt.tick_params( axis='x',which='both',direction='in',labelbottom=False)
@@ -797,6 +829,7 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
 
   plt.figure(1,figsize=(12,4*(len(n))/n_columns_posterior))
   gs = gridspec.GridSpec(nrows=(len(n)+n_columns_posterior-1)/n_columns_posterior,ncols=n_columns_posterior)
+  gs.update(wspace=0.025)
   j = 0
   for i in n:
     ax0 = plt.subplot(gs[j])
@@ -810,13 +843,13 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     plt.axvline(x=vpar+rpar,c=cbars,ls='--')
     plt.xlabel(plabs[i])
     if ( j % n_columns_posterior == 0 ): plt.ylabel('Frequency')
-    plt.tick_params( axis='y',which='both',direction='in')
+    plt.tick_params( axis='y',which='both',direction='in',labelleft=False)
     plt.tick_params( axis='x',which='both',direction='in')
     if ( is_seaborn_plot ):
       #sns.kdeplot(params[i], shade=True)
-      plt.hist(params[i],density=True,bins=nb,label='P(M|D)')
+      plt.hist(params[i],normed=True,bins=nb,label='P(M|D)')
     else:
-      plt.hist(params[i],density=True,bins=nb)
+      plt.hist(params[i],normed=True,bins=nb,label='P(M|D)')
     #Let us plot the prior ranges over the posterior distributions
     if is_plot_prior:
       lx,rx = ax0.get_xlim()
