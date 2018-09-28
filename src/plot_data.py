@@ -260,7 +260,7 @@ def plot_transit_nice():
       eflux = np.concatenate(eflux_d)
 
       xmodel_res = xtime
-      mimax = abs(min(abs(min(xtime)),abs(max(xtime))))
+      mimax = abs(max(abs(min(xtime)),abs(max(xtime))))
       xmodel = np.arange(-mimax, mimax,1.0/20./24.)
       #Let us create the model
 
