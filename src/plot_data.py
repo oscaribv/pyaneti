@@ -847,9 +847,9 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     plt.tick_params( axis='x',which='both',direction='in')
     if ( is_seaborn_plot ):
       #sns.kdeplot(params[i], shade=True)
-      plt.hist(params[i],normed=True,bins=nb,label='P(M|D)')
+      plt.hist(params[i],bins=nb,label='P(M|D)')
     else:
-      plt.hist(params[i],normed=True,bins=nb,label='P(M|D)')
+      plt.hist(params[i],bins=nb,label='P(M|D)')
     #Let us plot the prior ranges over the posterior distributions
     if is_plot_prior:
       lx,rx = ax0.get_xlim()
