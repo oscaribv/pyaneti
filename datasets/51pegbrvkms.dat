@@ -3,13 +3,8 @@
 #The RV measurements were converted from m/s to km/s
 #Original vizier information is given at the end of the file
 #
-#---Details of Columns:
-#    BJD (d)    (F16.8) Barycentric Julian Date (BJD_TDB_) (1) [ucd=time.epoch]
-#    RV (m/s)   (F15.8) [-33332/132.82] Radial velocity (2) [ucd=phys.veloc;pos.heliocentric]
-#    e_RV (m/s) (F11.8) [0.174537/22.17] Uncertainty in RV ({sigma}_RV_) [ucd=stat.error]
-#    Set        (A6)    Dataset identifier (either ELODIE, HARPS, HIRES, Lick6, Lick8, or Lick13) (3) #[ucd=meta.id;meta.dataset]
 #---------------- --------------- ----------- ------
-#BJD (d)          RV (m/s)        e_RV (m/s)  Set   
+#BJD (d)          RV (km/s)        e_RV (km/s)  Spectrograph  
 #---------------- --------------- ----------- ------
 2449610.53276 -33.258 0.009 ELODIE
 2449612.47166 -33.225 0.009 ELODIE
