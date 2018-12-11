@@ -70,7 +70,7 @@ __Learn ...__
 * Barragán et al, 2016, _K2-98b: A 32-M⊕ Neptune-sized planet in a 10-day orbit transiting an F8 star_,
  [AJ, 152, 6](http://adsabs.harvard.edu/abs/2016AJ....152..193B).
 
-**See the list of citations to the code [here](https://goo.gl/7tDZFk) **
+**See the list of citations to the code [here](http://goo.gl/Kw8dCK)**
 
 ## Citing
 
@@ -84,7 +84,7 @@ you can use the bibTeX entry
 
 ```
 @ARTICLE{pyaneti,
-       author = {{Barrag{\'a}n}, O. and {Gandolfi}, D. and {Antoniciello}, G.},
+       author = {Barrag\'an, O. and Gandolfi, D. and Antoniciello, G.},
         title = "{PYANETI: a fast and powerful software suite for multiplanet radial
         velocity and transit fitting}",
       journal = {\mnras},

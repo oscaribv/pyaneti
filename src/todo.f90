@@ -422,4 +422,44 @@ implicit none
 
 end subroutine
 
+subroutine rhotoa(rho,P,a,n)
+implicit none
+
+  !In/Out variables
+  integer, intent(in) :: n
+  double precision, intent(in) :: rho, P(0:n-1)
+  double precision, dimension(0:n-1), intent(out) :: a
+  !Local variables
+  double precision :: pi = 3.1415926535897932384626d0
+  double precision :: G = 6.67508d-11*1.d3 !Gravitational constant
+
+  a(:) = rho*(G*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
+
+end subroutine
+
+subroutine ewto(ew1,ew2,e,w,n)
+implicit none
+
+  !In/Out variables
+  integer, intent(in) :: n
+  double precision, intent(in), dimension(0:n-1) :: ew1, ew2
+  double precision, intent(out), dimension(0:n-1) :: e, w
+
+    e(:) = ew1(:) * ew1(:) + ew2(:) * ew2(:)
+    w(:) = atan2(ew1(:),ew2(:))
+
+end subroutine
+
+subroutine btoi(b,a,e,w,i,n)
+implicit none
+
+  !In/Out variables
+  integer, intent(in) :: n
+  double precision, intent(in), dimension(0:n-1) :: b, a, e, w
+  double precision, intent(out), dimension(0:n-1) :: i
+
+  i(:) = acos( b(:) / a(:) * ( 1.d0 + e(:) * sin(w(:)) ) / ( 1.d0 - e(:)*e(:) ) )
+
+end subroutine
+
 

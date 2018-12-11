@@ -176,7 +176,8 @@ implicit none
 
   if (flag(0)) P = 1.d0**pars(1,:)
   if (flag(1)) call ewto(e,w,e,w,npl)
-  if (flag(3)) a(:) = a(0)*(G*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
+  !if (flag(3)) a(:) = a(0)*(G*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
+  if (flag(3)) call rhotoa(a(0),P(:),a(:),npl)
   if (flag(2)) call btoi(i,a,e,w,i,npl)
 
   do n = 0, npl - 1
