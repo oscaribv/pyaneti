@@ -23,7 +23,8 @@ dmaxloglike = dparams[1]
 maxloglike = dmaxloglike
 if ( is_clustering ):
   #Starting clustering
-  good_index, new_nwalkers = good_clustering_fast(dparams[2]+dparams[3],nconv,nwalkers)
+#  good_index, new_nwalkers = good_clustering_fast(dparams[2]+dparams[3],nconv,nwalkers)
+  good_index, new_nwalkers = good_clustering_likelihood(dparams[1],nconv,nwalkers)
   maxloglike = clustering_fast(dmaxloglike,good_index,nconv)
   for o in range(0,len(dparams)):
     params[o] = clustering_fast(dparams[o],good_index,nconv)
@@ -226,15 +227,17 @@ if ( method == 'mcmc' or method == 'plot' ):
     if ( is_ew ):
       e_dum = list(e_vec[o])
       w_dum = list(w_vec[o])
-      e_vec[o] = e_vec[o]**2 + w_vec[o]**2
-      w_vec[o] = np.arctan2(e_dum,w_vec[o])
-      w_vec[o] = w_vec[o] % (2*np.pi)
+      #e_vec[o] = e_vec[o]**2 + w_vec[o]**2
+      #w_vec[o] = np.arctan2(e_dum,w_vec[o])
+      #w_vec[o] = w_vec[o] % (2*np.pi)
+      e_vec[o], w_vec[o] = pti.ewto(e_vec[o],w_vec[o])
 
   #Change between b and i
     if ( is_b_factor ):
-      i_vec[o] = list(b_vec[o])
-      i_vec[o] = np.arccos( b_vec[o] / ar_vec[o] * \
-              ( 1.0 + e_vec[o] * np.sin(w_vec[o] ) / ( 1.0 - e_vec[o]**2 ) ) )
+      #i_vec[o] = list(b_vec[o])
+      #i_vec[o] = np.arccos( b_vec[o] / ar_vec[o] * \
+      #        ( 1.0 + e_vec[o] * np.sin(w_vec[o] ) / ( 1.0 - e_vec[o]**2 ) ) )
+      i_vec[o] = pti.btoi(b_vec[o],ar_vec[o],e_vec[o],w_vec[o])
     else:
       #calculate the impact parameter (eq. 7 Winn 2014)
       #wo is the star periastron, add pi to have the planet one

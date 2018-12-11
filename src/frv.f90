@@ -106,20 +106,13 @@ implicit none
   rv0(:) = params(7:6+nt,0) 
 
   if ( flag(0) ) P(:) = 1.d1**params(1,:)
-  if ( flag(1) ) then
-    e(:) = params(2,:) * params(2,:) + params(3,:) * params(3,:)
-    w(:) = atan2( params(2,:),params(3,:) ) 
-  end if
+  if ( flag(1) ) call ewto(e,w,e,w,npl)
   if ( flag(2) ) k(:) = 1.d1**params(4,:)
   if ( flag(3) ) rv0(:) = 1.d1**params(7:6+nt,0)
 
   is_limit_good = .true.
 
-  do i = 0, npl - 1
-    if ( e(i) > 1.0d0 ) then
-      is_limit_good = .false.
-    end if
-  end do
+  if ( any (e > 1.0d0) ) is_limit_good = .false.
 
   if ( is_limit_good ) then
 

@@ -113,6 +113,7 @@ implicit none
 
         !Now we have z, let us use Agol's routines
         call occultquad(z,u1,u2,rp(n),flux_ub(:,n),mu,n_cad)
+        !call qpower2(z,rp(n),u1,u2,flux_ub(:,n),n_cad)
 
       end if
 
@@ -173,13 +174,10 @@ implicit none
   a   = pars(5,:)
   rp  = pars(6,:)
 
-  if ( flag(0) ) P = 1.d0**pars(1,:)
-  if ( flag(1) ) then
-    e = pars(2,:) * pars(2,:) + pars(3,:) * pars(3,:)
-    w = atan2(pars(2,:),pars(3,:))
-  end if
+  if (flag(0)) P = 1.d0**pars(1,:)
+  if (flag(1)) call ewto(e,w,e,w,npl)
   if (flag(3)) a(:) = a(0)*(G*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
-  if (flag(2)) i = acos( i / a * ( 1.d0 + e * sin(w) ) / ( 1.d0 - e*e ) )
+  if (flag(2)) call btoi(i,a,e,w,i,npl)
 
   do n = 0, npl - 1
     call find_tp(t0(n),e(n),w(n),P(n),tp(n))
@@ -202,10 +200,9 @@ implicit none
   u2 = u1*( 1.d0 - 2.d0*q2k)
   u1 = 2.d0*u1*q2k
   up_ldc = (/ u1 , u2 /)
-
-!are the u1 and u2 within a physical solution
+ !are the u1 and u2 within a physical solution
   call check_us(u1,u2,is_good)
-  if ( flag(1) ) then
+ if ( flag(1) ) then
     do n = 0, npl - 1
      call check_e(pars(2,n),pars(3,n),is_good)
      if ( .not. is_good ) exit
