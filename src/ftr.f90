@@ -176,22 +176,8 @@ implicit none
 
   if (flag(0)) P = 1.d0**pars(1,:)
   if (flag(1)) call ewto(e,w,e,w,npl)
-  !if (flag(3)) a(:) = a(0)*(G*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
   if (flag(3)) call rhotoa(a(0),P(:),a(:),npl)
   if (flag(2)) call btoi(i,a,e,w,i,npl)
-
-  do n = 0, npl - 1
-    call find_tp(t0(n),e(n),w(n),P(n),tp(n))
-  end do
-
-  !At this point the parameters to fit are tp,P,e,w,i,a without parametrization
-  up_pars(0,:) = tp
-  up_pars(1,:) = P
-  up_pars(2,:) = e
-  up_pars(3,:) = w
-  up_pars(4,:) = i
-  up_pars(5,:) = a
-  up_pars(6,:) = rp
 
   !Update limb darkening coefficients, pass from q's to u's
   q1k = ldc(0)
@@ -203,18 +189,27 @@ implicit none
   up_ldc = (/ u1 , u2 /)
  !are the u1 and u2 within a physical solution
   call check_us(u1,u2,is_good)
- if ( flag(1) ) then
-    do n = 0, npl - 1
-     call check_e(pars(2,n),pars(3,n),is_good)
-     if ( .not. is_good ) exit
-    end do
-  end if
+
+  if ( any( e > 1.d0 ) ) is_good = .false.
 
   if ( is_good ) then
 
-  call flux_tr(xd,up_pars,flag,up_ldc,n_cad,t_cad,datas,npl,muld)
-  res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
-  chi2 = dot_product(res,res)
+    do n = 0, npl - 1
+      call find_tp(t0(n),e(n),w(n),P(n),tp(n))
+    end do
+
+    !At this point the parameters to fit are tp,P,e,w,i,a without parametrization
+    up_pars(0,:) = tp
+    up_pars(1,:) = P
+    up_pars(2,:) = e
+    up_pars(3,:) = w
+    up_pars(4,:) = i
+    up_pars(5,:) = a
+    up_pars(6,:) = rp
+
+    call flux_tr(xd,up_pars,flag,up_ldc,n_cad,t_cad,datas,npl,muld)
+    res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
+    chi2 = dot_product(res,res)
 
   else
 

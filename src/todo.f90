@@ -461,5 +461,3 @@ implicit none
   i(:) = acos( b(:) / a(:) * ( 1.d0 + e(:) * sin(w(:)) ) / ( 1.d0 - e(:)*e(:) ) )
 
 end subroutine
-
-

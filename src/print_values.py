@@ -218,26 +218,18 @@ if ( method == 'mcmc' or method == 'plot' ):
     if ( is_log_P ):
       P_vec[o] = 10.0**(P_vec[o])
     if ( is_den_a ):
-      #ar_vec[o] = ar_vec[o]*(P_vec[o]*P_vec[o]*7464960000.*G_cgs/3.0/np.pi)**(1./3.)
       ar_vec[o] = pti.rhotoa(ar_vec[0],P_vec[o])
-      #if ( o > 0 ):
-      #  ar_vec[o] = (P_vec[o]/P_vec[0])**(2./3.)*ar_vec[0]
     if ( is_log_k ):
       k_vec[o] = 10.0**(k_vec[o])
 
     if ( is_ew ):
       e_dum = list(e_vec[o])
       w_dum = list(w_vec[o])
-      #e_vec[o] = e_vec[o]**2 + w_vec[o]**2
-      #w_vec[o] = np.arctan2(e_dum,w_vec[o])
-      #w_vec[o] = w_vec[o] % (2*np.pi)
       e_vec[o], w_vec[o] = pti.ewto(e_vec[o],w_vec[o])
+      w_vec[o] = w_vec[o] % (2*np.pi)
 
   #Change between b and i
     if ( is_b_factor ):
-      #i_vec[o] = list(b_vec[o])
-      #i_vec[o] = np.arccos( b_vec[o] / ar_vec[o] * \
-      #        ( 1.0 + e_vec[o] * np.sin(w_vec[o] ) / ( 1.0 - e_vec[o]**2 ) ) )
       i_vec[o] = pti.btoi(b_vec[o],ar_vec[o],e_vec[o],w_vec[o])
     else:
       #calculate the impact parameter (eq. 7 Winn 2014)

@@ -36,7 +36,54 @@ def plot_postiter():
   print 'Creating ', fname
   plt.savefig(fname,bbox_inches='tight')
   plt.close()
-##===========================================================
+
+#===========================================================
+#        Parameters to be used in plots
+#===========================================================
+
+u1_val =best_value(u1_vec,maxloglike,get_value)
+u2_val =best_value(u2_vec,maxloglike,get_value)
+my_ldc = [u1_val,u2_val]
+flag = [False]*4
+
+v_vec_val = [None]*nt
+v_val = [None]*nt
+#3 + npars + ldc
+v_vec_val[:] = params[4+8*nplanets+2:4+8*nplanets+2+nt]
+for o in range(0,nt):
+  v_val[o] = best_value(v_vec_val[o],maxloglike,get_value)
+  if ( is_log_rv0 ):
+    v_val[o] = 10.0**(v_val[o])
+
+alpha_val = 0.0
+beta_val = 0.0
+if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
+  alpha_val = best_value(params_trends[0],maxloglike,get_value)
+  beta_val  = best_value(params_trends[1],maxloglike,get_value)
+
+t0_val = np.ndarray(nplanets)
+P_val  = np.ndarray(nplanets)
+e_val  = np.ndarray(nplanets)
+w_val  = np.ndarray(nplanets)
+i_val  = np.ndarray(nplanets)
+a_val  = np.ndarray(nplanets)
+rp_val = np.ndarray(nplanets)
+tp_val = np.ndarray(nplanets)
+k_val  = np.ndarray(nplanets)
+
+for m in range(0,nplanets):
+  t0_val[m] = best_value(T0_vec[m],maxloglike,get_value)
+  P_val[m]  = best_value(P_vec[m],maxloglike,get_value)
+  e_val[m]  = best_value(e_vec[m],maxloglike,get_value)
+  w_val[m]  = best_value(w_vec[m],maxloglike,get_value)
+  i_val[m]  = best_value(i_vec[m],maxloglike,get_value)
+  a_val[m]  = best_value(ar_vec[m],maxloglike,get_value)
+  rp_val[m] = best_value(rr_vec[m],maxloglike,get_value)
+  k_val[m]  = best_value(k_vec[m],maxloglike,get_value)
+  #tp_val[m] = best_value(Tpe_vec[m],maxloglike,get_value)
+  tp_val[m] = pti.find_tp(t0_val[m],e_val[m],w_val[m],P_val[m])
+
+#===========================================================
 #              plot tr fancy function
 #===========================================================
 
@@ -134,43 +181,16 @@ def fancy_tr_plot(t0_val,xtime,yflux,errors,xmodel,xmodel_res,flux_model,res_res
 #       TRANSIT PARAMERS TO BE USED TO GENERATE PLOTS
 #-----------------------------------------------------------------
 
-u1_val =best_value(u1_vec,maxloglike,get_value)
-u2_val =best_value(u2_vec,maxloglike,get_value)
-my_ldc = [u1_val,u2_val]
-flag = [False]*4
-
-t0_val = [None]*nplanets
-tp_val = [None]*nplanets
-P_val  = [None]*nplanets
-e_val  = [None]*nplanets
-w_val  = [None]*nplanets
-i_val  = [None]*nplanets
-a_val  = [None]*nplanets
-rp_val = [None]*nplanets
-
+#Create parameters vector
+pars_tr = np.zeros(shape=(7,nplanets))
 for m in range(0,nplanets):
-  t0_val[m] = best_value(T0_vec[m],maxloglike,get_value)
-  P_val[m]  = best_value(P_vec[m],maxloglike,get_value)
-  e_val[m]  = best_value(e_vec[m],maxloglike,get_value)
-  w_val[m]  = best_value(w_vec[m],maxloglike,get_value)
-  i_val[m]  = best_value(i_vec[m],maxloglike,get_value)
-  a_val[m]  = best_value(ar_vec[m],maxloglike,get_value)
-  rp_val[m] = best_value(rr_vec[m],maxloglike,get_value)
-  #tp_val[m] = best_value(Tpe_vec[m],maxloglike,get_value)
-  tp_val[m] = pti.find_tp(t0_val[m],e_val[m],w_val[m],P_val[m])
-
-
-  #Create parameters vector
-  pars_tr = np.zeros(shape=(7,nplanets))
-  for m in range(0,nplanets):
-      pars_tr[0][m] = tp_val[m]
-      pars_tr[1][m] = P_val[m]
-      pars_tr[2][m] = e_val[m]
-      pars_tr[3][m] = w_val[m]
-      pars_tr[4][m] = i_val[m]
-      pars_tr[5][m] = a_val[m]
-      pars_tr[6][m] = rp_val[m]
-
+    pars_tr[0][m] = tp_val[m]
+    pars_tr[1][m] = P_val[m]
+    pars_tr[2][m] = e_val[m]
+    pars_tr[3][m] = w_val[m]
+    pars_tr[4][m] = i_val[m]
+    pars_tr[5][m] = a_val[m]
+    pars_tr[6][m] = rp_val[m]
 
 
 #Returns the pars_tr array for a given chain number
@@ -184,14 +204,16 @@ def pars_tr_chain(params,nchain):
   flag = [False]*4
   my_ldc = [u1_val,u2_val]
 
-  t0_val = [None]*nplanets
-  tp_val = [None]*nplanets
-  P_val  = [None]*nplanets
-  e_val  = [None]*nplanets
-  w_val  = [None]*nplanets
-  i_val  = [None]*nplanets
-  a_val  = [None]*nplanets
-  rp_val = [None]*nplanets
+  t0_val = np.ndarray(nplanets)
+  tp_val = np.ndarray(nplanets)
+  P_val  = np.ndarray(nplanets)
+  e_val  = np.ndarray(nplanets)
+  w_val  = np.ndarray(nplanets)
+  i_val  = np.ndarray(nplanets)
+  a_val  = np.ndarray(nplanets)
+  rp_val = np.ndarray(nplanets)
+  tp_val = np.ndarray(nplanets)
+
 
   base = 4
   for m in range(0,nplanets):
@@ -272,7 +294,6 @@ def plot_transit_nice():
       fd_ub_unbinned = pti.flux_tr(xmodel,dparstr,flag,my_ldc,1,t_cad)
       #Calculate the flux to copute the residuals
       fd_ub_res = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
-
 
 
 
@@ -527,34 +548,6 @@ def plot_rv_fancy(p_rv,rvy,p_all,rv_dum,errs_all,res,telescopes_labels,fname,is_
 #                   RV PLOTS
 #===========================================================
 
-v_vec_val = [None]*nt
-v_val = [None]*nt
-#3 + npars + ldc
-v_vec_val[:] = params[4+8*nplanets+2:4+8*nplanets+2+nt]
-for o in range(0,nt):
-  v_val[o] = best_value(v_vec_val[o],maxloglike,get_value)
-  if ( is_log_rv0 ):
-    v_val[o] = 10.0**(v_val[o])
-
-
-alpha_val = 0.0
-beta_val = 0.0
-if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
-  alpha_val = best_value(params_trends[0],maxloglike,get_value)
-  beta_val  = best_value(params_trends[1],maxloglike,get_value)
-
-t0_val = np.ndarray(nplanets)
-P_val  = np.ndarray(nplanets)
-e_val  = np.ndarray(nplanets)
-w_val  = np.ndarray(nplanets)
-k_val  = np.ndarray(nplanets)
-
-for o in range(0,nplanets):
-  t0_val[o] = best_value(T0_vec[o],maxloglike,get_value)
-  P_val[o]  = best_value(P_vec[o],maxloglike,get_value)
-  e_val[o]  = best_value(e_vec[o],maxloglike,get_value)
-  w_val[o]  = best_value(w_vec[o],maxloglike,get_value)
-  k_val[o]  = best_value(k_vec[o],maxloglike,get_value)
 
 def pars_rv_chain(params,nchain):
 
@@ -847,9 +840,9 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
     plt.tick_params( axis='x',which='both',direction='in')
     if ( is_seaborn_plot ):
       #sns.kdeplot(params[i], shade=True)
-      plt.hist(params[i],bins=nb,label='P(M|D)')
+      plt.hist(params[i],normed=True,bins=nb,label='P(M|D)')
     else:
-      plt.hist(params[i],bins=nb,label='P(M|D)')
+      plt.hist(params[i],normed=True,bins=nb,label='P(M|D)')
     #Let us plot the prior ranges over the posterior distributions
     if is_plot_prior:
       lx,rx = ax0.get_xlim()
