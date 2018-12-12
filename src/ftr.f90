@@ -25,8 +25,7 @@ implicit none
 !Local variables
   double precision, dimension(0:ts-1) :: ta, swt
   double precision :: tp, P, e, w, i, a
-  double precision :: wp, ws, si
-  double precision :: pi = 3.1415926535897932384626d0
+  double precision :: si
 !External function
   external :: find_anomaly
 !
@@ -55,7 +54,7 @@ implicit none
 
 end subroutine
 
-subroutine flux_tr(xd,pars,flag,ldc,&
+subroutine flux_tr(xd,pars,ldc,&
            n_cad,t_cad,datas,npl,muld)
 implicit none
 
@@ -65,7 +64,6 @@ implicit none
   double precision, intent(in), dimension(0:6,0:npl-1) :: pars
   !pars = T0, P, e, w, b, a/R*, Rp/R*
   double precision, intent(in) :: t_cad
-  logical, intent(in), dimension(0:3) :: flag
   double precision, intent(in), dimension (0:1) :: ldc
   double precision, intent(out), dimension(0:datas-1) :: muld
 !Local variables
@@ -156,11 +154,9 @@ implicit none
 !Local variables
   double precision, dimension(0:datas-1) :: res, muld
   double precision, dimension(0:6,0:npl-1) :: up_pars !updated parameters
-  double precision, dimension(0:npl-1) :: t0, P, e, w, i, a, rp, tp, wp
+  double precision, dimension(0:npl-1) :: t0, P, e, w, i, a, rp, tp
   double precision :: u1, u2, q1k, q2k
   double precision, dimension (0:1) :: up_ldc
-  double precision :: pi = 3.1415926535897932384626d0
-  double precision :: G = 6.67508d-11*1.d3 !Gravitational constant
   logical :: is_good
   integer :: n
 !External function
@@ -207,7 +203,7 @@ implicit none
     up_pars(5,:) = a
     up_pars(6,:) = rp
 
-    call flux_tr(xd,up_pars,flag,up_ldc,n_cad,t_cad,datas,npl,muld)
+    call flux_tr(xd,up_pars,up_ldc,n_cad,t_cad,datas,npl,muld)
     res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
     chi2 = dot_product(res,res)
 

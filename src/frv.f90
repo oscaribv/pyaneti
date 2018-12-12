@@ -91,7 +91,6 @@ implicit none
   double precision, dimension(0:nt-1)  :: rv0
   double precision  :: alpha, beta
   double precision, dimension(0:datas-1) :: model, res
-  integer :: i
   logical :: is_limit_good
 !External function
   external :: rv_curve_mp

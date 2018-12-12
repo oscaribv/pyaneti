@@ -289,11 +289,11 @@ def plot_transit_nice():
       #The model has T0 = 0
       dumtp = pti.find_tp(0.0,e_val[o],w_val[o],P_val[o])
       dparstr = np.concatenate([[dumtp],pars_tr[1:,o]])
-      fd_ub = pti.flux_tr(xmodel,dparstr,flag,my_ldc,n_cad,t_cad)
+      fd_ub = pti.flux_tr(xmodel,dparstr,my_ldc,n_cad,t_cad)
       #Let us create an unbinned model plot
-      fd_ub_unbinned = pti.flux_tr(xmodel,dparstr,flag,my_ldc,1,t_cad)
+      fd_ub_unbinned = pti.flux_tr(xmodel,dparstr,my_ldc,1,t_cad)
       #Calculate the flux to copute the residuals
-      fd_ub_res = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
+      fd_ub_res = pti.flux_tr(xmodel_res,dparstr,my_ldc,n_cad,t_cad)
 
 
 
@@ -316,8 +316,8 @@ def plot_transit_nice():
           dumtp = pti.find_tp(0.0,lpars_tr[2,o],lpars_tr[3,o],lpars_tr[1,o])
           dparstr = np.concatenate([[dumtp],lpars_tr[1:,o]])
           #This is the flux of the actual planet
-          flux_vector[l] = pti.flux_tr(xmodel,dparstr,flag,my_ldc,n_cad,t_cad)
-          flux_vector_res[l] = pti.flux_tr(xmodel_res,dparstr,flag,my_ldc,n_cad,t_cad)
+          flux_vector[l] = pti.flux_tr(xmodel,dparstr,my_ldc,n_cad,t_cad)
+          flux_vector_res[l] = pti.flux_tr(xmodel_res,dparstr,my_ldc,n_cad,t_cad)
 
         flux_vector = np.array(flux_vector)
         flux_vector_res = np.array(flux_vector_res)
@@ -334,7 +334,7 @@ def plot_transit_nice():
       for p in range(0,nplanets):
         if ( p != o ):
           #fd_ub_total stores the flux of a star for each independent
-          fd_ub_total = fd_ub_total + pti.flux_tr(local_time,pars_tr[:,p],flag,my_ldc,n_cad,t_cad)
+          fd_ub_total = fd_ub_total + pti.flux_tr(local_time,pars_tr[:,p],my_ldc,n_cad,t_cad)
 
       #Remove extra planets from the data
       yflux_local = yflux - fd_ub_total
@@ -385,7 +385,7 @@ def plot_all_transits():
   global plot_tr_errorbars
 
   #Create the plot of the whole light
-  model_flux = pti.flux_tr(megax,pars_tr,flag,my_ldc,n_cad,t_cad)
+  model_flux = pti.flux_tr(megax,pars_tr,my_ldc,n_cad,t_cad)
   res_flux = megay - model_flux
 
   for i in range(0,nplanets):
@@ -397,7 +397,7 @@ def plot_all_transits():
       if ( is_plot_all_tr[i] ):
         for j in range(0,len(xt)):
           xtm = np.arange(min(xt[j]),max(xt[j]),1./20./24.)
-          ytm = pti.flux_tr(xtm,pars_tr,flag,my_ldc,n_cad,t_cad)
+          ytm = pti.flux_tr(xtm,pars_tr,my_ldc,n_cad,t_cad)
 
           fname = outdir+'/'+star+plabels[i]+'_transit'+str(j)+'.pdf'
           n = xt[j][len(xt[j])-1] - xt[0][0]
@@ -417,9 +417,9 @@ def clean_transits(sigma=10):
 
     #Now we are ready to call the function in fortran
     #All the data is in megax, megay and megae
-    model_flux = pti.flux_tr(megax,pars_tr,flag,my_ldc,n_cad,t_cad)
+    model_flux = pti.flux_tr(megax,pars_tr,my_ldc,n_cad,t_cad)
     xvec_model = np.arange(min(megax),max(megax),1./20./24.)
-    solution_flux = pti.flux_tr(xvec_model,pars_tr,flag,my_ldc,n_cad,t_cad)
+    solution_flux = pti.flux_tr(xvec_model,pars_tr,my_ldc,n_cad,t_cad)
 
     #Calcualte the residuals
     res_flux = megay - model_flux
@@ -428,7 +428,7 @@ def clean_transits(sigma=10):
     new_t, new_f = sigma_clip(megax,megay,res_flux,limit_sigma=sigma)
 
     #Recalculate the error bars
-    new_model_flux = pti.flux_tr(new_t,pars_tr,flag,my_ldc,n_cad,t_cad)
+    new_model_flux = pti.flux_tr(new_t,pars_tr,my_ldc,n_cad,t_cad)
     #New residuals
     new_res_flux = new_f - new_model_flux
     #Recompute the error bars from the std of the residuals
