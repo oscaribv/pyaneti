@@ -383,6 +383,9 @@ u1_vec = np.sqrt(q1_vec)
 u2_vec = u1_vec * (1. - 2.*q2_vec)
 u1_vec = 2.*u1_vec*q2_vec
 
+u1_vec = np.asarray(u1_vec)
+u2_vec = np.asarray(u2_vec)
+
 rv_vec = [None]*nt
 for o in range(0,nt):
   rv_vec[o] = params[base+2+o]

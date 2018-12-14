@@ -411,7 +411,7 @@ def good_clustering_likelihood(like,nconv,nwalkers):
   good_chain = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( like_mean[i] > total_max * 0.99 ):
+    if ( like_mean[i] > total_max * 0.9 ):
       #We are saving the good chain labels
       good_chain.append(i)
 
@@ -458,9 +458,12 @@ def print_values(vector,var,vartex,unit,unittex):
 #unit is the label of the variable to save
 #vals do we want to print median or mode
   medv, minv, maxv = find_vals_perc(vector,s_factor)
+  nd = 1
+  if ( abs(minv) > 1e-20 and abs(maxv) > 1e-20 ):
+    nd = int(np.log10(max(1./minv,1./maxv))) + 2
   opars.write('%10s = %4.7f - %4.7f + %4.7f %8s \n'%(var,medv,minv,maxv,unit))
-  otex.write('\\newcommand{\\%s}[1][%s]{$%4.7f _{ - %4.7f } ^ { + %4.7f } $#1} \n' \
-              %(vartex,unittex,medv,minv,maxv))
+  otex.write('\\newcommand{\\'+vartex+'}[1]['+unittex+'] \
+  {'+str(round(medv,nd))+' _{ - '+str(round(minv,nd))+' } ^ { + '+str(round(maxv,nd))+' }$~#1} \n')
   if ( is_print_mode ):
     medv, minv, maxv = mode_and_99(vector)
     opars.write('%10s  %4.7f , %4.7f , %4.7f %8s \n'%('',medv,minv,maxv,unit))
@@ -633,3 +636,102 @@ def print_init():
   for line in dummy_file:
     print line,
   dummy_file.close()
+
+#------------------------------------------------------------------------#
+#            Automatic creation of input for TANGO                       #
+#------------------------------------------------------------------------#
+
+def tango_params(param,vec,parhs=True):
+    vlen = len(vec)
+    letra = param + ' = '
+    if ( parhs ):
+     letra = letra + ' [ '
+    for o in range(0,vlen):
+        letra = letra + str(np.median(vec[o]))
+        if (o < vlen - 1):
+          letra = letra + ','
+
+    if ( parhs ):
+      letra = letra + ' ]'
+    letra = letra + '\n'
+
+    return letra
+
+#This routine create an input file to create animations using tango
+#github.com/oscaribv/tango
+def create_tango_input():
+  tangof = outdir+'/'+star+'_tango_input.py'
+  tf = open(tangof,'w')
+
+  tf.write('#Input file for tango\n')
+  tf.write('#system:'+ star+'\n' )
+  tf.write('#Created automatically with pyaneti\n')
+
+  tf.write('\n')
+
+  tf.write('#Data file with the flattened light curve\n')
+  tf.write('lcname = \''+star+'_new_lc.dat\'\n')
+
+  tf.write('#--------------------------------------------------------------------\n')
+  tf.write('#                 Planet and orbit parameters\n')
+  tf.write('# Each parameter is a list in which each element\n')
+  if ( nplanets == 1 ):
+    tf.write('# correspond to a planet. For this case, there is '+str(nplanets)+' planet\n')
+  else:
+    tf.write('# correspond to a planet. For this case, there are '+str(nplanets)+' planets\n')
+  tf.write('#--------------------------------------------------------------------\n')
+
+  tf.write('\n')
+
+  #Orbital period (days)
+  tf.write(tango_params('P',P_vec))
+  tf.write(tango_params('T0',T0_vec))
+  tf.write(tango_params('e',e_vec))
+  tf.write(tango_params('w',w_vec))
+  tf.write(tango_params('a',ar_vec))
+  tf.write(tango_params('inclination',i_vec))
+  tf.write(tango_params('rp',rr_vec))
+  tf.write(tango_params('u1',[u1_vec],False))
+  tf.write(tango_params('u2',[u2_vec],False))
+
+##Integration time of the data
+  tf.write('t_cad = ' + str(t_cad) +' \n')
+  tf.write('n_cad = ' + str(n_cad) +' \n')
+
+  tf.write('\n')
+
+  #Calculate the transit duration for planet b to create the time ranges
+  tfull = np.median(trt_vec[0])
+  tfull = tfull/24.
+  mit0  = np.median(T0_vec[0])
+
+  tf.write('#--------------------------------------------------------------------\n')
+  tf.write('#              Animation controls \n')
+  tf.write('#--------------------------------------------------------------------\n')
+  tf.write('#Window size to show the data (days)\n')
+  tf.write('size_time = 0.5\n')
+  tf.write('#1./(photograms per day) in this case the code will create a photogram each 7.2 min\n')
+  tf.write('vel_time  = 1./200.\n')
+  tf.write('#Animation minimum time (Be sure that you are using the same units as in your data file)\n')
+  tf.write('tmin = '+str(mit0 - 2*tfull)+'\n')
+  tf.write('#Animation maximum time (Be sure that you are using the same units as in your data file)\n')
+  tf.write('tmax = '+str(mit0 + 2*tfull)+'\n')
+
+  tf.write('\n')
+
+  tf.write('#--------------------------------------------------------------------\n')
+  tf.write('#                     Plot controls\n')
+  tf.write('#--------------------------------------------------------------------\n')
+
+  tf.write('\n')
+
+  tf.write('#Control if we overplot the light curve model\n')
+  tf.write('#You need to have installed pyaneti in your computer to use it\n')
+  tf.write('is_plot_model = False\n')
+
+  tf.write('\n')
+
+  tf.write('#-----------------------------------------------------------------\n')
+  tf.write('#                         END\n')
+  tf.write('#-----------------------------------------------------------------\n')
+

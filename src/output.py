@@ -7,6 +7,7 @@ execfile('src/plot_data.py')
 
 if ( is_plot_chains ):
   plot_chains()
+#  plot_postiter()
 
 if ( is_corner_plot ):
   create_corner_plot()
@@ -22,6 +23,7 @@ if ( total_tr_fit ):
   plot_transit_nice()
   plot_all_transits()
   clean_transits(sigma_clean)
+  create_tango_input()
 
 #PLOT RV CURVE
 if ( total_rv_fit ):

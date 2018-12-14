@@ -5,28 +5,31 @@
 </p>
 
 # __pyaneti__
-#### Written by Barragán O., Gandolfi D. & Antoniciello G.
-##### email: oscaribv@gmail.com
-##### Updated December 09, 2018
 
 <a href="https://academic.oup.com/mnras/advance-article/doi/10.1093/mnras/sty2472/5094600"><img src="https://img.shields.io/badge/MNRAS-2019,482,1017-purple.svg" alt="MNRAS" /></a>
 <a href="https://arxiv.org/abs/1809.04609"><img src="https://img.shields.io/badge/arXiv-1809.04609-green.svg" alt="arXiv:1809.04609" /></a>
 <a href="http://ascl.net/1707.003"><img src="https://img.shields.io/badge/ascl-1707.003-green.svg" alt="ascl:1707.003" /></a>
 <a href="https://github.com/oscaribv/pyaneti/wiki"><img src="https://img.shields.io/badge/wiki-building-yellow.svg" alt="pyaneti wiki" /></a>
 
-### Introduction
+### Written by Barragán O., Gandolfi D. & Antoniciello G.
+#### email: oscaribv@gmail.com
+#### Updated December 09, 2018
+
+
+# The code
 
 * _Pianeti_ is the Italian word for planets.
-* Multi-planet fitting of radial velocity and transit data!
+* Multi-planet fitting of radial velocity and transit data.
 * It uses Markov chain Monte Carlo (MCMC) methods with a Bayesian approach.
 * Ensemble sampler with affine invariance algorithm
 ([Godman & Weare, 2010](http://msp.org/camcos/2010/5-1/p04.xhtml)).
 * _Python_ does the nice things: plots, call functions, printing, in/output files.
 * _Fortran_ does the hard work: MCMC evolution, likelihood calculation, ensemble sampler evolution.
 * Open-source code (GPL v 3.0).
-* **Free and fast code with the robustness of _Fortran_ and the versatility of _Python_**.
 
-### Power of pyaneti
+**Free and fast code with the robustness of _Fortran_ and the versatility of _Python_**.
+
+## Power of pyaneti
 
 * Multiple independent Markov chains to sample the parameter space.
 * Easy-to-use: it runs by providing only one input_fit.py file.
@@ -40,12 +43,14 @@
 * Correct treatment of short and long cadence data ([Kipping, 2010](http://mnras.oxfordjournals.org/content/408/3/1758)).
 * Single joint RV + transit fitting.
 
-# Check pyaneti wiki to learn how to use it
 
-__Learn ...__
-* the basics of pyaneti here [here](https://github.com/oscaribv/pyaneti/wiki/Start-to-use-pyaneti-now!)
-* how to run pyaneti in parallel [here](https://github.com/oscaribv/pyaneti/wiki/Parallel-run)
-* how to tit a single RV signal with 51 Peg b [here](https://github.com/oscaribv/pyaneti/wiki/RV-fit-for-a-single-planet)
+## Learn how to install and use pyaneti [here](https://github.com/oscaribv/pyaneti/wiki/Start-to-use-pyaneti-now!)
+
+
+### Check pyaneti wiki to learn how to use it:
+
+* How to run pyaneti in parallel [here](https://github.com/oscaribv/pyaneti/wiki/Parallel-run)
+* How to fit a single RV signal with 51 Peg b [here](https://github.com/oscaribv/pyaneti/wiki/RV-fit-for-a-single-planet)
 
 ## Citing
 
