@@ -14,6 +14,9 @@ if ( lc_data == 'kepler_lc' ):
 elif ( lc_data == 'kepler_sc' ):
   n_cad = 1
   t_cad = 1.5 / 60. / 24.0 #days
+elif ( lc_data == 'tess_sc' ):
+  n_cad = 10
+  t_cad = 2.0 / 60. / 24.0 #days
 elif ( lc_data == 'free' ):
   #values given by the user
   n_cad = n_cad
