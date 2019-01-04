@@ -862,6 +862,8 @@ def create_plot_posterior(params,plabs,cbars='red',nb=50,num=[]):
   fname = outdir+'/'+star+'_posterior.pdf'
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
+  fname = outdir+'/'+star+'_posterior.png'
+  plt.savefig(fname,format='png',bbox_inches='tight',dpi=300)
   plt.close()
 
 
@@ -901,6 +903,8 @@ def create_plot_correlation(params,plabs,col='red',mark='.',num=[]):
   fname = outdir+'/'+star+'_correlations.pdf'
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
+  fname = outdir+'/'+star+'_correlations.png'
+  plt.savefig(fname,format='png',bbox_inches='tight',dpi=300)
   plt.close()
 
 def create_corner_plot():
@@ -935,4 +939,6 @@ def create_corner_plot():
   fname = outdir+'/'+star+'_corner.pdf'
   print 'Creating ', fname
   plt.savefig(fname,format='pdf',bbox_inches='tight')
+  fname = outdir+'/'+star+'_corner.png'
+  plt.savefig(fname,format='png',bbox_inches='tight',dpi=300)
   plt.close()

@@ -204,21 +204,23 @@ if ( method == 'mcmc' or method == 'plot' ):
 
   #Print the data for all the planets
   for o in range(0,nplanets):
-    T0_vec[o] = params[base + 0]
-    P_vec[o]  = params[base + 1]
-    e_vec[o]  = params[base + 2]
-    w_vec[o]  = params[base + 3]
-    b_vec[o]  = params[base + 4]
-    ar_vec[o] = params[base + 5]
-    rr_vec[o] = params[base + 6]
-    k_vec[o]  = params[base + 7]
+    T0_vec[o] = np.asarray(list(params[base + 0]))
+    P_vec[o]  = np.asarray(list(params[base + 1]))
+    e_vec[o]  = np.asarray(list(params[base + 2]))
+    w_vec[o]  = np.asarray(list(params[base + 3]))
+    b_vec[o]  = np.asarray(list(params[base + 4]))
+    ar_vec[o] = np.asarray(list(params[base + 5]))
+    rr_vec[o] = np.asarray(list(params[base + 6]))
+    k_vec[o]  = np.asarray(list(params[base + 7]))
 
 #STARTING CALCULATIONS
 
     if ( is_log_P ):
       P_vec[o] = 10.0**(P_vec[o])
     if ( is_den_a ):
-      ar_vec[o] = pti.rhotoa(ar_vec[0],P_vec[o])
+      if (o == 0): miden = list(params[base+5])
+      for m in range(0,len(miden)):
+        ar_vec[o][m] = pti.rhotoa(miden[m],P_vec[o][m],1)
     if ( is_log_k ):
       k_vec[o] = 10.0**(k_vec[o])
 
@@ -233,7 +235,6 @@ if ( method == 'mcmc' or method == 'plot' ):
       i_vec[o] = pti.btoi(b_vec[o],ar_vec[o],e_vec[o],w_vec[o])
     else:
       #calculate the impact parameter (eq. 7 Winn 2014)
-      #wo is the star periastron, add pi to have the planet one
       i_vec[o] = list(b_vec[o])
       b_vec[o] =  ar_vec[o] * np.cos(b_vec[o]) * ( ( 1. - e_vec[o]**2 ) \
                / ( 1.0 + e_vec[o]*np.sin(w_vec[o] )))
@@ -342,7 +343,7 @@ if ( method == 'mcmc' or method == 'plot' ):
     if ( fit_tr[o] ):
       print_values(b_vec[o],'b','b'+pl,' ',' ')
       if ( is_den_a ):
-        print_values(params[4+5],'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}}$')
+        if (o == 0): print_values(params[base+5],'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}}$')
       else:
         print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
       print_values(rr_vec[o],'rp/R*','rr'+pl,' ',' ')

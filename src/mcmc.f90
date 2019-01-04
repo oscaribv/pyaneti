@@ -1,6 +1,5 @@
 subroutine mcmc_stretch_move( &
            x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,jrvlab, &  !Data vars
-           stellar_pars,afk,&                           !Stellar parameters and flag|
            flags, total_fit_flag,is_jit, &              !flags
            fit_all, fit_rvs, fit_ldc,fit_trends, &      !fitting controls
            nwalks, maxi, thin_factor, nconv, &          !mcmc evolution controls
@@ -17,7 +16,6 @@ implicit none
   double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_rv-1) :: tlab, jrvlab
-  double precision, intent(in), dimension(0:3) :: stellar_pars
   double precision, intent(in), dimension(0:2*8*npl - 1):: lims !, lims_p
   double precision, intent(in), dimension(0:2*n_tel - 1) :: lims_rvs !, lims_p_rvs
   double precision, intent(in), dimension(0:3) :: lims_ldc !, lims_p_ldc
@@ -25,14 +23,14 @@ implicit none
   character, intent(in) :: fit_trends(0:1)
   character, intent(in) :: fit_all(0:8*npl-1), fit_rvs(0:n_tel-1), fit_ldc(0:1)
   logical, intent(in) :: flags(0:5), total_fit_flag(0:1) !CHECK THE SIZE
-  logical, intent(in) :: afk(0:npl-1), is_jit(0:1)
+  logical, intent(in) :: is_jit(0:1)
 !Local variables
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: pars_old, pars_new
   double precision, dimension(0:nwalks-1,0:8*npl-1) :: priors_old, priors_new
   double precision, dimension(0:nwalks-1,0:1) :: priors_ldc_old, priors_ldc_new
   double precision, dimension(0:nwalks-1,0:n_tel-1) :: rvs_old, rvs_new
   double precision, dimension(0:nwalks-1,0:1) :: ldc_old, ldc_new
-  double precision, dimension(0:nwalks-1) :: r_rand, z_rand, mstar, rstar
+  double precision, dimension(0:nwalks-1) :: r_rand, z_rand
   double precision, dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
   double precision, dimension(0:nwalks-1) :: chi2_old_rv, chi2_old_tr
   double precision, dimension(0:nwalks-1) :: chi2_new_rv, chi2_new_tr
@@ -51,7 +49,6 @@ implicit none
   integer, dimension(0:nwalks/2-1) :: r_int
   double precision  :: a_factor, dof, tds, qq
   double precision  :: lims_e_dynamic(0:1,0:npl-1)
-  double precision  :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma
   double precision  :: a_mean(0:npl-1), a_sigma(0:npl-1)
   double precision :: limit_prior
   logical :: continua, is_limit_good, is_cvg
@@ -65,12 +62,6 @@ implicit none
   !call the random seed
   print *, 'CREATING RANDOM SEED'
   call init_random_seed()
-
-  !Get the stellar parameters
-  mstar_mean  = stellar_pars(0)
-  mstar_sigma = stellar_pars(1)
-  rstar_mean  = stellar_pars(2)
-  rstar_sigma = stellar_pars(3)
 
   !Let us fill the what-to-fit vectors
   wtf_all = 0
@@ -136,9 +127,6 @@ implicit none
 
   print *, 'CREATING CHAINS'
 
-  call gauss_random_bm(mstar_mean,mstar_sigma,mstar,nwalks)
-  call gauss_random_bm(rstar_mean,rstar_sigma,rstar,nwalks)
-
   priors_old(:,:) = 1.d0
   priors_new(:,:) = 1.d0
   priors_ldc_old(:,:) = 1.d0
@@ -173,17 +161,6 @@ implicit none
 
       call create_chains(fit_ldc,lims_ldc,ldc_old(nk,:),2)
       call get_priors(fit_ldc,lims_ldc,ldc_old(nk,:),priors_ldc_old(nk,:),2)
-
-      !Will we use spectroscopic priors for some planets?
-      do m = 0, npl - 1
-        if ( afk(m) ) then
-          !The parameter comes from 3rd Kepler law !pars_old(1) is the period
-          call get_a_scaled(mstar(nk),rstar(nk),pars_old(nk,1+8*m),pars_old(nk,5+8*m),1)
-          call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,&
-               pars_old(nk,1+8*m),a_mean(m),a_sigma(m))
-          call gauss_prior(a_mean(m),a_sigma(m),pars_old(nk,5+8*m),priors_old(nk,5+8*m))
-        end if
-      end do
 
       log_prior_old(nk) = sum( log(priors_old(nk,:) ) + sum( log(priors_ldc_old(nk,:) ) ) )
 
@@ -274,18 +251,6 @@ implicit none
 
       call get_priors(fit_all,lims,pars_new(nk,:),priors_new(nk,:),8*npl)
       call get_priors(fit_ldc,lims_ldc,ldc_new(nk,:),priors_ldc_new(nk,:),2)
-
-      do m = 0, npl - 1
-        if ( afk(m) ) then
-          !The parameter comes from 3rd Kepler law
-          call get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,&
-               pars_new(nk,1+8*m),a_mean(m),a_sigma(m))
-          call gauss_prior(a_mean(m),a_sigma(m),pars_new(nk,5+8*m),priors_new(nk,5+8*m))
-        end if
-      end do
-     ! pars_new(nk,1+8*4) = pars_new(nk,1+8*3)/2.0
-     ! print *, pars_new(nk,1+8*4), pars_new(nk,1+8*3)
-     ! stop
 
 
       limit_prior = PRODUCT(priors_new(nk,:)) * PRODUCT(priors_ldc_new(nk,:) )
