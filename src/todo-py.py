@@ -603,10 +603,10 @@ def joint_fit_new():
     max_i = max_b
     fit_i = fit_b
 
-  fit_all = [None]*8*nplanets
+  fit_all = [None]*7*nplanets
   for o in range(0,nplanets):
-    fit_all[o*8:(o+1)*8] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
-                            fit_i[o],fit_a[o], fit_rp[o], fit_k[o] ]
+    fit_all[o*7:(o+1)*7] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
+                            fit_i[o],fit_a[o], fit_k[o] ]
 
   fit_rvs = []
   for o in range(0,nt):
@@ -627,30 +627,46 @@ def joint_fit_new():
     vec_rv0_limits.append(min_rv0[m])
     vec_rv0_limits.append(max_rv0[m])
 
-  dummy_lims = [None]*8*2*nplanets
+  dummy_lims = [None]*7*2*nplanets
 
   for o in range(0,nplanets):
 
-    dummy_lims[o*8*2:(o+1)*8*2 ] = \
+    dummy_lims[o*7*2:(o+1)*7*2 ] = \
     [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
-    , min_i[o], max_i[o], min_a[o], max_a[o], min_k[o], max_k[o], min_rp[o], max_rp[o] ]
+    , min_i[o], max_i[o], min_a[o], max_a[o], min_k[o], max_k[o] ]
 
   limits = dummy_lims
 
-  limits_rvs = vec_rv0_limits
+  #Planet radius priors
+  prs_prior_flag = [None]*nplanets
+  prs_prior_values = [None]*nplanets
+  for o in range(0,nplanets):
+      prs_prior_flag[o] = [fit_rp[o]]*nbands
+      prs_prior_values[o] = [min_rp[o],max_rp[o]]*nbands
 
-  limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
+  prs_prior_flag = np.concatenate(prs_prior_flag)
+  prs_prior_values = np.concatenate(prs_prior_values)
+
+  #LDC priors
+  ldc_prior_flag = []
+  ldc_prior_values = []
+  for o in range(0,nbands):
+      ldc_prior_flag.append(fit_q1[o])
+      ldc_prior_flag.append(fit_q2[o])
+      ldc_prior_values.append(min_q1[o])
+      ldc_prior_values.append(max_q1[o])
+      ldc_prior_values.append(min_q2[o])
+      ldc_prior_values.append(max_q2[o])
+
+  limits_rvs = vec_rv0_limits
 
   stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
   is_jitter = [is_jitter_rv, is_jitter_tr]
 
-  prior_vals = np.concatenate([limits,limits_ldc,limits_rvs,[0.,1.],[0.,1.],[0.,1.,0.,1.]])
-  prior_flags = np.concatenate([fit_all,fit_ldc,fit_rvs,['f'],['f'],fit_trends])
+  prior_vals = np.concatenate([limits,prs_prior_values,ldc_prior_values,limits_rvs,[0.,1.],[0.,1.],[0.,1.,0.,1.]])
+  prior_flags = np.concatenate([fit_all,prs_prior_flag,ldc_prior_flag,fit_rvs,['f'],['f'],fit_trends])
 
-  trlab = [0.0]*len(megax)
-  jtrlab = [0]*len(megax)
-
-  model_int = [nplanets,nt,1,2,1,1,n_cad]
+  model_int = [nplanets,nt,nbands,nldc,n_jrv,1,n_cad]
   model_double = [t_cad]
 
   if ( method == 'mcmc' ):
@@ -741,8 +757,9 @@ def print_init():
     oif.write ('------------------------------\n')
   oif.write (' Other parameter priors \n')
   oif.write ('------------------------------\n')
-  oif.write ('q1 = %s[ %4.4f , %4.4f ]\n' %(fit_q1,min_q1,max_q1))
-  oif.write ('q2 = %s[ %4.4f , %4.4f ]\n' %(fit_q2,min_q2,max_q2))
+  for m in range(0,nbands):
+    oif.write ('q1 %s = %s[ %4.4f , %4.4f ]\n' %(bands[m],fit_q1[m],min_q1[m],max_q1[m]))
+    oif.write ('q2 %s = %s[ %4.4f , %4.4f ]\n' %(bands[m],fit_q2[m],min_q2[m],max_q2[m]))
   for m in range(0,nt):
     oif.write ('%s = %s[ %4.4f , %4.4f ]\n' %(telescopes_labels[m],fit_v0,min_rv0[m],max_rv0[m]))
   oif.write ('==============================\n')

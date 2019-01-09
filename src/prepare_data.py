@@ -173,6 +173,22 @@ if ( nplanets_tr > 0 ):
   megae = np.concatenate(et)
   megap = [0]*len(megax)
 
+  #Create the label vectors for each instrument and jitter
+  if (len(bands) == 1):
+      nbands = 1
+      trlab  = [0]*len(megax)
+      jtrlab = [0]*len(megax)
+  else:
+     trlab = []
+     jtrlab = []
+     nbands = len(bands)
+     instrument = np.loadtxt(filename,usecols=(3),dtype=str,unpack=True)
+     for o in range(0,len(megax)):
+         for m in range(0,nbands):
+           if ( instrument[o] == bands[m] ):
+               trlab.append(m)
+               jrlab.append(m)
+
   total_tr_fit = True
 
 else:

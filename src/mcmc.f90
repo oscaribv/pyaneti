@@ -399,13 +399,13 @@ end subroutine
 
 !#--------------------------------------------------------------------------------
 
-subroutine mcmc_stretch_move_new( &
-           x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
-           rvlab,jrvlab,trlab,jtrlab,     &
-           flags, total_fit_flag,         &
-           prior_flags, prior_vals,       &
-           npars, model_int,    &
-           model_double,                  &
+subroutine mcmc_stretch_move_new(            &
+           x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,    &
+           rvlab,jrvlab,trlab,jtrlab,        &
+           flags, total_fit_flag,            &
+           prior_flags, prior_vals,          &
+           npars, model_int,                 &
+           model_double,                     &
            nwalks, maxi, thin_factor, nconv, &
            size_rv, size_tr)
 implicit none
@@ -461,7 +461,6 @@ implicit none
   if ( total_fit_flag(1) ) dof = dof + size_tr
   dof  = dof - spar
 
-
   print *, 'CREATING CHAINS'
 
   priors_old(:,:) = 1.d0
@@ -469,7 +468,7 @@ implicit none
 
   is_limit_good = .false.
   !$OMP PARALLEL &
-  !$OMP PRIVATE(is_limit_good,m,limit_prior,a_mean,a_sigma)
+  !$OMP PRIVATE(is_limit_good,m,limit_prior)
   !$OMP DO SCHEDULE(DYNAMIC)
   do nk = 0, nwalks - 1
 
@@ -479,11 +478,6 @@ implicit none
 
       log_prior_old(nk) = sum( log(priors_old(nk,:) ) )
 
-      !THIS FUNCTION HAS TO CHANGE
-      !call get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,jrvlab, &
-      !     total_fit_flag,flags,t_cad,n_cad,pars_old(nk,:),rvs_old(nk,:), &
-      !     ldc_old(nk,:),tds_old(nk,:),jitter_rv_old(nk,:),jitter_tr_old(nk),&
-      !     log_likelihood_old(nk),chi2_old_rv(nk),chi2_old_tr(nk),npl,n_tel,n_jrv,size_rv,size_tr)
       call get_loglike_new(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
            rvlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,&
            pars_old(nk,:),model_int,model_double,&
@@ -542,7 +536,7 @@ implicit none
 
     !Paralellization calls
     !$OMP PARALLEL &
-    !$OMP PRIVATE(is_limit_good,qq,m,limit_prior,a_mean,a_sigma)
+    !$OMP PRIVATE(is_limit_good,qq,m,limit_prior)
     !$OMP DO SCHEDULE(DYNAMIC)
     do nk = nks, nke
 
@@ -566,15 +560,9 @@ implicit none
 
       if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
 
-      !THIS FUNCTION HAS TO CHANGE
-      !call get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,tlab,jrvlab, &
-      !     total_fit_flag,flags,t_cad,n_cad,pars_new(nk,:),rvs_new(nk,:), &
-      !     ldc_new(nk,:),tds_new(nk,:),jitter_rv_new(nk,:),jitter_tr_new(nk),&
-      !     log_likelihood_new(nk),chi2_new_rv(nk),chi2_new_tr(nk),npl,n_tel,&
-      !     n_jrv,size_rv,size_tr)
-      call get_loglike_new(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
-           rvlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,&
-           pars_new(nk,:),model_int,model_double,&
+      call get_loglike_new(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,    &
+           rvlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,   &
+           pars_new(nk,:),model_int,model_double,            &
            npars,log_likelihood_new(nk),chi2_new_rv(nk),chi2_new_tr(nk),size_rv,size_tr)
 
       chi2_new_total(nk) = chi2_new_rv(nk) + chi2_new_tr(nk)
@@ -590,7 +578,7 @@ implicit none
       !Goodman & Weare (2010)
       qq = z_rand(nk)**spar1 * exp(qq)
 
-      !Check if the new likelihood is better
+      !Check the acceptance of the new model
       if ( qq > r_rand(nk) ) then
         !If yes, let us save it as the old vectors
         log_likelihood_old(nk) = log_likelihood_new(nk)
@@ -711,6 +699,7 @@ implicit none
   integer :: m
   external:: get_total_chi2
 
+  !Integer variables
   npl    = model_int(0)
   ntels  = model_int(1)
   nbands = model_int(2)
@@ -718,14 +707,14 @@ implicit none
   njrv   = model_int(4)
   njtr   = model_int(5)
   n_cad  = model_int(6)
-
+  !Double variables
   t_cad  = model_double(0)
 
-  !Calcualte the chi2
+  !Calculate the chi2
    call get_total_chi2_new(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
-           rvlab,jrvlab,trlab,jtrlab,tff,flags,&
-           t_cad,n_cad,pars, &
-           chi2_rv,chi2_tr,log_errs,npars,npl,ntels,nbands,nldc,njrv,njtr,size_rv,size_tr)
+                           rvlab,jrvlab,trlab,jtrlab,tff,flags,&
+                           t_cad,n_cad,pars,chi2_rv,chi2_tr,log_errs,npars,&
+                           npl,ntels,nbands,nldc,njrv,njtr,size_rv,size_tr)
 
     chi2_total = chi2_rv + chi2_tr
 
@@ -759,37 +748,33 @@ implicit none
   double precision, dimension(0:njrv-1) :: jrv
   double precision, dimension(0:njtr-1) :: jtr
   double precision :: pars_rv(0:7+ntels-1,0:npl-1)
-  double precision :: pars_tr(0:6,0:npl-1)
+  double precision :: pars_tr(0:6,0:npl-1), rps(0:nbands,0:npl-1)
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   logical :: flag_rv(0:3), flag_tr(0:3)
   integer :: i, j, m
   integer :: srp, sldc, srv, sjitrv, sjittr, strends
 
-  srp = 7*npl
-  sldc = srp + npl*nbands
-  srv = sldc + nldc*nbands
-  sjitrv = srv + ntels
-  sjittr = sjitrv + njrv
-  strends = sjittr + njtr
+  srp = 7*npl                !start of planet radius
+  sldc = srp + npl*nbands    !start of LDC
+  srv = sldc + nldc*nbands   !start of RV offsets
+  sjitrv = srv + ntels       !start of RV jitter
+  sjittr = sjitrv + njrv     !start of TR jitter
+  strends = sjittr + njtr    !start of RV trends
 
   !Create the parameter variables for rv and tr
   do i = 0, npl - 1
     j = 8*i !the new data start point
     pars_tr(0:5,i)   = pars(j:j+5)
-    pars_tr(6,i)   = pars(srp+i)
-    pars_rv(0:3,i) = pars(j:j+3)
-    pars_rv(4,i) = pars(j+6)
-    pars_rv(5:6,i) = pars(strends:strends+1)
+    rps(:,i)         = pars(srp:srp+nbands*(i+1)-1)
+    pars_rv(0:3,i)   = pars(j:j+3)
+    pars_rv(4,i)     = pars(j+6)
+    pars_rv(5:6,i)   = pars(strends:strends+1)
     pars_rv(7:7+ntels-1,i) = pars(srv:srv+ntels-1)
   end do
 
    ldc(:) = pars(sldc:sldc+nldc*nbands-1)
-
-!   print *, pars_tr
-!   print *, pars_rv
-!   print *, ldc
-!   stop
-
+   jrv(:) = pars(sjitrv:sjitrv+njrv-1)
+   jtr(:) = pars(sjittr:sjittr+njtr-1)
 
   !Put the correct flags
   flag_tr(:)   = flags(0:3)
@@ -801,8 +786,8 @@ implicit none
   chi2_tr = 0.d0
 
   if (tff(1) ) &
-  call find_chi2_tr(x_tr,y_tr,e_tr,pars_tr,jtr,flag_tr,&
-                        ldc,n_cad,t_cad,chi2_tr,size_tr,npl)
+  call find_chi2_tr_nuevo(x_tr,y_tr,e_tr,trlab,jtrlab,pars_tr,rps,ldc,jtr,flag_tr, &
+           n_cad,t_cad,chi2_tr,size_tr,nbands,njtr,npl)
   if (tff(0) ) &
   call find_chi2_rv(x_rv,y_rv,e_rv,rvlab,jrvlab,pars_rv,jrv,&
                     flag_rv,chi2_rv,size_rv,ntels,njrv,npl)
@@ -811,17 +796,13 @@ implicit none
   !Calculate the normalization term
     log_errs = 0.0
     if ( tff(0)  .and. size_rv > 1) then
-      do m = 0, size_rv - 1
-        log_errs = log_errs + &
-        log( 1.0d0/sqrt( two_pi * ( e_rv(m)**2 + jrv(jrvlab(m))**2 ) ) )
-      end do
+      log_errs = log_errs + sum( log( 1.0d0/sqrt( two_pi * ( e_rv(:)**2 + jrv(jrvlab(:))**2 ) ) ) )
     else
       chi2_rv = 0.d0
     end if
 
     if ( tff(1) .and. size_tr > 1 ) then
-      log_errs = log_errs + &
-      sum(log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jtr**2 ) ) ) )
+      log_errs = log_errs + sum( log( 1.0d0/sqrt( two_pi * ( e_tr(:)**2 + jtr(jtrlab(:))**2 ) ) ) )
     else
       chi2_tr = 0.d0
     end if
