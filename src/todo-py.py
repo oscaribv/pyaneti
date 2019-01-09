@@ -549,10 +549,125 @@ def joint_fit():
     pti.mcmc_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
     tlab,jrvlab,\
-#    tlab,jrvlab,stellar_pars,a_from_kepler,\
     flags,total_fit_flag,is_jitter,fit_all,fit_rvs,fit_ldc,fit_trends, \
     nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
     limits_ldc,n_cad, t_cad, npl=nplanets,n_tel=nt,n_jrv=n_jrv)
+
+  elif ( method == 'plot' ):
+    print 'I will only print the values and generate the plot'
+
+  else:
+    print 'You did not choose a method!'
+    print 'method = mcmc   -> Run the MCMC code'
+    print 'method = plot   -> Plot of a previous run'
+    sys.exit('choose your favorite.')
+
+  newfile = outdir+'/'+star+'_all_data.dat'
+  if ( os.path.isfile('all_data.dat') ):
+    os.rename('all_data.dat',newfile)
+
+  newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
+  if ( os.path.isfile('jitter_data.dat') ):
+    os.rename('jitter_data.dat',newfile_jitter)
+
+  newfile_trends = outdir+'/'+star+'_trends_data.dat'
+  if ( os.path.isfile('trends_data.dat') ):
+    os.rename('trends_data.dat',newfile_trends)
+
+
+def joint_fit_new():
+  global fit_all, fit_ldc, fit_rvs, nt
+  global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
+  global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
+  global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_rp, fit_k,fit_v0
+  global T0,P,e,w,ii,a,q1,q2,rp,k0,alpha,beta, v0
+  global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
+         max_a, min_q1, max_q1, min_q1, max_q1, min_rp, max_rp, min_k, max_k, min_alpha, max_alpha, \
+         min_beta, max_beta, min_rv0, max_rv0
+  global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,rpo,ko,alphao,betao,vo, what_fit
+  global new_nwalkers, good_index, nwalkers
+  global jrvo, jtro, total_fit_flag, flags
+  global limits, priorf, priorl, limits_ldc, limits_rvs
+
+
+  if ( is_ew ):
+    min_e = min_ew1
+    max_e = max_ew1
+    min_w = min_ew2
+    max_w = max_ew2
+    fit_e = fit_ew1
+    fit_w = fit_ew2
+
+  if ( is_b_factor ):
+    min_i = min_b
+    max_i = max_b
+    fit_i = fit_b
+
+  fit_all = [None]*8*nplanets
+  for o in range(0,nplanets):
+    fit_all[o*8:(o+1)*8] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
+                            fit_i[o],fit_a[o], fit_rp[o], fit_k[o] ]
+
+  fit_rvs = []
+  for o in range(0,nt):
+    fit_rvs.append(fit_v0)
+
+  fit_ldc = [fit_q1, fit_q2]
+
+  fit_trends = [is_linear_trend,is_quadratic_trend]
+
+  #Let us check what do we want to fit
+  total_fit_flag = [ total_rv_fit, total_tr_fit ]
+
+  flags = [is_log_P,is_ew,is_b_factor,is_den_a,is_log_k,is_log_rv0]
+
+
+  vec_rv0_limits = []
+  for m in range(0,nt):
+    vec_rv0_limits.append(min_rv0[m])
+    vec_rv0_limits.append(max_rv0[m])
+
+  dummy_lims = [None]*8*2*nplanets
+
+  for o in range(0,nplanets):
+
+    dummy_lims[o*8*2:(o+1)*8*2 ] = \
+    [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
+    , min_i[o], max_i[o], min_a[o], max_a[o], min_k[o], max_k[o], min_rp[o], max_rp[o] ]
+
+  limits = dummy_lims
+
+  limits_rvs = vec_rv0_limits
+
+  limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
+
+  stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
+  is_jitter = [is_jitter_rv, is_jitter_tr]
+
+  prior_vals = np.concatenate([limits,limits_ldc,limits_rvs,[0.,1.],[0.,1.],[0.,1.,0.,1.]])
+  prior_flags = np.concatenate([fit_all,fit_ldc,fit_rvs,['f'],['f'],fit_trends])
+
+  trlab = [0.0]*len(megax)
+  jtrlab = [0]*len(megax)
+
+  model_int = [nplanets,nt,1,2,1,1,n_cad]
+  model_double = [t_cad]
+
+  if ( method == 'mcmc' ):
+
+    #Ensure nwalkers is divisible by 2
+    if ( nwalkers%2 != 0):
+         nwalkers = nwalkers + 1
+
+    pti.mcmc_stretch_move_new(\
+    mega_time,mega_rv,megax,megay,mega_err,megae, \
+    tlab,jrvlab,trlab,jtrlab,\
+    flags,total_fit_flag,prior_flags,prior_vals, \
+    model_int,model_double,nwalkers,maxi,thin_factor,nconv )
+
+
+    print "Well done Oscar, the sampling is working ;-)"
+    sys.exit()
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'
