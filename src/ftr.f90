@@ -241,6 +241,7 @@ implicit none
   logical :: is_good
   integer :: n
 
+
   t0  = pars(0,:)
   P   = pars(1,:)
   e   = pars(2,:)
@@ -263,6 +264,7 @@ implicit none
     up_ldc(2*n)   = u1(n)
     up_ldc(2*n+1) = u2(n)
   end do
+
 
   is_good = .true.
   if ( any( e > 1.d0 ) ) is_good = .false.
@@ -346,7 +348,9 @@ implicit none
       !Each z is independent for each planet
       call find_z(xd_ub,pars(0:5,n),z,n_cad)
 
+
       if ( ALL( z > 1.d0 + rps(trlab(j),n) ) .or. rps(trlab(j),n) < small ) then
+
 
         muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
         flux_ub(:,n) = 0.d0

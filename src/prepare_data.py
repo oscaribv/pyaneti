@@ -187,7 +187,9 @@ if ( nplanets_tr > 0 ):
          for m in range(0,nbands):
            if ( instrument[o] == bands[m] ):
                trlab.append(m)
-               jrlab.append(m)
+               jtrlab.append(m)
+
+  n_jtr = nbands
 
   total_tr_fit = True
 

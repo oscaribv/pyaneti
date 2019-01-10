@@ -1,6 +1,7 @@
 
 #Print the values
-execfile('src/print_values.py')
+#execfile('src/print_values.py')
+execfile('src/print_values-new.py')
 
 #Create plots
 execfile('src/plot_data.py')

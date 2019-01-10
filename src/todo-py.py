@@ -588,7 +588,7 @@ def joint_fit_new():
   global new_nwalkers, good_index, nwalkers
   global jrvo, jtro, total_fit_flag, flags
   global limits, priorf, priorl, limits_ldc, limits_rvs
-
+  global prior_flags, prior_vals, model_int, model_double
 
   if ( is_ew ):
     min_e = min_ew1
@@ -603,39 +603,23 @@ def joint_fit_new():
     max_i = max_b
     fit_i = fit_b
 
-  fit_all = [None]*7*nplanets
-  for o in range(0,nplanets):
-    fit_all[o*7:(o+1)*7] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
-                            fit_i[o],fit_a[o], fit_k[o] ]
-
-  fit_rvs = []
-  for o in range(0,nt):
-    fit_rvs.append(fit_v0)
-
-  fit_ldc = [fit_q1, fit_q2]
-
-  fit_trends = [is_linear_trend,is_quadratic_trend]
 
   #Let us check what do we want to fit
   total_fit_flag = [ total_rv_fit, total_tr_fit ]
 
   flags = [is_log_P,is_ew,is_b_factor,is_den_a,is_log_k,is_log_rv0]
 
-
-  vec_rv0_limits = []
-  for m in range(0,nt):
-    vec_rv0_limits.append(min_rv0[m])
-    vec_rv0_limits.append(max_rv0[m])
-
-  dummy_lims = [None]*7*2*nplanets
-
+  #Parameter priors
+  pars_prior_flag = [None]*7*nplanets
   for o in range(0,nplanets):
+    pars_prior_flag[o*7:(o+1)*7] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
+                                    fit_i[o],fit_a[o],fit_k[o] ]
 
-    dummy_lims[o*7*2:(o+1)*7*2 ] = \
+  pars_prior_vals = [None]*7*2*nplanets
+  for o in range(0,nplanets):
+    pars_prior_vals[o*7*2:(o+1)*7*2 ] = \
     [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
     , min_i[o], max_i[o], min_a[o], max_a[o], min_k[o], max_k[o] ]
-
-  limits = dummy_lims
 
   #Planet radius priors
   prs_prior_flag = [None]*nplanets
@@ -658,15 +642,41 @@ def joint_fit_new():
       ldc_prior_values.append(min_q2[o])
       ldc_prior_values.append(max_q2[o])
 
-  limits_rvs = vec_rv0_limits
+  #Offsets priors
+  RVS_prior_flag = []
+  RVS_prior_vals = []
+  for o in range(0,nt):
+    RVS_prior_flag.append(fit_v0)
+    RVS_prior_vals.append(min_rv0[o])
+    RVS_prior_vals.append(max_rv0[o])
 
-  stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
-  is_jitter = [is_jitter_rv, is_jitter_tr]
+  #RV jitter priors
+  if is_jitter_rv:
+      jrv_prior_flag = ['u']*n_jrv
+      jrv_prior_vals = [0.,1.]*n_jrv
+  else:
+      jrv_prior_flag = ['f']*n_jrv
+      jrv_prior_vals = [0.,1.]*n_jrv
 
-  prior_vals = np.concatenate([limits,prs_prior_values,ldc_prior_values,limits_rvs,[0.,1.],[0.,1.],[0.,1.,0.,1.]])
-  prior_flags = np.concatenate([fit_all,prs_prior_flag,ldc_prior_flag,fit_rvs,['f'],['f'],fit_trends])
+  #Transit jitter priors
+  if is_jitter_tr:
+      jtr_prior_flag = ['u']*n_jtr
+      jtr_prior_vals = [0.,1.]*n_jtr
+  else:
+      jtr_prior_flag = ['f']*n_jtr
+      jtr_prior_vals = [0.,1.]*n_jtr
 
-  model_int = [nplanets,nt,nbands,nldc,n_jrv,1,n_cad]
+  #Trends priors
+  trends_prior_flag = [is_linear_trend,is_quadratic_trend]
+  trends_prior_vals = [0.,1.,0.,1.]
+
+
+  prior_vals  = np.concatenate([pars_prior_vals,prs_prior_values,ldc_prior_values,\
+                                RVS_prior_vals,jrv_prior_vals,jtr_prior_vals,trends_prior_vals])
+  prior_flags = np.concatenate([pars_prior_flag,prs_prior_flag,ldc_prior_flag,\
+                                 RVS_prior_flag,jrv_prior_flag,jtr_prior_flag,trends_prior_flag])
+
+  model_int = [nplanets,nt,nbands,nldc,n_jrv,n_jtr,n_cad]
   model_double = [t_cad]
 
   if ( method == 'mcmc' ):
@@ -681,10 +691,6 @@ def joint_fit_new():
     flags,total_fit_flag,prior_flags,prior_vals, \
     model_int,model_double,nwalkers,maxi,thin_factor,nconv )
 
-
-    print "Well done Oscar, the sampling is working ;-)"
-    sys.exit()
-
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'
 
@@ -697,14 +703,6 @@ def joint_fit_new():
   newfile = outdir+'/'+star+'_all_data.dat'
   if ( os.path.isfile('all_data.dat') ):
     os.rename('all_data.dat',newfile)
-
-  newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
-  if ( os.path.isfile('jitter_data.dat') ):
-    os.rename('jitter_data.dat',newfile_jitter)
-
-  newfile_trends = outdir+'/'+star+'_trends_data.dat'
-  if ( os.path.isfile('trends_data.dat') ):
-    os.rename('trends_data.dat',newfile_trends)
 
 #-----------------------------------------------------------
 #          PRINT INITIAL CONFIGURATION

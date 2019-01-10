@@ -748,7 +748,7 @@ implicit none
   double precision, dimension(0:njrv-1) :: jrv
   double precision, dimension(0:njtr-1) :: jtr
   double precision :: pars_rv(0:7+ntels-1,0:npl-1)
-  double precision :: pars_tr(0:6,0:npl-1), rps(0:nbands,0:npl-1)
+  double precision :: pars_tr(0:5,0:npl-1), rps(0:nbands-1,0:npl-1)
   double precision :: two_pi = 2.d0*3.1415926535897932384626d0
   logical :: flag_rv(0:3), flag_tr(0:3)
   integer :: i, j, m
@@ -763,14 +763,20 @@ implicit none
 
   !Create the parameter variables for rv and tr
   do i = 0, npl - 1
-    j = 8*i !the new data start point
+    j = 7*i !the new data start point
     pars_tr(0:5,i)   = pars(j:j+5)
-    rps(:,i)         = pars(srp:srp+nbands*(i+1)-1)
+    rps(:,i)         = pars(srp+nbands*i:srp+nbands*(i+1)-1)
     pars_rv(0:3,i)   = pars(j:j+3)
     pars_rv(4,i)     = pars(j+6)
     pars_rv(5:6,i)   = pars(strends:strends+1)
     pars_rv(7:7+ntels-1,i) = pars(srv:srv+ntels-1)
+!  print *, srp+nbands*i,srp+nbands*(i+1)-1
+!  print *, pars(srp+nbands*i:srp+nbands*(i+1)-1)
   end do
+!  print *, pars_tr
+!  print *, pars_rv
+!  print *, rps
+!  stop
 
    ldc(:) = pars(sldc:sldc+nldc*nbands-1)
    jrv(:) = pars(sjitrv:sjitrv+njrv-1)
@@ -784,6 +790,13 @@ implicit none
   !Let us calculate chi2
   chi2_rv = 0.d0
   chi2_tr = 0.d0
+
+!  print *, trlab
+!  print *, jtrlab
+!  print *, pars_tr
+!  print *, rps
+!  print *, ldc
+!  print *, jtr
 
   if (tff(1) ) &
   call find_chi2_tr_nuevo(x_tr,y_tr,e_tr,trlab,jtrlab,pars_tr,rps,ldc,jtr,flag_tr, &
