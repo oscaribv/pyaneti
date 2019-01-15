@@ -7,6 +7,23 @@
 !              Date --> Feb  2016, Oscar Barragán
 !------------------------------------------------------------
 
+module constants
+
+implicit none
+
+  double precision, parameter :: pi = 3.1415926535897d0
+  double precision, parameter :: two_pi = 2.d0*3.1415926535897932384626d0
+  double precision, parameter :: uno = 1.0d0
+  double precision, parameter :: fmin=1.d-8
+  double precision, parameter :: small = 1.d-5
+  integer, parameter :: imax = int(1e8)
+  !Physical parameters
+  double precision, parameter :: S_radius_SI = 6.957d8 !R_sun
+  double precision, parameter :: S_GM_SI = 1.3271244d20 ! G M_sun
+
+
+end module constants
+
 !http://stackoverflow.com/questions/18754438/generating-random-numbers-in-a-fortran-module
 subroutine init_random_seed()
 
@@ -85,6 +102,7 @@ end subroutine
 ! ta -> True anomaly (vector with the same dimension that man)
 !------------------------------------------------------------
 subroutine find_anomaly_tp(t,tp,e,P,ta,dt)
+use constants
 implicit none
 !In/Out variables
   integer, intent(in) :: dt
@@ -94,12 +112,6 @@ implicit none
 !Local variables
   integer :: i,n
   double precision, dimension(0:dt-1) :: ma, f, df, eimag, ereal, sinma
-  double precision :: two_pi = 2.d0*3.1415926535897932384626d0
-  double precision :: uno
-  double precision :: fmin=1.d-8, small = 1.d-5
-  integer :: imax = int(1e8)
-!
-  uno = 1.0d0
 
   !Calculate the mean anomaly
   ma = two_pi * ( t - tp ) / P
@@ -156,6 +168,7 @@ end subroutine
 
 !Get semi-major axis assuming we know the stellar parameters
 subroutine get_a_scaled(mstar,rstar,P,a,lenvec)
+use constants
 implicit none
 
 !In/Out variables
@@ -163,9 +176,6 @@ implicit none
   double precision, intent(in), dimension(0:lenvec-1) :: mstar, rstar, P
   double precision, intent(out), dimension(0:lenvec-1) :: a
 !Local variables
-  double precision :: pi = 3.1415926535897d0
-  double precision :: S_radius_SI = 6.957d8 !R_sun
-  double precision :: S_GM_SI = 1.3271244d20 ! G M_sun
   double precision, dimension(0:lenvec-1) :: R_SI, GM_SI
 
   R_SI  = rstar(:) * S_radius_SI
@@ -296,6 +306,7 @@ end subroutine
 
 !Create a normal distribution based on Box-Muller
 subroutine gauss_random_bm(mu,sigma,valor,n)
+use constants
 implicit none
 
   !In/Out variables
@@ -304,7 +315,6 @@ implicit none
   double precision, intent(out), dimension(0:n-1) :: valor
   !Local variables
   double precision, dimension(0:2*n-1) :: r_real
-  double precision  :: two_pi = 2.d0*3.1415926535897932384626d0
 
   call random_number(r_real)
 
@@ -318,6 +328,7 @@ end subroutine
 
 
 subroutine get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,P,amean,aerr)
+use constants
 implicit none
 
 !In/out variables
@@ -325,12 +336,9 @@ implicit none
   double precision, intent(out) :: amean,aerr
 !Local variables
   double precision :: dadm, dadr, per
-  double precision :: S_radius_SI = 6.957d8 !R_sun
-  double precision :: S_GM_SI = 1.3271244d20 ! G M_sun
   double precision :: R_SI, M_SI, G_SI
   double precision :: R_sigma_SI, M_sigma_SI
   double precision :: tercio, cpi2
-  double precision  :: pi = 3.1415926535897932384626d0
 
   G_SI = 6.67408e-11
   R_SI = rstar_mean * S_radius_SI
@@ -423,6 +431,7 @@ implicit none
 end subroutine
 
 subroutine rhotoa(rho,P,a,n)
+use constants
 implicit none
 
   !In/Out variables
@@ -430,7 +439,6 @@ implicit none
   double precision, intent(in) :: rho, P(0:n-1)
   double precision, dimension(0:n-1), intent(out) :: a
   !Local variables
-  double precision :: pi = 3.1415926535897932384626d0
   double precision :: G = 6.67508d-11*1.d3 !Gravitational constant
 
   !rho*^(1/3) parametrization
