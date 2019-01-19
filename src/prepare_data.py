@@ -245,6 +245,15 @@ if ( not total_rv_fit ):
   telescopes = ['O']
   telescopes_labels = ['']
 
+#This ensures that previous 1-band pyaneti input files work
+if (min_q1.__class__ == float ): min_q1 = [min_q1]
+if (min_q2.__class__ == float ): min_q2 = [min_q2]
+if (max_q1.__class__ == float ): max_q1 = [max_q1]
+if (max_q2.__class__ == float ): max_q2 = [max_q2]
+if (fit_q1.__class__ == str ):   fit_q1 = [fit_q1]
+if (fit_q2.__class__ == str ):   fit_q2 = [fit_q2]
+
+
 if ( is_den_a ): #For a multiplanet system the density has to be the same
   if ( nplanets > 1 ):
     for o in range(1,nplanets):

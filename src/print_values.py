@@ -6,17 +6,25 @@ from matplotlib import gridspec
 #[1] -> chain label
 #[2] -> chi2_rv
 #[3] -> chi2_tr
-#[4-8*nplanets] -> parameters
-#[4+8*nplanets-+2] -> ldc
-#[4+8*nplanets+2-+ntelescopes] -> rvs
+#[4 - 7*nplanets] -> Planet parameters(T0,P,e,w,b,a/R*,K)
+#[4+7*nplanets - nplanets*nbands ] -> rps_ij (i to planet, j to band)
+#[] LDC bands
+#[] Offsets
+#[] jitter
+#[] trends
+srp = 7*nplanets             #start of planet radius
+sldc = srp + nplanets*nbands #start of LDC
+srv = sldc + nldc*nbands     #start of RV offsets
+sjitrv = srv + nt            #start of RV jitter
+sjittr = sjitrv + n_jrv      #start of TR jitter
+strends = sjittr + n_jtr     #start of RV trends
+
 newfile = outdir+'/'+star+'_all_data.dat'
 dparams = np.loadtxt(newfile, comments='#',unpack=True)
-
 
 #Let us do the clustering
 params = list(dparams)
 #par_likelihood = list(ldparams[2])
-params_jitter = [0.0]*2
 new_nwalkers = nwalkers
 #The maximum log(likelihood)
 dmaxloglike = dparams[1]
@@ -28,22 +36,6 @@ if ( is_clustering ):
   maxloglike = clustering_fast(dmaxloglike,good_index,nconv)
   for o in range(0,len(dparams)):
     params[o] = clustering_fast(dparams[o],good_index,nconv)
-
-if ( is_jitter_rv or is_jitter_tr ):
-  newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
-  dparams_jitter = np.loadtxt(newfile_jitter, comments='#',unpack=True)
-  params_jitter = list(dparams_jitter)
-  if ( is_clustering ):
-    for o in range(0,n_jrv+1):
-      params_jitter[o] = clustering_fast(dparams_jitter[o],good_index,nconv)
-
-if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
-  newfile_trends = outdir+'/'+star+'_trends_data.dat'
-  dparams_trends = np.loadtxt(newfile_trends, comments='#',unpack=True)
-  params_trends = list(dparams_trends)
-  if ( is_clustering ):
-    for o in range(0,2):
-      params_trends[o] = clustering_fast(dparams_trends[o],good_index,nconv)
 
 #Create the stellar data
 mstar = np.random.normal(loc=mstar_mean,scale=mstar_sigma,size=new_nwalkers*nconv)
@@ -64,64 +56,19 @@ if ( len(plot_parameters) < 2):
   #plot_parameters stores the flag of each fitted parameter
   plot_parameters = []
 
-  for o in range(0,len(fit_all)):
-      if ( fit_all[o] != 'f' ):
+  for o in range(0,len(prior_flags)):
+      if ( prior_flags[o] != 'f' ):
           npars = npars + 1
           plot_parameters.append(o)
-
-  for o in range(0,len(fit_ldc)):
-      if ( fit_ldc[o] != 'f' ):
-          npars = npars + 1
-          plot_parameters.append(o+8*nplanets)
-
-  for o in range(0,len(telescopes)):
-      if ( fit_v0 != 'f' ):
-          npars = npars + 1
-          plot_parameters.append(o+2+8*nplanets)
-
-if ( is_linear_trend != 'f' ):
-  npars = npars + 1
-if ( is_quadratic_trend != 'f' ):
-  npars = npars + 1
-if ( is_jitter_rv ):
-  npars = npars + 1*n_jrv
-if ( is_jitter_tr ):
-  npars = npars + 1
 
 dummy_pars = [0.0]*len(params)
 for o in range(0,len(params)):
     dummy_pars[o] = best_value(params[o],maxloglike,get_value)
 
-fit_pars = dummy_pars[4:4+8*nplanets]
-ldc_pars = dummy_pars[4+8*nplanets:6+8*nplanets]
-rvs_pars = dummy_pars[6+8*nplanets:6+8*nplanets+nt]
-
-fit_jrv = [0.0]*nt
-fit_jtr = 0.0
-
-if ( is_jitter_rv or is_jitter_tr ) :
-  for o in range(0,n_jrv):
-    fit_jrv[o] = best_value(params_jitter[o],maxloglike,get_value)
-  fit_jtr = best_value(params_jitter[n_jrv],maxloglike,get_value)
-
-fit_trends = [0.0]*2
-if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
- fit_trends = [best_value(params_trends[0],maxloglike,get_value),best_value(params_trends[1],maxloglike,get_value)]
-
-#Calculate the final chi2 for each case
-log_like_rv, chi2tot_val_rv, dummy = \
-  pti.get_loglike(mega_time,mega_rv,megax,megay,mega_err,megae,\
-                     tlab,jrvlab,[True,False],flags,t_cad, n_cad, \
-                     fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr \
-                     )
-
-log_like_tr, dummy, chi2tot_val_tr = \
-  pti.get_loglike(mega_time,mega_rv,megax,megay,mega_err,megae,\
-                     tlab,jrvlab,[False,True],flags,t_cad, n_cad, \
-                     fit_pars,rvs_pars,ldc_pars,fit_trends,fit_jrv,fit_jtr \
-                     )
-
-log_like_total = log_like_rv + log_like_tr
+log_like_total, chi2tot_val_rv, chi2tot_val_tr = \
+pti.get_loglike(mega_time,mega_rv,megax,megay,mega_err,megae,\
+                    tlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,\
+                    dummy_pars[4:],model_int,model_double)
 
 bic_from_loglikelihood = np.log(ndata)*npars - 2.0*log_like_total
 aic_from_loglikelihood = 2.0*npars - 2.0*log_like_total
@@ -147,11 +94,11 @@ if ( method == 'mcmc' or method == 'plot' ):
   w_vec  = [None]*nplanets
   b_vec  = [None]*nplanets
   ar_vec = [None]*nplanets
-  rr_vec = [None]*nplanets
   k_vec  = [None]*nplanets
+  rr_vec = [None]*nplanets*nbands
 #Derived parameters
   Teq_vec= [None]*nplanets #Planet temperature
-  r_vec  = [None]*nplanets #planet radius
+  r_vec  = [None]*nplanets*nbands
   a_vec  = [None]*nplanets #semi-major axis
   m_vec  = [None]*nplanets #planet mass
   i_vec  = [None]*nplanets #orbit inclination
@@ -183,8 +130,6 @@ if ( method == 'mcmc' or method == 'plot' ):
   opars.write('chi2             = %4.4f\n' %(chi2tot_val))
   opars.write('dof              = %8i \n' %(ndata - npars))
   opars.write('chi2/dof         = %4.4f \n' %chi2_val)
-  opars.write('ln likelihood_rv = %4.4f\n' %(log_like_rv))
-  opars.write('ln likelihood_tr = %4.4f\n' %(log_like_tr))
   opars.write('ln likelihood    = %4.4f\n' %(log_like_total))
   opars.write('BIC              = %4.4f\n' %(bic_from_loglikelihood))
   opars.write('AIC              = %4.4f\n' %(aic_from_loglikelihood))
@@ -210,8 +155,12 @@ if ( method == 'mcmc' or method == 'plot' ):
     w_vec[o]  = np.asarray(list(params[base + 3]))
     b_vec[o]  = np.asarray(list(params[base + 4]))
     ar_vec[o] = np.asarray(list(params[base + 5]))
-    rr_vec[o] = np.asarray(list(params[base + 6]))
-    k_vec[o]  = np.asarray(list(params[base + 7]))
+    k_vec[o]  = np.asarray(list(params[base + 6]))
+    for m in range(0,nbands):
+      rr_vec[o*nbands+m] = list(np.asarray(list(params[4+srp+nbands*o+m])))
+
+
+    #sys.exit()
 
 #STARTING CALCULATIONS
 
@@ -250,12 +199,13 @@ if ( method == 'mcmc' or method == 'plot' ):
     w_p_deg = (w_s_deg + 180.) % 360
 
   #Transit durations aproximations (eq. 14, 15, 16 from Winn 2014)
-    ec_factor = np.sqrt(( 1. - e_vec[o]*e_vec[o] )) / ( 1.0 + e_vec[o]*np.sin(w_vec[o] ))
-    trt_vec[o] = np.sqrt( (1. + rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
-    trt_vec[o] = P_vec[o] / np.pi * np.arcsin(trt_vec[o]) * ec_factor * 24.0
-    tri_vec[o] = np.sqrt( (1. - rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
-    tri_vec[o] = P_vec[o] / np.pi * np.arcsin(tri_vec[o]) * ec_factor * 24.0
+#    ec_factor = np.sqrt(( 1. - e_vec[o]*e_vec[o] )) / ( 1.0 + e_vec[o]*np.sin(w_vec[o] ))
+#    trt_vec[o] = np.sqrt( (1. + rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
+#    trt_vec[o] = P_vec[o] / np.pi * np.arcsin(trt_vec[o]) * ec_factor * 24.0
+#    tri_vec[o] = np.sqrt( (1. - rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
+#    tri_vec[o] = P_vec[o] / np.pi * np.arcsin(tri_vec[o]) * ec_factor * 24.0
     #tri_vec[o] = ( trt_vec[o] - tri_vec[o] ) / 2.0 #ingress egress time
+
     #Calculate the star density from transit data
     #Eq. (30) Winn 2014
     ds_vec[o] = get_rhostar(P_vec[o],ar_vec[o]) #cgs
@@ -269,7 +219,9 @@ if ( method == 'mcmc' or method == 'plot' ):
     irho_vec = mstar/rstar**3 * 1.411
 
     #Get planet mass, radius and orbit semi-major axis in real units
-    r_vec[o] = rr_vec[o] * rstar
+    for m in range(0,nbands):
+      r_vec[o*nbands+m] = rr_vec[o*nbands+m] * rstar
+
     a_vec[o] = ar_vec[o] * rstar * S_radius_SI / AU_SI
     m_vec[o] = planet_mass(mstar,k_vec[o]*1.e3,P_vec[o],e_vec[o],i_vec[o])
 
@@ -285,31 +237,32 @@ if ( method == 'mcmc' or method == 'plot' ):
     pa_vec = (P_vec[o]*3600.*24.0)**2 * S_GM_SI * (mstar + m_vec[o])
     pa_vec = pa_vec / ( 4.*np.pi**2 * (a_vec[o]*AU_SI)**3 )
 
-    #stimate planet gravity and density
-    pden_vec = m_vec[o] / r_vec[o]**3 #solar units
-    pden_vec = pden_vec * S_den_cgs   #g/cm^3
-    #We can stimate planet surface gravity (eq. (31) Winn)
-    pgra_vec = (P_vec[o]*24.*3600.) * (rr_vec[o]/ar_vec[o])**2 * np.sin(i_vec[o])
-    pgra_vec = 2. * np.pi * np.sqrt(1. - e_vec[o]**2) * (k_vec[o]*1.e5) / pgra_vec #cm/s^2
+#    #stimate planet gravity and density
+#    pden_vec = m_vec[o] / r_vec[o]**3 #solar units
+#    pden_vec = pden_vec * S_den_cgs   #g/cm^3
 
-    #Estimate surface gravity from the derived parameters
-    pgra_vec2 = m_vec[o] / r_vec[o]**2   #in solar units
-    pgra_vec2 = pgra_vec2 * 28.02 * 981. #cm/s^2
+#    #We can stimate planet surface gravity (eq. (31) Winn)
+#    pgra_vec = (P_vec[o]*24.*3600.) * (rr_vec[o]/ar_vec[o])**2 * np.sin(i_vec[o])
+#    pgra_vec = 2. * np.pi * np.sqrt(1. - e_vec[o]**2) * (k_vec[o]*1.e5) / pgra_vec #cm/s^2
+
+#    #Estimate surface gravity from the derived parameters
+#    pgra_vec2 = m_vec[o] / r_vec[o]**2   #in solar units
+#    pgra_vec2 = pgra_vec2 * 28.02 * 981. #cm/s^2
 
     #Stellar luminosity in solar units
     Ls = (rstar)**2*(tstar/S_Teff)**4
     #planet insolation in Flux received at Earth
     Fp = Ls/a_vec[o]**2
 
-    #Estimate the stellar mass assuming the surface gravity of the planet is true
-    #Planet mass from surface gravity of the planet
-    mpgra = pgra_vec*(r_vec[o]*S_radius_cgs)**2/G_cgs #g
-    #Stellar mass from surface gravity of the planet
-    msgra = (k_vec[o]*1.e5)*np.sqrt(1. - e_vec[o]**2)/np.sin(i_vec[o])
-    msgra = msgra * ( (P_vec[o]*24.*3600.) / 2. / np.pi / G_cgs )**(1./3.)
-    msgra = (mpgra / msgra)**(3./2.)
-    msgra = msgra - mpgra
-    msgra = msgra / S_GM_cgs * G_cgs
+#    #Estimate the stellar mass assuming the surface gravity of the planet is true
+#    #Planet mass from surface gravity of the planet
+#    mpgra = pgra_vec*(r_vec[o]*S_radius_cgs)**2/G_cgs #g
+#    #Stellar mass from surface gravity of the planet
+#    msgra = (k_vec[o]*1.e5)*np.sqrt(1. - e_vec[o]**2)/np.sin(i_vec[o])
+#    msgra = msgra * ( (P_vec[o]*24.*3600.) / 2. / np.pi / G_cgs )**(1./3.)
+#    msgra = (mpgra / msgra)**(3./2.)
+#    msgra = msgra - mpgra
+#    msgra = msgra / S_GM_cgs * G_cgs
 
     #Convert units
     usymbol = '{\odot}'
@@ -318,13 +271,15 @@ if ( method == 'mcmc' or method == 'plot' ):
       if ( fit_rv ):
         m_vec[o] = m_vec[o] * S_GM_SI / E_GM_SI
       if ( fit_tr ):
-        r_vec[o] = r_vec[o] * S_radius_SI / E_radius_e_SI
+        for m in range(0,nbands):
+          r_vec[o][m] = r_vec[o][m] * S_radius_SI / E_radius_e_SI
     elif ( unit_mass == 'jupiter'):
       usymbol = '\mathrm{J}'
       if ( fit_rv ):
         m_vec[o] = m_vec[o] * S_GM_SI / J_GM_SI
       if ( fit_tr ):
-        r_vec[o] = r_vec[o] * S_radius_SI / J_radius_e_SI
+        for m in range(0,nbands):
+          r_vec[o][m] = r_vec[o][m] * S_radius_SI / J_radius_e_SI
 
     #Print the parameters
     #Fitted parameters
@@ -346,12 +301,15 @@ if ( method == 'mcmc' or method == 'plot' ):
         if (o == 0): print_values(params[base+5],'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}}$')
       else:
         print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
-      print_values(rr_vec[o],'rp/R*','rr'+pl,' ',' ')
+      for m in range(0,nbands):
+        print_values(rr_vec[o*nbands+m],'rp/R*'+bands[m],'rr'+pl+bands[m],' ',' ')
     if ( fit_rv[o] ):
       print_values(k_vec[o]*1e3,'K','k'+pl,'m/s','${\\rm m\,s^{-1}}$')
     opars.write ('-------------------------Derived------------------------------\n')
     if (fit_rv[o]): print_values(m_vec[o],'Mp','mp'+pl,'M_'+unit_mass,'$M_'+usymbol+'$')
-    if (fit_tr[o]): print_values(r_vec[o],'Rp','rp'+pl,'R_'+unit_mass,'$R_'+usymbol+'$')
+    if (fit_tr[o]):
+      for m in range(0,nbands):
+        print_values(r_vec[o*nbands+m],'Rp'+bands[m],'rp'+pl+bands[m],'R_'+unit_mass,'$R_'+usymbol+'$')
     print_values(Tpe_vec[o],'Tperi','Tperi'+pl,'days','days')
     if ( is_ew ):
       print_values(e_vec[o],'e','e'+pl,' ',' ')
@@ -364,66 +322,79 @@ if ( method == 'mcmc' or method == 'plot' ):
       print_values(Fp,'Insolation','insolation'+pl,'F_Earth','${\\rm F_{\\oplus}}$')
       print_values(ds_vec[o],'rho*','denstr'+pl,'g/cm^3 (transit)','${\\rm g\,cm^{-3}}$')
       print_values(irho_vec,'rho*','denssp'+pl,'g/cm^3 (stellar paramters)','${\\rm g\,cm^{-3}}$')
-      print_values(pden_vec,'rho_p','denp'+pl,'g/cm^3','${\\rm g\,cm^{-3}}$')
-      print_values(pgra_vec,'g_p','grap'+pl,'cm/s^2 (K and Rp/R*)','${\\rm cm\,s^{-2}}$')
-      print_values(pgra_vec2,'g_p','grappars'+pl,'cm/s^2 (planet parameters)','${\\rm cm\,s^{-2}}$')
-      print_values(msgra,'M_*','mspars'+pl,' solar masses (scaled parameters)','$M_\odot$')
+ #     print_values(pden_vec,'rho_p','denp'+pl,'g/cm^3','${\\rm g\,cm^{-3}}$')
+ #     print_values(pgra_vec,'g_p','grap'+pl,'cm/s^2 (K and Rp/R*)','${\\rm cm\,s^{-2}}$')
+ #     print_values(pgra_vec2,'g_p','grappars'+pl,'cm/s^2 (planet parameters)','${\\rm cm\,s^{-2}}$')
+ #     print_values(msgra,'M_*','mspars'+pl,' solar masses (scaled parameters)','$M_\odot$')
       print_values(Teq_vec[o],'Teq','Teq'+pl,'K (albedo=0)','K')
-      print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')
-      print_values(tri_vec[o],'T_full','tful'+pl,'hours','hours')
+ #     print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')
+ #     print_values(tri_vec[o],'T_full','tful'+pl,'hours','hours')
     opars.write ('--------------------------------------------------------------\n')
 
     #Let us change to the next planet
-    base = base + 8
+    base = base + 7
+
 
 #The other parameters
-q1_vec = params[base]
-q2_vec = params[base+1]
+q1_vec = [None]*nbands
+q2_vec = [None]*nbands
+u1_vec = [None]*nbands
+u2_vec = [None]*nbands
+for o in range(0,nbands):
+  q1_vec[o] = params[4+sldc+2*o]
+  q2_vec[o] = params[4+sldc+1+2*o]
 
-u1_vec = np.sqrt(q1_vec)
-u2_vec = u1_vec * (1. - 2.*q2_vec)
-u1_vec = 2.*u1_vec*q2_vec
+  u1_vec[o] = np.sqrt(q1_vec[o])
+  u2_vec[o] = u1_vec[o] * (1. - 2.*q2_vec[o])
+  u1_vec[o] = 2.*u1_vec[o]*q2_vec[o]
 
-u1_vec = np.asarray(u1_vec)
-u2_vec = np.asarray(u2_vec)
+  u1_vec[o] = np.asarray(u1_vec[o])
+  u2_vec[o] = np.asarray(u2_vec[o])
 
 rv_vec = [None]*nt
 for o in range(0,nt):
-  rv_vec[o] = params[base+2+o]
+  rv_vec[o] = params[4+srv+o]
 
 opars.write ('--------------------  Other parameters -----------------------\n')
 if ( total_tr_fit ):
-  print_values(q1_vec,'q1','qone','','')
-  print_values(q2_vec,'q2','qtwo','','')
-  print_values(u1_vec,'u1','uone','','')
-  print_values(u2_vec,'u2','utwo','','')
+  for o in range(0,nbands):
+    print_values(q1_vec[o],'q1'+bands[o],'qone'+bands[o],'','')
+    print_values(q2_vec[o],'q2'+bands[o],'qtwo'+bands[o],'','')
+    print_values(u1_vec[o],'u1'+bands[o],'uone'+bands[o],'','')
+    print_values(u2_vec[o],'u2'+bands[o],'utwo'+bands[o],'','')
 if ( total_rv_fit ):
   for o in range(0,nt):
     print_values(rv_vec[o],'Sys. vel. '+telescopes_labels[o],telescopes_labels[o],'m/s','${\\rm m\,s^{-1}}$')
 opars.write ('--------------------------------------------------------------\n')
 
+
+
 if ( is_jitter_rv or is_jitter_tr ):
   if ( total_rv_fit ):
     for o in range(0,n_jrv):
-      print_values(params_jitter[o]*1.e3,telescopes_labels[o]+' jitter','j'+telescopes_labels[o],'m/s','${\\rm m\,s^{-1}}$')
+      print_values(params[4+sjitrv+o]*1.e3,telescopes_labels[o]+' jitter','j'+telescopes_labels[o],'m/s','${\\rm m\,s^{-1}}$')
   if ( total_tr_fit ):
-    print_values(params_jitter[n_jrv],'tr jitter','jtr','','')
+    for o in range(0,n_jtr):
+      print_values(params[4+sjittr+o],'tr jitter'+bands[o],'jtr'+bands[o],'','')
   opars.write ('--------------------------------------------------------------\n')
+
 if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
   if ( total_rv_fit ):
-    print_values(params_trends[0]*1.e3,'linear trend','ltrend','m/s/days','${\\rm m\,s^{-1}\,d^{-1}}$')
-    print_values(params_trends[1]*1.e3,'quadratic trend','qtrend','m/s/days^2','${\\rm m\,s^{-1}\,d^{-2}}$')
+    print_values(params[4+strends]*1.e3,'linear trend','ltrend','m/s/days','${\\rm m\,s^{-1}\,d^{-1}}$')
+    print_values(params[4+strends+1]*1.e3,'quadratic trend','qtrend','m/s/days^2','${\\rm m\,s^{-1}\,d^{-2}}$')
   opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
 
-#RESIZE TRANSIT ERROR BARS
-if ( is_jitter_tr and resize_tr ):
-  jit_tr = best_value(params_jitter[n_jrv],maxloglike,get_value)
-  for o in range(0,len(et)):
-      for m in range(0,len(et[o])):
-              et[o][m] = np.sqrt(et[o][m]**2 + jit_tr**2)
-  for o in range(0,len(megae)):
-    megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
+
+
+##RESIZE TRANSIT ERROR BARS
+#if ( is_jitter_tr and resize_tr ):
+#  jit_tr = best_value(params_jitter[n_jrv],maxloglike,get_value)
+#  for o in range(0,len(et)):
+#      for m in range(0,len(et[o])):
+#              et[o][m] = np.sqrt(et[o][m]**2 + jit_tr**2)
+#  for o in range(0,len(megae)):
+#    megae[o] = np.sqrt( megae[o]**2 + jit_tr**2)
 
 if ( total_rv_fit ):
   new_errs_all = [None]*len(errs_all)
@@ -432,7 +403,7 @@ if ( total_rv_fit ):
 
 if ( is_jitter_rv and resize_rv ):
     for j in range(0,n_jrv):
-      jit_rv = best_value(params_jitter[j],maxloglike,get_value)
+      jit_rv = best_value(params[4+sjitrv+j],maxloglike,get_value)
       for o in range(0,len(errs_all[j])):
           new_errs_all[j][o] = 1.e3*np.sqrt(errs_all[j][o]**2 + jit_rv**2)
 
@@ -444,3 +415,4 @@ dummy_file = open(out_params_file)
 for line in dummy_file:
   print line,
 dummy_file.close()
+

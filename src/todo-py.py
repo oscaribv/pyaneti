@@ -163,7 +163,8 @@ def create_transit_data(time,flux,errs,planet=0,span=0.0):
 
   P  = best_value(P_vec[planet],maxloglike,get_value)
   T0 = best_value(T0_vec[planet],maxloglike,get_value)
-  tt = best_value(trt_vec[planet],maxloglike,get_value)
+  #tt = best_value(trt_vec[planet],maxloglike,get_value)
+  tt = 7.
   tt = tt/24.0
 
   if ( span < 1e-5 ):
@@ -468,114 +469,7 @@ def print_values(vector,var,vartex,unit,unittex):
     medv, minv, maxv = mode_and_99(vector)
     opars.write('%10s  %4.7f , %4.7f , %4.7f %8s \n'%('',medv,minv,maxv,unit))
 
-#-----------------------------------------------------------
-#         FIT JOINT RV-TRANSIT DATA
-#-----------------------------------------------------------
 def joint_fit():
-  global fit_all, fit_ldc, fit_rvs, nt
-  global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
-  global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
-  global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a,fit_q1, fit_q2, fit_rp, fit_k,fit_v0
-  global T0,P,e,w,ii,a,q1,q2,rp,k0,alpha,beta, v0
-  global min_t0, max_t0, min_P, max_P, min_e, max_e, min_w, max_w, min_i, max_i, min_a,\
-         max_a, min_q1, max_q1, min_q1, max_q1, min_rp, max_rp, min_k, max_k, min_alpha, max_alpha, \
-         min_beta, max_beta, min_rv0, max_rv0
-  global vari,chi2,chi2red,t0o,Po,eo,wo,io,ao,q1o,q2o,rpo,ko,alphao,betao,vo, what_fit
-  global new_nwalkers, good_index, nwalkers
-  global jrvo, jtro, total_fit_flag, flags
-  global limits, priorf, priorl, limits_ldc, limits_rvs
-
-
-  if ( is_ew ):
-    min_e = min_ew1
-    max_e = max_ew1
-    min_w = min_ew2
-    max_w = max_ew2
-    fit_e = fit_ew1
-    fit_w = fit_ew2
-
-  if ( is_b_factor ):
-    min_i = min_b
-    max_i = max_b
-    fit_i = fit_b
-
-  fit_all = [None]*8*nplanets
-  for o in range(0,nplanets):
-    fit_all[o*8:(o+1)*8] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
-                            fit_i[o],fit_a[o], fit_rp[o], fit_k[o] ]
-
-  fit_rvs = []
-  for o in range(0,nt):
-    fit_rvs.append(fit_v0)
-
-  fit_ldc = [fit_q1, fit_q2]
-
-  fit_trends = [is_linear_trend,is_quadratic_trend]
-
-  #Let us check what do we want to fit
-  total_fit_flag = [ total_rv_fit, total_tr_fit ]
-
-  flags = [is_log_P,is_ew,is_b_factor,is_den_a,is_log_k,is_log_rv0]
-
-
-  vec_rv0_limits = []
-  for m in range(0,nt):
-    vec_rv0_limits.append(min_rv0[m])
-    vec_rv0_limits.append(max_rv0[m])
-
-  dummy_lims = [None]*8*2*nplanets
-
-  for o in range(0,nplanets):
-
-    dummy_lims[o*8*2:(o+1)*8*2 ] = \
-    [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
-    , min_i[o], max_i[o], min_a[o], max_a[o], min_rp[o], max_rp[o], min_k[o], max_k[o] ]
-
-  limits = dummy_lims
-
-  limits_rvs = vec_rv0_limits
-
-  limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
-
-  stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
-  is_jitter = [is_jitter_rv, is_jitter_tr]
-
-  if ( method == 'mcmc' ):
-
-    #Ensure nwalkers is divisible by 2
-    if ( nwalkers%2 != 0):
-         nwalkers = nwalkers + 1
-
-    pti.mcmc_stretch_move(\
-    mega_time,mega_rv,megax,megay,mega_err,megae, \
-    tlab,jrvlab,\
-    flags,total_fit_flag,is_jitter,fit_all,fit_rvs,fit_ldc,fit_trends, \
-    nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
-    limits_ldc,n_cad, t_cad, npl=nplanets,n_tel=nt,n_jrv=n_jrv)
-
-  elif ( method == 'plot' ):
-    print 'I will only print the values and generate the plot'
-
-  else:
-    print 'You did not choose a method!'
-    print 'method = mcmc   -> Run the MCMC code'
-    print 'method = plot   -> Plot of a previous run'
-    sys.exit('choose your favorite.')
-
-  newfile = outdir+'/'+star+'_all_data.dat'
-  if ( os.path.isfile('all_data.dat') ):
-    os.rename('all_data.dat',newfile)
-
-  newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
-  if ( os.path.isfile('jitter_data.dat') ):
-    os.rename('jitter_data.dat',newfile_jitter)
-
-  newfile_trends = outdir+'/'+star+'_trends_data.dat'
-  if ( os.path.isfile('trends_data.dat') ):
-    os.rename('trends_data.dat',newfile_trends)
-
-
-def joint_fit_new():
   global fit_all, fit_ldc, fit_rvs, nt
   global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
   global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
@@ -661,10 +555,10 @@ def joint_fit_new():
   #Transit jitter priors
   if is_jitter_tr:
       jtr_prior_flag = ['u']*n_jtr
-      jtr_prior_vals = [0.,1.]*n_jtr
+      jtr_prior_vals = [0.,1.e-4]*n_jtr
   else:
       jtr_prior_flag = ['f']*n_jtr
-      jtr_prior_vals = [0.,1.]*n_jtr
+      jtr_prior_vals = [0.,1.e-4]*n_jtr
 
   #Trends priors
   trends_prior_flag = [is_linear_trend,is_quadratic_trend]
@@ -685,7 +579,7 @@ def joint_fit_new():
     if ( nwalkers%2 != 0):
          nwalkers = nwalkers + 1
 
-    pti.mcmc_stretch_move_new(\
+    pti.mcmc_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
     tlab,jrvlab,trlab,jtrlab,\
     flags,total_fit_flag,prior_flags,prior_vals, \

@@ -442,9 +442,9 @@ implicit none
   double precision :: G = 6.67508d-11*1.d3 !Gravitational constant
 
   !rho*^(1/3) parametrization
-  !a(:) = rho*(G*P(:)*P(:)*7464960000.d0/3.0d0/pi)**(1.d0/3.d0)
+  a(:) = rho*(G*P(:)*P(:)*7464960000.d0/3.0d0/pi)**(1.d0/3.d0)
   !rho* parametrization
-  a(:) = (rho*G*P(:)*P(:)*7464960000.d0/3.0d0/pi)**(1.d0/3.d0)
+  !a(:) = (rho*G*P(:)*P(:)*7464960000.d0/3.0d0/pi)**(1.d0/3.d0)
 
 end subroutine
 
