@@ -583,12 +583,11 @@ end subroutine
 !to convert the matrix into upper traingular form
 !2]The determinant of a triangular matrix is obtained by finding the product of the diagonal elements
 !
-  subroutine finddet(a,det,n)
+  subroutine findlogddet(a,det,n)
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: n
   double precision, DIMENSION(n,n), intent(in) :: a
   double precision, intent (out) :: det
-  !
   double precision :: m, temp
   double precision, DIMENSION(n,n) :: matrix
   INTEGER :: i, j, k, l
@@ -625,12 +624,12 @@ end subroutine
   END DO
 
   !Calculate determinant by finding product of diagonal elements
-  det = l
+  det = log(abs(real(l)))
   DO i = 1, n
-    det = det * matrix(i,i)
+    det = det + log(abs(matrix(i,i)))
   END DO
 
-  END subroutine finddet
+  end subroutine findlogddet
 
   subroutine fill_diag(v,M,n)
   implicit none

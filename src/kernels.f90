@@ -21,8 +21,8 @@ implicit none
   else if ( kernel == 'M32' ) then
      call M32Kernel(pars,x1,x2,cov,nx1,nx2)
   else if ( kernel == 'QP' ) then
-  else
      call QPKernel(pars,x1,x2,cov,nx1,nx2)
+  else
      print *, 'Kernel ', kernel,' is not defined!'
      stop
   end if
@@ -90,13 +90,10 @@ implicit none
   call inverse(dummy,Ki,nx)
 
   nl1 = dot_product(y,matmul(Ki,y))
-  print *, 'nl1', nl1
   !
   call findlogddet(K,nl2,nx)
-  print *, 'nl2', nl2
   !
   nll = 5.d-1*(nl1 + nl2 + nx * log_two_pi)
-  print *,'nll', nll
 
   end subroutine NLL_GP
 
@@ -145,7 +142,6 @@ implicit none
   double precision, intent(in) :: x2(0:nx2-1)
   double precision, intent(out) :: cov(0:nx1-1,0:nx2-1)
   !A = pars(0), Gamma_1 = pars(1), Gamma_2 = pars(2), P = pars(3)
-  !
   double precision, parameter :: pi = acos(-1.d0)
 
   !Get the x_i - x_j

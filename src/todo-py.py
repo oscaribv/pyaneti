@@ -559,8 +559,8 @@ def joint_fit():
       jtr_prior_vals = [0.,1.e-4]*n_jtr
   else:
       n_jtr = 0
-      trlab = [0]
-      jtrlab = [0]
+      trlab = [0]*len(megax)
+      jtrlab = [0]*len(megax)
       jtr_prior_flag = ['f']*n_jtr
       jtr_prior_vals = [0.,1.e-4]*n_jtr
 
