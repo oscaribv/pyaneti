@@ -267,5 +267,3 @@ implicit none
   close(101)
 
 end subroutine
-
-

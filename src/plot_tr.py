@@ -310,7 +310,7 @@ def plot_all_transits():
   global plot_tr_errorbars
 
   #Create the plot of the whole light
-  model_flux = pti.flux_tr(megax,pars_tr,my_ldc,n_cad,t_cad)
+  model_flux = pti.flux_tr(megax,[0]*len(megax),pars_tr,rp_val,my_ldc,n_cad,t_cad)
   res_flux = megay - model_flux
 
   for i in range(0,nplanets):

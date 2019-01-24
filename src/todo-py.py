@@ -483,6 +483,7 @@ def joint_fit():
   global jrvo, jtro, total_fit_flag, flags
   global limits, priorf, priorl, limits_ldc, limits_rvs
   global prior_flags, prior_vals, model_int, model_double
+  global n_jtr, trlab, jtrlab
 
   if ( is_ew ):
     min_e = min_ew1
@@ -557,6 +558,9 @@ def joint_fit():
       jtr_prior_flag = ['u']*n_jtr
       jtr_prior_vals = [0.,1.e-4]*n_jtr
   else:
+      n_jtr = 0
+      trlab = [0]
+      jtrlab = [0]
       jtr_prior_flag = ['f']*n_jtr
       jtr_prior_vals = [0.,1.e-4]*n_jtr
 

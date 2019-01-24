@@ -5,6 +5,7 @@
 *.tar
 *.pdf
 *.o
+*.mod
 *.so
 *.tex
 input_rv.py

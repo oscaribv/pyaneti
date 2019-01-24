@@ -17,8 +17,10 @@ LGOMP=-L/usr/lib64/ -lgomp
 SOURCES= src/ftr.f90\
 	src/frv.f90\
 	src/quad.f90\
+	src/qpower2.f90\
 	src/mcmc.f90\
 	src/bayesian.f90\
+	src/kernels.f90\
 	src/todo.f90
 
 EXECUTABLE=pyaneti
@@ -31,4 +33,4 @@ para: $(EXECUTABLE)
 	${FP} ${FLAGS_OMP} $(EXECUTABLE) $(SOURCES)  --fcompiler=$(fc) ${LGOMP}  --compiler=$(cc)
 
 clean:
-	rm $(EXECUTABLE).so
+	rm $(EXECUTABLE).so src/*.mod src/*.o
