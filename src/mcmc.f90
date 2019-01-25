@@ -8,6 +8,7 @@ subroutine mcmc_stretch_move(            &
            model_double,                     &
            nwalks, maxi, thin_factor, nconv, &
            size_rv, size_tr)
+use constants
 implicit none
 
 !npars = 7*npl + (npl + LDC)*nbands + noffsets + njitter + ntrends
@@ -16,28 +17,28 @@ implicit none
   integer, intent(in) :: size_rv, size_tr, npars, model_int(0:6)
   !mcmc_int parameters
   integer :: nwalks, maxi, thin_factor, nconv
-  double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
-  double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
+  real(kind=mireal), intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
+  real(kind=mireal), intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_rv-1) :: rvlab, jrvlab
   integer, intent(in), dimension(0:size_tr-1) :: trlab, jtrlab
-  double precision, intent(in), dimension(0:2*npars - 1):: prior_vals
-  double precision, intent(in) ::  model_double(0)
+  real(kind=mireal), intent(in), dimension(0:2*npars - 1):: prior_vals
+  real(kind=mireal), intent(in) ::  model_double(0)
   character, intent(in) :: prior_flags(0:npars-1)
   logical, intent(in) :: flags(0:5), total_fit_flag(0:1)
 !Local variables
-  double precision, dimension(0:nwalks-1,0:npars-1) :: pars_old, pars_new
-  double precision, dimension(0:nwalks-1,0:npars-1) :: priors_old, priors_new
-  double precision, dimension(0:nwalks-1) :: r_rand, z_rand
-  double precision, dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
-  double precision, dimension(0:nwalks-1) :: chi2_old_rv, chi2_old_tr
-  double precision, dimension(0:nwalks-1) :: chi2_new_rv, chi2_new_tr
-  double precision, dimension(0:nwalks-1,0:npars-1,0:nconv-1) :: pars_chains
-  double precision, dimension(0:nwalks-1,0:nconv-1) :: chi2_rv_chains, chi2_tr_chains, loglike_chains
-  double precision, dimension(0:nwalks-1) :: log_prior_old, log_prior_new
-  double precision, dimension(0:nwalks-1) :: log_likelihood_old, log_likelihood_new
+  real(kind=mireal), dimension(0:nwalks-1,0:npars-1) :: pars_old, pars_new
+  real(kind=mireal), dimension(0:nwalks-1,0:npars-1) :: priors_old, priors_new
+  real(kind=mireal), dimension(0:nwalks-1) :: r_rand, z_rand
+  real(kind=mireal), dimension(0:nwalks-1) :: chi2_old_total, chi2_new_total, chi2_red
+  real(kind=mireal), dimension(0:nwalks-1) :: chi2_old_rv, chi2_old_tr
+  real(kind=mireal), dimension(0:nwalks-1) :: chi2_new_rv, chi2_new_tr
+  real(kind=mireal), dimension(0:nwalks-1,0:npars-1,0:nconv-1) :: pars_chains
+  real(kind=mireal), dimension(0:nwalks-1,0:nconv-1) :: chi2_rv_chains, chi2_tr_chains, loglike_chains
+  real(kind=mireal), dimension(0:nwalks-1) :: log_prior_old, log_prior_new
+  real(kind=mireal), dimension(0:nwalks-1) :: log_likelihood_old, log_likelihood_new
   integer, dimension(0:nwalks/2-1) :: r_int
-  double precision  :: a_factor, dof, qq
-  double precision :: limit_prior
+  real(kind=mireal)  :: a_factor, dof, qq
+  real(kind=mireal) :: limit_prior
   logical :: continua, is_limit_good, is_cvg
   integer :: nk, j, n, o, n_burn, spar, spar1, iensemble, inverted(0:1)
   integer :: nks, nke

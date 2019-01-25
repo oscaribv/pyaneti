@@ -1,4 +1,3 @@
-
 !------------------------------------------------------------
 !                         quad_agol.f90
 ! This file contains a modification of the original occultquad.f 
@@ -13,12 +12,13 @@ subroutine occultquad(z0,u1,u2,k,muo1,mu0,nz)
 !  of a quadratically limb-darkened source without microlensing.
 !  Please cite Mandel & Agol (2002) if you make use of this routine
 !  in your research.  Please report errors or bugs to agol@tapir.caltech.edu
+use constants
 implicit none
 integer, intent(in) :: nz
-double precision, intent(in) :: z0(nz),u1,u2,k
-double precision, intent(out) :: muo1(nz),mu0(nz)
-double precision :: lambdad(nz),etad(nz),lambdae(nz),lam
-double precision :: p,pi,x1,x2,x3,z,omega,kap0,kap1,q,Kk,Ek,Pk,n,ellec,ellk,rj
+real(kind=mireal), intent(in) :: z0(nz),u1,u2,k
+real(kind=mireal), intent(out) :: muo1(nz),mu0(nz)
+real(kind=mireal) :: lambdad(nz),etad(nz),lambdae(nz),lam
+real(kind=mireal) :: p,x1,x2,x3,z,omega,kap0,kap1,q,Kk,Ek,Pk,n,ellec,ellk,rj
 integer :: i
   p = k
   if(abs(p-0.5d0).lt.1.d-3) p=0.5d0
@@ -43,7 +43,6 @@ integer :: i
 !
 ! Now, compute pure occultation curve:
       omega=1.d0-u1/3.d0-u2/6.d0
-      pi=acos(-1.d0)
 ! Loop over each impact parameter:
       do i=1,nz
 ! substitute z=z0(i) to shorten expressions
@@ -155,6 +154,7 @@ integer :: i
       end
 
       FUNCTION rc(x,y)
+      use constants
       REAL*8 rc,x,y,ERRTOL,TINY,SQRTNY,BIG,TNBG,COMP1,COMP2,THIRD,C1,C2,C3,C4
       PARAMETER (ERRTOL=.04d0,TINY=1.69d-38,SQRTNY=1.3d-19,BIG=3.d37, &
       TNBG=TINY*BIG,COMP1=2.236d0/SQRTNY,COMP2=TNBG*TNBG/25.d0, &
@@ -187,6 +187,7 @@ integer :: i
 !  (C) Copr. 1986-92 Numerical Recipes Software
 
       FUNCTION rj(x,y,z,p)
+      use constants
       REAL*8 rj,p,x,y,z,ERRTOL,TINY,BIG,C1,C2,C3,C4,C5,C6,C7,C8
       PARAMETER (ERRTOL=.05d0,TINY=2.5d-13,BIG=9.d11,C1=3.d0/14.d0, &
       C2=1.d0/3.d0,C3=3.d0/22.d0,C4=3.d0/26.d0,C5=.75d0*C3, &
@@ -251,8 +252,9 @@ integer :: i
 !  (C) Copr. 1986-92 Numerical Recipes Software
 
       function ellec(k)
+      use constants
       implicit none
-      double precision k,m1,a1,a2,a3,a4,b1,b2,b3,b4,ee1,ee2,ellec
+      real(kind=mireal) k,m1,a1,a2,a3,a4,b1,b2,b3,b4,ee1,ee2,ellec
 ! Computes polynomial approximation for the complete elliptic
 ! integral of the second kind (Hasting's approximation):
       m1=1.d0-k*k
@@ -271,8 +273,9 @@ integer :: i
       end
 
       function ellk(k)
+      use constants
       implicit none
-      double precision a0,a1,a2,a3,a4,b0,b1,b2,b3,b4,ellk,ek1,ek2,k,m1
+      real(kind=mireal) a0,a1,a2,a3,a4,b0,b1,b2,b3,b4,ellk,ek1,ek2,k,m1
 ! Computes polynomial approximation for the complete elliptic
 ! integral of the first kind (Hasting's approximation):
       m1=1.d0-k*k
@@ -293,6 +296,7 @@ integer :: i
       end
 
       FUNCTION rf(x,y,z)
+      use constants
       REAL*8 rf,x,y,z,ERRTOL,TINY,BIG,THIRD,C1,C2,C3,C4
       PARAMETER (ERRTOL=.08d0,TINY=1.5d-38,BIG=3.d37,THIRD=1.d0/3.d0, &
       C1=1.d0/24.d0,C2=.1d0,C3=3.d0/44.d0,C4=1.d0/14.d0)

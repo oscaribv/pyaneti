@@ -2,29 +2,30 @@ subroutine get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
            rvlab,jrvlab,trlab,jtrlab,tff,flags,&
            pars,model_int,model_double,&
            npars,loglike,chi2_rv,chi2_tr,size_rv,size_tr)
+use constants
 implicit none
 
 !In/Out variables
   integer, intent(in) :: size_rv, size_tr, npars !size of RV and LC data
-  double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
-  double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
+  real(kind=mireal), intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
+  real(kind=mireal), intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_rv-1) :: rvlab, jrvlab
   integer, intent(in), dimension(0:size_tr-1) :: trlab, jtrlab
 !npars = 7*npl + (npl + LDC)*nbands + noffsets + njitter + ntrends
-  double precision, intent(in) :: pars(0:npars-1)
-  double precision, intent(in) :: model_double(0:0)
+  real(kind=mireal), intent(in) :: pars(0:npars-1)
+  real(kind=mireal), intent(in) :: model_double(0:0)
   integer, intent(in) :: model_int(0:6)
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
-  double precision, intent(out) :: loglike, chi2_rv, chi2_tr
+  real(kind=mireal), intent(out) :: loglike, chi2_rv, chi2_tr
 !Local variables
   !Model int variables
   integer :: npl, nbands, ntels, nldc, njrv, njtr, n_cad
   !Model double variables
-  double precision :: t_cad
+  real(kind=mireal) :: t_cad
   !
-  double precision :: chi2_total
-  double precision :: log_errs
+  real(kind=mireal) :: chi2_total
+  real(kind=mireal) :: log_errs
   external:: get_total_chi2
 
   !Integer variables
@@ -60,22 +61,22 @@ implicit none
 
 !In/Out variables
   integer, intent(in) :: size_rv, size_tr,npars, npl, ntels,nbands,nldc,njrv,njtr,n_cad !size of RV and LC data
-  double precision, intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
-  double precision, intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
+  real(kind=mireal), intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
+  real(kind=mireal), intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_rv-1) :: rvlab, jrvlab
   integer, intent(in), dimension(0:size_tr-1) :: trlab, jtrlab
 !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
-  double precision, intent(in) :: t_cad
-  double precision, intent(in) :: pars(0:npars-1)
+  real(kind=mireal), intent(in) :: t_cad
+  real(kind=mireal), intent(in) :: pars(0:npars-1)
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
-  double precision, intent(out) :: chi2_rv, chi2_tr, log_errs
+  real(kind=mireal), intent(out) :: chi2_rv, chi2_tr, log_errs
 !Local variables
-  double precision :: ldc(0:nldc*nbands-1)
-  double precision, dimension(0:njrv-1) :: jrv
-  double precision, dimension(0:njtr-1) :: jtr
-  double precision :: pars_rv(0:7+ntels-1,0:npl-1)
-  double precision :: pars_tr(0:5,0:npl-1), rps(0:nbands*npl-1)
+  real(kind=mireal) :: ldc(0:nldc*nbands-1)
+  real(kind=mireal), dimension(0:njrv-1) :: jrv
+  real(kind=mireal), dimension(0:njtr-1) :: jtr
+  real(kind=mireal) :: pars_rv(0:7+ntels-1,0:npl-1)
+  real(kind=mireal) :: pars_tr(0:5,0:npl-1), rps(0:nbands*npl-1)
   logical :: flag_rv(0:3), flag_tr(0:3)
   integer :: i, j
   integer :: srp, sldc, srv, sjitrv, sjittr, strends
@@ -141,10 +142,10 @@ use constants
 implicit none
 
   !In/Out variables
-  double precision, intent(in) :: mu, sigma, x
-  double precision, intent(out)  :: prob
+  real(kind=mireal), intent(in) :: mu, sigma, x
+  real(kind=mireal), intent(out)  :: prob
   !Local variables
-  double precision  :: sigma2
+  real(kind=mireal)  :: sigma2
 
   sigma2 = sigma*sigma
   prob = sqrt(two_pi*sigma2)
@@ -154,11 +155,12 @@ end subroutine
 
 
 subroutine uniform_prior(lx,rx,x,prob)
+use constants
 implicit none
 
   !In/Out variables
-  double precision, intent(in) :: lx, rx, x
-  double precision, intent(out)  :: prob
+  real(kind=mireal), intent(in) :: lx, rx, x
+  real(kind=mireal), intent(out)  :: prob
 
   prob = 1.d0/abs(rx - lx)
   if ( x < lx .or. x > rx ) prob = 0.d0
@@ -166,12 +168,13 @@ implicit none
 end subroutine
 
 subroutine get_priors(fit_pars,lims,pars_in,priors_out,npars)
+use constants
 implicit none
 
   integer, intent(in) :: npars
-  double precision, intent(in), dimension(0:2*npars-1) :: lims
-  double precision, intent(in), dimension(0:npars-1) :: pars_in
-  double precision, intent(out), dimension(0:npars-1) :: priors_out
+  real(kind=mireal), intent(in), dimension(0:2*npars-1) :: lims
+  real(kind=mireal), intent(in), dimension(0:npars-1) :: pars_in
+  real(kind=mireal), intent(out), dimension(0:npars-1) :: priors_out
   character, intent(in), dimension(0:npars-1) :: fit_pars
 !Local
   integer :: j

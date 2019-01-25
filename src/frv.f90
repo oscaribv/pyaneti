@@ -30,16 +30,17 @@
 !npl     -> numper of planets
 !-------------------------------------------------------------------------------
 subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,alpha,beta,rv,ts,npl)
+use constants
 implicit none
 
 !In/Out variables
   integer, intent(in) :: ts, npl
-  double precision, intent(in), dimension(0:ts-1)  :: t
-  double precision, intent(out), dimension(0:ts-1) :: rv
-  double precision, intent(in), dimension(0:npl-1) :: k, t0, P, e, w
-  double precision, intent(in) :: rv0, alpha, beta
+  real(kind=mireal), intent(in), dimension(0:ts-1)  :: t
+  real(kind=mireal), intent(out), dimension(0:ts-1) :: rv
+  real(kind=mireal), intent(in), dimension(0:npl-1) :: k, t0, P, e, w
+  real(kind=mireal), intent(in) :: rv0, alpha, beta
 !Local variables
-  double precision, dimension(0:ts-1) :: ta
+  real(kind=mireal), dimension(0:ts-1) :: ta
   integer :: i
 !External function
   external :: find_anomaly
@@ -73,24 +74,25 @@ end subroutine
 ! k, ec, w, t0, P -> typical planet parameters
 ! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)  
 !Output parameter:
-! chi2 -> a double precision value with the chi2 value
+! chi2 -> a real(kind=mireal) value with the chi2 value
 !-----------------------------------------------------------
 subroutine find_chi2_rv(xd,yd,errs,tlab,jrvlab,params,jitter,flag,chi2,datas,nt,nj,npl)
+use constants
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas, nt, npl, nj
-  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd, errs
   integer, intent(in), dimension(0:datas-1) :: tlab, jrvlab
-  double precision, intent(in), dimension(0:6+nt,0:npl-1) :: params
-  double precision, dimension(0:nj-1), intent(in) :: jitter
+  real(kind=mireal), intent(in), dimension(0:6+nt,0:npl-1) :: params
+  real(kind=mireal), dimension(0:nj-1), intent(in) :: jitter
   logical, intent(in)  :: flag(0:3)
-  double precision, intent(out) :: chi2
+  real(kind=mireal), intent(out) :: chi2
 !Local variables
-  double precision, dimension(0:npl-1) :: t0, P, e, w, k
-  double precision, dimension(0:nt-1)  :: rv0
-  double precision  :: alpha, beta
-  double precision, dimension(0:datas-1) :: model, res
+  real(kind=mireal), dimension(0:npl-1) :: t0, P, e, w, k
+  real(kind=mireal), dimension(0:nt-1)  :: rv0
+  real(kind=mireal)  :: alpha, beta
+  real(kind=mireal), dimension(0:datas-1) :: model, res
   logical :: is_limit_good
 !External function
   external :: rv_curve_mp

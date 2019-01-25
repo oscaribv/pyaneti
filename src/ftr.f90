@@ -15,19 +15,18 @@
 !  Winn, 2010, Transit and Occultations.
 !------------------------------------------------------------
 subroutine find_z(t,pars,z,ts)
+use constants
 implicit none
 
 !In/Out variables
   integer, intent(in) :: ts
-  double precision, intent(in), dimension(0:ts-1) :: t
-  double precision, intent(in), dimension(0:5) :: pars
-  double precision, intent(out), dimension(0:ts-1) :: z
+  real(kind=mireal), intent(in), dimension(0:ts-1) :: t
+  real(kind=mireal), intent(in), dimension(0:5) :: pars
+  real(kind=mireal), intent(out), dimension(0:ts-1) :: z
 !Local variables
-  double precision, dimension(0:ts-1) :: ta, swt
-  double precision :: tp, P, e, w, i, a
-  double precision :: si
-!External function
-  external :: find_anomaly
+  real(kind=mireal), dimension(0:ts-1) :: ta, swt
+  real(kind=mireal) :: tp, P, e, w, i, a
+  real(kind=mireal) :: si
 !
 
   tp  = pars(0)
@@ -56,27 +55,28 @@ end subroutine
 
 subroutine find_chi2_tr(xd,yd,errs,trlab,jtrlab,pars,rps,ldc,jtr,flag, &
            n_cad,t_cad,chi2,datas,nbands,njtr,npl)
+use constants
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas, n_cad, npl, nbands, njtr
-  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  double precision, intent(in), dimension(0:5,0:npl-1) :: pars
-  double precision, intent(in), dimension(0:nbands*npl-1) :: rps
-!  double precision, intent(in), dimension(0:nbands-1,0:npl-1) :: rps
+  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
+  real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
+!  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
   integer, intent(in), dimension(0:datas-1)  :: trlab, jtrlab
   !pars = T0, P, e, w, b, a/R*
-  double precision, intent(in) :: t_cad
-  double precision, dimension(0:njtr-1), intent(in) :: jtr
+  real(kind=mireal), intent(in) :: t_cad
+  real(kind=mireal), dimension(0:njtr-1), intent(in) :: jtr
   logical, intent(in), dimension(0:3) :: flag
-  double precision, intent(in) :: ldc(0:2*nbands-1)
-  double precision, intent(out) :: chi2
+  real(kind=mireal), intent(in) :: ldc(0:2*nbands-1)
+  real(kind=mireal), intent(out) :: chi2
 !Local variables
-  double precision, dimension(0:datas-1) :: res, muld
-  double precision, dimension(0:5,0:npl-1) :: up_pars !updated parameters
-  double precision, dimension(0:npl-1) :: t0, P, e, w, i, a, tp
-  double precision, dimension(0:nbands-1) :: u1, u2, q1k, q2k
-  double precision, dimension (0:2*nbands-1) :: up_ldc
+  real(kind=mireal), dimension(0:datas-1) :: res, muld
+  real(kind=mireal), dimension(0:5,0:npl-1) :: up_pars !updated parameters
+  real(kind=mireal), dimension(0:npl-1) :: t0, P, e, w, i, a, tp
+  real(kind=mireal), dimension(0:nbands-1) :: u1, u2, q1k, q2k
+  real(kind=mireal), dimension (0:2*nbands-1) :: up_ldc
   logical :: is_good
   integer :: n
 
@@ -139,30 +139,28 @@ end subroutine
 
 subroutine flux_tr(xd,trlab,pars,rps,ldc,&
            n_cad,t_cad,nbands,datas,npl,muld)
+use constants
 implicit none
 
 !In/Out variables
   integer, intent(in) :: datas, n_cad, npl, nbands
-  double precision, intent(in), dimension(0:datas-1)  :: xd
+  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd
   integer, intent(in), dimension(0:datas-1)  :: trlab !this indicates the instrument label
-  double precision, intent(in), dimension(0:5,0:npl-1) :: pars
-  double precision, intent(in), dimension(0:nbands*npl-1) :: rps
-!  double precision, intent(in), dimension(0:nbands-1,0:npl-1) :: rps
+  real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
+  real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
+!  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
   !pars = T0, P, e, w, b, a/R*, Rp/R*
-  double precision, intent(in) :: t_cad
-  double precision, intent(in), dimension (0:2*nbands-1) :: ldc
-  double precision, intent(out), dimension(0:datas-1) :: muld !output flux model
+  real(kind=mireal), intent(in) :: t_cad
+  real(kind=mireal), intent(in), dimension (0:2*nbands-1) :: ldc
+  real(kind=mireal), intent(out), dimension(0:datas-1) :: muld !output flux model
 !Local variables
-  double precision, dimension(0:datas-1) :: muld_npl
-  double precision, dimension(0:datas-1) :: mu
-  double precision :: npl_dbl, small, u1(0:nbands-1), u2(0:nbands-1)
-  double precision, dimension(0:n_cad-1,0:npl-1)  :: flux_ub
-  double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
+  real(kind=mireal), dimension(0:datas-1) :: muld_npl
+  real(kind=mireal), dimension(0:datas-1) :: mu
+  real(kind=mireal) :: npl_dbl, u1(0:nbands-1), u2(0:nbands-1)
+  real(kind=mireal), dimension(0:n_cad-1,0:npl-1)  :: flux_ub
+  real(kind=mireal), dimension(0:n_cad-1)  :: xd_ub, z, fmultip
   integer :: n, j, k(0:n_cad-1)
-!External function
-  external :: occultquad, find_z
 
-  small = 1.d-5
   npl_dbl = dble(npl)
 
   do n = 0, nbands - 1

@@ -1,12 +1,9 @@
-module kernels
-implicit none
-
-  contains
 !---------------------------------------------------------------------
 !          General routines to compute bla bla
 !---------------------------------------------------------------------
   !This routine is used to select the desired kernel
   subroutine covfunc(kernel,pars,x1,x2,cov,nx1,nx2,npars)
+  use constants
   implicit none
   !
   integer, intent(in) :: nx1, nx2, npars
@@ -30,6 +27,7 @@ implicit none
   end subroutine covfunc
 
   subroutine pred_gp(kernel,covpar,xobs,yobs,eobs,xtest,mvec,cov,nobs,ntest,npar)
+  use constants
   implicit none
   !
   integer, intent(in) :: nobs, ntest, npar
@@ -66,6 +64,7 @@ implicit none
   end subroutine pred_gp
 
   subroutine NLL_GP(p,kernel,x,y,e,nll,np,nx)
+  use constants
   implicit none
   !
   integer, intent(in) :: np, nx
@@ -79,7 +78,6 @@ implicit none
   double precision :: dummy(0:nx-1,0:nx-1)
   double precision :: Ki(0:nx-1,0:nx-1)
   double precision :: nl1, nl2
-  double precision, parameter :: log_two_pi = log(2.d0*acos(-1.d0))
 
   !covariance matrix for observed vector
   call covfunc(kernel,p,x,x,K,nx,nx,np)
@@ -102,6 +100,7 @@ implicit none
 !---------------------------------------------------------------------
 
   subroutine SEKernel(pars,x1,x2,cov,nx1,nx2)
+  use constants
   implicit none
   !
   integer, intent(in) :: nx1, nx2
@@ -117,6 +116,7 @@ implicit none
   end subroutine SEKernel
 
   subroutine M32Kernel(pars,x1,x2,cov,nx1,nx2)
+  use constants
   implicit none
   !
   integer, intent(in) :: nx1, nx2
@@ -134,6 +134,7 @@ implicit none
   end subroutine M32Kernel
 
   subroutine QPKernel(pars,x1,x2,cov,nx1,nx2)
+  use constants
   implicit none
   !
   integer, intent(in) :: nx1, nx2
@@ -142,7 +143,6 @@ implicit none
   double precision, intent(in) :: x2(0:nx2-1)
   double precision, intent(out) :: cov(0:nx1-1,0:nx2-1)
   !A = pars(0), Gamma_1 = pars(1), Gamma_2 = pars(2), P = pars(3)
-  double precision, parameter :: pi = acos(-1.d0)
 
   !Get the x_i - x_j
   call fcdist(x1,x2,cov,nx1,nx2)
@@ -151,5 +151,3 @@ implicit none
         - pars(2) * cov * cov )
 
   end subroutine QPKernel
-
-end module kernels
