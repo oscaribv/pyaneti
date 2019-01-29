@@ -132,6 +132,8 @@ for o in range(0,n_jtr):
 #trends labels
 labs.append(['Linear trend'])
 labs.append(['Quadratic trend'])
+labs.append(krv_labels)
+labs.append(ktr_labels)
 #Total labels vector
 labels = np.concatenate(labs)
 

@@ -484,6 +484,8 @@ def joint_fit():
   global limits, priorf, priorl, limits_ldc, limits_rvs
   global prior_flags, prior_vals, model_int, model_double
   global n_jtr, trlab, jtrlab
+  global kernels, krv_labels, krv_prior_flag, krv_prior_vals
+  global ktr_labels, ktr_prior_flag, ktr_prior_vals
 
   if ( is_ew ):
     min_e = min_ew1
@@ -568,13 +570,42 @@ def joint_fit():
   trends_prior_flag = [is_linear_trend,is_quadratic_trend]
   trends_prior_vals = [0.,1.,0.,1.]
 
+  #RV Kernels
+  if kernel_rv == 'None':
+      krv_prior_flag = []
+      krv_prior_vals = []
+      krv_labels = []
+  elif kernel_rv == 'QPK':
+      krv_prior_flag = fit_krv #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
+      krv_prior_vals = krv_priors #This has to be a 4-dimensional vector with the prior limits
+      krv_labels = ['A','$\Gamma_1$','$\Gamma_2$','P']
+  ##Add remaining kernels
+
+  np_rv = len(krv_prior_flag)
+
+  #TR Kernels
+  if kernel_tr == 'None':
+      ktr_prior_flag = []
+      ktr_prior_vals = []
+      ktr_labels = []
+  elif kernel_rv == 'QPK':
+      ktr_prior_flag = fit_ktr #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
+      ktr_prior_vals = ktr_priors #This has to be a 4-dimensional vector with the prior limits
+      ktr_labels = ['A','$\Gamma_1$','$\Gamma_2$','P']
+  ##Add remaining kernels
+
+  np_tr = len(ktr_prior_flag)
+
+  kernels = kernel_rv[0:3]+kernel_tr[0:3]
 
   prior_vals  = np.concatenate([pars_prior_vals,prs_prior_values,ldc_prior_values,\
-                                RVS_prior_vals,jrv_prior_vals,jtr_prior_vals,trends_prior_vals])
+                                RVS_prior_vals,jrv_prior_vals,jtr_prior_vals,trends_prior_vals,\
+                                krv_prior_vals, ktr_prior_vals])
   prior_flags = np.concatenate([pars_prior_flag,prs_prior_flag,ldc_prior_flag,\
-                                 RVS_prior_flag,jrv_prior_flag,jtr_prior_flag,trends_prior_flag])
+                                 RVS_prior_flag,jrv_prior_flag,jtr_prior_flag,trends_prior_flag,
+                                 krv_prior_flag,ktr_prior_flag])
 
-  model_int = [nplanets,nt,nbands,nldc,n_jrv,n_jtr,n_cad]
+  model_int = [nplanets,nt,nbands,nldc,n_jrv,n_jtr,n_cad,np_rv,np_tr]
   model_double = [t_cad]
 
   if ( method == 'mcmc' ):
@@ -586,8 +617,10 @@ def joint_fit():
     pti.mcmc_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
     tlab,jrvlab,trlab,jtrlab,\
-    flags,total_fit_flag,prior_flags,prior_vals, \
-    model_int,model_double,nwalkers,maxi,thin_factor,nconv )
+    flags,total_fit_flag,prior_flags,prior_vals,\
+    kernels, model_int,\
+    model_double,\
+    nwalkers,maxi,thin_factor,nconv )
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'

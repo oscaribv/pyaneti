@@ -7,17 +7,17 @@
   implicit none
   !
   integer, intent(in) :: nx1, nx2, npars
-  character (len=30), intent(in) :: kernel
-  double precision, intent(in) :: pars(0:npars-1) !There are only two parameters for this kernel
-  double precision, intent(in) :: x1(0:nx1-1)
-  double precision, intent(in) :: x2(0:nx2-1)
-  double precision, intent(out) :: cov(0:nx1-1,0:nx2-1)
+  character (len=3), intent(in) :: kernel
+  real(kind=mireal), intent(in) :: pars(0:npars-1) !There are only two parameters for this kernel
+  real(kind=mireal), intent(in) :: x1(0:nx1-1)
+  real(kind=mireal), intent(in) :: x2(0:nx2-1)
+  real(kind=mireal), intent(out) :: cov(0:nx1-1,0:nx2-1)
 
-  if ( kernel == 'SE' ) then
+  if ( kernel == 'SEK' ) then
      call SEKernel(pars,x1,x2,cov,nx1,nx2)
   else if ( kernel == 'M32' ) then
      call M32Kernel(pars,x1,x2,cov,nx1,nx2)
-  else if ( kernel == 'QP' ) then
+  else if ( kernel == 'QPK' ) then
      call QPKernel(pars,x1,x2,cov,nx1,nx2)
   else
      print *, 'Kernel ', kernel,' is not defined!'
@@ -32,17 +32,17 @@
   !
   integer, intent(in) :: nobs, ntest, npar
   character (len=30), intent(in) :: kernel
-  double precision, intent(in) :: covpar(0:npar-1)
-  double precision, dimension(0:nobs-1), intent(in) :: xobs, yobs, eobs
-  double precision, dimension(0:ntest-1), intent(in) :: xtest
-  double precision, dimension(0:ntest-1), intent(out) :: mvec
-  double precision, dimension(0:ntest-1,0:ntest-1), intent(out) :: cov
+  real(kind=mireal), intent(in) :: covpar(0:npar-1)
+  real(kind=mireal), dimension(0:nobs-1), intent(in) :: xobs, yobs, eobs
+  real(kind=mireal), dimension(0:ntest-1), intent(in) :: xtest
+  real(kind=mireal), dimension(0:ntest-1), intent(out) :: mvec
+  real(kind=mireal), dimension(0:ntest-1,0:ntest-1), intent(out) :: cov
   !local variables
-  double precision :: K(0:nobs-1,0:nobs-1)
-  double precision :: dummy(0:nobs-1,0:nobs-1)
-  double precision :: Ki(0:nobs-1,0:nobs-1)
-  double precision :: Kss(0:ntest-1,0:ntest-1)
-  double precision :: Ks(0:ntest-1,0:nobs-1)
+  real(kind=mireal) :: K(0:nobs-1,0:nobs-1)
+  real(kind=mireal) :: dummy(0:nobs-1,0:nobs-1)
+  real(kind=mireal) :: Ki(0:nobs-1,0:nobs-1)
+  real(kind=mireal) :: Kss(0:ntest-1,0:ntest-1)
+  real(kind=mireal) :: Ks(0:ntest-1,0:nobs-1)
 
   !covariance matrix for observed vector
   call covfunc(kernel,covpar,xobs,xobs,K,nobs,nobs,npar)
@@ -63,21 +63,21 @@
 
   end subroutine pred_gp
 
-  subroutine NLL_GP(p,kernel,x,y,e,nll,np,nx)
+  subroutine NLL_GP(p,kernel,x,y,e,nll,chi2,np,nx)
   use constants
   implicit none
   !
   integer, intent(in) :: np, nx
-  double precision, dimension(0:np-1), intent(in) :: p
-  double precision, dimension(0:nx-1), intent(in) :: x, y, e
+  real(kind=mireal), dimension(0:np-1), intent(in) :: p
+  real(kind=mireal), dimension(0:nx-1), intent(in) :: x, y, e
   character (len=30), intent(in) :: kernel
-  double precision, intent(out) :: nll
+  real(kind=mireal), intent(out) :: nll, chi2
   !
   !local variables
-  double precision :: K(0:nx-1,0:nx-1)
-  double precision :: dummy(0:nx-1,0:nx-1)
-  double precision :: Ki(0:nx-1,0:nx-1)
-  double precision :: nl1, nl2
+  real(kind=mireal) :: K(0:nx-1,0:nx-1)
+  real(kind=mireal) :: dummy(0:nx-1,0:nx-1)
+  real(kind=mireal) :: Ki(0:nx-1,0:nx-1)
+  real(kind=mireal) :: nl1, nl2
 
   !covariance matrix for observed vector
   call covfunc(kernel,p,x,x,K,nx,nx,np)
@@ -91,7 +91,8 @@
   !
   call findlogddet(K,nl2,nx)
   !
-  nll = 5.d-1*(nl1 + nl2 + nx * log_two_pi)
+  chi2 = nl1
+  nll = - 5.d-1*(nl1 + nl2 + nx * log_two_pi)
 
   end subroutine NLL_GP
 
@@ -104,10 +105,10 @@
   implicit none
   !
   integer, intent(in) :: nx1, nx2
-  double precision, intent(in) :: pars(0:1) !There are only two parameters for this kernel
-  double precision, intent(in) :: x1(0:nx1-1)
-  double precision, intent(in) :: x2(0:nx2-1)
-  double precision, intent(out) :: cov(0:nx1-1,0:nx2-1)
+  real(kind=mireal), intent(in) :: pars(0:1) !There are only two parameters for this kernel
+  real(kind=mireal), intent(in) :: x1(0:nx1-1)
+  real(kind=mireal), intent(in) :: x2(0:nx2-1)
+  real(kind=mireal), intent(out) :: cov(0:nx1-1,0:nx2-1)
 
   !Get the x_i - x_j
   call fcdist(x1,x2,cov,nx1,nx2)
@@ -120,10 +121,10 @@
   implicit none
   !
   integer, intent(in) :: nx1, nx2
-  double precision, intent(in) :: pars(0:1) !There are only two parameters for this kernel
-  double precision, intent(in) :: x1(0:nx1-1)
-  double precision, intent(in) :: x2(0:nx2-1)
-  double precision, intent(out) :: cov(0:nx1-1,0:nx2-1)
+  real(kind=mireal), intent(in) :: pars(0:1) !There are only two parameters for this kernel
+  real(kind=mireal), intent(in) :: x1(0:nx1-1)
+  real(kind=mireal), intent(in) :: x2(0:nx2-1)
+  real(kind=mireal), intent(out) :: cov(0:nx1-1,0:nx2-1)
   !A = pars(0), Gamma = pars(1)
 
   !Get the x_i - x_j
@@ -138,10 +139,10 @@
   implicit none
   !
   integer, intent(in) :: nx1, nx2
-  double precision, intent(in) :: pars(0:3) !There are only two parameters for this kernel
-  double precision, intent(in) :: x1(0:nx1-1)
-  double precision, intent(in) :: x2(0:nx2-1)
-  double precision, intent(out) :: cov(0:nx1-1,0:nx2-1)
+  real(kind=mireal), intent(in) :: pars(0:3) !There are only two parameters for this kernel
+  real(kind=mireal), intent(in) :: x1(0:nx1-1)
+  real(kind=mireal), intent(in) :: x2(0:nx2-1)
+  real(kind=mireal), intent(out) :: cov(0:nx1-1,0:nx2-1)
   !A = pars(0), Gamma_1 = pars(1), Gamma_2 = pars(2), P = pars(3)
 
   !Get the x_i - x_j

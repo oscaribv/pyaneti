@@ -67,7 +67,7 @@ for o in range(0,len(params)):
 
 log_like_total, chi2tot_val_rv, chi2tot_val_tr = \
 pti.get_loglike(mega_time,mega_rv,megax,megay,mega_err,megae,\
-                    tlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,\
+                    tlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,kernels,\
                     dummy_pars[4:],model_int,model_double)
 
 bic_from_loglikelihood = np.log(ndata)*npars - 2.0*log_like_total

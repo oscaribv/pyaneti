@@ -61,6 +61,7 @@ implicit none
 
 end subroutine
 
+
 !-------------------------------------------------------------------------------
 ! This routine calculates the chi square for a RV curve
 ! given a set of xd-yd data points
@@ -72,7 +73,73 @@ end subroutine
 ! rv0  -> array for the different systemic velocities,
 !         its size is the number of telescopes
 ! k, ec, w, t0, P -> typical planet parameters
-! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)  
+! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)
+!Output parameter:
+! chi2 -> a real(kind=mireal) value with the chi2 value
+!-----------------------------------------------------------
+subroutine find_res_rv(xd,yd,tlab,params,flag,res,datas,nt,npl)
+use constants
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: datas, nt, npl
+  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd
+  integer, intent(in), dimension(0:datas-1) :: tlab
+  real(kind=mireal), intent(in), dimension(0:6+nt,0:npl-1) :: params
+  logical, intent(in)  :: flag(0:3)
+  real(kind=mireal), intent(out) :: res(0:datas-1)
+!Local variables
+  real(kind=mireal), dimension(0:npl-1) :: t0, P, e, w, k
+  real(kind=mireal), dimension(0:nt-1)  :: rv0
+  real(kind=mireal)  :: alpha, beta
+  real(kind=mireal), dimension(0:datas-1) :: model
+  logical :: is_limit_good
+!External function
+  external :: rv_curve_mp
+
+  t0(:)  = params(0,:)
+  P(:)   = params(1,:)
+  e(:)   = params(2,:)
+  w(:)   = params(3,:)
+  k(:)   = params(4,:)
+  alpha  = params(5,0)
+  beta   = params(6,0)
+  rv0(:) = params(7:6+nt,0)
+
+  if ( flag(0) ) P(:) = 1.d1**params(1,:)
+  if ( flag(1) ) call ewto(e,w,e,w,npl)
+  if ( flag(2) ) k(:) = 1.d1**params(4,:)
+  if ( flag(3) ) rv0(:) = 1.d1**params(7:6+nt,0)
+
+  is_limit_good = .true.
+
+  if ( any (e > 1.0d0) ) is_limit_good = .false.
+
+  if ( is_limit_good ) then
+
+      call rv_curve_mp(xd,0.d0,t0,k,P,e,w,alpha,beta,model,datas,npl)
+      model(:) = model(:) + rv0(tlab(:))
+      res(:)   =  model(:) - yd(:)
+  else
+
+      res(:) = huge(0.d0)
+
+  end if
+
+end subroutine
+
+!-------------------------------------------------------------------------------
+! This routine calculates the chi square for a RV curve
+! given a set of xd-yd data points
+! It takes into acount the possible difference in systematic
+! velocities for different telescopes.
+!Input parameters are:
+! xd, yd, errs -> set of data to fit (array(datas))
+! tlab -> Telescope labels (array of integers number)
+! rv0  -> array for the different systemic velocities,
+!         its size is the number of telescopes
+! k, ec, w, t0, P -> typical planet parameters
+! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)
 !Output parameter:
 ! chi2 -> a real(kind=mireal) value with the chi2 value
 !-----------------------------------------------------------
@@ -89,43 +156,12 @@ implicit none
   logical, intent(in)  :: flag(0:3)
   real(kind=mireal), intent(out) :: chi2
 !Local variables
-  real(kind=mireal), dimension(0:npl-1) :: t0, P, e, w, k
-  real(kind=mireal), dimension(0:nt-1)  :: rv0
-  real(kind=mireal)  :: alpha, beta
-  real(kind=mireal), dimension(0:datas-1) :: model, res
-  logical :: is_limit_good
+  real(kind=mireal), dimension(0:datas-1) :: res
 !External function
   external :: rv_curve_mp
 
-  t0(:)  = params(0,:)
-  P(:)   = params(1,:)
-  e(:)   = params(2,:)
-  w(:)   = params(3,:)
-  k(:)   = params(4,:)
-  alpha  = params(5,0) 
-  beta   = params(6,0) 
-  rv0(:) = params(7:6+nt,0) 
-
-  if ( flag(0) ) P(:) = 1.d1**params(1,:)
-  if ( flag(1) ) call ewto(e,w,e,w,npl)
-  if ( flag(2) ) k(:) = 1.d1**params(4,:)
-  if ( flag(3) ) rv0(:) = 1.d1**params(7:6+nt,0)
-
-  is_limit_good = .true.
-
-  if ( any (e > 1.0d0) ) is_limit_good = .false.
-
-  if ( is_limit_good ) then
-
-      call rv_curve_mp(xd,0.d0,t0,k,P,e,w,alpha,beta,model,datas,npl)
-      model(:) = model(:) + rv0(tlab(:))
-      res(:)   = ( model(:) - yd(:) ) / sqrt( errs(:)**2 + jitter(jrvlab(:))**2 )
-      chi2 = dot_product(res,res)
-
-  else
-
-    chi2 = huge(0.d0)
-
-  end if
+  call find_res_rv(xd,yd,tlab,params,flag,res,datas,nt,npl)
+  res(:)   = res(:) / sqrt( errs(:)**2 + jitter(jrvlab(:))**2 )
+  chi2 = dot_product(res,res)
 
 end subroutine

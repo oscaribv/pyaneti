@@ -53,90 +53,6 @@ implicit none
 
 end subroutine
 
-subroutine find_chi2_tr(xd,yd,errs,trlab,jtrlab,pars,rps,ldc,jtr,flag, &
-           n_cad,t_cad,chi2,datas,nbands,njtr,npl)
-use constants
-implicit none
-
-!In/Out variables
-  integer, intent(in) :: datas, n_cad, npl, nbands, njtr
-  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
-  real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
-!  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
-  integer, intent(in), dimension(0:datas-1)  :: trlab, jtrlab
-  !pars = T0, P, e, w, b, a/R*
-  real(kind=mireal), intent(in) :: t_cad
-  real(kind=mireal), dimension(0:njtr-1), intent(in) :: jtr
-  logical, intent(in), dimension(0:3) :: flag
-  real(kind=mireal), intent(in) :: ldc(0:2*nbands-1)
-  real(kind=mireal), intent(out) :: chi2
-!Local variables
-  real(kind=mireal), dimension(0:datas-1) :: res, muld
-  real(kind=mireal), dimension(0:5,0:npl-1) :: up_pars !updated parameters
-  real(kind=mireal), dimension(0:npl-1) :: t0, P, e, w, i, a, tp
-  real(kind=mireal), dimension(0:nbands-1) :: u1, u2, q1k, q2k
-  real(kind=mireal), dimension (0:2*nbands-1) :: up_ldc
-  logical :: is_good
-  integer :: n
-
-
-  t0  = pars(0,:)
-  P   = pars(1,:)
-  e   = pars(2,:)
-  w   = pars(3,:)
-  i   = pars(4,:)
-  a   = pars(5,:)
-
-  if (flag(0)) P = 1.d0**pars(1,:)
-  if (flag(1)) call ewto(e,w,e,w,npl)
-  if (flag(3)) call rhotoa(a(0),P(:),a(:),npl)
-  if (flag(2)) call btoi(i,a,e,w,i,npl)
-
-
-  !Update limb darkening coefficients, pass from q's to u's
-  do n = 0, nbands - 1
-    q1k(n) = ldc(2*n)
-    q2k(n) = ldc(2*n+1)
-    u1(n) = 2.d0*q1k(n)*sqrt(q2k(n))
-    u2(n) = sqrt(q1k(n))*(1.d0 - 2.d0*q2k(n))
-    up_ldc(2*n)   = u1(n)
-    up_ldc(2*n+1) = u2(n)
-  end do
-
-
-  is_good = .true.
-  if ( any( e > 1.d0 ) ) is_good = .false.
-
-  if ( is_good ) then
-
-    do n = 0, npl - 1
-      call find_tp(t0(n),e(n),w(n),P(n),tp(n))
-    end do
-
-    !At this point the parameters to fit are tp,P,e,w,i,a without parametrization
-    up_pars(0,:) = tp
-    up_pars(1,:) = P
-    up_pars(2,:) = e
-    up_pars(3,:) = w
-    up_pars(4,:) = i
-    up_pars(5,:) = a
-
-    !Here we have a vector for the radius called rps
-
-    call flux_tr(xd,trlab,up_pars,rps,up_ldc,&
-           n_cad,t_cad,nbands,datas,npl,muld)
-    res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jtr(jtrlab(:))**2 )
-    chi2 = dot_product(res,res)
-
-  else
-
-    chi2 = huge(0.d0)
-
-  end if
-
-end subroutine
-
 subroutine flux_tr(xd,trlab,pars,rps,ldc,&
            n_cad,t_cad,nbands,datas,npl,muld)
 use constants
@@ -218,5 +134,116 @@ implicit none
     flux_ub(:,:) = 0.0
 
   end do !datas
+
+end subroutine
+
+subroutine find_chi2_tr(xd,yd,errs,trlab,jtrlab,pars,rps,ldc,jtr,flag, &
+           n_cad,t_cad,chi2,datas,nbands,njtr,npl)
+use constants
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: datas, n_cad, npl, nbands, njtr
+  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
+  real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
+!  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
+  integer, intent(in), dimension(0:datas-1)  :: trlab, jtrlab
+  !pars = T0, P, e, w, b, a/R*
+  real(kind=mireal), intent(in) :: t_cad
+  real(kind=mireal), dimension(0:njtr-1), intent(in) :: jtr
+  logical, intent(in), dimension(0:3) :: flag
+  real(kind=mireal), intent(in) :: ldc(0:2*nbands-1)
+  real(kind=mireal), intent(out) :: chi2
+!Local variables
+  real(kind=mireal), dimension(0:datas-1) :: res
+
+    call find_res_tr(xd,yd,trlab,pars,rps,ldc,flag, &
+           n_cad,t_cad,res,datas,nbands,npl)
+    res(:) = res(:) / sqrt( errs(:)**2 + jtr(jtrlab(:))**2 )
+    chi2 = dot_product(res,res)
+
+
+end subroutine
+
+subroutine find_res_tr(xd,yd,trlab,pars,rps,ldc,flag, &
+           n_cad,t_cad,res,datas,nbands,npl)
+use constants
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: datas, n_cad, npl, nbands
+  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd
+  real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
+  real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
+!  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
+  integer, intent(in), dimension(0:datas-1)  :: trlab
+  !pars = T0, P, e, w, b, a/R*
+  real(kind=mireal), intent(in) :: t_cad
+  logical, intent(in), dimension(0:3) :: flag
+  real(kind=mireal), intent(in) :: ldc(0:2*nbands-1)
+  real(kind=mireal), intent(out) :: res(0:datas-1)
+!Local variables
+  real(kind=mireal), dimension(0:datas-1) :: muld
+  real(kind=mireal), dimension(0:5,0:npl-1) :: up_pars !updated parameters
+  real(kind=mireal), dimension(0:npl-1) :: t0, P, e, w, i, a, tp
+  real(kind=mireal), dimension(0:nbands-1) :: u1, u2, q1k, q2k
+  real(kind=mireal), dimension (0:2*nbands-1) :: up_ldc
+  logical :: is_good
+  integer :: n
+
+
+  t0  = pars(0,:)
+  P   = pars(1,:)
+  e   = pars(2,:)
+  w   = pars(3,:)
+  i   = pars(4,:)
+  a   = pars(5,:)
+
+  if (flag(0)) P = 1.d0**pars(1,:)
+  if (flag(1)) call ewto(e,w,e,w,npl)
+  if (flag(3)) call rhotoa(a(0),P(:),a(:),npl)
+  if (flag(2)) call btoi(i,a,e,w,i,npl)
+
+
+  !Update limb darkening coefficients, pass from q's to u's
+  do n = 0, nbands - 1
+    q1k(n) = ldc(2*n)
+    q2k(n) = ldc(2*n+1)
+    u1(n) = 2.d0*q1k(n)*sqrt(q2k(n))
+    u2(n) = sqrt(q1k(n))*(1.d0 - 2.d0*q2k(n))
+    up_ldc(2*n)   = u1(n)
+    up_ldc(2*n+1) = u2(n)
+  end do
+
+
+  is_good = .true.
+  if ( any( e > 1.d0 ) ) is_good = .false.
+
+  if ( is_good ) then
+
+    do n = 0, npl - 1
+      call find_tp(t0(n),e(n),w(n),P(n),tp(n))
+    end do
+
+    !At this point the parameters to fit are tp,P,e,w,i,a without parametrization
+    up_pars(0,:) = tp
+    up_pars(1,:) = P
+    up_pars(2,:) = e
+    up_pars(3,:) = w
+    up_pars(4,:) = i
+    up_pars(5,:) = a
+
+    !Here we have a vector for the radius called rps
+
+    call flux_tr(xd,trlab,up_pars,rps,up_ldc,&
+           n_cad,t_cad,nbands,datas,npl,muld)
+    res(:) =  muld(:) - yd(:)
+
+  else
+
+    res(:) = huge(0.d0)
+
+  end if
 
 end subroutine

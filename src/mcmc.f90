@@ -4,6 +4,7 @@ subroutine mcmc_stretch_move(            &
            rvlab,jrvlab,trlab,jtrlab,        &
            flags, total_fit_flag,            &
            prior_flags, prior_vals,          &
+           kernels,                          &
            npars, model_int,                 &
            model_double,                     &
            nwalks, maxi, thin_factor, nconv, &
@@ -11,10 +12,10 @@ subroutine mcmc_stretch_move(            &
 use constants
 implicit none
 
-!npars = 7*npl + (npl + LDC)*nbands + noffsets + njitter + ntrends
+!npars = 7*npl + (npl + LDC)*nbands + noffsets + njitter + ntrends + kernel_parameters
 
 !In/Out variables
-  integer, intent(in) :: size_rv, size_tr, npars, model_int(0:6)
+  integer, intent(in) :: size_rv, size_tr, npars, model_int(0:8)
   !mcmc_int parameters
   integer :: nwalks, maxi, thin_factor, nconv
   real(kind=mireal), intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
@@ -24,6 +25,7 @@ implicit none
   real(kind=mireal), intent(in), dimension(0:2*npars - 1):: prior_vals
   real(kind=mireal), intent(in) ::  model_double(0)
   character, intent(in) :: prior_flags(0:npars-1)
+  character(len=6), intent(in) :: kernels
   logical, intent(in) :: flags(0:5), total_fit_flag(0:1)
 !Local variables
   real(kind=mireal), dimension(0:nwalks-1,0:npars-1) :: pars_old, pars_new
@@ -80,7 +82,7 @@ implicit none
       log_prior_old(nk) = sum( log(priors_old(nk,:) ) )
 
       call get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
-           rvlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,&
+           rvlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,kernels,&
            pars_old(nk,:),model_int,model_double,&
            npars,log_likelihood_old(nk),chi2_old_rv(nk),chi2_old_tr(nk),size_rv,size_tr)
 
@@ -162,7 +164,7 @@ implicit none
       if ( is_limit_good ) then !If we are inside the limits, let us calculate chi^2
 
       call get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr,    &
-           rvlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,   &
+           rvlab,jrvlab,trlab,jtrlab,total_fit_flag,flags,kernels,   &
            pars_new(nk,:),model_int,model_double,            &
            npars,log_likelihood_new(nk),chi2_new_rv(nk),chi2_new_tr(nk),size_rv,size_tr)
 
