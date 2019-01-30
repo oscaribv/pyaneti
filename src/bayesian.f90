@@ -164,7 +164,7 @@ implicit none
 
       !RV GP
       call find_res_rv(x_rv,y_rv,rvlab,pars_rv,flag_rv,res_rv,size_rv,ntels,npl)
-      call NLL_GP(pk_rv,kernel_rv,x_rv,res_rv,e_rv,nll_rv,chi2_rv,np_rv,size_rv)
+      call NLL_GP(pk_rv,kernel_rv,x_rv,res_rv,e_rv,jrv,jrvlab,nll_rv,chi2_rv,np_rv,size_rv,njrv)
 
     end if
 
@@ -188,7 +188,7 @@ implicit none
 
       !TR GP
       call find_res_tr(x_tr,y_tr,trlab,pars_tr,rps,ldc,flag_tr,n_cad,t_cad,res_tr,size_tr,nbands,npl)
-      call NLL_GP(pk_tr,kernel_tr,x_rv,res_tr,e_tr,nll_tr,chi2_tr,np_tr,size_tr)
+      call NLL_GP(pk_tr,kernel_tr,x_rv,res_tr,e_tr,jtr,jtrlab,nll_tr,chi2_tr,np_tr,size_tr,njtr)
 
     end if
 

@@ -25,9 +25,9 @@ if ( is_plot_correlations ):
 if ( total_tr_fit ):
   create_folded_tr_plots()
 #  if (nbands == 1):
-#    plot_all_transits()
-#    clean_transits(sigma_clean)
-#    create_tango_input()
+    #plot_all_transits()
+    #clean_transits(sigma_clean)
+    #create_tango_input()
 
 #PLOT RV CURVE
 if ( total_rv_fit ):

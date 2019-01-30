@@ -156,11 +156,7 @@ if ( nplanets > 0 ):
     agregar = total_tt*0.1
     xmax = xmax + agregar
     xmin = xmin - agregar
-    dn = (xmax - xmin) /  n
-    rvx = np.empty([n])
-    rvx[0] = xmin
-    for j in range(1,n):
-      rvx[j] = rvx[j-1] + dn
+    rvx = np.arange(xmin,xmax,(xmax-xmin)/n)
 
     #Model curve
     rvy = pti.rv_curve_mp(rvx,0.0,t0_val,\
@@ -175,8 +171,25 @@ if ( nplanets > 0 ):
       rv_dum[j] = rv_datas[j] - v_val[j]*cfactor
       res_dum_all[j] = rv_dum[j] - res_dum_all[j]
 
+
+
+    if kernel_rv[0:2] != 'No':
+        xvec = np.asarray(np.concatenate(time_all))
+        yvec = np.asarray(np.concatenate(res_dum_all))
+        evec = np.asarray(np.concatenate(errs_all))*cfactor
+        pk_rv[0] = pk_rv[0]*cfactor
+        m, C =pti.pred_gp(kernel_rv,pk_rv,xvec,yvec,evec,rvx)
+
     plt.figure(1,figsize=(2*fsx,fsy))
-    plt.plot(rvx,rvy,'k')
+    plt.plot(rvx,rvy,'r',alpha=0.7)
+    plt.plot(rvx,m,'b',alpha=0.7)
+    plt.plot(rvx,rvy+m,'k')
+    sig = np.sqrt(np.diag(C))
+    #from numpy.random import multivariate_normal
+    #samples = multivariate_normal(m,C,size=10)
+    #plt.plot(rvx,samples.T,alpha=0.5,color='g')
+    plt.fill_between(rvx,m+sig,m-sig,color='k',alpha=0.2)
+
 
     plt.minorticks_on()
     plt.xlabel(rv_xlabel,fontsize=fos)

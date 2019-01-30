@@ -18,6 +18,8 @@ srv = sldc + nldc*nbands     #start of RV offsets
 sjitrv = srv + nt            #start of RV jitter
 sjittr = sjitrv + n_jrv      #start of TR jitter
 strends = sjittr + n_jtr     #start of RV trends
+skrv = strends + 2           #start of RV kernel parameters
+sktr = skrv + np_rv          #start of TR kernel parameters
 
 newfile = outdir+'/'+star+'_all_data.dat'
 dparams = np.loadtxt(newfile, comments='#',unpack=True)
@@ -384,6 +386,12 @@ if ( is_linear_trend != 'f' or is_quadratic_trend != 'f' ):
     print_values(params[4+strends+1]*1.e3,'quadratic trend','qtrend','m/s/days^2','${\\rm m\,s^{-1}\,d^{-2}}$')
   opars.write ('--------------------------------------------------------------\n')
 opars.write('\n')
+
+
+#Hyper-parameters
+#RV
+for o in range(0,np_rv):
+  print_values(params[4+skrv+o],krv_labels[o],'j'+krv_labels[o],'','')
 
 
 

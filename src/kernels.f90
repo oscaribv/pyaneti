@@ -19,6 +19,8 @@
      call M32Kernel(pars,x1,x2,cov,nx1,nx2)
   else if ( kernel == 'QPK' ) then
      call QPKernel(pars,x1,x2,cov,nx1,nx2)
+  else if ( kernel == 'QP2' ) then
+     call QPKernel2(pars,x1,x2,cov,nx1,nx2)
   else
      print *, 'Kernel ', kernel,' is not defined!'
      stop
@@ -31,7 +33,7 @@
   implicit none
   !
   integer, intent(in) :: nobs, ntest, npar
-  character (len=30), intent(in) :: kernel
+  character (len=3), intent(in) :: kernel
   real(kind=mireal), intent(in) :: covpar(0:npar-1)
   real(kind=mireal), dimension(0:nobs-1), intent(in) :: xobs, yobs, eobs
   real(kind=mireal), dimension(0:ntest-1), intent(in) :: xtest
@@ -63,25 +65,29 @@
 
   end subroutine pred_gp
 
-  subroutine NLL_GP(p,kernel,x,y,e,nll,chi2,np,nx)
+  subroutine NLL_GP(p,kernel,x,y,e,jit,ljit,nll,chi2,np,nx,njit)
   use constants
   implicit none
   !
-  integer, intent(in) :: np, nx
+  integer, intent(in) :: np, nx, njit
   real(kind=mireal), dimension(0:np-1), intent(in) :: p
+  real(kind=mireal), dimension(0:njit-1), intent(in) :: jit
   real(kind=mireal), dimension(0:nx-1), intent(in) :: x, y, e
+  integer, dimension(0:nx-1):: ljit
   character (len=30), intent(in) :: kernel
   real(kind=mireal), intent(out) :: nll, chi2
   !
   !local variables
+  real(kind=mireal), dimension(0:nx-1) :: s2
   real(kind=mireal) :: K(0:nx-1,0:nx-1)
   real(kind=mireal) :: dummy(0:nx-1,0:nx-1)
   real(kind=mireal) :: Ki(0:nx-1,0:nx-1)
   real(kind=mireal) :: nl1, nl2
 
   !covariance matrix for observed vector
+  s2 = e**2 + jit(ljit)**2
   call covfunc(kernel,p,x,x,K,nx,nx,np)
-  call fill_diag(e*e,dummy,nx)
+  call fill_diag(s2,dummy,nx)
   K = K + dummy
   !Get the inverse matrix
   dummy = K
@@ -152,3 +158,23 @@
         - pars(2) * cov * cov )
 
   end subroutine QPKernel
+
+
+subroutine QPKernel2(pars,x1,x2,cov,nx1,nx2)
+  use constants
+  implicit none
+  !
+  integer, intent(in) :: nx1, nx2
+  real(kind=mireal), intent(in) :: pars(0:3) !There are only two parameters for this kernel
+  real(kind=mireal), intent(in) :: x1(0:nx1-1)
+  real(kind=mireal), intent(in) :: x2(0:nx2-1)
+  real(kind=mireal), intent(out) :: cov(0:nx1-1,0:nx2-1)
+  !h = pars(0), Gamma_1 = pars(1), Gamma_2 = pars(2), P = pars(3)
+
+  !Get the x_i - x_j
+  call fcdist(x1,x2,cov,nx1,nx2)
+  cov = pars(0)**2 * exp( &
+        - pars(1) * ( sin( pi * cov / pars(3) ) )**2 &
+        - cov * cov / (2.*pars(2)**2) )
+
+  end subroutine QPKernel2

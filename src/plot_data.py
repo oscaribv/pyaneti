@@ -88,6 +88,10 @@ for m in range(0,nplanets):
     rp_val[m*nbands+o] = best_value(rr_vec[m*nbands+o],maxloglike,get_value)
 
 
+pk_rv = []
+for m in range(0,np_rv):
+    pk_rv.append(best_value(params[4+skrv+m],maxloglike,get_value))
+
 #===========================================================
 #                   Histogram plots
 #===========================================================

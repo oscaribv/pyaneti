@@ -148,8 +148,8 @@ def smart_priors():
     max_rv0 = [None]*nt
     for o in range(0,nt):
         if (fit_v0 == 'u'):
-          min_rv0[o] = min(rv_all[o]) - 1.0e-1
-          max_rv0[o] = max(rv_all[o]) + 1.0e-1
+          min_rv0[o] = min(rv_all[o]) - 1.0
+          max_rv0[o] = max(rv_all[o]) + 1.0
           if is_linear_trend == 'u':
             min_rv0[o] = min(rv_all[o]) - 1.0
             max_rv0[o] = max(rv_all[o]) + 1.0
@@ -485,7 +485,7 @@ def joint_fit():
   global prior_flags, prior_vals, model_int, model_double
   global n_jtr, trlab, jtrlab
   global kernels, krv_labels, krv_prior_flag, krv_prior_vals
-  global ktr_labels, ktr_prior_flag, ktr_prior_vals
+  global ktr_labels, ktr_prior_flag, ktr_prior_vals, np_rv, np_tr
 
   if ( is_ew ):
     min_e = min_ew1
@@ -550,10 +550,10 @@ def joint_fit():
   #RV jitter priors
   if is_jitter_rv:
       jrv_prior_flag = ['u']*n_jrv
-      jrv_prior_vals = [0.,1.]*n_jrv
+      jrv_prior_vals = [0.,0.01]*n_jrv
   else:
       jrv_prior_flag = ['f']*n_jrv
-      jrv_prior_vals = [0.,1.]*n_jrv
+      jrv_prior_vals = [0.,0.01]*n_jrv
 
   #Transit jitter priors
   if is_jitter_tr:
@@ -575,10 +575,10 @@ def joint_fit():
       krv_prior_flag = []
       krv_prior_vals = []
       krv_labels = []
-  elif kernel_rv == 'QPK':
-      krv_prior_flag = fit_krv #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
-      krv_prior_vals = krv_priors #This has to be a 4-dimensional vector with the prior limits
-      krv_labels = ['A','$\Gamma_1$','$\Gamma_2$','P']
+  else:
+     krv_prior_flag = fit_krv #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
+     krv_prior_vals = krv_priors #This has to be a 4-dimensional vector with the prior limits
+     krv_labels = ['A','$\Gamma_1$','$\Gamma_2$','P']
   ##Add remaining kernels
 
   np_rv = len(krv_prior_flag)
