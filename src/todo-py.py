@@ -164,7 +164,7 @@ def create_transit_data(time,flux,errs,planet=0,span=0.0):
   P  = best_value(P_vec[planet],maxloglike,get_value)
   T0 = best_value(T0_vec[planet],maxloglike,get_value)
   #tt = best_value(trt_vec[planet],maxloglike,get_value)
-  tt = 7.
+  tt = 3.
   tt = tt/24.0
 
   if ( span < 1e-5 ):

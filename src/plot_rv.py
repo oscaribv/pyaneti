@@ -172,24 +172,23 @@ if ( nplanets > 0 ):
       res_dum_all[j] = rv_dum[j] - res_dum_all[j]
 
 
+    #start the plot
+    plt.figure(1,figsize=(2*fsx,fsy))
 
+    #are we plotting a GP together with the RV curve
     if kernel_rv[0:2] != 'No':
         xvec = np.asarray(np.concatenate(time_all))
         yvec = np.asarray(np.concatenate(res_dum_all))
         evec = np.asarray(np.concatenate(errs_all))*cfactor
         pk_rv[0] = pk_rv[0]*cfactor
-        m, C =pti.pred_gp(kernel_rv,pk_rv,xvec,yvec,evec,rvx)
-
-    plt.figure(1,figsize=(2*fsx,fsy))
-    plt.plot(rvx,rvy,'r',alpha=0.7)
-    plt.plot(rvx,m,'b',alpha=0.7)
-    plt.plot(rvx,rvy+m,'k')
-    sig = np.sqrt(np.diag(C))
-    #from numpy.random import multivariate_normal
-    #samples = multivariate_normal(m,C,size=10)
-    #plt.plot(rvx,samples.T,alpha=0.5,color='g')
-    plt.fill_between(rvx,m+sig,m-sig,color='k',alpha=0.2)
-
+        m, C =pti.pred_gp(kernel_rv,pk_rv,xvec,yvec,evec,rvx,jrv,jrvlab)
+        plt.plot(rvx,rvy,'r',alpha=0.7,label='Planetary signal')
+        plt.plot(rvx,m,'b',alpha=0.7,label='Gaussian Process')
+        plt.plot(rvx,rvy+m,'k',label='Planetary signal + GP')
+        sig = np.sqrt(np.diag(C))
+        plt.fill_between(rvx,m+sig,m-sig,color='b',alpha=0.1)
+    else:
+        plt.plot(rvx,rvy,'k',label='Planetary signal')
 
     plt.minorticks_on()
     plt.xlabel(rv_xlabel,fontsize=fos)
@@ -244,8 +243,7 @@ if ( nplanets > 0 ):
         rv_dum.append(list(rv_all[j]))
       #Create the RV fitted model for the planet i
       rvx = np.arange(t0_val[i],t0_val[i]+P_val[i]*0.999,P_val[i]/4999.)
-      rvy = pti.rv_curve_mp(rvx,0.0,t0_val[i],\
-      k_dum[i],P_val[i],e_val[i],w_val[i],0.0 ,0.0)
+      rvy = pti.rv_curve_mp(rvx,0.0,t0_val[i],k_dum[i],P_val[i],e_val[i],w_val[i],0.0,0.0)
 
       #If we want to plot the percentiles
       if ( is_special_plot_rv ):

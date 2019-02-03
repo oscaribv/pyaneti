@@ -28,18 +28,21 @@
 
   end subroutine covfunc
 
-  subroutine pred_gp(kernel,covpar,xobs,yobs,eobs,xtest,mvec,cov,nobs,ntest,npar)
+  subroutine pred_gp(kernel,covpar,xobs,yobs,eobs,xtest,jit,ljit,mvec,cov,nobs,ntest,npar,njit)
   use constants
   implicit none
   !
-  integer, intent(in) :: nobs, ntest, npar
+  integer, intent(in) :: nobs, ntest, npar, njit
   character (len=3), intent(in) :: kernel
   real(kind=mireal), intent(in) :: covpar(0:npar-1)
   real(kind=mireal), dimension(0:nobs-1), intent(in) :: xobs, yobs, eobs
   real(kind=mireal), dimension(0:ntest-1), intent(in) :: xtest
+  integer, dimension(0:nobs-1), intent(in):: ljit
+  real(kind=mireal), dimension(0:njit-1), intent(in) :: jit
   real(kind=mireal), dimension(0:ntest-1), intent(out) :: mvec
   real(kind=mireal), dimension(0:ntest-1,0:ntest-1), intent(out) :: cov
   !local variables
+  real(kind=mireal), dimension(0:nobs-1) :: s2
   real(kind=mireal) :: K(0:nobs-1,0:nobs-1)
   real(kind=mireal) :: dummy(0:nobs-1,0:nobs-1)
   real(kind=mireal) :: Ki(0:nobs-1,0:nobs-1)
@@ -48,7 +51,8 @@
 
   !covariance matrix for observed vector
   call covfunc(kernel,covpar,xobs,xobs,K,nobs,nobs,npar)
-  call fill_diag(eobs*eobs,dummy,nobs)
+  s2 = eobs**2 + jit(ljit)**2
+  call fill_diag(s2,dummy,nobs)
   K = K + dummy
   !covariance matrix for test vector
   call covfunc(kernel,covpar,xtest,xtest,Kss,ntest,ntest,npar)
@@ -73,7 +77,7 @@
   real(kind=mireal), dimension(0:np-1), intent(in) :: p
   real(kind=mireal), dimension(0:njit-1), intent(in) :: jit
   real(kind=mireal), dimension(0:nx-1), intent(in) :: x, y, e
-  integer, dimension(0:nx-1):: ljit
+  integer, dimension(0:nx-1), intent(in):: ljit
   character (len=30), intent(in) :: kernel
   real(kind=mireal), intent(out) :: nll, chi2
   !
