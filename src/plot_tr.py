@@ -87,7 +87,7 @@ def create_folded_tr_plots():
 
   for o in range(0,nplanets):
 
-    if (fit_tr[o]):
+    #if (fit_tr[o]):
 
       tr_vector = [None]*nbands
 

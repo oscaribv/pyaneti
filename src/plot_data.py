@@ -87,6 +87,8 @@ for m in range(0,nplanets):
   for o in range(0,nbands):
     rp_val[m*nbands+o] = best_value(rr_vec[m*nbands+o],maxloglike,get_value)
 
+alpha_val = best_value(params[4+strends],maxloglike,get_value)
+beta_val  = best_value(params[4+strends+1],maxloglike,get_value)
 
 jrv = [None]*n_jrv
 for o in range(0,n_jrv):

@@ -412,7 +412,7 @@ def good_clustering_likelihood(like,nconv,nwalkers):
   good_chain = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( like_mean[i] > total_max * 0.9 ):
+    if ( like_mean[i] > total_max * 0.999 ):
       #We are saving the good chain labels
       good_chain.append(i)
 

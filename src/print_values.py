@@ -270,18 +270,18 @@ if ( method == 'mcmc' or method == 'plot' ):
     usymbol = '{\odot}'
     if ( unit_mass == 'earth'):
       usymbol = '{\oplus}'
-      if ( fit_rv ):
+      if ( fit_rv[o] ):
         m_vec[o] = m_vec[o] * S_GM_SI / E_GM_SI
-      if ( fit_tr ):
+      if ( fit_tr[o] ):
         for m in range(0,nbands):
-          r_vec[o][m] = r_vec[o][m] * S_radius_SI / E_radius_e_SI
+          r_vec[o*nbands+m] = r_vec[o*nbands+m] * S_radius_SI / E_radius_e_SI
     elif ( unit_mass == 'jupiter'):
       usymbol = '\mathrm{J}'
-      if ( fit_rv ):
+      if ( fit_rv[o] ):
         m_vec[o] = m_vec[o] * S_GM_SI / J_GM_SI
-      if ( fit_tr ):
+      if ( fit_tr[o] ):
         for m in range(0,nbands):
-          r_vec[o][m] = r_vec[o][m] * S_radius_SI / J_radius_e_SI
+          r_vec[o*nbands+m] = r_vec[o*nbands+m] * S_radius_SI / J_radius_e_SI
 
     #Print the parameters
     #Fitted parameters
