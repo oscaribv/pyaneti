@@ -87,7 +87,7 @@ def create_folded_tr_plots():
 
   for o in range(0,nplanets):
 
-    #if (fit_tr[o]):
+    if (fit_tr[o]):
 
       tr_vector = [None]*nbands
 
@@ -149,7 +149,7 @@ def fancy_tr_plot(tr_vector,pnumber):
     if ( plot_tr_errorbars  ):
       plt.errorbar((xtime-local_T0)*tfc,yflux,errors,color=tr_colors,fmt='.',alpha=1.0)
     else:
-      plt.plot((xtime[m]-local_T0)*tfc,yflux[m]-deltay,'o',ms=7,alpha=0.8)
+      plt.plot((xtime[m]-local_T0)*tfc,yflux[m]-deltay,'o',color=tr_colors,ms=7,alpha=0.8)
       ###plt.errorbar(-x_lim*(0.95),y0 +eflux[m][0]*1.5-deltay,eflux[m][0],color=tr_colors,ms=7,fmt='o',alpha=1.0)
       ###plt.annotate('Error bar',xy=(-x_lim*(0.70),y0 +eflux[m][0]*1.65-deltay),fontsize=fos*0.7)
       #if ( is_special ):
@@ -188,7 +188,7 @@ def fancy_tr_plot(tr_vector,pnumber):
     if ( plot_tr_errorbars  ):
       plt.errorbar((xmodel_res[m]-local_T0)*tfc,res_res[m]*1e6,eflux[m]*1e6,fmt='.',alpha=0.5)
     else:
-      plt.plot((xmodel_res[m]-local_T0)*tfc,res_res[m]*1e6,'o',ms=7,alpha=0.5)
+      plt.plot((xmodel_res[m]-local_T0)*tfc,res_res[m]*1e6,'o',color=tr_colors,ms=7,alpha=0.5)
   plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
   plt.xticks( np.arange(-mxv,mxv+step_plot,step_plot))
   plt.xlim(x_lim,-x_lim)

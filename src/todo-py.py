@@ -148,8 +148,8 @@ def smart_priors():
     max_rv0 = [None]*nt
     for o in range(0,nt):
         if (fit_v0 == 'u'):
-          min_rv0[o] = min(rv_all[o]) - 1.0
-          max_rv0[o] = max(rv_all[o]) + 1.0
+          min_rv0[o] = min(rv_all[o]) - 0.1
+          max_rv0[o] = max(rv_all[o]) + 0.1
           if is_linear_trend == 'u':
             min_rv0[o] = min(rv_all[o]) - 1.0
             max_rv0[o] = max(rv_all[o]) + 1.0
@@ -412,7 +412,7 @@ def good_clustering_likelihood(like,nconv,nwalkers):
   good_chain = []
   #Let us kill all the walkers 5 times the minimum
   for i in range(0,nwalkers):
-    if ( like_mean[i] > total_max * 0.999 ):
+    if ( like_mean[i] > total_max * 0.9 ):
       #We are saving the good chain labels
       good_chain.append(i)
 
@@ -550,7 +550,7 @@ def joint_fit():
   #RV jitter priors
   if is_jitter_rv:
       jrv_prior_flag = ['u']*n_jrv
-      jrv_prior_vals = [0.,0.01]*n_jrv
+      jrv_prior_vals = [0.,0.05]*n_jrv
   else:
       jrv_prior_flag = ['f']*n_jrv
       jrv_prior_vals = [0.,0.01]*n_jrv
@@ -558,13 +558,13 @@ def joint_fit():
   #Transit jitter priors
   if is_jitter_tr:
       jtr_prior_flag = ['u']*n_jtr
-      jtr_prior_vals = [0.,1.e-4]*n_jtr
+      jtr_prior_vals = [0.,1.e-3]*n_jtr
   else:
       n_jtr = 0
       trlab = [0]*len(megax)
       jtrlab = [0]*len(megax)
       jtr_prior_flag = ['f']*n_jtr
-      jtr_prior_vals = [0.,1.e-4]*n_jtr
+      jtr_prior_vals = [0.,1.e-3]*n_jtr
 
   #Trends priors
   trends_prior_flag = [is_linear_trend,is_quadratic_trend]
@@ -575,11 +575,19 @@ def joint_fit():
       krv_prior_flag = []
       krv_prior_vals = []
       krv_labels = []
-  else:
+  elif kernel_rv == 'QP2':
      krv_prior_flag = fit_krv #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
      krv_prior_vals = krv_priors #This has to be a 4-dimensional vector with the prior limits
      krv_labels = ['A','$\Gamma_1$','$\Gamma_2$','P']
+  elif kernel_rv == 'QPK':
+     krv_prior_flag = fit_krv #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
+     krv_prior_vals = krv_priors #This has to be a 4-dimensional vector with the prior limits
+     krv_labels = ['A','$\lambda_p$','$\lambda_q$','P']
   ##Add remaining kernels
+  elif kernel_rv == 'VRF':
+      krv_prior_flag = fit_krv
+      krv_prior_vals = krv_priors
+      krv_labels = ['Vc','Vr','Lc','Bc','Br','P','lp','le']
 
   np_rv = len(krv_prior_flag)
 
@@ -588,10 +596,12 @@ def joint_fit():
       ktr_prior_flag = []
       ktr_prior_vals = []
       ktr_labels = []
-  elif kernel_rv == 'QPK':
+  elif kernel_tr == 'QPK':
       ktr_prior_flag = fit_ktr #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
       ktr_prior_vals = ktr_priors #This has to be a 4-dimensional vector with the prior limits
       ktr_labels = ['A','$\Gamma_1$','$\Gamma_2$','P']
+
+
   ##Add remaining kernels
 
   np_tr = len(ktr_prior_flag)

@@ -417,6 +417,13 @@ implicit none
       pars_out(j) = lims(2*j) + r_real * pars_out(j)
     else if ( fit_pars(j) == 'g' ) then
       call gauss_random_bm(lims(2*j),lims(2*j+1),pars_out(j),1)
+    else if ( fit_pars(j) == 'j' ) then
+      call random_number(r_real)
+      pars_out(j) = lims(2*j+1) - lims(2*j)
+      pars_out(j) = lims(2*j) + r_real * pars_out(j)
+    else if ( fit_pars(j) == 'm' ) then
+      call random_number(r_real)
+      pars_out(j) = r_real * lims(2*j+1)
     end if
   end do
 
@@ -484,7 +491,7 @@ end subroutine
   end subroutine
 
   !https://ww2.odu.edu/~agodunov/computing/programs/book2/Ch06/Inverse.f90
-  subroutine inverse(a,c,n)
+  subroutine inverse(m,cc,n)
   !============================================================
   ! Inverse matrix
   ! Method: Based on Doolittle LU factorization for Ax=b
@@ -501,11 +508,15 @@ end subroutine
 !===========================================================
   use constants
   implicit none
-    integer n
-    real(kind=mireal) a(n,n), c(n,n)
-    real(kind=mireal) L(n,n), U(n,n), b(n), d(n), x(n)
-    real(kind=mireal) coeff
-    integer i, j, k
+    integer, intent(in) :: n
+    real(kind=mireal), intent(in) :: m(0:n-1,0:n-1)
+    real(kind=mireal), intent(out) :: cc(0:n-1,0:n-1)
+    !
+    real(kind=mireal) :: a(n,n), c(n,n), L(n,n), U(n,n), b(n), d(n), x(n)
+    real(kind=mireal) :: coeff
+    integer :: i, j, k
+
+    a = m
 
     ! step 0: initialization for matrices L and U and b
     ! Fortran 90/95 aloows such operations on matrices
@@ -563,6 +574,9 @@ end subroutine
       end do
       b(k)=0.0
     end do
+
+    cc = c
+
   end subroutine inverse
 
 !Subroutine to find the determinant of a square matrix

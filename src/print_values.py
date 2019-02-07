@@ -393,6 +393,9 @@ opars.write('\n')
 for o in range(0,np_rv):
   print_values(params[4+skrv+o],krv_labels[o],'j'+krv_labels[o],'','')
 
+#TR
+for o in range(0,np_tr):
+  print_values(params[4+sktr+o],ktr_labels[o],'j'+ktr_labels[o],'','')
 
 
 ##RESIZE TRANSIT ERROR BARS

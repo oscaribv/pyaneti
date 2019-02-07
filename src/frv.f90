@@ -119,7 +119,7 @@ implicit none
 
       call rv_curve_mp(xd,0.d0,t0,k,P,e,w,alpha,beta,model,datas,npl)
       model(:) = model(:) + rv0(tlab(:))
-      res(:)   =  model(:) - yd(:)
+      res(:)   =  yd(:) - model(:)
   else
 
       res(:) = huge(0.d0)

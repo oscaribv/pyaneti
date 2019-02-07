@@ -160,11 +160,36 @@ implicit none
       !chi2_rv = 0.d0
       nll_rv = log_errs - 0.5 * chi2_rv
 
+    else if (kernel_rv == 'VRF' ) then
+
+    !This is the V. Rajpaul Framework
+    !our x_rv and y_rv contains RV, LogR and BIS
+    res_rv = 0.0
+    call find_res_rv(x_rv(0:size_rv/3-1),y_rv(0:size_rv/3-1),rvlab(0:size_rv/3-1),&
+                     pars_rv,flag_rv,res_rv(0:size_rv/3-1),size_rv/3,ntels-2,npl)
+    !print *, res_rv
+    !stop
+    res_rv(1*size_rv/3:2*size_rv/3-1) = y_rv(1*size_rv/3:2*size_rv/3-1) - pars(srv+ntels-2)
+    !print *, res_rv
+    !stop
+    res_rv(2*size_rv/3:3*size_rv/3-1) = y_rv(2*size_rv/3:3*size_rv/3-1) - pars(srv+ntels-1)
+    !print *, res_rv
+    !stop
+
+
+    call NLL_GP(pk_rv,kernel_rv,x_rv,res_rv,e_rv,jrv,jrvlab,nll_rv,chi2_rv,np_rv,size_rv,njrv)
+
+    !print *, 'here 178 bayesian'
+    !print *, nll_rv, chi2_rv
+    nll_rv = - nll_rv
+    !stop
+
     else
 
       !RV GP
       call find_res_rv(x_rv,y_rv,rvlab,pars_rv,flag_rv,res_rv,size_rv,ntels,npl)
       call NLL_GP(pk_rv,kernel_rv,x_rv,res_rv,e_rv,jrv,jrvlab,nll_rv,chi2_rv,np_rv,size_rv,njrv)
+      nll_rv = - nll_rv
 
     end if
 
@@ -187,8 +212,10 @@ implicit none
     else
 
       !TR GP
-      call find_res_tr(x_tr,y_tr,trlab,pars_tr,rps,ldc,flag_tr,n_cad,t_cad,res_tr,size_tr,nbands,npl)
-      call NLL_GP(pk_tr,kernel_tr,x_rv,res_tr,e_tr,jtr,jtrlab,nll_tr,chi2_tr,np_tr,size_tr,njtr)
+      !call find_res_tr(x_tr,y_tr,trlab,pars_tr,rps,ldc,flag_tr,n_cad,t_cad,res_tr,size_tr,nbands,npl)
+      res_tr = y_tr
+      call NLL_GP(pk_tr,kernel_tr,x_tr,res_tr,e_tr,jtr,jtrlab,nll_tr,chi2_tr,np_tr,size_tr,njtr)
+      nll_tr = - nll_tr
 
     end if
 
@@ -319,6 +346,32 @@ implicit none
 
 end subroutine
 
+!jeffreys_prior between [lx,rx]
+subroutine jeffreys_prior(lx,rx,x,prob)
+use constants
+implicit none
+
+  !In/Out variables
+  real(kind=mireal), intent(in) :: lx, rx, x
+  real(kind=mireal), intent(out)  :: prob
+
+  prob = exp(x*(log(rx)-log(lx)) + log(lx))
+
+end subroutine
+
+!mod jeffreys_prior between [0,rx] with braeakpoint at lx
+subroutine modjeffreys_prior(lx,rx,x,prob)
+use constants
+implicit none
+
+  !In/Out variables
+  real(kind=mireal), intent(in) :: lx, rx, x
+  real(kind=mireal), intent(out)  :: prob
+
+  prob = exp(x*log(1.+rx/lx) + log(lx)) - lx
+
+end subroutine
+
 subroutine get_priors(fit_pars,lims,pars_in,priors_out,npars)
 use constants
 implicit none
@@ -335,9 +388,12 @@ implicit none
   do j = 0, npars - 1
     if ( fit_pars(j) == 'u' ) then
       call uniform_prior(lims(2*j),lims(2*j+1),pars_in(j),priors_out(j))
-      !end if
     else if ( fit_pars(j) == 'g' ) then
       call gauss_prior(lims(2*j),lims(2*j+1),pars_in(j),priors_out(j))
+    else if ( fit_pars(j) == 'j' ) then
+      call jeffreys_prior(lims(2*j),lims(2*j+1),pars_in(j),priors_out(j))
+    else if ( fit_pars(j) == 'm' ) then
+      call modjeffreys_prior(lims(2*j),lims(2*j+1),pars_in(j),priors_out(j))
     end if
   end do
 

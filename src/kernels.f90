@@ -21,8 +21,10 @@
      call QPKernel(pars,x1,x2,cov,nx1,nx2)
   else if ( kernel == 'QP2' ) then
      call QPKernel2(pars,x1,x2,cov,nx1,nx2)
+  else if ( kernel == 'VRF' ) then
+     call QPsuperKernel(pars,x1,cov,nx1)
   else
-     print *, 'Kernel ', kernel,' is not defined!'
+     print *, 'ERROR: Kernel ', kernel,' is not defined!'
      stop
   end if
 
@@ -78,7 +80,7 @@
   real(kind=mireal), dimension(0:njit-1), intent(in) :: jit
   real(kind=mireal), dimension(0:nx-1), intent(in) :: x, y, e
   integer, dimension(0:nx-1), intent(in):: ljit
-  character (len=30), intent(in) :: kernel
+  character (len=3), intent(in) :: kernel
   real(kind=mireal), intent(out) :: nll, chi2
   !
   !local variables
@@ -87,10 +89,12 @@
   real(kind=mireal) :: dummy(0:nx-1,0:nx-1)
   real(kind=mireal) :: Ki(0:nx-1,0:nx-1)
   real(kind=mireal) :: nl1, nl2
+  integer :: i
 
   !covariance matrix for observed vector
   s2 = e**2 + jit(ljit)**2
   call covfunc(kernel,p,x,x,K,nx,nx,np)
+  dummy = K
   call fill_diag(s2,dummy,nx)
   K = K + dummy
   !Get the inverse matrix
@@ -102,9 +106,35 @@
   call findlogddet(K,nl2,nx)
   !
   chi2 = nl1
-  nll = - 5.d-1*(nl1 + nl2 + nx * log_two_pi)
+
+  !If the code arrives here, is because the computed covariance matrix is not
+  !a positive-definite matrix, let us avoid this solution here
+  if (chi2 < 0. ) chi2 = huge(chi2)
+
+  nll = 5.d-1*(chi2 + nl2 + nx * log_two_pi)
+
 
   end subroutine NLL_GP
+
+
+  subroutine NLL_GP_py(p,kernel,x,y,e,jit,ljit,nll,np,nx,njit)
+  use constants
+  implicit none
+  !
+  integer, intent(in) :: np, nx, njit
+  real(kind=mireal), dimension(0:np-1), intent(in) :: p
+  real(kind=mireal), dimension(0:njit-1), intent(in) :: jit
+  real(kind=mireal), dimension(0:nx-1), intent(in) :: x, y, e
+  integer, dimension(0:nx-1), intent(in):: ljit
+  character (len=3), intent(in) :: kernel
+  real(kind=mireal), intent(out) :: nll
+  !
+  !local variables
+  real(kind=mireal) :: chi2
+
+  call NLL_GP(p,kernel,x,y,e,jit,ljit,nll,chi2,np,nx,njit)
+
+  end subroutine NLL_GP_py
 
 !---------------------------------------------------------------------
 !                         KERNELS
@@ -153,13 +183,19 @@
   real(kind=mireal), intent(in) :: x1(0:nx1-1)
   real(kind=mireal), intent(in) :: x2(0:nx2-1)
   real(kind=mireal), intent(out) :: cov(0:nx1-1,0:nx2-1)
-  !A = pars(0), Gamma_1 = pars(1), Gamma_2 = pars(2), P = pars(3)
+  !A = pars(0), lambda_p = pars(1), lambda_q = pars(2), P = pars(3)
+  !
+  real(kind=mireal) :: A, lp, le, P
+
+  A  = pars(0)
+  le = pars(1)
+  lp = pars(2)
+  P  = pars(3)
 
   !Get the x_i - x_j
   call fcdist(x1,x2,cov,nx1,nx2)
-  cov = pars(0) * exp( &
-        - pars(1) * ( sin( pi * cov / pars(3) ) )**2 &
-        - pars(2) * cov * cov )
+  cov = - (sin(pi*cov/P))**2/2./lp**2 - cov**2/2./le**2
+  cov = A * exp(cov)
 
   end subroutine QPKernel
 

@@ -182,8 +182,8 @@ if ( nplanets > 0 ):
         plt.plot(rvx,rvy*cfactor,'r',alpha=0.7,label='Planetary signal')
         plt.plot(rvx,m*cfactor,'b',alpha=0.7,label='Gaussian Process')
         plt.plot(rvx,(rvy+m)*cfactor,'k',label='Planetary signal + GP')
-        sig = np.sqrt(np.diag(C))
-        plt.fill_between(rvx,cfactor*(m+sig),cfactor*(m-sig),color='b',alpha=0.1)
+        #sig = np.sqrt(np.diag(C))
+        #plt.fill_between(rvx,cfactor*(m+sig),cfactor*(m-sig),color='b',alpha=0.1)
     else:
         plt.plot(rvx,(rvy)*cfactor,'k',label='Planetary signal')
 

@@ -3,10 +3,10 @@ module constants
 implicit none
 
   integer, parameter :: mireal = selected_real_kind(8)
-  real(kind=mireal), parameter :: pi = acos(-1.d0)
-  real(kind=mireal), parameter :: two_pi = 2.d0*acos(-1.d0)
-  real(kind=mireal), parameter :: log_two_pi = log(2.d0*acos(-1.d0))
-  real(kind=mireal), parameter :: uno = 1.0d0
+  real(kind=mireal), parameter :: pi = 3.14159265358979311599796346854418516 ! acos(-1.d0)
+  real(kind=mireal), parameter :: two_pi = 2.0*pi
+  real(kind=mireal), parameter :: log_two_pi = log(2.0*pi)
+  real(kind=mireal), parameter :: uno = 1.00
   real(kind=mireal), parameter :: fmin=1.d-8
   real(kind=mireal), parameter :: small = 1.d-5
   integer, parameter :: imax = int(1e8)
