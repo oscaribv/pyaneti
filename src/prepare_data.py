@@ -7,23 +7,6 @@
 
 nconv    = niter
 nwalkers = nchains
-#What transit data are we fitting
-if ( lc_data == 'kepler_lc' ):
-  n_cad = 10
-  t_cad = 29.425 / 60. / 24.0 #days
-elif ( lc_data == 'kepler_sc' ):
-  n_cad = 1
-  t_cad = 1.5 / 60. / 24.0 #days
-elif ( lc_data == 'tess_sc' ):
-  n_cad = 10
-  t_cad = 2.0 / 60. / 24.0 #days
-elif ( lc_data == 'free' ):
-  #values given by the user
-  n_cad = n_cad
-  t_cad = t_cad
-
-n_cad = [10,1]
-t_cad = [29.425/24./60.,.2/24./60.]
 
 #-----------------------------------------------------------
 #                         RV DATA
@@ -255,6 +238,26 @@ if (max_q1.__class__ == float ): max_q1 = [max_q1]
 if (max_q2.__class__ == float ): max_q2 = [max_q2]
 if (fit_q1.__class__ == str ):   fit_q1 = [fit_q1]
 if (fit_q2.__class__ == str ):   fit_q2 = [fit_q2]
+
+
+#What transit data are we fitting
+if n_cad.__class__ == int or t_cad.__class__ == float:
+  if ( lc_data == 'kepler_lc' ):
+    n_cad = [10]*nbands
+    t_cad = [29.425 / 60. / 24.0]*nbands #days
+  elif ( lc_data == 'kepler_sc' ):
+    n_cad = [1]*nbands
+    t_cad = [1.5 / 60. / 24.0]*nbands #days
+  elif ( lc_data == 'tess_sc' ):
+    n_cad = [10]*nbands
+    t_cad = [2.0 / 60. / 24.0]*nbands #days
+  elif ( lc_data == 'free' ):
+    #values given by the user
+    n_cad = [n_cad]*nbands
+    t_cad = [t_cad]*nbands
+else: #The n_cad and t_cad vectors are defined in the input file
+  n_cad = n_cad
+  t_cad = t_cad
 
 
 if ( is_den_a ): #For a multiplanet system the density has to be the same
