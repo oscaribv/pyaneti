@@ -160,6 +160,7 @@ if ( method == 'mcmc' or method == 'plot' ):
     k_vec[o]  = np.asarray(list(params[base + 6]))
     for m in range(0,nbands):
       rr_vec[o*nbands+m] = list(np.asarray(list(params[4+srp+nbands*o+m])))
+      rr_vec[o*nbands+m] = np.asarray(rr_vec[o*nbands+m])
 
 
     #sys.exit()
@@ -201,12 +202,12 @@ if ( method == 'mcmc' or method == 'plot' ):
     w_p_deg = (w_s_deg + 180.) % 360
 
   #Transit durations aproximations (eq. 14, 15, 16 from Winn 2014)
-#    ec_factor = np.sqrt(( 1. - e_vec[o]*e_vec[o] )) / ( 1.0 + e_vec[o]*np.sin(w_vec[o] ))
-#    trt_vec[o] = np.sqrt( (1. + rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
-#    trt_vec[o] = P_vec[o] / np.pi * np.arcsin(trt_vec[o]) * ec_factor * 24.0
-#    tri_vec[o] = np.sqrt( (1. - rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
-#    tri_vec[o] = P_vec[o] / np.pi * np.arcsin(tri_vec[o]) * ec_factor * 24.0
-    #tri_vec[o] = ( trt_vec[o] - tri_vec[o] ) / 2.0 #ingress egress time
+    ec_factor = np.sqrt(( 1. - e_vec[o]*e_vec[o] )) / ( 1.0 + e_vec[o]*np.sin(w_vec[o] ))
+    trt_vec[o] = np.sqrt( (1. + rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
+    trt_vec[o] = P_vec[o] / np.pi * np.arcsin(trt_vec[o]) * ec_factor * 24.0
+    tri_vec[o] = np.sqrt( (1. - rr_vec[o])**2 - b_vec[o]**2 ) / ( ar_vec[o] * np.sin(i_vec[o]))
+    tri_vec[o] = P_vec[o] / np.pi * np.arcsin(tri_vec[o]) * ec_factor * 24.0
+    tri_vec[o] = ( trt_vec[o] - tri_vec[o] ) / 2.0 #ingress egress time
 
     #Calculate the star density from transit data
     #Eq. (30) Winn 2014
@@ -239,17 +240,17 @@ if ( method == 'mcmc' or method == 'plot' ):
     pa_vec = (P_vec[o]*3600.*24.0)**2 * S_GM_SI * (mstar + m_vec[o])
     pa_vec = pa_vec / ( 4.*np.pi**2 * (a_vec[o]*AU_SI)**3 )
 
-#    #stimate planet gravity and density
-#    pden_vec = m_vec[o] / r_vec[o]**3 #solar units
-#    pden_vec = pden_vec * S_den_cgs   #g/cm^3
+    #stimate planet gravity and density
+    pden_vec = m_vec[o] / r_vec[o*nbands]**3 #solar units
+    pden_vec = pden_vec * S_den_cgs   #g/cm^3
 
-#    #We can stimate planet surface gravity (eq. (31) Winn)
-#    pgra_vec = (P_vec[o]*24.*3600.) * (rr_vec[o]/ar_vec[o])**2 * np.sin(i_vec[o])
-#    pgra_vec = 2. * np.pi * np.sqrt(1. - e_vec[o]**2) * (k_vec[o]*1.e5) / pgra_vec #cm/s^2
+    #We can stimate planet surface gravity (eq. (31) Winn)
+    pgra_vec = (P_vec[o]*24.*3600.) * (rr_vec[o*nbands]/ar_vec[o])**2 * np.sin(i_vec[o])
+    pgra_vec = 2. * np.pi * np.sqrt(1. - e_vec[o]**2) * (k_vec[o]*1.e5) / pgra_vec #cm/s^2
 
-#    #Estimate surface gravity from the derived parameters
-#    pgra_vec2 = m_vec[o] / r_vec[o]**2   #in solar units
-#    pgra_vec2 = pgra_vec2 * 28.02 * 981. #cm/s^2
+    #Estimate surface gravity from the derived parameters
+    pgra_vec2 = m_vec[o] / r_vec[o*nbands]**2   #in solar units
+    pgra_vec2 = pgra_vec2 * 28.02 * 981. #cm/s^2
 
     #Stellar luminosity in solar units
     Ls = (rstar)**2*(tstar/S_Teff)**4
@@ -324,13 +325,13 @@ if ( method == 'mcmc' or method == 'plot' ):
       print_values(Fp,'Insolation','insolation'+pl,'F_Earth','${\\rm F_{\\oplus}}$')
       print_values(ds_vec[o],'rho*','denstr'+pl,'g/cm^3 (transit)','${\\rm g\,cm^{-3}}$')
       print_values(irho_vec,'rho*','denssp'+pl,'g/cm^3 (stellar paramters)','${\\rm g\,cm^{-3}}$')
- #     print_values(pden_vec,'rho_p','denp'+pl,'g/cm^3','${\\rm g\,cm^{-3}}$')
- #     print_values(pgra_vec,'g_p','grap'+pl,'cm/s^2 (K and Rp/R*)','${\\rm cm\,s^{-2}}$')
- #     print_values(pgra_vec2,'g_p','grappars'+pl,'cm/s^2 (planet parameters)','${\\rm cm\,s^{-2}}$')
+      print_values(pden_vec,'rho_p','denp'+pl,'g/cm^3','${\\rm g\,cm^{-3}}$')
+      print_values(pgra_vec,'g_p','grap'+pl,'cm/s^2 (K and Rp/R*)','${\\rm cm\,s^{-2}}$')
+      print_values(pgra_vec2,'g_p','grappars'+pl,'cm/s^2 (planet parameters)','${\\rm cm\,s^{-2}}$')
  #     print_values(msgra,'M_*','mspars'+pl,' solar masses (scaled parameters)','$M_\odot$')
       print_values(Teq_vec[o],'Teq','Teq'+pl,'K (albedo=0)','K')
- #     print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')
- #     print_values(tri_vec[o],'T_full','tful'+pl,'hours','hours')
+      print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')
+      print_values(tri_vec[o],'T_full','tful'+pl,'hours','hours')
     opars.write ('--------------------------------------------------------------\n')
 
     #Let us change to the next planet
