@@ -59,23 +59,25 @@ use constants
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, n_cad, npl, nbands
+  integer, intent(in) :: datas, npl, nbands
+  integer, intent(in) :: n_cad(0:nbands-1)
   real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd
   integer, intent(in), dimension(0:datas-1)  :: trlab !this indicates the instrument label
   real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
   real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
 !  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
   !pars = T0, P, e, w, b, a/R*, Rp/R*
-  real(kind=mireal), intent(in) :: t_cad
+  real(kind=mireal), intent(in) :: t_cad(0:nbands-1)
   real(kind=mireal), intent(in), dimension (0:2*nbands-1) :: ldc
   real(kind=mireal), intent(out), dimension(0:datas-1) :: muld !output flux model
 !Local variables
   real(kind=mireal), dimension(0:datas-1) :: muld_npl
   real(kind=mireal), dimension(0:datas-1) :: mu
   real(kind=mireal) :: npl_dbl, u1(0:nbands-1), u2(0:nbands-1)
-  real(kind=mireal), dimension(0:n_cad-1,0:npl-1)  :: flux_ub
-  real(kind=mireal), dimension(0:n_cad-1)  :: xd_ub, z, fmultip
-  integer :: n, j, k(0:n_cad-1)
+  real(kind=mireal), allocatable, dimension(:,:)  :: flux_ub
+  real(kind=mireal), allocatable, dimension(:)  :: xd_ub, z, fmultip
+  integer :: n, j
+  integer, allocatable :: k(:)
 
   npl_dbl = dble(npl)
 
@@ -84,22 +86,29 @@ implicit none
     u2(n) = ldc(2*n+1)
   end do
 
-  do j = 0, n_cad - 1
-    k(j) = j
-  end do
 
   muld_npl(:) = 0.d0
-  flux_ub(:,:) = 0.d0
   do j = 0, datas - 1
 
+   allocate (flux_ub(0:n_cad(trlab(j))-1,0:npl-1))
+   allocate (xd_ub(0:n_cad(trlab(j))-1),z(0:n_cad(trlab(j))-1),fmultip(0:n_cad(trlab(j))-1))
+   allocate (k(0:n_cad(trlab(j))-1))
+
+
+
+    do n = 0, n_cad(trlab(j)) - 1
+      k(n) = n
+    end do
+
+
     !Calculate the time-stamps for the binned model
-    xd_ub(:) = xd(j) + t_cad*((k(:)+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
+    xd_ub(:) = xd(j) + t_cad(trlab(j))*((k(:)+1.d0)-0.5d0*(n_cad(trlab(j))+1.d0))/n_cad(trlab(j))
 
     !control the label of the planet
     do n = 0, npl - 1
 
       !Each z is independent for each planet
-      call find_z(xd_ub,pars(0:5,n),z,n_cad)
+      call find_z(xd_ub,pars(0:5,n),z,n_cad(trlab(j)))
 
 
       if ( ALL( z > 1.d0 + rps(n*nbands+trlab(j)) ) .or. rps(n*nbands+trlab(j)) < small ) then
@@ -111,7 +120,7 @@ implicit none
       else
 
         !Now we have z, let us use Agol's routines
-        call occultquad(z,u1(trlab(j)),u2(trlab(j)),rps(n*nbands+trlab(j)),flux_ub(:,n),mu,n_cad)
+        call occultquad(z,u1(trlab(j)),u2(trlab(j)),rps(n*nbands+trlab(j)),flux_ub(:,n),mu,n_cad(trlab(j)))
         !!!!!call qpower2(z,rp(n),u1,u2,flux_ub(:,n),n_cad)
 
       end if
@@ -120,18 +129,20 @@ implicit none
 
     fmultip(:) = 0.0
     !Sum the flux of all each sub-division of the model due to each planet
-    do n = 0, n_cad - 1
+    do n = 0, n_cad(trlab(j)) - 1
       fmultip(n) =  SUM(flux_ub(n,:))
     end do
 
     !Re-bin the model
-    muld_npl(j) = muld_npl(j) +  sum(fmultip) / n_cad
+    muld_npl(j) = muld_npl(j) +  sum(fmultip) / n_cad(trlab(j))
 
     !Calcualte the flux received taking into account the transit of all planets
     muld(j) =  1.0d0 + muld_npl(j) - npl_dbl
 
     !Restart flux_ub
     flux_ub(:,:) = 0.0
+
+    deallocate(flux_ub,xd_ub,z,fmultip,k)
 
   end do !datas
 
@@ -143,14 +154,15 @@ use constants
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, n_cad, npl, nbands, njtr
+  integer, intent(in) :: datas, npl, nbands, njtr
+  integer, intent(in) :: n_cad(0:nbands-1)
   real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd, errs
   real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
   real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
 !  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
   integer, intent(in), dimension(0:datas-1)  :: trlab, jtrlab
   !pars = T0, P, e, w, b, a/R*
-  real(kind=mireal), intent(in) :: t_cad
+  real(kind=mireal), intent(in) :: t_cad(0:nbands-1)
   real(kind=mireal), dimension(0:njtr-1), intent(in) :: jtr
   logical, intent(in), dimension(0:3) :: flag
   real(kind=mireal), intent(in) :: ldc(0:2*nbands-1)
@@ -172,14 +184,15 @@ use constants
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, n_cad, npl, nbands
+  integer, intent(in) :: datas, npl, nbands
+  integer, intent(in) :: n_cad(0:nbands-1)
   real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd
   real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
   real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
 !  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
   integer, intent(in), dimension(0:datas-1)  :: trlab
   !pars = T0, P, e, w, b, a/R*
-  real(kind=mireal), intent(in) :: t_cad
+  real(kind=mireal), intent(in) :: t_cad(0:nbands-1)
   logical, intent(in), dimension(0:3) :: flag
   real(kind=mireal), intent(in) :: ldc(0:2*nbands-1)
   real(kind=mireal), intent(out) :: res(0:datas-1)
@@ -207,6 +220,7 @@ implicit none
 
 
   !Update limb darkening coefficients, pass from q's to u's
+  is_good = .true.
   do n = 0, nbands - 1
     q1k(n) = ldc(2*n)
     q2k(n) = ldc(2*n+1)
@@ -214,10 +228,10 @@ implicit none
     u2(n) = sqrt(q1k(n))*(1.d0 - 2.d0*q2k(n))
     up_ldc(2*n)   = u1(n)
     up_ldc(2*n+1) = u2(n)
+    call check_us(u1(n),u2(n),is_good)
+    if ( .not. is_good ) exit
   end do
 
-
-  is_good = .true.
   if ( any( e > 1.d0 ) ) is_good = .false.
 
   if ( is_good ) then

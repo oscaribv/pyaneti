@@ -1,12 +1,12 @@
 subroutine get_loglike(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
            rvlab,jrvlab,trlab,jtrlab,tff,flags,kernels,&
-           pars,model_int,model_double,&
+           pars,model_int,model_double,nmodel_int,nmodel_double,&
            npars,loglike,chi2_rv,chi2_tr,size_rv,size_tr)
 use constants
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: size_rv, size_tr, npars !size of RV and LC data
+  integer, intent(in) :: size_rv, size_tr, npars, nmodel_int, nmodel_double !size of RV and LC data
   real(kind=mireal), intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   real(kind=mireal), intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_rv-1) :: rvlab, jrvlab
@@ -14,16 +14,16 @@ implicit none
   character(len=6), intent(in) :: kernels
 !npars = 7*npl + (npl + LDC)*nbands + noffsets + njitter + ntrends
   real(kind=mireal), intent(in) :: pars(0:npars-1)
-  real(kind=mireal), intent(in) :: model_double(0:0)
-  integer, intent(in) :: model_int(0:8)
+  real(kind=mireal), intent(in) :: model_double(0:nmodel_double-1)
+  integer, intent(in) :: model_int(0:nmodel_int-1)
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
   real(kind=mireal), intent(out) :: loglike, chi2_rv, chi2_tr
 !Local variables
   !Model int variables
-  integer :: npl, nbands, ntels, nldc, njrv, njtr, n_cad, np_rv, np_tr
+  integer :: npl, nbands, ntels, nldc, njrv, njtr, n_cad(0:nmodel_int-8-1), np_rv, np_tr
   !Model double variables
-  real(kind=mireal) :: t_cad
+  real(kind=mireal) :: t_cad(0:nmodel_double-1)
   !
   real(kind=mireal) :: chi2_total
   real(kind=mireal) :: log_errs
@@ -36,11 +36,11 @@ implicit none
   nldc   = model_int(3)
   njrv   = model_int(4)
   njtr   = model_int(5)
-  n_cad  = model_int(6)
-  np_rv  = model_int(7)
-  np_tr  = model_int(8)
+  np_rv  = model_int(6)
+  np_tr  = model_int(7)
+  n_cad(:)  = model_int(8:8+nbands-1)
   !Double variables
-  t_cad  = model_double(0)
+  t_cad(:)  = model_double(:)
   !
   kernel_rv = kernels(1:3)
   kernel_tr = kernels(4:6)
@@ -81,14 +81,15 @@ use constants
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: size_rv, size_tr,npars, npl, ntels,nbands,nldc,njrv,njtr,n_cad, np_rv, np_tr !size of RV and LC data
+  integer, intent(in) :: size_rv, size_tr,npars, npl, ntels,nbands,nldc,njrv,njtr, np_rv, np_tr !size of RV and LC data
+  integer, intent(in) :: n_cad(0:nbands-1)
   real(kind=mireal), intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   real(kind=mireal), intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_rv-1) :: rvlab, jrvlab
   integer, intent(in), dimension(0:size_tr-1) :: trlab, jtrlab
   character(len=6), intent(in) :: kernels
 !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
-  real(kind=mireal), intent(in) :: t_cad
+  real(kind=mireal), intent(in) :: t_cad(0:nbands-1)
   real(kind=mireal), intent(in) :: pars(0:npars-1)
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag
@@ -148,7 +149,6 @@ implicit none
   chi2_rv = 0.d0
   chi2_tr = 0.d0
 
-
   log_errs = 0.0
   if (tff(0) ) then
 
@@ -165,16 +165,15 @@ implicit none
     !This is the V. Rajpaul Framework
     !our x_rv and y_rv contains RV, LogR and BIS
     res_rv = 0.0
-    call find_res_rv(x_rv(0:size_rv/3-1),y_rv(0:size_rv/3-1),rvlab(0:size_rv/3-1),&
-                     pars_rv,flag_rv,res_rv(0:size_rv/3-1),size_rv/3,ntels-2,npl)
+    !call find_res_rv(x_rv(0:size_rv/3-1),y_rv(0:size_rv/3-1),rvlab(0:size_rv/3-1),&
+    !                 pars_rv,flag_rv,res_rv(0:size_rv/3-1),size_rv/3,ntels-2,npl)
     !print *, res_rv
+    res_rv(0*size_rv/3:1*size_rv/3-1) = y_rv(0*size_rv/3:1*size_rv/3-1) - pars(srv+ntels-3)
     !stop
     res_rv(1*size_rv/3:2*size_rv/3-1) = y_rv(1*size_rv/3:2*size_rv/3-1) - pars(srv+ntels-2)
     !print *, res_rv
     !stop
     res_rv(2*size_rv/3:3*size_rv/3-1) = y_rv(2*size_rv/3:3*size_rv/3-1) - pars(srv+ntels-1)
-    !print *, res_rv
-    !stop
 
 
     call NLL_GP(pk_rv,kernel_rv,x_rv,res_rv,e_rv,jrv,jrvlab,nll_rv,chi2_rv,np_rv,size_rv,njrv)
@@ -239,13 +238,14 @@ use constants
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: size_rv, size_tr,npars, npl, ntels,nbands,nldc,njrv,njtr,n_cad !size of RV and LC data
+  integer, intent(in) :: size_rv, size_tr,npars, npl, ntels,nbands,nldc,njrv,njtr !size of RV and LC data
+  integer, intent(in) :: n_cad(0:nbands-1)
   real(kind=mireal), intent(in), dimension(0:size_rv-1) :: x_rv, y_rv, e_rv
   real(kind=mireal), intent(in), dimension(0:size_tr-1) :: x_tr, y_tr, e_tr
   integer, intent(in), dimension(0:size_rv-1) :: rvlab, jrvlab
   integer, intent(in), dimension(0:size_tr-1) :: trlab, jtrlab
 !pars = T0, P, e, w, b, a/R*, Rp/R*, K -> for each planet
-  real(kind=mireal), intent(in) :: t_cad
+  real(kind=mireal), intent(in) :: t_cad(0:nbands-1)
   real(kind=mireal), intent(in) :: pars(0:npars-1)
   logical, intent(in) :: flags(0:5)
   logical, intent(in) :: tff(0:1) !total_fit_flag

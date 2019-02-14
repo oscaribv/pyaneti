@@ -132,7 +132,7 @@ def fancy_tr_plot(tr_vector,pnumber):
   fd_ub_unbinned = tr_vector[7]
 
   #Start the plot
-  plt.figure(1,figsize=(fsx,fsy))
+  plt.figure(1,figsize=(fsx,fsy+(nbands-1)*0.5*fsy))
   #Plot the transit light curve
   gs = gridspec.GridSpec(nrows=2, ncols=1, height_ratios=[3.0, 1.])
   gs.update(hspace=0.00)
@@ -144,22 +144,30 @@ def fancy_tr_plot(tr_vector,pnumber):
     plt.ylim(y_lim_min,y_lim_max)
   min_val_model = max(np.concatenate(fd_ub)) -  min(np.concatenate(fd_ub))
   deltay = 0.
-  dy = max(rp_val[pnumber*nbands:(pnumber+1)*nbands])**2
   for m in range(0,nbands):
+    dy = 2*(max(yflux[m])-min(yflux[m]))
     if ( plot_tr_errorbars  ):
-      plt.errorbar((xtime-local_T0)*tfc,yflux,errors,color=tr_colors,fmt='.',alpha=1.0)
+      plt.errorbar((xtime-local_T0)*tfc,yflux,errors,color=tr_colors[m],fmt='.',alpha=1.0)
     else:
-      plt.plot((xtime[m]-local_T0)*tfc,yflux[m]-deltay,'o',color=tr_colors,ms=7,alpha=0.8)
-      ###plt.errorbar(-x_lim*(0.95),y0 +eflux[m][0]*1.5-deltay,eflux[m][0],color=tr_colors,ms=7,fmt='o',alpha=1.0)
-      ###plt.annotate('Error bar',xy=(-x_lim*(0.70),y0 +eflux[m][0]*1.65-deltay),fontsize=fos*0.7)
+      plt.plot((xtime[m]-local_T0)*tfc,yflux[m]-deltay,color=tr_colors[m],ms=7,marker=mark_tr[m],alpha=0.8,linewidth=0.)
+      plt.plot((xmodel[m]-local_T0)*tfc,fd_ub[m]-deltay,'k',linewidth=2.0,alpha=1.0)
+      plt.errorbar(-x_lim*(0.95),min(yflux[m]-deltay),eflux[m][0],color=tr_colors[m],ms=7,fmt=mark_tr[m],alpha=1.0)
+      plt.annotate(bands[m],xy=(-x_lim*(0.85),min(yflux[m]-deltay)),fontsize=fos*0.7)
+      deltay = deltay + dy
       #if ( is_special ):
       #  [plt.fill_between((xmodel-local_T0)*tfc,*flux_model[i:i+2,:],alpha=0.3,facecolor='b') for i in range(1,6,2)]
       #  plt.fill_between((xmodel-local_T0)*tfc,*flux_model[5:7,:],alpha=0.5,facecolor='k')
       #if (plot_unbinned_model):
       #  plt.plot((xmodel-local_T0)*tfc,fd_ub_unbinned,'b',linewidth=2.0,alpha=1.0)
-      plt.plot((xmodel[m]-local_T0)*tfc,fd_ub[m]-deltay,'k',linewidth=2.0,alpha=1.0)
-      deltay = deltay + dy
-  y0,yyyy = ax1.get_ylim()
+
+#  y0,yyyy = ax1.get_ylim()
+#  deltay = 0.
+#  for m in range(0,nbands):
+#    dy = 2*(max(yflux[m])-min(yflux[m]))
+#    if ( not plot_tr_errorbars  ):
+#      plt.errorbar(-x_lim*(0.95),y0 +eflux[m][0]*1.5-deltay,eflux[m][0],color=tr_colors[m],ms=7,fmt='o',alpha=1.0)
+#      plt.annotate(bands[m],xy=(-x_lim*(0.70),y0 +eflux[m][0]*1.65-deltay),fontsize=fos*0.7)
+#      deltay = deltay + dy
   ##plot binned data
   #plt.plot(np.asarray(xbined)*tfc,fbined,'ko')
   ##
@@ -188,7 +196,7 @@ def fancy_tr_plot(tr_vector,pnumber):
     if ( plot_tr_errorbars  ):
       plt.errorbar((xmodel_res[m]-local_T0)*tfc,res_res[m]*1e6,eflux[m]*1e6,fmt='.',alpha=0.5)
     else:
-      plt.plot((xmodel_res[m]-local_T0)*tfc,res_res[m]*1e6,'o',color=tr_colors,ms=7,alpha=0.5)
+      plt.plot((xmodel_res[m]-local_T0)*tfc,res_res[m]*1e6,'o',color=tr_colors[m],ms=7,marker=mark_tr[m],alpha=0.5)
   plt.plot([x_lim,-x_lim],[0.0,0.0],'k--',linewidth=1.0,alpha=1.0)
   plt.xticks( np.arange(-mxv,mxv+step_plot,step_plot))
   plt.xlim(x_lim,-x_lim)
@@ -238,14 +246,14 @@ def plot_parameters_tr(time,flujo,eflujo,trlab,pars_tr,rp,plabel,bandlab):
     dumtp = pti.find_tp(0.0,e_val[plabel],w_val[plabel],P_val[plabel])
     dparstr = np.concatenate([[dumtp],pars_tr[plabel][1:]])
     #fd_ub = pti.flux_tr(xmodel,dparstr,my_ldc,n_cad,t_cad)
-    fd_ub = pti.flux_tr(xmodel,newtrlab,dparstr,rp[plabel*nbands+bandlab],my_ldc[bandlab*2:bandlab*2+2],n_cad,t_cad)
+    fd_ub = pti.flux_tr(xmodel,newtrlab,dparstr,rp[plabel*nbands+bandlab],my_ldc[bandlab*2:bandlab*2+2],n_cad[bandlab],t_cad[bandlab])
     #Let us create an unbinned model plot
     #fd_ub_unbinned = pti.flux_tr(xmodel,dparstr,my_ldc,1,t_cad)
-    fd_ub_unbinned = pti.flux_tr(xmodel,newtrlab,dparstr,rp[plabel*nbands+bandlab],my_ldc[bandlab*2:bandlab*2+2],1,t_cad)
+    fd_ub_unbinned = pti.flux_tr(xmodel,newtrlab,dparstr,rp[plabel*nbands+bandlab],my_ldc[bandlab*2:bandlab*2+2],[1],t_cad[bandlab])
     #Calculate the flux to copute the residuals
     #fd_ub_res = pti.flux_tr(xmodel_res,dparstr,my_ldc,n_cad,t_cad)
     newtrlab=[0]*len(xmodel_res)
-    fd_ub_res = pti.flux_tr(xmodel_res,newtrlab,dparstr,rp[plabel*nbands+bandlab],my_ldc[bandlab*2:bandlab*2+2],n_cad,t_cad)
+    fd_ub_res = pti.flux_tr(xmodel_res,newtrlab,dparstr,rp[plabel*nbands+bandlab],my_ldc[bandlab*2:bandlab*2+2],n_cad[bandlab],t_cad[bandlab])
 
     #Define a vector which will contain the data of other planers for multi fits
     fd_ub_total = list(fd_ub_res)
@@ -258,7 +266,8 @@ def plot_parameters_tr(time,flujo,eflujo,trlab,pars_tr,rp,plabel,bandlab):
         #fd_ub_total stores the flux of a star for each independent
         #fd_ub_total = fd_ub_total + pti.flux_tr(local_time,pars_tr[:,p],my_ldc,n_cad,t_cad)
         newtrlab=[0]*len(local_time)
-        fd_ub_total = fd_ub_total + pti.flux_tr(local_time,newtrlab,pars_tr[p],rp[p*nbands+bandlab],my_ldc[bandlab*2:bandlab*2+2],n_cad,t_cad)
+        fd_ub_total = fd_ub_total + pti.flux_tr(local_time,newtrlab,pars_tr[p],rp[p*nbands+bandlab],\
+                                                my_ldc[bandlab*2:bandlab*2+2],n_cad[bandlab],t_cad[bandlab])
 
     #Remove extra planets from the data
     yflux_local = yflux - fd_ub_total

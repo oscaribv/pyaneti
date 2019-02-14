@@ -356,7 +356,7 @@ use constants
 implicit none
   integer, intent(in) :: n
   real(kind=mireal), intent(in) :: chi2(0:n-1)
-  character(LEN=20) :: fto = "(A,F10.2)"
+  character(LEN=20) :: fto = "(A,F20.10)"
 
   write(*,*) '=================================='
   write(*,*) '     Chain statistics      '

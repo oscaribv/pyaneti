@@ -164,7 +164,7 @@ def create_transit_data(time,flux,errs,planet=0,span=0.0):
   P  = best_value(P_vec[planet],maxloglike,get_value)
   T0 = best_value(T0_vec[planet],maxloglike,get_value)
   #tt = best_value(trt_vec[planet],maxloglike,get_value)
-  tt = 3.
+  tt = 5.0
   tt = tt/24.0
 
   if ( span < 1e-5 ):
@@ -615,8 +615,9 @@ def joint_fit():
                                  RVS_prior_flag,jrv_prior_flag,jtr_prior_flag,trends_prior_flag,
                                  krv_prior_flag,ktr_prior_flag])
 
-  model_int = [nplanets,nt,nbands,nldc,n_jrv,n_jtr,n_cad,np_rv,np_tr]
-  model_double = [t_cad]
+  model_int = [nplanets,nt,nbands,nldc,n_jrv,n_jtr,np_rv,np_tr]
+  model_int = np.concatenate([model_int,n_cad])
+  model_double = t_cad
 
   if ( method == 'mcmc' ):
 
@@ -667,11 +668,11 @@ def print_init():
   oif.write ('fit RV         = %s\n' %fit_rv)
   oif.write ('fit Transit    = %s\n' %fit_tr)
   oif.write ('------------------------------\n')
-  if ( total_tr_fit ):
-    oif.write ('LC data        = %s\n' %lc_data)
-    oif.write ('cadence time   =  %2.3f min\n'%(t_cad*60.*24))
-    oif.write ('n rebinning    = %d\n' %n_cad)
-    oif.write ('Stellar priors = %s\n' %a_from_kepler)
+#  if ( total_tr_fit ):
+#    oif.write ('LC data        = %s\n' %lc_data)
+#    oif.write ('cadence time   =  %2.3f min\n'%(t_cad*60.*24))
+#    oif.write ('n rebinning    = %d\n' %n_cad)
+#    oif.write ('Stellar priors = %s\n' %a_from_kepler)
   for j in range(0,nplanets):
     oif.write ('------------------------------\n')
     oif.write ('  PLANET %s \n' %(star + plabels[j]))

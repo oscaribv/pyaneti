@@ -269,7 +269,7 @@ sigma_clean = 10
 #Label to appear in the timeseries plot of the light curve
 tr_xlabel = "BJD - 2450000 (days)"
 
-tr_colors = 'r'
+tr_colors = ['r','b','g','k']
 
 #RV PLOTS
 #If True it plots percentiles in the phase pholded RV plot
@@ -291,6 +291,7 @@ rv_xlabel = "BJD - 2450000 (days)"
 is_rv_legend = True
 #Default markers for the different instruments of the RV plots
 mark = ['o', 'D', 's', 'p', 'h', '8', '^', '<', '*', 'v','>','.', 'H', 'd','+']
+mark_tr = ['o', 'D', 's', 'p', 'h', '8', '^', '<', '*', 'v','>','.', 'H', 'd','+']
 #Default colors for the different instruments of the RV plots
 rv_colors = ['b','r','g','y','m','c']
 
