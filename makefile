@@ -16,7 +16,6 @@ FLAGS= -c -m
 LGOMP=-L/usr/lib64/ -lgomp
 SOURCES=src/constants.f90\
 	src/todo.f90\
-	src/qpower2.f90\
 	src/quad.f90\
         src/ftr.f90\
 	src/frv.f90\
