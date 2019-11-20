@@ -68,6 +68,7 @@ integer :: i
         endif
 ! the source is partly occulted and the occulting object crosses the limb:
 ! Equation (26):
+        kap1 = 0. !dummy value
         if(z.ge.abs(1.d0-p).and.z.le.1.d0+p) then
           kap1=acos(min((1.d0-p*p+z*z)/2.d0/z,1.d0))
           kap0=acos(min((p*p+z*z-1.d0)/2.d0/p/z,1.d0))
@@ -87,12 +88,12 @@ integer :: i
             Kk=ellk(q)
             Ek=ellec(q)
 ! Equation 34: lambda_3
-            lambdad(i)=1.d0/3.d0+16.d0*p/9.d0/pi*(2.d0*p*p-1.d0)*Ek-(32.d0*p**4-20.d0*p*p+3.d0)/9.d0/pi/p*Kk
+            lambdad(i)=1./3.+16.d0*p/9.d0/pi*(2.d0*p*p-1.d0)*Ek-(32.d0*p**4-20.d0*p*p+3.d0)/9.d0/pi/p*Kk
 ! Equation 34: eta_1
             etad(i)=1.d0/2.d0/pi*(kap1+p*p*(p*p+2.d0*z*z)*kap0-(1.d0+5.d0*p*p+z*z)/4.d0*sqrt((1.d0-x1)*(x2-1.d0)))
             if(p.eq.0.5d0) then
 ! Case VIII: p=1/2, z=1/2
-              lambdad(i)=1.d0/3.d0-4.d0/pi/9.d0
+              lambdad(i)=1./3.-4.d0/pi/9.d0
               etad(i)=3.d0/32.d0
             endif
             goto 10
@@ -103,7 +104,7 @@ integer :: i
             Kk=ellk(q)
             Ek=ellec(q)
 ! Equation 34: lambda_4
-            lambdad(i)=1.d0/3.d0+2.d0/9.d0/pi*(4.d0*(2.d0*p*p-1.d0)*Ek+ (1.d0-4.d0*p*p)*Kk)
+            lambdad(i)=1./3.+2.d0/9.d0/pi*(4.d0*(2.d0*p*p-1.d0)*Ek+ (1.d0-4.d0*p*p)*Kk)
 ! Equation 34: eta_2
             etad(i)=p*p/2.d0*(p*p+2.d0*z*z)
             goto 10
@@ -155,11 +156,11 @@ integer :: i
 
       FUNCTION rc(x,y)
       use constants
-      REAL*8 rc,x,y,ERRTOL,TINY,SQRTNY,BIG,TNBG,COMP1,COMP2,THIRD,C1,C2,C3,C4
+      real(kind=mireal) rc,x,y,ERRTOL,TINY,SQRTNY,BIG,TNBG,COMP1,COMP2,THIRD,C1,C2,C3,C4
       PARAMETER (ERRTOL=.04d0,TINY=1.69d-38,SQRTNY=1.3d-19,BIG=3.d37, &
       TNBG=TINY*BIG,COMP1=2.236d0/SQRTNY,COMP2=TNBG*TNBG/25.d0, &
-      THIRD=1.d0/3.d0,C1=.3d0,C2=1.d0/7.d0,C3=.375d0,C4=9.d0/22.d0)
-      REAL*8 alamb,ave,s,w,xt,yt
+      THIRD=1./3.,C1=.3d0,C2=1./7.,C3=.375d0,C4=9./22.)
+      real(kind=mireal) alamb,ave,s,w,xt,yt
       if(x.lt.0..or.y.eq.0..or.(x+abs(y)).lt.TINY.or.(x+ &
       abs(y)).gt.BIG.or.(y.lt.-COMP1.and.x.gt.0..and.x.lt.COMP2)) then
         print *, 'quad.f90: invalid argumets in rc'
@@ -188,13 +189,13 @@ integer :: i
 
       FUNCTION rj(x,y,z,p)
       use constants
-      REAL*8 rj,p,x,y,z,ERRTOL,TINY,BIG,C1,C2,C3,C4,C5,C6,C7,C8
-      PARAMETER (ERRTOL=.05d0,TINY=2.5d-13,BIG=9.d11,C1=3.d0/14.d0, &
-      C2=1.d0/3.d0,C3=3.d0/22.d0,C4=3.d0/26.d0,C5=.75d0*C3, &
-      C6=1.5d0*C4,C7=.5d0*C2,C8=C3+C3)
+      real(kind=mireal) rj,p,x,y,z,ERRTOL,TINY,BIG,C1,C2,C3,C4,C5,C6,C7,C8
+      PARAMETER (ERRTOL=.05d0,TINY=2.5d-13,BIG=9.d11,C1=3./14., &
+      C2=1./3.,C3=3./22.,C4=3./26.,C5=.75*C3, &
+      C6=1.5*C4,C7=0.5*C2,C8=C3+C3)
 !CU    USES rc,rf
-      REAL*8 rc, rf
-      REAL*8 a,alamb,alpha,ave,b,beta,delp,delx,dely,delz,ea,eb,ec,ed,ee, &
+      real(kind=mireal) rc, rf
+      real(kind=mireal) a,alamb,alpha,ave,b,beta,delp,delx,dely,delz,ea,eb,ec,ed,ee, &
       fac,pt,rcx,rho,sqrtx,sqrty,sqrtz,sum,tau,xt,yt,zt
       if(min(x,y,z).lt.0..or.min(x+y,x+z,y+z,abs(p)).lt.TINY.or.max(x,y, &
       z,abs(p)).gt.BIG) then
@@ -209,6 +210,7 @@ integer :: i
         yt=y
         zt=z
         pt=p
+        rcx = 0.
       else
         xt=min(x,y,z)
         zt=max(x,y,z)
@@ -297,10 +299,10 @@ integer :: i
 
       FUNCTION rf(x,y,z)
       use constants
-      REAL*8 rf,x,y,z,ERRTOL,TINY,BIG,THIRD,C1,C2,C3,C4
-      PARAMETER (ERRTOL=.08d0,TINY=1.5d-38,BIG=3.d37,THIRD=1.d0/3.d0, &
-      C1=1.d0/24.d0,C2=.1d0,C3=3.d0/44.d0,C4=1.d0/14.d0)
-      REAL*8 alamb,ave,delx,dely,delz,e2,e3,sqrtx,sqrty,sqrtz,xt,yt,zt
+      real(kind=mireal) rf,x,y,z,ERRTOL,TINY,BIG,THIRD,C1,C2,C3,C4
+      PARAMETER (ERRTOL=.08d0,TINY=1.5d-38,BIG=3.d37,THIRD=1./3., &
+      C1=1./24.,C2=.1d0,C3=3./44.,C4=1./14.)
+      real(kind=mireal) alamb,ave,delx,dely,delz,e2,e3,sqrtx,sqrty,sqrtz,xt,yt,zt
       if(min(x,y,z).lt.0.d0.or.min(x+y,x+z,y+z).lt.TINY.or.max(x,y, &
       z).gt.BIG) then
             print *, 'invalid arguments in rf'

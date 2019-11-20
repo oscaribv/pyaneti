@@ -148,8 +148,8 @@ def smart_priors():
     max_rv0 = [None]*nt
     for o in range(0,nt):
         if (fit_v0 == 'u'):
-          min_rv0[o] = min(rv_all[o]) - 0.1
-          max_rv0[o] = max(rv_all[o]) + 0.1
+          min_rv0[o] = min(rv_all[o]) - 1.0e-1
+          max_rv0[o] = max(rv_all[o]) + 1.0e-1
           if is_linear_trend == 'u':
             min_rv0[o] = min(rv_all[o]) - 1.0
             max_rv0[o] = max(rv_all[o]) + 1.0
@@ -468,6 +468,9 @@ def print_values(vector,var,vartex,unit,unittex):
     medv, minv, maxv = mode_and_99(vector)
     opars.write('%10s  %4.7f , %4.7f , %4.7f %8s \n'%('',medv,minv,maxv,unit))
 
+#-----------------------------------------------------------
+#         FIT JOINT RV-TRANSIT DATA
+#-----------------------------------------------------------
 def joint_fit():
   global fit_all, fit_ldc, fit_rvs, nt
   global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
@@ -481,10 +484,7 @@ def joint_fit():
   global new_nwalkers, good_index, nwalkers
   global jrvo, jtro, total_fit_flag, flags
   global limits, priorf, priorl, limits_ldc, limits_rvs
-  global prior_flags, prior_vals, model_int, model_double
-  global n_jtr, trlab, jtrlab
-  global kernels, krv_labels, krv_prior_flag, krv_prior_vals
-  global ktr_labels, ktr_prior_flag, ktr_prior_vals, np_rv, np_tr
+
 
   if ( is_ew ):
     min_e = min_ew1
@@ -499,124 +499,46 @@ def joint_fit():
     max_i = max_b
     fit_i = fit_b
 
+  fit_all = [None]*8*nplanets
+  for o in range(0,nplanets):
+    fit_all[o*8:(o+1)*8] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
+                            fit_i[o],fit_a[o], fit_rp[o], fit_k[o] ]
+
+  fit_rvs = []
+  for o in range(0,nt):
+    fit_rvs.append(fit_v0)
+
+  fit_ldc = [fit_q1, fit_q2]
+
+  fit_trends = [is_linear_trend,is_quadratic_trend]
 
   #Let us check what do we want to fit
   total_fit_flag = [ total_rv_fit, total_tr_fit ]
 
   flags = [is_log_P,is_ew,is_b_factor,is_den_a,is_log_k,is_log_rv0]
 
-  #Parameter priors
-  pars_prior_flag = [None]*7*nplanets
-  for o in range(0,nplanets):
-    pars_prior_flag[o*7:(o+1)*7] = [fit_t0[o],fit_P[o],fit_e[o],fit_w[o], \
-                                    fit_i[o],fit_a[o],fit_k[o] ]
 
-  pars_prior_vals = [None]*7*2*nplanets
+  vec_rv0_limits = []
+  for m in range(0,nt):
+    vec_rv0_limits.append(min_rv0[m])
+    vec_rv0_limits.append(max_rv0[m])
+
+  dummy_lims = [None]*8*2*nplanets
+
   for o in range(0,nplanets):
-    pars_prior_vals[o*7*2:(o+1)*7*2 ] = \
+
+    dummy_lims[o*8*2:(o+1)*8*2 ] = \
     [ min_t0[o], max_t0[o], min_P[o], max_P[o], min_e[o], max_e[o], min_w[o], max_w[o] \
-    , min_i[o], max_i[o], min_a[o], max_a[o], min_k[o], max_k[o] ]
+    , min_i[o], max_i[o], min_a[o], max_a[o], min_rp[o], max_rp[o], min_k[o], max_k[o] ]
 
-  #Planet radius priors
-  prs_prior_flag = [None]*nplanets
-  prs_prior_values = [None]*nplanets
-  for o in range(0,nplanets):
-      prs_prior_flag[o] = [fit_rp[o]]*nbands
-      prs_prior_values[o] = [min_rp[o],max_rp[o]]*nbands
+  limits = dummy_lims
 
-  prs_prior_flag = np.concatenate(prs_prior_flag)
-  prs_prior_values = np.concatenate(prs_prior_values)
+  limits_rvs = vec_rv0_limits
 
-  #LDC priors
-  ldc_prior_flag = []
-  ldc_prior_values = []
-  for o in range(0,nbands):
-      ldc_prior_flag.append(fit_q1[o])
-      ldc_prior_flag.append(fit_q2[o])
-      ldc_prior_values.append(min_q1[o])
-      ldc_prior_values.append(max_q1[o])
-      ldc_prior_values.append(min_q2[o])
-      ldc_prior_values.append(max_q2[o])
+  limits_ldc = [ min_q1, max_q1, min_q2, max_q2]
 
-  #Offsets priors
-  RVS_prior_flag = []
-  RVS_prior_vals = []
-  for o in range(0,nt):
-    RVS_prior_flag.append(fit_v0)
-    RVS_prior_vals.append(min_rv0[o])
-    RVS_prior_vals.append(max_rv0[o])
-
-  #RV jitter priors
-  if is_jitter_rv:
-      jrv_prior_flag = ['u']*n_jrv
-      jrv_prior_vals = [0.,0.05]*n_jrv
-  else:
-      jrv_prior_flag = ['f']*n_jrv
-      jrv_prior_vals = [0.,0.01]*n_jrv
-
-  #Transit jitter priors
-  if is_jitter_tr:
-      jtr_prior_flag = ['u']*n_jtr
-      jtr_prior_vals = [0.,1.e-3]*n_jtr
-  else:
-      n_jtr = 0
-      trlab = [0]*len(megax)
-      jtrlab = [0]*len(megax)
-      jtr_prior_flag = ['f']*n_jtr
-      jtr_prior_vals = [0.,1.e-3]*n_jtr
-
-  #Trends priors
-  trends_prior_flag = [is_linear_trend,is_quadratic_trend]
-  trends_prior_vals = [0.,1.,0.,1.]
-
-  #RV Kernels
-  if kernel_rv == 'None':
-      krv_prior_flag = []
-      krv_prior_vals = []
-      krv_labels = []
-  elif kernel_rv == 'QP2':
-     krv_prior_flag = fit_krv #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
-     krv_prior_vals = krv_priors #This has to be a 4-dimensional vector with the prior limits
-     krv_labels = ['A','$\Gamma_1$','$\Gamma_2$','P']
-  elif kernel_rv == 'QPK':
-     krv_prior_flag = fit_krv #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
-     krv_prior_vals = krv_priors #This has to be a 4-dimensional vector with the prior limits
-     krv_labels = ['A','$\lambda_p$','$\lambda_q$','P']
-  ##Add remaining kernels
-  elif kernel_rv == 'VRF':
-      krv_prior_flag = fit_krv
-      krv_prior_vals = krv_priors
-      krv_labels = ['Vc','Vr','Lc','Bc','Br','P','lp','le']
-
-  np_rv = len(krv_prior_flag)
-
-  #TR Kernels
-  if kernel_tr == 'None':
-      ktr_prior_flag = []
-      ktr_prior_vals = []
-      ktr_labels = []
-  elif kernel_tr == 'QPK':
-      ktr_prior_flag = fit_ktr #fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
-      ktr_prior_vals = ktr_priors #This has to be a 4-dimensional vector with the prior limits
-      ktr_labels = ['A','$\Gamma_1$','$\Gamma_2$','P']
-
-
-  ##Add remaining kernels
-
-  np_tr = len(ktr_prior_flag)
-
-  kernels = kernel_rv[0:3]+kernel_tr[0:3]
-
-  prior_vals  = np.concatenate([pars_prior_vals,prs_prior_values,ldc_prior_values,\
-                                RVS_prior_vals,jrv_prior_vals,jtr_prior_vals,trends_prior_vals,\
-                                krv_prior_vals, ktr_prior_vals])
-  prior_flags = np.concatenate([pars_prior_flag,prs_prior_flag,ldc_prior_flag,\
-                                 RVS_prior_flag,jrv_prior_flag,jtr_prior_flag,trends_prior_flag,
-                                 krv_prior_flag,ktr_prior_flag])
-
-  model_int = [nplanets,nt,nbands,nldc,n_jrv,n_jtr,np_rv,np_tr]
-  model_int = np.concatenate([model_int,n_cad])
-  model_double = t_cad
+  stellar_pars = [mstar_mean,mstar_sigma,rstar_mean,rstar_sigma]
+  is_jitter = [is_jitter_rv, is_jitter_tr]
 
   if ( method == 'mcmc' ):
 
@@ -626,11 +548,10 @@ def joint_fit():
 
     pti.mcmc_stretch_move(\
     mega_time,mega_rv,megax,megay,mega_err,megae, \
-    tlab,jrvlab,trlab,jtrlab,\
-    flags,total_fit_flag,prior_flags,prior_vals,\
-    kernels, model_int,\
-    model_double,\
-    nwalkers,maxi,thin_factor,nconv )
+    tlab,jrvlab,stellar_pars,a_from_kepler,\
+    flags,total_fit_flag,is_jitter,fit_all,fit_rvs,fit_ldc,fit_trends, \
+    nwalkers,maxi,thin_factor,nconv, limits, limits_rvs, \
+    limits_ldc,n_cad, t_cad, npl=nplanets,n_tel=nt,n_jrv=n_jrv)
 
   elif ( method == 'plot' ):
     print 'I will only print the values and generate the plot'
@@ -644,6 +565,14 @@ def joint_fit():
   newfile = outdir+'/'+star+'_all_data.dat'
   if ( os.path.isfile('all_data.dat') ):
     os.rename('all_data.dat',newfile)
+
+  newfile_jitter = outdir+'/'+star+'_jitter_data.dat'
+  if ( os.path.isfile('jitter_data.dat') ):
+    os.rename('jitter_data.dat',newfile_jitter)
+
+  newfile_trends = outdir+'/'+star+'_trends_data.dat'
+  if ( os.path.isfile('trends_data.dat') ):
+    os.rename('trends_data.dat',newfile_trends)
 
 #-----------------------------------------------------------
 #          PRINT INITIAL CONFIGURATION
@@ -667,11 +596,11 @@ def print_init():
   oif.write ('fit RV         = %s\n' %fit_rv)
   oif.write ('fit Transit    = %s\n' %fit_tr)
   oif.write ('------------------------------\n')
-#  if ( total_tr_fit ):
-#    oif.write ('LC data        = %s\n' %lc_data)
-#    oif.write ('cadence time   =  %2.3f min\n'%(t_cad*60.*24))
-#    oif.write ('n rebinning    = %d\n' %n_cad)
-#    oif.write ('Stellar priors = %s\n' %a_from_kepler)
+  if ( total_tr_fit ):
+    oif.write ('LC data        = %s\n' %lc_data)
+    oif.write ('cadence time   =  %2.3f min\n'%(t_cad*60.*24))
+    oif.write ('n rebinning    = %d\n' %n_cad)
+    oif.write ('Stellar priors = %s\n' %a_from_kepler)
   for j in range(0,nplanets):
     oif.write ('------------------------------\n')
     oif.write ('  PLANET %s \n' %(star + plabels[j]))
@@ -696,9 +625,8 @@ def print_init():
     oif.write ('------------------------------\n')
   oif.write (' Other parameter priors \n')
   oif.write ('------------------------------\n')
-  for m in range(0,nbands):
-    oif.write ('q1 %s = %s[ %4.4f , %4.4f ]\n' %(bands[m],fit_q1[m],min_q1[m],max_q1[m]))
-    oif.write ('q2 %s = %s[ %4.4f , %4.4f ]\n' %(bands[m],fit_q2[m],min_q2[m],max_q2[m]))
+  oif.write ('q1 = %s[ %4.4f , %4.4f ]\n' %(fit_q1,min_q1,max_q1))
+  oif.write ('q2 = %s[ %4.4f , %4.4f ]\n' %(fit_q2,min_q2,max_q2))
   for m in range(0,nt):
     oif.write ('%s = %s[ %4.4f , %4.4f ]\n' %(telescopes_labels[m],fit_v0,min_rv0[m],max_rv0[m]))
   oif.write ('==============================\n')

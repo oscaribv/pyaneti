@@ -100,8 +100,8 @@ fit_a   = ['f']
 fit_rp  = ['f']
 fit_k   = ['f']
 fit_v0  = ['f']
-fit_q1  = ['f']
-fit_q2  = ['f']
+fit_q1  = 'f'
+fit_q2  = 'f'
 
 #if is_ew = True
 fit_ew1 = ['f']
@@ -134,10 +134,10 @@ min_b   = [0.0]
 max_b   = [1.0]
 min_a   = [1.5]       # The planet is outside the star
 max_a   = [1.e3]       # The planet is really far
-min_q1  = [0.0]   #
-max_q1  = [1.0]     #
-min_q2  = [0.0]     #
-max_q2  = [1.0]      #
+min_q1  = 0.0   #
+max_q1  = 1.0     #
+min_q2  = 0.0     #
+max_q2  = 1.0      #
 min_rp  = [0.0]       # Earth size planet / sun
 max_rp  = [0.99]      # a really big planet
 #rv fit
@@ -155,11 +155,6 @@ lc_data = 'free'
 #other options are:
 #'kepler_lc', with default n_cad = 10 and t_cad = 30 minutes
 #'kepler_sc', with default n_cad = 1 and t_cad = 1.5 minutes
-
-#New parameters
-nbands = 1
-nldc   = 2
-bands = ['']
 
 #If True, it will set a Gaussian prior for the scaled semi-major axis based
 #on the input stellar paramters
@@ -197,13 +192,6 @@ is_jitter_rv = False
 #jrvvec = [] has to contain the labels in the fifth column of the RV file
 is_special_jitter = False
 jrvvec = []
-
-
-#----------------------------------------------------------------
-#          Gaussian Process controls
-#----------------------------------------------------------------
-kernel_rv = 'None'
-kernel_tr = 'None'
 
 
 #----------------------------------------------------------------
@@ -269,7 +257,7 @@ sigma_clean = 10
 #Label to appear in the timeseries plot of the light curve
 tr_xlabel = "BJD - 2450000 (days)"
 
-tr_colors = ['r','b','g','k']
+tr_colors = 'r'
 
 #RV PLOTS
 #If True it plots percentiles in the phase pholded RV plot
@@ -291,7 +279,6 @@ rv_xlabel = "BJD - 2450000 (days)"
 is_rv_legend = True
 #Default markers for the different instruments of the RV plots
 mark = ['o', 'D', 's', 'p', 'h', '8', '^', '<', '*', 'v','>','.', 'H', 'd','+']
-mark_tr = ['o', 'D', 's', 'p', 'h', '8', '^', '<', '*', 'v','>','.', 'H', 'd','+']
 #Default colors for the different instruments of the RV plots
 rv_colors = ['b','r','g','y','m','c']
 

@@ -15,18 +15,19 @@
 !  Winn, 2010, Transit and Occultations.
 !------------------------------------------------------------
 subroutine find_z(t,pars,z,ts)
-use constants
 implicit none
 
 !In/Out variables
   integer, intent(in) :: ts
-  real(kind=mireal), intent(in), dimension(0:ts-1) :: t
-  real(kind=mireal), intent(in), dimension(0:5) :: pars
-  real(kind=mireal), intent(out), dimension(0:ts-1) :: z
+  double precision, intent(in), dimension(0:ts-1) :: t
+  double precision, intent(in), dimension(0:5) :: pars
+  double precision, intent(out), dimension(0:ts-1) :: z
 !Local variables
-  real(kind=mireal), dimension(0:ts-1) :: ta, swt
-  real(kind=mireal) :: tp, P, e, w, i, a
-  real(kind=mireal) :: si
+  double precision, dimension(0:ts-1) :: ta, swt
+  double precision :: tp, P, e, w, i, a
+  double precision :: si
+!External function
+  external :: find_anomaly
 !
 
   tp  = pars(0)
@@ -53,66 +54,55 @@ implicit none
 
 end subroutine
 
-subroutine flux_tr(xd,trlab,pars,rps,ldc,&
-           n_cad,t_cad,nbands,datas,npl,muld)
-use constants
+subroutine flux_tr(xd,pars,ldc,&
+           n_cad,t_cad,datas,npl,muld)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, npl, nbands
-  integer, intent(in) :: n_cad(0:nbands-1)
-  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd
-  integer, intent(in), dimension(0:datas-1)  :: trlab !this indicates the instrument label
-  real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
-  real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
-!  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
+  integer, intent(in) :: datas, n_cad, npl
+  double precision, intent(in), dimension(0:datas-1)  :: xd
+  double precision, intent(in), dimension(0:6,0:npl-1) :: pars
   !pars = T0, P, e, w, b, a/R*, Rp/R*
-  real(kind=mireal), intent(in) :: t_cad(0:nbands-1)
-  real(kind=mireal), intent(in), dimension (0:2*nbands-1) :: ldc
-  real(kind=mireal), intent(out), dimension(0:datas-1) :: muld !output flux model
+  double precision, intent(in) :: t_cad
+  double precision, intent(in), dimension (0:1) :: ldc
+  double precision, intent(out), dimension(0:datas-1) :: muld
 !Local variables
-  real(kind=mireal), dimension(0:datas-1) :: muld_npl
-  real(kind=mireal), dimension(0:datas-1) :: mu
-  real(kind=mireal) :: npl_dbl, u1(0:nbands-1), u2(0:nbands-1)
-  real(kind=mireal), allocatable, dimension(:,:)  :: flux_ub
-  real(kind=mireal), allocatable, dimension(:)  :: xd_ub, z, fmultip
-  integer :: n, j
-  integer, allocatable :: k(:)
+  double precision, dimension(0:datas-1) :: muld_npl
+  double precision, dimension(0:datas-1) :: mu
+  double precision :: npl_dbl, small, u1, u2, rp(0:npl-1)
+  double precision, dimension(0:n_cad-1,0:npl-1)  :: flux_ub
+  double precision, dimension(0:n_cad-1)  :: xd_ub, z, fmultip
+  integer :: n, j, k(0:n_cad-1)
+!External function
+  external :: occultquad, find_z
 
+  small = 1.d-5
   npl_dbl = dble(npl)
 
-  do n = 0, nbands - 1
-    u1(n) = ldc(2*n)
-    u2(n) = ldc(2*n+1)
+  u1 = ldc(0)
+  u2 = ldc(1)
+
+  !Get planet radius
+  rp(:) = pars(6,:)
+
+  do j = 0, n_cad - 1
+    k(j) = j
   end do
 
-
   muld_npl(:) = 0.d0
+  flux_ub(:,:) = 0.d0
   do j = 0, datas - 1
 
-   allocate (flux_ub(0:n_cad(trlab(j))-1,0:npl-1))
-   allocate (xd_ub(0:n_cad(trlab(j))-1),z(0:n_cad(trlab(j))-1),fmultip(0:n_cad(trlab(j))-1))
-   allocate (k(0:n_cad(trlab(j))-1))
-
-
-
-    do n = 0, n_cad(trlab(j)) - 1
-      k(n) = n
-    end do
-
-
     !Calculate the time-stamps for the binned model
-    xd_ub(:) = xd(j) + t_cad(trlab(j))*((k(:)+1.d0)-0.5d0*(n_cad(trlab(j))+1.d0))/n_cad(trlab(j))
+    xd_ub(:) = xd(j) + t_cad*((k(:)+1.d0)-0.5d0*(n_cad+1.d0))/n_cad
 
     !control the label of the planet
     do n = 0, npl - 1
 
       !Each z is independent for each planet
-      call find_z(xd_ub,pars(0:5,n),z,n_cad(trlab(j)))
+      call find_z(xd_ub,pars(0:5,n),z,n_cad)
 
-
-      if ( ALL( z > 1.d0 + rps(n*nbands+trlab(j)) ) .or. rps(n*nbands+trlab(j)) < small ) then
-
+      if ( ALL( z > 1.d0 + rp(n) ) .or. rp(n) < small ) then
 
         muld_npl(j) = muld_npl(j) + 1.d0 !This is not eclipse
         flux_ub(:,n) = 0.d0
@@ -120,8 +110,8 @@ implicit none
       else
 
         !Now we have z, let us use Agol's routines
-        call occultquad(z,u1(trlab(j)),u2(trlab(j)),rps(n*nbands+trlab(j)),flux_ub(:,n),mu,n_cad(trlab(j)))
-        !!!!!call qpower2(z,rp(n),u1,u2,flux_ub(:,n),n_cad)
+        call occultquad(z,u1,u2,rp(n),flux_ub(:,n),mu,n_cad)
+        !call qpower2(z,rp(n),u1,u2,flux_ub(:,n),n_cad)
 
       end if
 
@@ -129,12 +119,12 @@ implicit none
 
     fmultip(:) = 0.0
     !Sum the flux of all each sub-division of the model due to each planet
-    do n = 0, n_cad(trlab(j)) - 1
+    do n = 0, n_cad - 1
       fmultip(n) =  SUM(flux_ub(n,:))
     end do
 
     !Re-bin the model
-    muld_npl(j) = muld_npl(j) +  sum(fmultip) / n_cad(trlab(j))
+    muld_npl(j) = muld_npl(j) +  sum(fmultip) / n_cad
 
     !Calcualte the flux received taking into account the transit of all planets
     muld(j) =  1.0d0 + muld_npl(j) - npl_dbl
@@ -142,69 +132,35 @@ implicit none
     !Restart flux_ub
     flux_ub(:,:) = 0.0
 
-    deallocate(flux_ub,xd_ub,z,fmultip,k)
-
   end do !datas
 
 end subroutine
 
-subroutine find_chi2_tr(xd,yd,errs,trlab,jtrlab,pars,rps,ldc,jtr,flag, &
-           n_cad,t_cad,chi2,datas,nbands,njtr,npl)
-use constants
+
+subroutine find_chi2_tr(xd,yd,errs,pars,jitter,flag,ldc,&
+           n_cad,t_cad,chi2,datas,npl)
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, npl, nbands, njtr
-  integer, intent(in) :: n_cad(0:nbands-1)
-  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
-  real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
-!  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
-  integer, intent(in), dimension(0:datas-1)  :: trlab, jtrlab
-  !pars = T0, P, e, w, b, a/R*
-  real(kind=mireal), intent(in) :: t_cad(0:nbands-1)
-  real(kind=mireal), dimension(0:njtr-1), intent(in) :: jtr
+  integer, intent(in) :: datas, n_cad, npl
+  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
+  double precision, intent(in), dimension(0:6,0:npl-1) :: pars
+  !pars = T0, P, e, w, b, a/R*, Rp/R*
+  double precision, intent(in) :: t_cad
+  double precision, intent(in) :: jitter
   logical, intent(in), dimension(0:3) :: flag
-  real(kind=mireal), intent(in) :: ldc(0:2*nbands-1)
-  real(kind=mireal), intent(out) :: chi2
+  double precision, intent(in), dimension (0:1) :: ldc
+  double precision, intent(out) :: chi2
 !Local variables
-  real(kind=mireal), dimension(0:datas-1) :: res
-
-    call find_res_tr(xd,yd,trlab,pars,rps,ldc,flag, &
-           n_cad,t_cad,res,datas,nbands,npl)
-    res(:) = res(:) / sqrt( errs(:)**2 + jtr(jtrlab(:))**2 )
-    chi2 = dot_product(res,res)
-
-
-end subroutine
-
-subroutine find_res_tr(xd,yd,trlab,pars,rps,ldc,flag, &
-           n_cad,t_cad,res,datas,nbands,npl)
-use constants
-implicit none
-
-!In/Out variables
-  integer, intent(in) :: datas, npl, nbands
-  integer, intent(in) :: n_cad(0:nbands-1)
-  real(kind=mireal), intent(in), dimension(0:datas-1)  :: xd, yd
-  real(kind=mireal), intent(in), dimension(0:5,0:npl-1) :: pars
-  real(kind=mireal), intent(in), dimension(0:nbands*npl-1) :: rps
-!  real(kind=mireal), intent(in), dimension(0:nbands-1,0:npl-1) :: rps
-  integer, intent(in), dimension(0:datas-1)  :: trlab
-  !pars = T0, P, e, w, b, a/R*
-  real(kind=mireal), intent(in) :: t_cad(0:nbands-1)
-  logical, intent(in), dimension(0:3) :: flag
-  real(kind=mireal), intent(in) :: ldc(0:2*nbands-1)
-  real(kind=mireal), intent(out) :: res(0:datas-1)
-!Local variables
-  real(kind=mireal), dimension(0:datas-1) :: muld
-  real(kind=mireal), dimension(0:5,0:npl-1) :: up_pars !updated parameters
-  real(kind=mireal), dimension(0:npl-1) :: t0, P, e, w, i, a, tp
-  real(kind=mireal), dimension(0:nbands-1) :: u1, u2, q1k, q2k
-  real(kind=mireal), dimension (0:2*nbands-1) :: up_ldc
+  double precision, dimension(0:datas-1) :: res, muld
+  double precision, dimension(0:6,0:npl-1) :: up_pars !updated parameters
+  double precision, dimension(0:npl-1) :: t0, P, e, w, i, a, rp, tp
+  double precision :: u1, u2, q1k, q2k
+  double precision, dimension (0:1) :: up_ldc
   logical :: is_good
   integer :: n
-
+!External function
+  external :: flux_tr
 
   t0  = pars(0,:)
   P   = pars(1,:)
@@ -212,25 +168,23 @@ implicit none
   w   = pars(3,:)
   i   = pars(4,:)
   a   = pars(5,:)
+  rp  = pars(6,:)
 
   if (flag(0)) P = 1.d0**pars(1,:)
   if (flag(1)) call ewto(e,w,e,w,npl)
   if (flag(3)) call rhotoa(a(0),P(:),a(:),npl)
   if (flag(2)) call btoi(i,a,e,w,i,npl)
 
-
   !Update limb darkening coefficients, pass from q's to u's
-  is_good = .true.
-  do n = 0, nbands - 1
-    q1k(n) = ldc(2*n)
-    q2k(n) = ldc(2*n+1)
-    u1(n) = 2.d0*q1k(n)*sqrt(q2k(n))
-    u2(n) = sqrt(q1k(n))*(1.d0 - 2.d0*q2k(n))
-    up_ldc(2*n)   = u1(n)
-    up_ldc(2*n+1) = u2(n)
-    call check_us(u1(n),u2(n),is_good)
-    if ( .not. is_good ) exit
-  end do
+  q1k = ldc(0)
+  q2k = ldc(1)
+  !re-transform the parameters to u1 and u2
+  u1 = sqrt(q1k)
+  u2 = u1*( 1.d0 - 2.d0*q2k)
+  u1 = 2.d0*u1*q2k
+  up_ldc = (/ u1 , u2 /)
+ !are the u1 and u2 within a physical solution
+  call check_us(u1,u2,is_good)
 
   if ( any( e > 1.d0 ) ) is_good = .false.
 
@@ -247,16 +201,15 @@ implicit none
     up_pars(3,:) = w
     up_pars(4,:) = i
     up_pars(5,:) = a
+    up_pars(6,:) = rp
 
-    !Here we have a vector for the radius called rps
-
-    call flux_tr(xd,trlab,up_pars,rps,up_ldc,&
-           n_cad,t_cad,nbands,datas,npl,muld)
-    res(:) =  muld(:) - yd(:)
+    call flux_tr(xd,up_pars,up_ldc,n_cad,t_cad,datas,npl,muld)
+    res(:) = ( muld(:) - yd(:) ) / sqrt( errs(:)**2 + jitter**2 )
+    chi2 = dot_product(res,res)
 
   else
 
-    res(:) = huge(0.d0)
+    chi2 = huge(0.e0)
 
   end if
 
