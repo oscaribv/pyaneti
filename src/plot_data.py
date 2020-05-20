@@ -458,6 +458,22 @@ def clean_transits(sigma=10):
 
     of.close()
 
+    out_f = outdir+'/'+star+'_model_lc.dat'
+    of = open(out_f,'w')
+    for i in range(0,len(xvec_model)):
+      of.write(' %8.8f   %8.8f \n'%(xvec_model[i],solution_flux[i]))
+    of.close()
+
+    out_f = outdir+'/'+star+'_model_to_data_lc.dat'
+    of = open(out_f,'w')
+    for i in range(0,len(megax)):
+      of.write(' %8.8f   %8.8f \n'%(megax[i],model_flux[i]))
+
+
+
+    of.close()
+
+
 
 #===========================================================
 #              plot rv fancy function

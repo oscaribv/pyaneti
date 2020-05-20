@@ -218,7 +218,9 @@ if ( method == 'mcmc' or method == 'plot' ):
     if ( is_log_P ):
       P_vec[o] = 10.0**(P_vec[o])
     if ( is_den_a ):
-      ar_vec[o] = pti.rhotoa(ar_vec[0],P_vec[o])
+      if (o == 0): miden = list(params[base+5])
+      for m in range(0,len(miden)):
+        ar_vec[o][m] = pti.rhotoa(miden[m],P_vec[o][m],1)
     if ( is_log_k ):
       k_vec[o] = 10.0**(k_vec[o])
 
@@ -342,7 +344,7 @@ if ( method == 'mcmc' or method == 'plot' ):
     if ( fit_tr[o] ):
       print_values(b_vec[o],'b','b'+pl,' ',' ')
       if ( is_den_a ):
-        print_values(params[4+5],'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}}$')
+        print_values(miden,'rho*^1/3','dentrhee'+pl,'g^{1/3}/cm','${\\rm g^{1/3}\,cm^{-1}}$')
       else:
         print_values(ar_vec[o],'a/R*','ar'+pl,' ',' ')
       print_values(rr_vec[o],'rp/R*','rr'+pl,' ',' ')

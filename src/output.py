@@ -21,7 +21,7 @@ else:
  #PLOT TRANSIT
 if ( total_tr_fit ):
   plot_transit_nice()
-  plot_all_transits()
+#  plot_all_transits()
   clean_transits(sigma_clean)
   create_tango_input()
 

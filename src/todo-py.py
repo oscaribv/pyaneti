@@ -263,7 +263,7 @@ def best_value(vector,loglike,cual):
         result = np.median(vector)
     elif( cual == 'mode' ):
         result = my_mode(vector)
-    elif( cual == 'maxlike' ):
+    elif( cual == 'map' ):
         maxindex = np.argmax(loglike)
         result = vector[maxindex]
 

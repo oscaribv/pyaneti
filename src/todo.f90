@@ -438,15 +438,19 @@ implicit none
 end subroutine
 
 subroutine ewto(ew1,ew2,e,w,n)
+use constants
 implicit none
 
   !In/Out variables
   integer, intent(in) :: n
-  double precision, intent(in), dimension(0:n-1) :: ew1, ew2
-  double precision, intent(out), dimension(0:n-1) :: e, w
+  real(kind=mireal), intent(in), dimension(0:n-1) :: ew1, ew2
+  real(kind=mireal), intent(out), dimension(0:n-1) :: e, w
+  !
+  real(kind=mireal), dimension(0:n-1) :: edum
 
-    e(:) = ew1(:) * ew1(:) + ew2(:) * ew2(:)
+    edum = ew1(:) * ew1(:) + ew2(:) * ew2(:)
     w(:) = atan2(ew1(:),ew2(:))
+    e = edum
 
 end subroutine
 
