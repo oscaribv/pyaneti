@@ -210,6 +210,15 @@ for o in range(0,nplanets):
     if (fit_rv[o] == False ):
       fit_k[o]  = 'f'
 
+if is_single_transit:
+    for o in range(0, nplanets):
+        fit_P[o] = 'f'
+        min_P[o] = 10*(max(megax)-min(megax))
+        fit_a[o] = 'u'
+        min_a[o] = 1.1
+        max_a[o] = 1e3
+        plot_binned_data = False
+
 #Let us turn off velocity offset for a pure TR fit
 if ( not total_rv_fit ):
   fit_v0 = 'f'

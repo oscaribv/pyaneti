@@ -266,6 +266,38 @@ if ( method == 'mcmc' or method == 'plot' ):
     for m in range(0,len(Tpe_vec[o])):
       Tpe_vec[o][m] = pti.find_tp(T0_vec[o][m],e_vec[o][m],w_vec[o][m],P_vec[o][m])
 
+#    if is_single_transit:
+#            # Let us make the magic if we are dealing with single transits
+#            # we have the scaled radius rr_vec and the impact parameter b_vec, we need the transit durations
+#            # Let us estimate the transit duration from all the points where the planet is crossing the star
+#            z_vec = [None]*len(Tpe_vec[o])
+#            tr_dur_vec = [None]*len(Tpe_vec[o])
+#            for m in range(len(Tpe_vec[o])):
+#                #pars = [np.mean(Tpe_vec[o]),np.mean(P_vec[o]),np.mean(e_vec[o]),np.mean(w_vec[o]),np.mean(i_vec[o]),np.mean(ar_vec[o])]
+#                pars = [Tpe_vec[o][m], P_vec[o][m], e_vec[o]
+#                        [m], w_vec[o][m], i_vec[o][m], ar_vec[o][m]]
+#                # This works for a single planet and for a single band
+#                rplanet = np.mean(rr_vec[o][m])
+#                tiempo = np.arange(min(megax), max(
+#                    megax), 1./60./24.)  # minute precision
+#                z_vec[m] = pti.find_z(tiempo, pars)
+#                # Z contains is the vector containing the distance between the star and planet centres in stellar radius units
+#                tr_index = z_vec[m] < 1 + rplanet
+#                tr_time = tiempo[tr_index]
+#                # Now we have the times where the transit happens
+#                tr_dur_vec[m] = max(tr_time) - min(tr_time)
+#            tr_dur_vec = np.array(tr_dur_vec)
+#            # Now we have a vector with the estimated transit duration, time to estimate planet velocity
+#            # Using eq. (1) of Osborn et al., 2016, MNRAS, 457, 2273, https://academic.oup.com/mnras/article/457/3/2273/2588921
+#            vpl_vec = np.array(2.*np.sqrt((1.+np.array(rr_vec))
+#                                          ** 2-np.array(b_vec)**2)/(tr_dur_vec*24.*60.*60.))
+#            vpl_vec = vpl_vec[0]
+#            # Now we can estimate planetary orbit period assuming the orbit is circular
+#            # Using eq. (2) of Osborn et al., 2016, MNRAS, 457, 2273
+#            P_circ_vec = 8. * np.pi**2 * G_cgs * irho_vec / 3. / vpl_vec**3
+#            # Convert P_circ_vec to days
+#            P_circ_vec = P_circ_vec/24./3600.
+
     #Density from the input stellar parameters
     irho_vec = mstar/rstar**3 * 1.411
 
@@ -372,6 +404,10 @@ if ( method == 'mcmc' or method == 'plot' ):
       print_values(Teq_vec[o],'Teq','Teq'+pl,'K (albedo=0)','K')
       print_values(trt_vec[o],'T_tot','ttot'+pl,'hours','hours')
       print_values(tri_vec[o],'T_full','tful'+pl,'hours','hours')
+#      if is_single_transit:
+#        print_values(tr_dur_vec*24., 'T_duration',
+#                             't_dur'+pl, 'hours', 'hours')
+#        print_values(P_circ_vec, 'Possible period (if curcular orbit)', 'p_cir'+pl, 'days', 'days')
     opars.write ('--------------------------------------------------------------\n')
 
     #Let us change to the next planet
