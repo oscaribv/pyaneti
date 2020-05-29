@@ -128,6 +128,7 @@ max_ew1 = [1.0]
 min_ew2 = [-1.0]
 max_ew2 = [1.0]
 #transit fit
+is_single_transit = False
 min_i   = [0.0 ]    # 70 degrees
 max_i   = [np.pi/2.0]  # 90 degrees
 min_b   = [0.0]
