@@ -12,8 +12,26 @@
 <a href="https://github.com/oscaribv/pyaneti/wiki"><img src="https://img.shields.io/badge/wiki-building-yellow.svg" alt="pyaneti wiki" /></a>
 
 ### Written by Barragán O., Gandolfi D. & Antoniciello G.
-#### email: oscaribv@gmail.com
-#### Updated December 09, 2018
+#### email: oscaribv@gmail.com, oscar.barragan@physics.ox.ac.uk
+#### Updated October 2020
+
+# A new version of pyaneti is available [here](https://github.com/oscaribv/pyaneti2-beta-)
+
+The new version works in simililar way to [pyaneti](https://github.com/oscaribv/pyaneti), and you should be able to compile it and run it following
+this [tutorial](https://github.com/oscaribv/pyaneti/wiki). But, *this new version uses
+the lapack and blas libraries, be sure you have them, if no, the code may not compile*. You should be able to re-run all your scripts of the old pyaneti in this one (But not all the
+input files for this new pyaneti will run in the old one!). 
+
+New in this version:
+
+* Now the code runs in _python 3_.
+* Changes in plots.
+* It runs transit fits for single transits.
+* It runs GPs and multi-GPs approaches (no tutorials provided by now).
+* It runs multi-band fits (even if each band has a different cadence).
+
+If you want to see the cool stuff that this new pyaneti can do, check 
+[Barragán et al., 2019](https://academic.oup.com/mnras/article-abstract/490/1/698/5569669?redirectedFrom=fulltext).
 
 
 # The code
@@ -83,13 +101,6 @@ you can use the bibTeX entry
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
-
-## What will come next?
-
-* Gaussian process.
-* TTV.
-* Multiband transit photometry fitting.
-* Graphical User Interface.
 
 
 **If you have any comments, requests, suggestions or just need any help, please don't think twice, just contact us!**
