@@ -30,16 +30,17 @@
 !npl     -> numper of planets
 !-------------------------------------------------------------------------------
 subroutine rv_curve_mp(t,rv0,t0,k,P,e,w,alpha,beta,rv,ts,npl)
+use constants
 implicit none
 
 !In/Out variables
   integer, intent(in) :: ts, npl
-  double precision, intent(in), dimension(0:ts-1)  :: t
-  double precision, intent(out), dimension(0:ts-1) :: rv
-  double precision, intent(in), dimension(0:npl-1) :: k, t0, P, e, w
-  double precision, intent(in) :: rv0, alpha, beta
+  real(kind=mireal), intent(in), dimension(0:ts-1)  :: t
+  real(kind=mireal), intent(out), dimension(0:ts-1) :: rv
+  real(kind=mireal), intent(in), dimension(0:npl-1) :: k, t0, P, e, w
+  real(kind=mireal), intent(in) :: rv0, alpha, beta
 !Local variables
-  double precision, dimension(0:ts-1) :: ta
+  real(kind=mireal), dimension(0:ts-1) :: ta
   integer :: i
 !External function
   external :: find_anomaly
@@ -60,37 +61,38 @@ implicit none
 
 end subroutine
 
+
 !-------------------------------------------------------------------------------
 ! This routine calculates the chi square for a RV curve
 ! given a set of xd-yd data points
 ! It takes into acount the possible difference in systematic
 ! velocities for different telescopes.
 !Input parameters are:
-! xd, yd, errs -> set of data to fit (array(datas))
+! xd, yd, errs -> set of data to fit (array(n_data))
 ! tlab -> Telescope labels (array of integers number)
 ! rv0  -> array for the different systemic velocities,
 !         its size is the number of telescopes
 ! k, ec, w, t0, P -> typical planet parameters
-! datas, nt -> sizes of xd,yd, errs (datas) and rv0(nt)  
+! n_data, nt -> sizes of xd,yd, errs (n_data) and rv0(nt)
 !Output parameter:
-! chi2 -> a double precision value with the chi2 value
+! chi2 -> a real(kind=mireal) value with the chi2 value
 !-----------------------------------------------------------
-subroutine find_chi2_rv(xd,yd,errs,tlab,jrvlab,params,jitter,flag,chi2,datas,nt,nj,npl)
+subroutine find_res_rv(xd,yd,tlab,params,flag,res,n_data,nt,npl)
+use constants
 implicit none
 
 !In/Out variables
-  integer, intent(in) :: datas, nt, npl, nj
-  double precision, intent(in), dimension(0:datas-1)  :: xd, yd, errs
-  integer, intent(in), dimension(0:datas-1) :: tlab, jrvlab
-  double precision, intent(in), dimension(0:6+nt,0:npl-1) :: params
-  double precision, dimension(0:nj-1), intent(in) :: jitter
+  integer, intent(in) :: n_data, nt, npl
+  real(kind=mireal), intent(in), dimension(0:n_data-1)  :: xd, yd
+  integer, intent(in), dimension(0:n_data-1) :: tlab
+  real(kind=mireal), intent(in), dimension(0:6+nt,0:npl-1) :: params
   logical, intent(in)  :: flag(0:3)
-  double precision, intent(out) :: chi2
+  real(kind=mireal), intent(out) :: res(0:n_data-1)
 !Local variables
-  double precision, dimension(0:npl-1) :: t0, P, e, w, k
-  double precision, dimension(0:nt-1)  :: rv0
-  double precision  :: alpha, beta
-  double precision, dimension(0:datas-1) :: model, res
+  real(kind=mireal), dimension(0:npl-1) :: t0, P, e, w, k
+  real(kind=mireal), dimension(0:nt-1)  :: rv0
+  real(kind=mireal)  :: alpha, beta
+  real(kind=mireal), dimension(0:n_data-1) :: model
   logical :: is_limit_good
 !External function
   external :: rv_curve_mp
@@ -100,9 +102,9 @@ implicit none
   e(:)   = params(2,:)
   w(:)   = params(3,:)
   k(:)   = params(4,:)
-  alpha  = params(5,0) 
-  beta   = params(6,0) 
-  rv0(:) = params(7:6+nt,0) 
+  alpha  = params(5,0)
+  beta   = params(6,0)
+  rv0(:) = params(7:6+nt,0)
 
   if ( flag(0) ) P(:) = 1.d1**params(1,:)
   if ( flag(1) ) call ewto(e,w,e,w,npl)
@@ -111,19 +113,57 @@ implicit none
 
   is_limit_good = .true.
 
-  if ( any (e > 1.0d0) ) is_limit_good = .false.
+  !Avoid solutions with eccentricities larger than 1 and smaller than zero
+  if ( any( e > 1.d0 ) .or. any(e < 0.d0 ) ) is_limit_good = .false.
+
+  !Avoid solutions with Doppler semi-amplitudes smaller than zero
+  if (  any( k < 0.d0 ) ) is_limit_good = .false.
 
   if ( is_limit_good ) then
 
-      call rv_curve_mp(xd,0.d0,t0,k,P,e,w,alpha,beta,model,datas,npl)
+      call rv_curve_mp(xd,0.d0,t0,k,P,e,w,alpha,beta,model,n_data,npl)
       model(:) = model(:) + rv0(tlab(:))
-      res(:)   = ( model(:) - yd(:) ) / sqrt( errs(:)**2 + jitter(jrvlab(:))**2 )
-      chi2 = dot_product(res,res)
-
+      res(:)   =  yd(:) - model(:)
   else
 
-    chi2 = huge(0.d0)
+      res(:) = huge(0.d0)
 
   end if
+
+end subroutine
+
+!-------------------------------------------------------------------------------
+! This routine calculates the chi square for a RV curve
+! given a set of xd-yd data points
+! It takes into acount the possible difference in systematic
+! velocities for different telescopes.
+!Input parameters are:
+! xd, yd, errs -> set of data to fit (array(n_data))
+! tlab -> Telescope labels (array of integers number)
+! rv0  -> array for the different systemic velocities,
+!         its size is the number of telescopes
+! k, ec, w, t0, P -> typical planet parameters
+! n_data, nt -> sizes of xd,yd, errs (n_data) and rv0(nt)
+!Output parameter:
+! chi2 -> a real(kind=mireal) value with the chi2 value
+!-----------------------------------------------------------
+subroutine find_chi2_rv(xd,yd,errs,tlab,jrvlab,params,jitter,flag,chi2,n_data,nt,nj,npl)
+use constants
+implicit none
+
+!In/Out variables
+  integer, intent(in) :: n_data, nt, npl, nj
+  real(kind=mireal), intent(in), dimension(0:n_data-1)  :: xd, yd, errs
+  integer, intent(in), dimension(0:n_data-1) :: tlab, jrvlab
+  real(kind=mireal), intent(in), dimension(0:6+nt,0:npl-1) :: params
+  real(kind=mireal), dimension(0:nj-1), intent(in) :: jitter
+  logical, intent(in)  :: flag(0:3)
+  real(kind=mireal), intent(out) :: chi2
+!Local variables
+  real(kind=mireal), dimension(0:n_data-1) :: res
+
+  call find_res_rv(xd,yd,tlab,params,flag,res,n_data,nt,npl)
+  res(:)   = res(:) / sqrt( errs(:)**2 + jitter(jrvlab(:))**2 )
+  chi2 = dot_product(res,res)
 
 end subroutine

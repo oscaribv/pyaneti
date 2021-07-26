@@ -6,9 +6,9 @@
 ! They also can be used in a fortran program
 !              Date --> Feb  2016, Oscar Barragán
 !------------------------------------------------------------
-
 !http://stackoverflow.com/questions/18754438/generating-random-numbers-in-a-fortran-module
 subroutine init_random_seed()
+use constants
 
       INTEGER :: i, n, clock
       INTEGER, DIMENSION(:), ALLOCATABLE :: seed
@@ -30,14 +30,14 @@ end subroutine
 !by knowing the transit time
 !------------------------------------------------------------
 subroutine find_tp(t0, e, w, P, tp)
+use constants
 implicit none
 !In/Out variables
-  double precision, intent(in) :: t0, e, w, P
-  double precision, intent(out) :: tp
+  real(kind=mireal), intent(in) :: t0, e, w, P
+  real(kind=mireal), intent(out) :: tp
 !Local variables
-  double precision :: theta_p
-  double precision :: ereal, eimag
-  double precision :: pi = 3.1415926535897d0
+  real(kind=mireal) :: theta_p
+  real(kind=mireal) :: ereal, eimag
 
   !We know that the relation between theta_t0 = pi/2 - w
   !We have to calculate the eccentric anomaly by knowing this
@@ -61,14 +61,15 @@ end subroutine
 ! ta -> True anomaly (vector with the same dimension that man)
 !------------------------------------------------------------
 subroutine find_anomaly(t,t0,e,w,P,ta,dt)
+use constants
 implicit none
 !In/Out variables
   integer, intent(in) :: dt
-  double precision, intent(in) , dimension(0:dt-1) :: t
-  double precision, intent(out), dimension(0:dt-1) :: ta
-  double precision, intent(in) :: t0, e, w, P
+  real(kind=mireal), intent(in) , dimension(0:dt-1) :: t
+  real(kind=mireal), intent(out), dimension(0:dt-1) :: ta
+  real(kind=mireal), intent(in) :: t0, e, w, P
 !Local variables
-  double precision :: tp
+  real(kind=mireal) :: tp
 
   call find_tp(t0,e,w,P,tp)
   call find_anomaly_tp(t,tp,e,P,ta,dt)
@@ -85,21 +86,16 @@ end subroutine
 ! ta -> True anomaly (vector with the same dimension that man)
 !------------------------------------------------------------
 subroutine find_anomaly_tp(t,tp,e,P,ta,dt)
+use constants
 implicit none
 !In/Out variables
   integer, intent(in) :: dt
-  double precision, intent(in) , dimension(0:dt-1) :: t
-  double precision, intent(out), dimension(0:dt-1) :: ta
-  double precision, intent(in) :: tp, e, P
+  real(kind=mireal), intent(in) , dimension(0:dt-1) :: t
+  real(kind=mireal), intent(out), dimension(0:dt-1) :: ta
+  real(kind=mireal), intent(in) :: tp, e, P
 !Local variables
   integer :: i,n
-  double precision, dimension(0:dt-1) :: ma, f, df, eimag, ereal, sinma
-  double precision :: two_pi = 2.d0*3.1415926535897932384626d0
-  double precision :: uno
-  double precision :: fmin=1.d-8, small = 1.d-5
-  integer :: imax = int(1e8)
-!
-  uno = 1.0d0
+  real(kind=mireal), dimension(0:dt-1) :: ma, f, df, eimag, ereal, sinma
 
   !Calculate the mean anomaly
   ma = two_pi * ( t - tp ) / P
@@ -156,17 +152,15 @@ end subroutine
 
 !Get semi-major axis assuming we know the stellar parameters
 subroutine get_a_scaled(mstar,rstar,P,a,lenvec)
+use constants
 implicit none
 
 !In/Out variables
   integer, intent(in) :: lenvec
-  double precision, intent(in), dimension(0:lenvec-1) :: mstar, rstar, P
-  double precision, intent(out), dimension(0:lenvec-1) :: a
+  real(kind=mireal), intent(in), dimension(0:lenvec-1) :: mstar, rstar, P
+  real(kind=mireal), intent(out), dimension(0:lenvec-1) :: a
 !Local variables
-  double precision :: pi = 3.1415926535897d0
-  double precision :: S_radius_SI = 6.957d8 !R_sun
-  double precision :: S_GM_SI = 1.3271244d20 ! G M_sun
-  double precision, dimension(0:lenvec-1) :: R_SI, GM_SI
+  real(kind=mireal), dimension(0:lenvec-1) :: R_SI, GM_SI
 
   R_SI  = rstar(:) * S_radius_SI
   GM_SI = mstar(:) * S_GM_SI
@@ -174,22 +168,23 @@ implicit none
   !Get scaled semi-major axis from 3rd Kepler law
   a(:) = 0.25d0 * GM_SI(:) * ( P * 24.d0 * 3600.d0 ) * ( P * 24.d0 * 3600.d0 )
   a(:) = a(:) / R_SI(:) / R_SI(:) / R_SI(:) / pi / pi 
-  a(:) = a(:)**(1.d0/3.d0)
+  a(:) = a(:)**(1./3.)
 
 end subroutine
 
 !Gelman and Rubin statistics
 subroutine gr_test(par_chains,nchains,nconv,is_cvg)
+use constants
 implicit none
   
 !In/Out variables
   integer, intent(in) :: nchains, nconv
-  double precision, intent(in), dimension(0:nconv-1,0:nchains-1) :: par_chains
+  real(kind=mireal), intent(in), dimension(0:nconv-1,0:nchains-1) :: par_chains
   logical, intent(out) :: is_cvg
 !Local variables
-  double precision :: W, B, V, R
-  double precision :: thetajj, delta
-  double precision, dimension(0:nchains-1):: sj2, thetaj
+  real(kind=mireal) :: W, B, V, R
+  real(kind=mireal) :: thetajj, delta
+  real(kind=mireal), dimension(0:nchains-1):: sj2, thetaj
   integer :: i
 
   is_cvg = .false.
@@ -227,13 +222,14 @@ end subroutine
 !Subroutine to get Z <- g(z)
 !Goodman & Weare, 2010 paper
 subroutine find_gz(a,z)
+use constants
 implicit none
 
 !In/Out variables
-  double precision, intent(out) :: z
-  double precision, intent(in) :: a
+  real(kind=mireal), intent(out) :: z
+  real(kind=mireal), intent(in) :: a
 !Internal variables
-  double precision :: x
+  real(kind=mireal) :: x
 
   !Thesis of Kaiser, Alexander D
   !Computational Experiments in Markov Chain Monte Carlo
@@ -243,9 +239,10 @@ implicit none
 end subroutine
 
 subroutine check_e(es,ec,is_good)
+use constants
 implicit none
 
-  double precision, intent(in) :: es, ec
+  real(kind=mireal), intent(in) :: es, ec
   logical, intent(out) :: is_good
 
   is_good = .true.
@@ -255,9 +252,10 @@ implicit none
 end subroutine
 
 subroutine check_us(u1,u2,is_good)
+use constants
 implicit none
 
-  double precision, intent(in) :: u1, u2
+  real(kind=mireal), intent(in) :: u1, u2
   logical, intent(out) :: is_good
 
   is_good = .true.
@@ -272,8 +270,23 @@ implicit none
 
 end subroutine
 
+subroutine get_us(q1,q2,u1,u2,nq)
+use constants
+implicit none
+
+  integer, intent(in) :: nq
+  real(kind=mireal), intent(in) :: q1(0:nq-1), q2(0:nq-1)
+  real(kind=mireal), intent(out) :: u1(0:nq-1), u2(0:nq-1)
+
+  u1 = sqrt(q1)
+  u2 = u1*(1.d0 - 2.d0 *q2)
+  u1 = 2.d0*u1*q2
+
+end subroutine
+
 !Subroutine to create random integers between 0 and n
 subroutine random_int(r_int,mnv,mxv)
+use constants
 implicit none
 
   !In/Out variables
@@ -296,15 +309,15 @@ end subroutine
 
 !Create a normal distribution based on Box-Muller
 subroutine gauss_random_bm(mu,sigma,valor,n)
+use constants
 implicit none
 
   !In/Out variables
   integer, intent(in) :: n
-  double precision, intent(in) :: mu, sigma
-  double precision, intent(out), dimension(0:n-1) :: valor
+  real(kind=mireal), intent(in) :: mu, sigma
+  real(kind=mireal), intent(out), dimension(0:n-1) :: valor
   !Local variables
-  double precision, dimension(0:2*n-1) :: r_real
-  double precision  :: two_pi = 2.d0*3.1415926535897932384626d0
+  real(kind=mireal), dimension(0:2*n-1) :: r_real
 
   call random_number(r_real)
 
@@ -318,19 +331,17 @@ end subroutine
 
 
 subroutine get_a_err(mstar_mean,mstar_sigma,rstar_mean,rstar_sigma,P,amean,aerr)
+use constants
 implicit none
 
 !In/out variables
-  double precision, intent(in) :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma, P
-  double precision, intent(out) :: amean,aerr
+  real(kind=mireal), intent(in) :: mstar_mean, mstar_sigma, rstar_mean, rstar_sigma, P
+  real(kind=mireal), intent(out) :: amean,aerr
 !Local variables
-  double precision :: dadm, dadr, per
-  double precision :: S_radius_SI = 6.957d8 !R_sun
-  double precision :: S_GM_SI = 1.3271244d20 ! G M_sun
-  double precision :: R_SI, M_SI, G_SI
-  double precision :: R_sigma_SI, M_sigma_SI
-  double precision :: tercio, cpi2
-  double precision  :: pi = 3.1415926535897932384626d0
+  real(kind=mireal) :: dadm, dadr, per
+  real(kind=mireal) :: R_SI, M_SI, G_SI
+  real(kind=mireal) :: R_sigma_SI, M_sigma_SI
+  real(kind=mireal) :: tercio, cpi2
 
   G_SI = 6.67408e-11
   R_SI = rstar_mean * S_radius_SI
@@ -338,7 +349,7 @@ implicit none
   M_SI = mstar_mean * S_GM_SI / G_SI
   M_sigma_SI = mstar_sigma * S_GM_SI / G_SI
   per  = P * 3600.d0 * 24.d0
-  tercio = 1.d0/3.d0
+  tercio = 1./3.
   cpi2 = 4.d0 * pi**2
 
   amean = per**2 * G_SI * M_SI / ( cpi2 * R_SI**3 )
@@ -355,10 +366,11 @@ implicit none
 end subroutine
 
 subroutine print_chain_data(chi2,n)
+use constants
 implicit none
   integer, intent(in) :: n
-  double precision, intent(in) :: chi2(0:n-1)
-  character(LEN=20) :: fto = "(A,F10.2)"
+  real(kind=mireal), intent(in) :: chi2(0:n-1)
+  character(LEN=20) :: fto = "(A,F10.4)"
 
   write(*,*) '=================================='
   write(*,*) '     Chain statistics      '
@@ -372,16 +384,17 @@ implicit none
 end subroutine
 
 subroutine uniform_chains(pars,npars,wtf,lims,pars_out)
+use constants
 implicit none
 
   integer, intent(in) :: npars
   integer, intent(in), dimension(0:npars-1) :: wtf
-  double precision, intent(in), dimension(0:2*npars-1) :: lims
-  double precision, intent(in), dimension(0:npars-1) :: pars
-  double precision, intent(out), dimension(0:npars-1) :: pars_out
+  real(kind=mireal), intent(in), dimension(0:2*npars-1) :: lims
+  real(kind=mireal), intent(in), dimension(0:npars-1) :: pars
+  real(kind=mireal), intent(out), dimension(0:npars-1) :: pars_out
 !Local
   integer :: n, j
-  double precision :: r_real
+  real(kind=mireal) :: r_real
 
   j = 0
   do n = 0,  npars - 1
@@ -397,43 +410,36 @@ implicit none
 
 end subroutine
 
-subroutine create_chains(fit_pars,lims,pars_out,npars)
-implicit none
 
-  integer, intent(in) :: npars
-  double precision, intent(in), dimension(0:2*npars-1) :: lims
-  double precision, intent(out), dimension(0:npars-1) :: pars_out
-  character, intent(in), dimension(0:npars-1) :: fit_pars
-!Local
-  integer :: j
-  double precision :: r_real
-
-  do j = 0, npars - 1
-    if ( fit_pars(j) == 'f' ) then
-       pars_out(j) = lims(j*2)
-    else if ( fit_pars(j) == 'u' ) then
-      call random_number(r_real)
-      pars_out(j) = lims(2*j+1) - lims(2*j)
-      pars_out(j) = lims(2*j) + r_real * pars_out(j)
-    else if ( fit_pars(j) == 'g' ) then
-      call gauss_random_bm(lims(2*j),lims(2*j+1),pars_out(j),1)
-    end if
-  end do
-
-end subroutine
-
-subroutine rhotoa(rho,P,a,n)
+subroutine rhotoa13(rho,P,a,n)
+use constants
 implicit none
 
   !In/Out variables
   integer, intent(in) :: n
-  double precision, intent(in) :: rho, P(0:n-1)
-  double precision, dimension(0:n-1), intent(out) :: a
-  !Local variables
-  double precision :: pi = 3.1415926535897932384626d0
-  double precision :: G = 6.67508d-11*1.d3 !Gravitational constant
+  real(kind=mireal), intent(in) :: rho, P(0:n-1)
+  real(kind=mireal), dimension(0:n-1), intent(out) :: a
 
-  a(:) = rho*(G*P(:)*P(:)*7464960000./3.0/pi)**(1./3.)
+  !rho*^(1/3) parametrization
+  a(:) = rho*(G_cgs*P(:)*P(:)*sind2/3.0d0/pi)**(1./3.)
+  !rho* parametrization
+  !a(:) = (rho*G_cgs*P(:)*P(:)*sind2/3.0d0/pi)**(1./3.)
+
+end subroutine
+
+subroutine rhotoa(rho,P,a,n)
+use constants
+implicit none
+
+  !In/Out variables
+  integer, intent(in) :: n
+  real(kind=mireal), intent(in) :: rho, P(0:n-1)
+  real(kind=mireal), dimension(0:n-1), intent(out) :: a
+
+  !rho*^(1/3) parametrization
+  !a(:) = rho*(G_cgs*P(:)*P(:)*sind2/3.0d0/pi)**(1./3.)
+  !rho* parametrization
+  a(:) = (rho*G_cgs*P(:)*P(:)*sind2/3.0d0/pi)**(1./3.)
 
 end subroutine
 
@@ -455,13 +461,34 @@ implicit none
 end subroutine
 
 subroutine btoi(b,a,e,w,i,n)
+use constants
 implicit none
 
   !In/Out variables
   integer, intent(in) :: n
-  double precision, intent(in), dimension(0:n-1) :: b, a, e, w
-  double precision, intent(out), dimension(0:n-1) :: i
+  real(kind=mireal), intent(in), dimension(0:n-1) :: b, a, e, w
+  real(kind=mireal), intent(out), dimension(0:n-1) :: i
 
   i(:) = acos( b(:) / a(:) * ( 1.d0 + e(:) * sin(w(:)) ) / ( 1.d0 - e(:)*e(:) ) )
 
 end subroutine
+
+
+subroutine fcdist(a,b,c,n,m)
+  use constants
+  implicit none
+  !
+  integer :: n,m
+  real(kind=mireal), dimension(0:n-1) :: a
+  real(kind=mireal), dimension(0:m-1) :: b
+  real(kind=mireal), dimension(0:n-1,0:m-1) :: c
+  !
+  integer :: o
+
+  do o = 0, n - 1
+    c(o,:) = b(:) - a(o)
+  end do
+
+end subroutine
+
+ 

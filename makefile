@@ -7,29 +7,39 @@
 #    make clean -> removes the pyaneti.so file                            #
 #-------------------------------------------------------------------------#
 
-FP=f2py2.7
+FP=f2py3.6
+#FP=f2py2.7
 fc=gnu95 
 cc=unix 
 
-FLAGS_OMP= -c -m --quiet --f90flags='-fopenmp' 
-FLAGS= -c -m --quiet 
-LGOMP=-L/usr/lib64/ -lgomp
-SOURCES= src/constants.f90\
-	src/frv.f90\
-	src/ftr.f90\
+FLAGS_OMP= -c -m --quiet --f90flags='-fopenmp'
+FLAGS = -c -m  --quiet
+BLIBS = -llapack -lblas
+LGOMP = -lgomp
+
+SOURCES=src/constants.f90\
+	src/todo.f90\
+	src/qpower2.f90\
 	src/quad.f90\
-	src/mcmc.f90\
+        src/ftr.f90\
+	src/frv.f90\
 	src/bayesian.f90\
-	src/todo.f90
+	src/matrices.f90\
+	src/kernels.f90\
+	src/mcmc.f90\
+	src/multi-gp-routines.f90\
 
 EXECUTABLE=pyaneti
 
 all: $(EXECUTABLE) 
+%.mod: %.90
+	$(FC) -c $(SOURCES)
 $(EXECUTABLE):$(SOURCES)
-	${FP} ${FLAGS} $(EXECUTABLE) $(SOURCES)  --fcompiler=$(fc) --compiler=$(cc)
+	${FP} ${FLAGS} $(EXECUTABLE) $(SOURCES)  --fcompiler=$(fc) ${BLIBS} --compiler=$(cc)
+
 
 para: $(EXECUTABLE)
-	${FP} ${FLAGS_OMP} $(EXECUTABLE) $(SOURCES)  --fcompiler=$(fc) ${LGOMP}  --compiler=$(cc)
+	${FP} ${FLAGS_OMP} $(EXECUTABLE) $(SOURCES)  --fcompiler=$(fc) ${BLIBS} ${LGOMP}  --compiler=$(cc)
 
 clean:
-	rm $(EXECUTABLE).so
+	rm *.so src/*.mod src/*.o

@@ -154,13 +154,14 @@ integer :: i
       return
       end
 
-      FUNCTION rc(x,y)
-      use constants
-      real(kind=mireal) rc,x,y,ERRTOL,TINY,SQRTNY,BIG,TNBG,COMP1,COMP2,THIRD,C1,C2,C3,C4
-      PARAMETER (ERRTOL=.04d0,TINY=1.69d-38,SQRTNY=1.3d-19,BIG=3.d37, &
-      TNBG=TINY*BIG,COMP1=2.236d0/SQRTNY,COMP2=TNBG*TNBG/25.d0, &
-      THIRD=1./3.,C1=.3d0,C2=1./7.,C3=.375d0,C4=9./22.)
-      real(kind=mireal) alamb,ave,s,w,xt,yt
+
+FUNCTION rc(x,y)
+use constants
+    real(kind=mireal) rc,x,y,ERRTOL,TINY,SQRTNY,BIG,TNBG,COMP1,COMP2,THIRD,C1,C2,C3,C4
+    PARAMETER (ERRTOL=.04d0,TINY=1.69d-38,SQRTNY=1.3d-19,BIG=3.d37, &
+    TNBG=TINY*BIG,COMP1=2.236d0/SQRTNY,COMP2=TNBG*TNBG/25.d0, &
+    THIRD=1./3.,C1=.3d0,C2=1./7.,C3=.375d0,C4=9./22.)
+    real(kind=mireal) alamb,ave,s,w,xt,yt
       if(x.lt.0..or.y.eq.0..or.(x+abs(y)).lt.TINY.or.(x+ &
       abs(y)).gt.BIG.or.(y.lt.-COMP1.and.x.gt.0..and.x.lt.COMP2)) then
         print *, 'quad.f90: invalid argumets in rc'

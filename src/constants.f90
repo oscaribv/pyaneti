@@ -10,6 +10,7 @@ implicit none
   real(kind=mireal), parameter :: uno = 1.d0
   real(kind=mireal), parameter :: fmin=1.d-8
   real(kind=mireal), parameter :: small = 1.d-5
+  real(kind=mireal), parameter :: a_factor = 2.d0
   integer, parameter :: imax = int(1e8)
   !Physical parameters
   real(kind=mireal), parameter :: S_radius_SI = 6.957d8 !R_sun
