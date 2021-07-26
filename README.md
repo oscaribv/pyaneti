@@ -5,7 +5,7 @@
 </p>
 
 # __pyaneti__*
-(*From the Italian word _pianeti_, which means planets)
+*From the Italian word _pianeti_, which means planets
 
 <a href="https://github.com/oscaribv/pyaneti/wiki"><img src="https://img.shields.io/badge/wiki-building-yellow.svg" alt="pyaneti wiki" /></a>
 
