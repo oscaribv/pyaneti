@@ -51,6 +51,8 @@ is_multi_radius = False
 method = 'mcmc'
 #method = 'plot'
 
+is_rasterized = False
+
 #K2-100 parameters as in Barragan et al., 2019
 mstar_mean  = 1.15
 mstar_sigma = 0.05
@@ -102,10 +104,10 @@ textra = 4833.
 #if 'f' is selected for the parameter A, A is fixed to the one given by min_A
 #if 'u' is selected for the parameter A, sets uniform priors between min_A and max_A
 #if 'g' is selected for the parameter A, sets gaussian priors with mean min_A and standard deviation max_A
-min_t0  = [7141.70]
-max_t0  = [7142.75]
-min_P   = [1.6737]
-max_P   = [1.6740]
+min_t0  = [7140.71]
+max_t0  = [7140.73]
+min_P   = [1.673901]
+max_P   = [1.673910]
 
 min_a   = [1.1]
 max_a   = [15.]
