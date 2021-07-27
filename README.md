@@ -1,13 +1,9 @@
-
-
 <p align="center">
   <img width = "500" src="./src/images/logo_pyaneti.png"/>
 </p>
 
 # __pyaneti__*
 *From the Italian word _pianeti_, which means planets
-
-<a href="https://github.com/oscaribv/pyaneti/wiki"><img src="https://img.shields.io/badge/wiki-building-yellow.svg" alt="pyaneti wiki" /></a>
 
 #### email: oscaribv@gmail.com, oscar.barragan@physics.ox.ac.uk
 #### Updated July 2021
@@ -18,16 +14,14 @@
 <a href="https://academic.oup.com/mnras/advance-article/doi/10.1093/mnras/sty2472/5094600"><img src="https://img.shields.io/badge/MNRAS-2019,482,1017-blueviolet.svg" alt="MNRAS" /></a>
 <a href="https://arxiv.org/abs/1809.04609"><img src="https://img.shields.io/badge/arXiv-1809.04609-green.svg" alt="arXiv:1809.04609" /></a>
 <a href="http://ascl.net/1707.003"><img src="https://img.shields.io/badge/ascl-1707.003-green.svg" alt="ascl:1707.003" /></a>
-
-### To use the version of the code as described in Paper 1 you need to download the [v1.0](https://github.com/oscaribv/pyaneti/releases/tag/v1.0).
+<a href="https://github.com/oscaribv/pyaneti/wiki"><img src="https://img.shields.io/badge/wiki-building-yellow.svg" alt="pyaneti wiki" /></a>
 
 ## Paper II
 ### Written by Barragán O., et al.,
 
-#### Coming out soon!
+### Coming out soon!
 
-
-The newest version works in simililar way to the version 1.0 of [pyaneti](https://github.com/oscaribv/pyaneti), and you should be able to compile it and run it following
+The newest version works in simililar way to the version 1.0 of pyaneti. You should be able to compile it and run it following
 this [tutorial](https://github.com/oscaribv/pyaneti/wiki). 
 But, *this new version uses the lapack and blas libraries, be sure you have them, if no, the code may not compile*. You should be able to re-run all your scripts of the old pyaneti in this one (But not all the
 input files for this new pyaneti will run in the old one!). 
@@ -37,8 +31,8 @@ input files for this new pyaneti will run in the old one!).
 * Now the code runs in _python 3_.
 * Changes in plots.
 * It runs transit fits for single transits.
-* It runs GPs and multi-GPs approaches (no tutorials provided by now).
-* It runs multi-band fits (even if each band has a different cadence).
+* It runs multi-band fits.
+* It runs GPs and multi-GPs regressions.
 
 #### This version still preserves all the previous features
 
@@ -57,13 +51,13 @@ input files for this new pyaneti will run in the old one!).
 If you want to see the cool stuff that this new pyaneti can do, check 
 [Barragán et al., 2019](https://academic.oup.com/mnras/article-abstract/490/1/698/5569669?redirectedFrom=fulltext).
 
-### Learn how to install and use pyaneti [here](https://github.com/oscaribv/pyaneti/wiki/Start-to-use-pyaneti-now!)
+#### Learn how to install and use pyaneti [here](https://github.com/oscaribv/pyaneti/wiki/Start-to-use-pyaneti-now!)
 
 
-### Check pyaneti [wiki](https://github.com/oscaribv/pyaneti/wiki) to learn how to use it!
+#### Check pyaneti [wiki](https://github.com/oscaribv/pyaneti/wiki) to learn how to use it!
 
 
-## Citing
+### Citing
 
 If you use pyaneti in your research, please cite it as
 
@@ -110,4 +104,4 @@ you can use the bibTeX entry
 **THANKS A LOT!**
 
 
-## For a beta version of pyaneti check [here](https://github.com/oscaribv/pyaneti-dev)
+### For a beta version of pyaneti check [here](https://github.com/oscaribv/pyaneti-dev)
