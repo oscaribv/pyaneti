@@ -34,7 +34,7 @@ n_cad = [10,1,1,1,1,1]
 #This variable controls if we want to fit a single radius for all bands or a radius fit for each band
 #If False (default) pyaneti will fit a single planet radius for all bands
 #If True  pyaneti will fit a planet radius for EACH band, this might be useful to check if the planet radius is consistent within all bands
-is_multi_radius = True
+is_multi_radius = False
 
 #MCMC controls
 #the thin factor for the chains
@@ -70,8 +70,6 @@ unit_mass = 'earth'
 fit_rv = [False]
 fit_tr = [True]
 
-n_columns_posterior = 5
-
 #Prior section
 # f -> fixed value
 # u -> Uniform priors
@@ -106,13 +104,12 @@ is_jitter_tr = True
 #if 'f' is selected for the parameter A, A is fixed to the one given by min_A
 #if 'u' is selected for the parameter A, sets uniform priors between min_A and max_A
 #if 'g' is selected for the parameter A, sets gaussian priors with mean min_A and standard deviation max_A
-min_t0  = [2307.70]
-max_t0  = [2307.75]
-min_P   = [1.6737]
-max_P   = [1.6740]
-
-min_a   = [1.1]
-max_a   = [15.]
+min_t0  = [2307.71]
+max_t0  = [2307.73]
+min_P   = [1.67390]
+max_P   = [1.67391]
+min_a   = [2.0]
+max_a   = [10.]
 min_b   = [0.0]
 max_b   = [1.0]
 min_k   = [0.0]
