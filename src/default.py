@@ -164,14 +164,11 @@ is_single_transit = False
 # TRANSIT FIT
 
 # Number of points to be used to integrate the data
-n_cad = 1
+n_cad = [1]
 # time of integrations in days
-t_cad = 30. / 60. / 24.
-# Default lc_data is free, this means no re-binning of light curve model
+t_cad = [30. / 60. / 24.]
+
 lc_data = 'free'
-# other options are:
-# 'kepler_lc', with default n_cad = 10 and t_cad = 30 minutes
-# 'kepler_sc', with default n_cad = 1 and t_cad = 1.5 minutes
 
 # bin light curve each bin_lc time (units of days)
 # this is useful for light curve fits with GPs
@@ -181,12 +178,6 @@ bin_lc = 0
 nbands = 1
 nldc = 2
 bands = ['']
-
-# If True, it will set a Gaussian prior for the scaled semi-major axis based
-# on the input stellar paramters
-# BE AWARE THAT YOU HAVE TO BE CONFIDENT ABOUT YOUR STELLAR PARAMETERS TO USE IT!
-# For multi-planet fits, a_from_kepler has to be N elements are planets are in the fit
-a_from_kepler = [False]
 
 # Default input columns for light curve file
 # first column -> time
@@ -303,9 +294,10 @@ tr_xlabel = "BJD - 2450000 (days)"
 
 tr_colors = ['#006341','#CE1126', 'b', 'k', 'y', '#ffbf00', '#ff1493']
 
+mark_tr = ['o', 'D', 's', 'p', 'h', '8', '^',
+           '<', '*', 'v', '>', '.', 'H', 'd', '+']
+
 # RV PLOTS
-# If True it plots percentiles in the phase pholded RV plot
-is_special_plot_rv = False
 
 #RVlabels and residuals
 rv_labels = ['RV (m/s)']
@@ -317,12 +309,6 @@ resize_rv = True
 
 # if True, we can select the window size for the tr plot given rv_lim_min and rv_lim_max
 select_y_rv = False
-# if select_y_rv True, is the maximum limit for the rv plot
-rv_lim_max = -100.  # m/s
-# if select_y_rv True, is the minimum limit for the rv plot
-rv_lim_min = 100.  # m/s
-#Bin RV data
-bin_rv = 0
 # Label to appear in the RV timeseries plot
 rv_xlabel = "BJD - 2450000 (days)"
 # if True, the RV plots contain a legend indicating the color and symbol of each instrument
@@ -330,8 +316,6 @@ is_rv_legend = True
 # Default markers for the different instruments of the RV plots
 mark = ['o', 'D', 's', 'p', 'h', '8', '^',
         '<', '*', 'v', '>', '.', 'H', 'd', '+']
-mark_tr = ['o', 'D', 's', 'p', 'h', '8', '^',
-           '<', '*', 'v', '>', '.', 'H', 'd', '+']
 # Default colors for the different instruments of the RV plots
 rv_colors = ['#00c400','#CE1126', 'b', 'y', 'k', '#ffbf00', '#ff1493']
 

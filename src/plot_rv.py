@@ -167,6 +167,11 @@ def plot_rv_timeseries():
                              plot_residuals=False, fsx=2*fsx, model_colors=mcolors, model_alpha=malpha,colors=rv_colors)
     else:
         rv_dvec = [xdata, ydata, edata, ejdata, res, tlab]
+        rv_dvecnp = np.asarray(rv_dvec)
+        mvecnp = np.asarray(rv_mvec)
+        np.savetxt(outdir+'/timeseries_model_rv.dat', mvecnp.T, fmt='%8.8f')
+        np.savetxt(outdir+'/timeseries_data_rv.dat', rv_dvecnp.T, fmt='%8.8f %8.8f %8.8f %8.8f %8.8f %i',
+                       header='time rv erv jitter rvnoplanet tlab', comments='#')
         plot_labels_rv = [rv_xlabel, 'RV (m/s)', 'Residuals (m/s)']
         # Create the RV timeseries plot
         create_nice_plot(rv_mvec, rv_dvec, plot_labels_rv, model_labels, telescopes_labels, fname,

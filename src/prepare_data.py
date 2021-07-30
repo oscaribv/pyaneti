@@ -102,12 +102,12 @@ if (nplanets_rv > 0):
 
     total_rv_fit = True
 
-    if bin_rv > 0:
-        rv_time, rv_vals, rv_errs = bin_data(rv_time, rv_vals, rv_errs, bin_rv)
-        nbands = 1
-        nradius = 1
-        tlab = [0]*len(rv_time)
-        jrvlab = [0]*len(rv_time)
+#    if bin_rv > 0:
+#        rv_time, rv_vals, rv_errs = bin_data(rv_time, rv_vals, rv_errs, bin_rv)
+#        nbands = 1
+#        nradius = 1
+#        tlab = [0]*len(rv_time)
+#        jrvlab = [0]*len(rv_time)
 
 else:
     n_jrv = 1
@@ -217,15 +217,6 @@ else:
 # Take care with span_tr
 if (len(span_tr) == 1 and nplanets > 1):  # The user did not change this option in input_file.py
     span_tr = [0.0]*nplanets
-
-if (len(a_from_kepler) == 1 and nplanets > 1):
-    a_from_kepler = [False]*nplanets
-
-for o in range(0, nplanets):
-    if a_from_kepler[o]:
-        fit_a[o] = 'g'
-        min_a[o], max_a[o] = pti.get_a_err(
-            mstar_mean, mstar_sigma, rstar_mean, mstar_sigma, (max_P[o]+min_P[o])/2.)
 
 # CHECK WHAT WE HAVE TO FIT
 # If we are not going to fit RV or TR data, let us turn off the variables

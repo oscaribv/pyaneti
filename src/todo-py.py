@@ -436,7 +436,7 @@ def print_values(vector, var, vartex, unit, unittex):
 
 def joint_fit():
     global fit_all, fit_ldc, fit_rvs, nt
-    global a_from_kepler, mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
+    global mstar_mean, rstar_mean, mstar_sigma_rstar_sigma
     global is_log_P, is_ew, is_b_factor, is_log_k, is_log_rv0
     global fit_t0, fit_P, fit_e, fit_w, fit_i, fit_a, fit_q1, fit_q2, fit_rp, fit_k, fit_v0
     global T0, P, e, w, ii, a, q1, q2, rp, k0, alpha, beta, v0
@@ -735,7 +735,6 @@ def print_init():
 #    oif.write ('LC data        = %s\n' %lc_data)
 #    oif.write ('cadence time   =  %2.3f min\n'%(t_cad*60.*24))
 #    oif.write ('n rebinning    = %d\n' %n_cad)
-#    oif.write ('Stellar priors = %s\n' %a_from_kepler)
     for j in range(0, nplanets):
         oif.write('------------------------------\n')
         oif.write('  PLANET %s \n' % (star + plabels[j]))
