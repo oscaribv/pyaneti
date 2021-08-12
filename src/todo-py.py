@@ -424,8 +424,7 @@ def print_values(vector, var, vartex, unit, unittex):
             nd = int(np.log10(max(1./minv, 1./maxv))) + 2
         except:
             pass
-    opars.write('%10s = %4.7f - %4.7f + %4.7f %8s \n' %
-                (var, medv, minv, maxv, unit))
+    opars.write('{:10s} = {:4.7f} - {:4.7f} + {:4.7f} {:8s} \n'.format(var, medv, minv, maxv, unit))
     otex.write('\\newcommand{\\'+vartex+'}[1]['+unittex+'] \
   {$'+str(round(medv, nd))+' _{ - '+str(round(minv, nd))+' } ^ { + '+str(round(maxv, nd))+' }$~#1} \n')
     if (is_print_mode):

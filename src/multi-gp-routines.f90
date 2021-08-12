@@ -33,7 +33,6 @@ subroutine get_QP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg,
   gamma_g_g = exp(gamma_g_g)
 
   gamma_g_dg = - gamma_g_g * (alpha + beta)
-  !gamma_g_dg = gamma_g_g * gamma_g_dg
 
   gamma_dg_g = - gamma_g_dg
 
@@ -66,7 +65,7 @@ subroutine get_EXP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg
   gamma_g_g = exp(gamma_g_g)
 
   gamma_g_dg = titj/l/l
-  gamma_g_dg = - gamma_g_g * gamma_g_dg
+  gamma_g_dg = gamma_g_g * gamma_g_dg
 
   gamma_dg_g = - gamma_g_dg
 
@@ -106,7 +105,7 @@ subroutine get_M52_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg
 
   gamma_g_g = expt * ( 1. + dt + dt*dt/3. )
 
-  gamma_g_dg = - 1. / 3. * sgn * expt * dt * (dt + 1.)
+  gamma_g_dg = 1. / 3. * sgn * expt * dt * (dt + 1.)
   gamma_g_dg = sq5 / l * gamma_g_dg
 
   gamma_dg_g = - gamma_g_dg
