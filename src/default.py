@@ -124,7 +124,7 @@ is_quadratic_trend = 'f'
 
 # Default priors rages
 # For multiplanet fits, this variable has to have N elemens are N planets we are fitting
-min_t0 = [0.0]  # days
+min_t0 = [0.0]  # daym
 max_t0 = [1e6]  # days
 min_P = [0.1]  # days
 max_P = [1e4]  # days
@@ -317,14 +317,14 @@ is_rv_legend = True
 mark = ['o', 'D', 's', 'p', 'h', '8', '^',
         '<', '*', 'v', '>', '.', 'H', 'd', '+']
 # Default colors for the different instruments of the RV plots
-rv_colors = ['#00c400','#CE1126', 'b', 'y', 'k', '#ffbf00', '#ff1493']
+rv_colors = ['#00c400','#CE1126', 'b','#ff8c00', 'y', 'k', '#ffbf00', '#ff1493']
 
 # marker size for the data points of the RV plot
 rv_markersize = 8
 # Type of marker in the RV plot
 rv_fillstyle = 'full'
 
-#Control if we want to plot the standard deviation of the models in the phase_folded_plot
+#Control if we want to plot the standard deviation of the models in the phase_folded_plotoutpy/TOI-560-full_out
 #Default is false
 plot_rv_std = False
 

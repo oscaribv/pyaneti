@@ -230,20 +230,12 @@ if (method == 'mcmc' or method == 'plot'):
                              ** 2) / (ar_vec[o] * np.sin(i_vec[o]))
         trt_vec[o] = P_vec[o] / np.pi * \
             np.arcsin(trt_vec[o]) * ec_factor * 24.0
-        #Remove the NaN values
-        my_nan = np.logical_not(np.isnan(np.asarray(trt_vec[o])))
-        #Save the values where this is not NaN
-        trt_dur = np.array(trt_vec[o])
-        trt_vec[o] = trt_dur[my_nan]
         #full transit duration (from contract 2 to 3)
         tri_vec[o] = np.sqrt((1. - rr_vec[o])**2 - b_vec[o]
                              ** 2) / (ar_vec[o] * np.sin(i_vec[o]))
         tri_vec[o] = P_vec[o] / np.pi * \
             np.arcsin(tri_vec[o]) * ec_factor * 24.0
-        my_nan = np.logical_not(np.isnan(np.asarray(tri_vec[o])))
-        #Save the values where this is not NaN
-        tri_dur = np.array(tri_vec[o])
-        tri_vec[o] = tri_dur[my_nan]
+        # tri_vec[o] = ( trt_vec[o] - tri_vec[o] ) / 2.0 #ingress egress time
 
         # Calculate the star density from transit data
         # Eq. (30) Winn 2014
@@ -442,7 +434,7 @@ if (method == 'mcmc' or method == 'plot'):
             print_values((trt_vec[o] - tri_vec[o])/2.0,
                          'T_in/eg', 'teg'+pl, 'hours', 'hours')
             print_values(delta_mag_vec,
-                         'Delta mag', 'delta_mag'+pl, 'eq. (4) Vanderburg et al., 2019', '')
+                         'Delta mag', 'deltamag'+pl, 'eq. (4) Vanderburg et al., 2019', '')
             if is_single_transit:
                 print_values(tr_dur_vec*24., 'T_duration',
                              't_dur'+pl, 'hours', 'hours')

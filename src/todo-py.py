@@ -570,16 +570,16 @@ def joint_fit():
         krv_labels = [None]*len(fit_krv)
         for m in range(len(fit_krv) - 3):
             krv_labels[m] = 'A'+str(m)
-        krv_labels[len(fit_krv)-3] = 'lambda_e'
-        krv_labels[len(fit_krv)-2] = 'lambda_p'
-        krv_labels[len(fit_krv)-1] = 'P_GP'
+        krv_labels[len(fit_krv)-3] = 'lambdae'
+        krv_labels[len(fit_krv)-2] = 'lambdap'
+        krv_labels[len(fit_krv)-1] = 'PGP'
     elif kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM':
         krv_prior_flag = fit_krv
         krv_prior_vals = krv_priors
         krv_labels = [None]*len(fit_krv)
         for m in range(len(fit_krv)- 1):
             krv_labels[m] = 'A'+str(m)
-        krv_labels[len(fit_krv)-1] = 'lambda_e'
+        krv_labels[len(fit_krv)-1] = 'lambdae'
 
     np_rv = len(krv_prior_flag)
 
