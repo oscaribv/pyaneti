@@ -17,9 +17,9 @@
 <a href="https://github.com/oscaribv/pyaneti/wiki"><img src="https://img.shields.io/badge/wiki-building-yellow.svg" alt="pyaneti wiki" /></a>
 
 ## Paper II
-### Written by Barragán O., et al.,
+### Written by Barragán O., Aigrain S., Rajpaul V. M., and Zicher N.
 
-### Coming out soon!
+<a href="https://arxiv.org/abs/2109.14086"><img src="https://img.shields.io/badge/arXiv-2109.140860-green.svg" alt="arXiv:2109.140860" /></a>
 
 The newest version works in simililar way to the version 1.0 of pyaneti. You should be able to compile it and run it following
 this [tutorial](https://github.com/oscaribv/pyaneti/wiki). 
@@ -85,6 +85,30 @@ you can use the bibTeX entry
           doi = {10.1093/mnras/sty2472},
  primaryClass = {astro-ph.EP},
        adsurl = {https://ui.adsabs.harvard.edu/#abs/2019MNRAS.482.1017B},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
+
+If you also use new routines of pyaneti (multi-band modelling, single transit modelling, or Gaussian Process regression), please cite this paper
+
+```
+Barragán,  O.,  Aigrain,  S.,  Rajpaul,  V.  M.,  &  Zicher,  N.  2021,  arXiv  e-prints,arXiv:2109.14086
+```
+
+```
+@ARTICLE{pyaneti2,
+       author = {{Barrag{\'a}n}, Oscar and {Aigrain}, Suzanne and {Rajpaul}, Vinesh M. and {Zicher}, Norbert},
+        title = "{pyaneti II: A multi-dimensional Gaussian process approach to analysing spectroscopic time-series}",
+      journal = {arXiv e-prints},
+     keywords = {Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics},
+         year = 2021,
+        month = sep,
+          eid = {arXiv:2109.14086},
+        pages = {arXiv:2109.14086},
+archivePrefix = {arXiv},
+       eprint = {2109.14086},
+ primaryClass = {astro-ph.EP},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2021arXiv210914086B},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
