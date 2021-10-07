@@ -318,6 +318,8 @@ mark = ['o', 'D', 's', 'p', 'h', '8', '^',
         '<', '*', 'v', '>', '.', 'H', 'd', '+']
 # Default colors for the different instruments of the RV plots
 rv_colors = ['#00c400','#CE1126', 'b','#ff8c00', 'y', 'k', '#ffbf00', '#ff1493']
+#rv_colors = ['#CE1126','#00c400', 'b','#ff8c00', 'y', 'k', '#ffbf00', '#ff1493']
+rv_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
 # marker size for the data points of the RV plot
 rv_markersize = 8

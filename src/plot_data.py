@@ -60,8 +60,8 @@ def create_nice_plot(mvector, dvector, labels, mlabels, inst_labels, fname,
                  color=model_colors[j-1], alpha=model_alpha[j-1], zorder=4)
     #PLOT STANDARD DEVIATION OF THE MODEL
     if len(std_model) == len(tmodel):
-        plt.fill_between(tmodel,mvector[-1]-1*std_model,mvector[-1]+1*std_model,color='k',alpha=0.2,lw=0,zorder=3)
-        plt.fill_between(tmodel,mvector[-1]-2*std_model,mvector[-1]+2*std_model,color='k',alpha=0.2,lw=0,zorder=3)
+        plt.fill_between(tmodel,mvector[-1]-1*std_model,mvector[-1]+1*std_model,color='k',alpha=0.2,lw=0,zorder=1)
+        plt.fill_between(tmodel,mvector[-1]-2*std_model,mvector[-1]+2*std_model,color='k',alpha=0.2,lw=0,zorder=1)
     # PLOT DATA
     #Save the label of all the instruments available
     in_vec = []
@@ -94,10 +94,9 @@ def create_nice_plot(mvector, dvector, labels, mlabels, inst_labels, fname,
     miy = int(max(abs(yylims[0]), abs(yylims[1])))
     if (miy == 0):  # To avoid errors for really small RV variations
         miy = max(abs(yylims[0]), abs(yylims[1]))
-#  plt.ylim(-miy,miy)
+    #  plt.ylim(-miy,miy)
     #
     # if ( select_y_rv ):
-    #  plt.ylim(rv_lim_min,rv_lim_max)
     plt.xlim(min(tmodel), max(tmodel))
     #
     # NEW SUBPLOT: RESIDUALS
@@ -327,9 +326,11 @@ def create_plot_posterior(params, plabs, cbars='red', nb=50, num=[]):
         ax0 = plt.subplot(gs[j],rasterized=is_rasterized)
         vpar, lpar, rpar = find_vals_perc(params[i], 1.0)
         moda = my_mode(params[i])
-        plt.axvline(x=vpar, c='k',label='Mean',zorder=2)
-        plt.axvline(x=moda, c='y', ls='-.',label='Mode',zorder=2)
-        plt.axvspan(vpar-lpar, vpar+rpar, color='#CE1126', alpha=0.7, lw=0,label='68.3% C.I.')
+        plt.axvline(x=vpar, c='r',label='Mean',zorder=2,linewidth=2)
+        plt.axvline(x=moda, c='k', ls='-.',label='Mode',zorder=2,linewidth=2)
+        #plt.axvline(x=vpar-lpar, c='#78ab78', ls='-',label='Mode',zorder=2)
+        #plt.axvline(x=vpar+lpar, c='#78ab78', ls='-',label='Mode',zorder=2)
+        plt.axvspan(vpar-lpar, vpar+rpar, color='#78ab78', alpha=0.5, lw=0.5,label='68.3% C.I.')
         plt.xlabel(plabs[i])
         if (j % n_columns_posterior == 0):
             plt.ylabel('Frequency')
@@ -338,11 +339,11 @@ def create_plot_posterior(params, plabs, cbars='red', nb=50, num=[]):
         plt.tick_params(axis='x', which='both', direction='in')
         if (is_seaborn_plot):
             #sns.kdeplot(params[i],label='Posterior, P(M|D)')
-            plt.hist(params[i], density=True, bins=nb,color='#006341',
-                     histtype='stepfilled', label='Posterior',alpha=0.8)
+            plt.hist(params[i], density=True, bins=nb,color='#00578a',
+                     histtype='step', label='Posterior',alpha=0.8,linewidth=3)
         else:
-            plt.hist(params[i], density=True, bins=nb,color='#006341',
-                     histtype='stepfilled', label='Posterior',alpha=0.8)
+            plt.hist(params[i], density=True, bins=nb,color='#00578a',
+                     histtype='step', label='Posterior',alpha=0.8,linewidth=3)
         # Let us plot the prior ranges over the posterior distributions
         if is_plot_prior:
             lx, rx = ax0.get_xlim()
@@ -353,7 +354,7 @@ def create_plot_posterior(params, plabs, cbars='red', nb=50, num=[]):
             for k in range(0, len(locx)):
                 lp[k] = pti.get_priors(
                     priorf[i], [priorl[i*2], priorl[i*2+1]], locx[k])
-            plt.plot(locx, lp, alpha=1, color='#0080ff', label='Prior')
+            plt.plot(locx, lp, alpha=1, color='#ffa500', label='Prior',linewidth=2.5)
         #
         if (i == n[0]):
             plt.legend(loc=0, ncol=1, scatterpoints=1,
@@ -410,7 +411,7 @@ def create_plot_correlation(params, plabs, col='red', mark='.', num=[],is_plot_p
                                 direction='in', labelbottom=True,rotation=45,labelsize=8)
             #PLOT POSTERIORS
             if j == i:
-                plt.hist(params[j],bins=50,density=True,histtype='stepfilled',color='#006341',zorder=1,alpha=0.8)
+                plt.hist(params[j],bins=50,density=True,histtype='step',color='#00578a',zorder=1,alpha=0.8,linewidth=3,label='Posterior')
                 #sns.kdeplot(params[j])
                 if is_plot_prior:
                     lx, rx = ax0.get_xlim()
@@ -421,19 +422,22 @@ def create_plot_correlation(params, plabs, col='red', mark='.', num=[],is_plot_p
                 for k in range(0, len(locx)):
                     lp[k] = pti.get_priors(
                             priorf[i], [priorl[i*2], priorl[i*2+1]], locx[k])
-                plt.plot(locx, lp, alpha=0.8, color='#0080ff', label='Prior',lw=1,zorder=2)
+                plt.plot(locx, lp, alpha=0.8, color='#ffa500', label='Prior',lw=2,zorder=2)
                 vpar, lpar, rpar = find_vals_perc(params[i], 1.0)
                 moda = my_mode(params[i])
-                plt.axvline(x=vpar, c='k',label='Mean',zorder=2)
+                plt.axvline(x=vpar, c='r',label='Mean',zorder=2)
                 #plt.axvline(x=moda, c='y', ls='-.',label='Mode',zorder=2)
-                plt.axvspan(vpar-lpar, vpar+rpar, color='#CE1126', alpha=0.7, lw=0,label='68.3% credible interval',zorder=0)
+                plt.axvspan(vpar-lpar, vpar+rpar, color='#78ab78', alpha=0.7, lw=0,label='68.3% credible interval',zorder=0)
                 plt.xlim(*limits[o])
+                if j == 0: plt.legend(loc='upper right',bbox_to_anchor=(3.0, 0.9))
             else:
                 if plot_kde_correlations:
-                    sns.kdeplot(params[j], params[i],levels=4,color='k')
-                    plt.plot(params[j],params[i],'.',alpha=0.05,markersize=0.5,color='#006341')
+                    rindex = np.random.random_integers(0,len(params[j])-1,100000)
+                    sns.kdeplot(params[j][rindex], params[i][rindex],levels=4,color='k')
+                    plt.plot(params[j][rindex],params[i][rindex],'.',alpha=0.05,markersize=0.5,color='#006341')
                 else:
-                    z, xbins, ybins, image = plt.hist2d(params[j], params[i], bins=50, norm=LogNorm(),cmap='Greens')
+                    z, xbins, ybins, image = plt.hist2d(params[j], params[i], bins=25, norm=LogNorm(),cmap='Blues',alpha=0.2)
+                    plt.contour(z.transpose(),extent=[xbins.min(),xbins.max(),ybins.min(),ybins.max()],linewidths=1,cmap='Blues')
                 plt.xlim(*limits[p])
                 plt.ylim(*limits[o])
 
