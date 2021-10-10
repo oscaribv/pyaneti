@@ -19,6 +19,7 @@
 ## Paper II
 ### Written by Barragán O., Aigrain S., Rajpaul V. M., and Zicher N.
 
+<a href="https://academic.oup.com/mnras/advance-article-abstract/doi/10.1093/mnras/stab2889/6383008"><img src="https://img.shields.io/badge/MNRAS-2021, in press.-blueviolet.svg" alt="MNRAS" /></a>
 <a href="https://arxiv.org/abs/2109.14086"><img src="https://img.shields.io/badge/arXiv-2109.140860-green.svg" alt="arXiv:2109.140860" /></a>
 
 The newest version works in simililar way to the version 1.0 of pyaneti. You should be able to compile it and run it following
