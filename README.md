@@ -6,7 +6,7 @@
 *From the Italian word _pianeti_, which means planets
 
 #### email: oscaribv@gmail.com, oscar.barragan@physics.ox.ac.uk
-#### Updated July 2021
+#### Updated November 2021
 
 ## Paper I
 ### Written by Barragán O., Gandolfi D. & Antoniciello G.
@@ -19,7 +19,7 @@
 ## Paper II
 ### Written by Barragán O., Aigrain S., Rajpaul V. M., & Zicher N.
 
-<a href="https://academic.oup.com/mnras/advance-article-abstract/doi/10.1093/mnras/stab2889/6383008"><img src="https://img.shields.io/badge/MNRAS-2021, in press.-blueviolet.svg" alt="MNRAS" /></a>
+<a href="https://academic.oup.com/mnras/advance-article-abstract/doi/10.1093/mnras/stab2889/6383008"><img src="https://img.shields.io/badge/MNRAS-2022, 509, 866-blueviolet.svg" alt="MNRAS" /></a>
 <a href="https://arxiv.org/abs/2109.14086"><img src="https://img.shields.io/badge/arXiv-2109.140860-green.svg" alt="arXiv:2109.140860" /></a>
 
 The newest version works in simililar way to the version 1.0 of pyaneti. You should be able to compile it and run it following
@@ -93,23 +93,25 @@ you can use the bibTeX entry
 If you also use new routines of pyaneti (multi-band modelling, single transit modelling, or Gaussian Process regression), please cite this paper
 
 ```
-Barragán,  O.,  Aigrain,  S.,  Rajpaul,  V.  M.,  &  Zicher,  N.  2021,  arXiv  e-prints,arXiv:2109.14086
+Barragán,  O.,  Aigrain,  S.,  Rajpaul,  V.  M.,  &  Zicher,  N.,  2022, MNRAS. 509, 866
 ```
 
 ```
 @ARTICLE{pyaneti2,
        author = {{Barrag{\'a}n}, Oscar and {Aigrain}, Suzanne and {Rajpaul}, Vinesh M. and {Zicher}, Norbert},
-        title = "{pyaneti II: A multi-dimensional Gaussian process approach to analysing spectroscopic time-series}",
-      journal = {arXiv e-prints},
-     keywords = {Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics},
-         year = 2021,
-        month = sep,
-          eid = {arXiv:2109.14086},
-        pages = {arXiv:2109.14086},
+        title = "{PYANETI - II. A multidimensional Gaussian process approach to analysing spectroscopic time-series}",
+      journal = {\mnras},
+     keywords = {methods: numerical, techniques: photometry, techniques: spectroscopy, planets and satellites: general, Astrophysics - Earth and Planetary Astrophysics, Astrophysics - Instrumentation and Methods for Astrophysics},
+         year = 2022,
+        month = jan,
+       volume = {509},
+       number = {1},
+        pages = {866-883},
+          doi = {10.1093/mnras/stab2889},
 archivePrefix = {arXiv},
        eprint = {2109.14086},
  primaryClass = {astro-ph.EP},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2021arXiv210914086B},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2022MNRAS.509..866B},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
 ```
