@@ -5,7 +5,7 @@
 # __pyaneti__*
 *From the Italian word _pianeti_, which means planets
 
-#### email: oscaribv@gmail.com, oscar.barragan@physics.ox.ac.uk
+#### email:  oscar.barragan_at_physics.ox.ac.uk
 #### Updated November 2021
 
 ## Paper I
@@ -22,21 +22,13 @@
 <a href="https://academic.oup.com/mnras/advance-article-abstract/doi/10.1093/mnras/stab2889/6383008"><img src="https://img.shields.io/badge/MNRAS-2022, 509, 866-blueviolet.svg" alt="MNRAS" /></a>
 <a href="https://arxiv.org/abs/2109.14086"><img src="https://img.shields.io/badge/arXiv-2109.140860-green.svg" alt="arXiv:2109.140860" /></a>
 
-The newest version works in simililar way to the version 1.0 of pyaneti. You should be able to compile it and run it following
-this [tutorial](https://github.com/oscaribv/pyaneti/wiki). 
-But, *this new version uses the lapack and blas libraries, be sure you have them, if no, the code may not compile*. You should be able to re-run all your scripts of the old pyaneti in this one (But not all the
-input files for this new pyaneti will run in the old one!). 
 
-#### New in this version:
+#### Brief description on pyaneti:
 
-* Now the code runs in _python 3_.
-* Changes in plots.
-* It runs transit fits for single transits.
-* It runs multi-band fits.
-* It runs GPs and multi-GPs regressions.
-
-#### This version still preserves all the previous features
-
+* The code runs in _python 3_.
+* Transit fits for single transits.
+* Multi-band fits.
+* Gaussian Process (GP) and multidimensional GP regressions.
 * Multiple independent Markov chains to sample the parameter space.
 * Easy-to-use: it runs by providing only one input_fit.py file.
 * Parallel computing with OpenMP.
@@ -47,16 +39,12 @@ input files for this new pyaneti will run in the old one!).
 * Systemic velocities for multiple instruments.
 * Stellar limb darkening [(Mandel & Agol, 2002)](http://iopscience.iop.org/article/10.1086/345520/meta#artAbst).
 * Correct treatment of short and long cadence data ([Kipping, 2010](http://mnras.oxfordjournals.org/content/408/3/1758)).
-* Single joint RV + transit fitting.
+* Joint RV + transit fitting.
 
-If you want to see the cool stuff that this new pyaneti can do, check 
-[Barragán et al., 2019](https://academic.oup.com/mnras/article-abstract/490/1/698/5569669?redirectedFrom=fulltext).
+If you want to see the cool stuff that pyaneti can do check
+[these papers](https://ui.adsabs.harvard.edu/search/fq=database%3A%20astronomy&fq=%7B!type%3Daqp%20v%3D%24fq_database%7D&fq_database=database%3A%20astronomy&p_=0&q=%20full%3A%22pyaneti%22&sort=date%20desc%2C%20bibcode%20desc).
 
-#### Learn how to install and use pyaneti [here](https://github.com/oscaribv/pyaneti/wiki/Start-to-use-pyaneti-now!)
-
-
-#### Check pyaneti [wiki](https://github.com/oscaribv/pyaneti/wiki) to learn how to use it!
-
+#### Check pyaneti [wiki](https://github.com/oscaribv/pyaneti/wiki) to learn how to use it
 
 ### Citing
 
@@ -66,7 +54,7 @@ If you use pyaneti in your research, please cite it as
 Barragán, O., Gandolfi, D., & Antoniciello, G., 2019, MNRAS, 482, 1017
 ```
 
-you can use the bibTeX entry
+you can use this bibTeX entry
 
 ```
 @ARTICLE{pyaneti,
@@ -90,11 +78,13 @@ you can use the bibTeX entry
 }
 ```
 
-If you also use new routines of pyaneti (multi-band modelling, single transit modelling, or Gaussian Process regression), please cite this paper
+If you also use the new routines of pyaneti (multi-band modelling, single transit modelling, or Gaussian Process regression), please cite also this paper
 
 ```
 Barragán,  O.,  Aigrain,  S.,  Rajpaul,  V.  M.,  &  Zicher,  N.,  2022, MNRAS. 509, 866
 ```
+
+you can use this bibTeX entry
 
 ```
 @ARTICLE{pyaneti2,
@@ -119,7 +109,7 @@ archivePrefix = {arXiv},
 
 **If you have any comments, requests, suggestions or just need any help, please don't think twice, just contact us!**
 
-#### Warning: This code is under developement and it may contain bugs. If you find something please contact us at oscaribv@gmail.com
+#### Warning: This code is under developement and it may contain bugs. If you find something please contact us at oscar.barragan_at_physics.ox.ac.uk
 
 ## Acknowledgements
 * Hannu Parviainen, thank you for helping us to interpret the first result of the PDF of the MCMC chains. We learned a lot from you!
@@ -129,6 +119,5 @@ archivePrefix = {arXiv},
 * Jorge Prieto-Arranz, thank you for all the suggestions which have helped to improve the code.
 
 **THANKS A LOT!**
-
 
 ### For a beta version of pyaneti check [here](https://github.com/oscaribv/pyaneti-dev)
