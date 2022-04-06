@@ -268,7 +268,7 @@ is_special_plot_tr = False
 # If True, it overplots an unbinned model in the light curve model
 plot_unbinned_model = False
 # If True, it overplots an unbinned model in the light curve model
-plot_binned_data = True
+plot_binned_data = False
 # If True, the transit plot will have each data point with an error bar
 # If False, all points will be filled circles with the error bar size showed in the down right corner
 plot_tr_errorbars = False
@@ -317,8 +317,6 @@ is_rv_legend = True
 mark = ['o', 'D', 's', 'p', 'h', '8', '^',
         '<', '*', 'v', '>', '.', 'H', 'd', '+']
 # Default colors for the different instruments of the RV plots
-rv_colors = ['#00c400','#CE1126', 'b','#ff8c00', 'y', 'k', '#ffbf00', '#ff1493']
-#rv_colors = ['#CE1126','#00c400', 'b','#ff8c00', 'y', 'k', '#ffbf00', '#ff1493']
 rv_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
 # marker size for the data points of the RV plot
@@ -374,6 +372,9 @@ textra = 0.0
 # The default planet labels
 # If you need to add more labels, you have made a great discovery! ;-)
 plabels = ['b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l']
+
+#GP_rv labels
+gprv_labels = []
 
 # Select how the values are taken to create plots
 # 'median' -> it uses the median

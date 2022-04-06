@@ -60,8 +60,8 @@ def create_nice_plot(mvector, dvector, labels, mlabels, inst_labels, fname,
                  color=model_colors[j-1], alpha=model_alpha[j-1], zorder=4)
     #PLOT STANDARD DEVIATION OF THE MODEL
     if len(std_model) == len(tmodel):
-        plt.fill_between(tmodel,mvector[-1]-1*std_model,mvector[-1]+1*std_model,color='k',alpha=0.2,lw=0,zorder=1)
-        plt.fill_between(tmodel,mvector[-1]-2*std_model,mvector[-1]+2*std_model,color='k',alpha=0.2,lw=0,zorder=1)
+        plt.fill_between(tmodel,mvector[-1]-1*std_model,mvector[-1]+1*std_model,color='k',alpha=0.1,lw=0,zorder=1)
+        plt.fill_between(tmodel,mvector[-1]-2*std_model,mvector[-1]+2*std_model,color='k',alpha=0.1,lw=0,zorder=1)
     # PLOT DATA
     #Save the label of all the instruments available
     in_vec = []
@@ -98,6 +98,7 @@ def create_nice_plot(mvector, dvector, labels, mlabels, inst_labels, fname,
     #
     # if ( select_y_rv ):
     plt.xlim(min(tmodel), max(tmodel))
+    #plt.ylim(-12,12)
     #
     # NEW SUBPLOT: RESIDUALS
     #
@@ -122,6 +123,10 @@ def create_nice_plot(mvector, dvector, labels, mlabels, inst_labels, fname,
 
         plt.plot([min(tmodel), max(tmodel)], [0., 0.],
                  'k--', linewidth=1.0, zorder=2)
+
+        if len(std_model) == len(tmodel):
+            plt.fill_between(tmodel,-1*std_model,+1*std_model,color='k',alpha=0.1,lw=0,zorder=1)
+            plt.fill_between(tmodel,-2*std_model,+2*std_model,color='k',alpha=0.1,lw=0,zorder=1)
         #
         yylims = ax1.get_ylim()
         miy = int(max(abs(yylims[0]), abs(yylims[1])))
@@ -222,14 +227,17 @@ if (sample_stellar_density):
     alab = '$\\rho_{\star}$'
 # planet parameter labels
 for o in range(0, nplanets):
-    etiquetas = ['$T0_{'+plabels[o]+'}$ [days]', '$P_{'+plabels[o]+'}$ [days]', elab+'$_{'+plabels[o]+'}$',
+    etiquetas = ['$T0_{'+plabels[o]+'}$ [d]', '$P_{'+plabels[o]+'}$ [d]', elab+'$_{'+plabels[o]+'}$',
                  wlab+'$_{'+plabels[o]+'}$', ilab+'$_{'+plabels[o]+'}$', alab+'$_{'+plabels[o]+'}$'+'[${\\rm g\,cm^{-3}}$]',
                  klab+'$_{'+plabels[o]+'}$'+'[${\\rm km\,s^{-1}}$]']
     labs.append(etiquetas)
 # planet radius labels
-for o in range(0, nplanets):
-    for m in range(0, nradius):
-        labs.append(['$R_p/R_\star$'+plabels[o]+bands[m]])
+for o in range(nplanets):
+    if nradius == 1:
+        labs.append(['$R_p/R_\star$'+plabels[o]])
+    else:
+        for m in range(nradius):
+            labs.append(['$R_p/R_\star$'+plabels[o]+bands[m]])
 # LDC labels
 for m in range(0, nbands):
     labs.append(['$q_1$'+bands[m], '$q_2$'+bands[m]])
@@ -237,17 +245,17 @@ for m in range(0, nbands):
 labs.append(telescopes_labels)
 # jitter labels
 for o in range(0, n_jrv):
-    labs.append(['RV_jitter'+str(telescopes_labels[o])+'[m/s]'])
+#    labs.append(['$\\sigma$_j,'+str(telescopes_labels[o])+'[m/s]'])
+    labs.append(['$\\sigma_j$,'+str(telescopes_labels[o])])
 for o in range(0, n_jtr):
-    labs.append(['TR_jitter'+str(bands[o])])
+    labs.append(['TR_j,'+str(bands[o])])
 # trends labels
 labs.append(['Linear trend'])
 labs.append(['Quadratic trend'])
-labs.append(krv_labels)
+labs.append(gprv_labels)
 labs.append(ktr_labels)
 # Total labels vector
 labels = np.concatenate(labs)
-
 
 # ===========================================================
 #              plot chains
@@ -386,7 +394,7 @@ def create_plot_correlation(params, plabs, col='red', mark='.', num=[],is_plot_p
         limits.append((min(params[i]),max(params[i])))
 
 
-    plt.figure(1, figsize=(2*len(n), 2*len(n)))
+    plt.figure(1, figsize=(len(n), len(n)))
     nrows = len(n)
     ncols = len(n)
     gs = gridspec.GridSpec(nrows=nrows, ncols=ncols)
@@ -402,16 +410,16 @@ def create_plot_correlation(params, plabs, col='red', mark='.', num=[],is_plot_p
                             direction='in', labelbottom=False)
             plt.ticklabel_format(useOffset=False, axis='both')
             if (p == 0 and o > 0):
-                plt.ylabel(plabs[i], fontsize=12)
+                plt.ylabel(plabs[i], fontsize=8)
                 plt.tick_params(axis='y', which='both',
-                                direction='in', labelleft=True,rotation=45,labelsize=8)
+                                direction='in', labelleft=True,rotation=45,labelsize=6)
             if (i == n[len(n)-1]):
-                plt.xlabel(plabs[j], fontsize=12)
+                plt.xlabel(plabs[j], fontsize=8)
                 plt.tick_params(axis='x', which='both',
-                                direction='in', labelbottom=True,rotation=45,labelsize=8)
+                                direction='in', labelbottom=True,rotation=45,labelsize=6)
             #PLOT POSTERIORS
             if j == i:
-                plt.hist(params[j],bins=50,density=True,histtype='step',color='#00578a',zorder=1,alpha=0.8,linewidth=3,label='Posterior')
+                plt.hist(params[j],bins=50,density=True,histtype='step',color='#00578a',zorder=1,alpha=0.8,linewidth=2,label='Posterior')
                 #sns.kdeplot(params[j])
                 if is_plot_prior:
                     lx, rx = ax0.get_xlim()
@@ -422,14 +430,14 @@ def create_plot_correlation(params, plabs, col='red', mark='.', num=[],is_plot_p
                 for k in range(0, len(locx)):
                     lp[k] = pti.get_priors(
                             priorf[i], [priorl[i*2], priorl[i*2+1]], locx[k])
-                plt.plot(locx, lp, alpha=0.8, color='#ffa500', label='Prior',lw=2,zorder=2)
+                plt.plot(locx, lp, alpha=0.8, color='#ffa500', label='Prior',lw=1,zorder=2)
                 vpar, lpar, rpar = find_vals_perc(params[i], 1.0)
                 moda = my_mode(params[i])
                 plt.axvline(x=vpar, c='r',label='Mean',zorder=2)
                 #plt.axvline(x=moda, c='y', ls='-.',label='Mode',zorder=2)
                 plt.axvspan(vpar-lpar, vpar+rpar, color='#78ab78', alpha=0.7, lw=0,label='68.3% credible interval',zorder=0)
                 plt.xlim(*limits[o])
-                if j == 0: plt.legend(loc='upper right',bbox_to_anchor=(3.0, 0.9))
+                if j == n[0]: plt.legend(loc='upper right',bbox_to_anchor=(3.2, 0.92),fontsize=7)
             else:
                 if plot_kde_correlations:
                     rindex = np.random.random_integers(0,len(params[j])-1,100000)

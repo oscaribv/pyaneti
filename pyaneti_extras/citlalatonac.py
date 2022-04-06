@@ -114,6 +114,8 @@ class citlali():
         mi_kernel = ''
         if self.kernel == 'QPK':
             mi_kernel = 'MQ'+str(nseries)
+        elif self.kernel == 'SQP':
+            mi_kernel = 'SQ'+str(nseries)
         elif self.kernel == 'M52':
             mi_kernel = 'MM'+str(nseries)
         elif self.kernel == 'EXP':
@@ -266,6 +268,31 @@ class citlali():
             setattr(self,label+'_err',err[i])
             #Modify the label+'_data' by adding the white noise
             setattr(self,label+'_data',np.random.normal(getattr(self,label+'_data'),getattr(self,label+'_err')))
+
+
+    def add_white_noise_list(self,err=[]):
+        """
+        Add white noise to the simulated data where the user gives lists with each error bar
+        For each time-series
+        You need to run get_data_from_sample before
+        #err has to be a list of lists containing errors
+        a float indicating the error in each time_series or
+        a list with individual errors for each time_series
+        """
+
+        #First check if the data attributes have been created, if not, create them
+        if not hasattr(self,'time_data'):
+            print("You have not created the *_data atributes yet!")
+            return
+
+
+        #Add white noise to each time-series
+        for i, label in enumerate(self.time_series):
+            for j in range(len(self.time)):
+                #Create the label+'_err'
+                setattr(self,label+'_err',err[i])
+                #Modify the label+'_data' by adding the white noise
+                setattr(self,label+'_data',np.random.normal(getattr(self,label+'_data'),getattr(self,label+'_err')))
 
 
     def add_red_noise(self,se_parameters=[1e-4,1]):

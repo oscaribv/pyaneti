@@ -25,7 +25,7 @@ implicit none
      call QPKernel(pars,x1,x2,cov,nx1,nx2)
   else if ( kernel == 'QP2' ) then
      call QPKernel2(pars,x1,x2,cov,nx1,nx2)
-  else if ( kernel(1:2) == 'MQ' .or. kernel(1:2) == 'ME' .or. kernel(1:2) == 'MM') then
+  else if ( kernel(1:2) == 'MQ' .or. kernel(1:2) == 'ME' .or. kernel(1:2) == 'MM' .or. kernel(1:2) == 'SQ') then
     !-Multi-GP case
     !What is the number of dimensions?
     read(kernel(3:3),'(i1)') ndim

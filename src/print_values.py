@@ -247,6 +247,7 @@ if (method == 'mcmc' or method == 'plot'):
             Tpe_vec[o][m] = pti.find_tp(
                 T0_vec[o][m], e_vec[o][m], w_vec[o][m], P_vec[o][m])
 
+
         # Density from the input stellar parameters
         irho_vec = mstar/rstar**3 * 1.411
 
@@ -257,6 +258,13 @@ if (method == 'mcmc' or method == 'plot'):
         a_vec[o] = ar_vec[o] * rstar * S_radius_SI / AU_SI
         m_vec[o] = planet_mass(mstar, k_vec[o]*1.e3,
                                P_vec[o], e_vec[o], i_vec[o])
+
+        #Compute the velocity of the planet at the time of transit
+        #First compute the semi-amplitude caused from the star to the planet
+        Kp = k_vec[o]*(mstar + m_vec[o])/m_vec[o] #masses are in solar units and k_vec in km/s
+        vel_pt0 = [0]*len(T0_vec[o])
+        for m in range(0, len(T0_vec[o])):
+            vel_pt0[m] = pti.rv_curve_mp(T0_vec[o][m],0.,T0_vec[o][m],Kp[m],P_vec[o][m],e_vec[o][m],w_vec[o][m]+np.pi,0,0)
 
         if is_single_transit:
 #            # Let us make the magic if we are dealing with single transits
@@ -411,7 +419,9 @@ if (method == 'mcmc' or method == 'plot'):
         if (is_ew):
             print_values(e_vec[o], 'e', 'e'+pl, ' ', ' ')
             print_values(w_vec[o]*180./np.pi, 'w', 'w'+pl, 'deg', 'deg')
-        if (fit_tr[o]):
+        if (fit_rv[o]):
+            print_values(vel_pt0, 'Planet RV', 'prv'+pl, 'km/s (Planet RV at T0)', '${\\rm km\,s^{-1}}$')
+        if (fit_tr[o] ):
             print_values(i_vec[o]*180./np.pi, 'i', 'i'+pl, 'deg', 'deg')
             if (sample_stellar_density):
                 print_values(ar_vec[o], 'a/R*', 'ar'+pl, ' ', ' ')

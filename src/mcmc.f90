@@ -122,7 +122,7 @@ implicit none
   inverted = (/ 1 , 0 /)
 
   !The infinite cycle starts!
-  print *, 'STARTING INFINITE LOOP!'
+  print *, 'STARTING MCMC SAMPLING!'
   do while ( continua )
 
     !Creating the random variables

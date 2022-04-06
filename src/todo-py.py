@@ -333,7 +333,7 @@ def good_clustering_likelihood(pos, nconv, nwalkers):
     for m,i in enumerate(sorted_indices):
         otros = i != sorted_indices
         otros[0:m] = False
-        otros_walkers = np.mean(pos_mean[otros]) - 3*np.std(pos_mean[otros])
+        otros_walkers = np.mean(pos_mean[otros]) - 1*np.std(pos_mean[otros])
         if (pos_mean[i] > otros_walkers):
             # We are saving the good chain labels
             good_chain.append(i)
@@ -450,6 +450,7 @@ def joint_fit():
     global n_jtr, trlab, jtrlab, jtr_prior_flag, jtr_prior_vals, jrv_prior_flag, jrv_prior_vals
     global kernels, krv_labels, krv_prior_flag, krv_prior_vals
     global ktr_labels, ktr_prior_flag, ktr_prior_vals, np_rv, np_tr
+    global gprv_labels
 
     if (is_ew):
         min_e = min_ew1
@@ -553,16 +554,22 @@ def joint_fit():
         # This has to be a 4-dimensional vector with the prior limits
         krv_prior_vals = krv_priors
         krv_labels = ['A', 'Gamma', 'metric', 'P_GP']
+        if len(gprv_labels) < 2 or len(gprv_labels) != len(krv_labels):
+            gprv_labels = krv_labels
     elif kernel_rv == 'M32' or kernel_rv == 'M52':
         krv_prior_flag = fit_krv
         krv_prior_vals = krv_priors
         krv_labels = ['A','metric']
+        if len(gprv_labels) < 2 or len(gprv_labels) != len(krv_labels):
+            gprv_labels = krv_labels
     elif kernel_rv == 'QPK':
         # fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
         krv_prior_flag = fit_krv
         # This has to be a 4-dimensional vector with the prior limits
         krv_prior_vals = krv_priors
         krv_labels = ['A', 'le', 'lp', 'P_GP']
+        if len(gprv_labels) < 2 or len(gprv_labels) != len(krv_labels):
+            gprv_labels = krv_labels
     # Add remaining kernels
     elif kernel_rv[0:2] == 'MQ':
         krv_prior_flag = fit_krv
@@ -573,6 +580,21 @@ def joint_fit():
         krv_labels[len(fit_krv)-3] = 'lambdae'
         krv_labels[len(fit_krv)-2] = 'lambdap'
         krv_labels[len(fit_krv)-1] = 'PGP'
+        if len(gprv_labels) < 2 or len(gprv_labels) != len(krv_labels):
+            gprv_labels = krv_labels
+    elif kernel_rv[0:2] == 'SQ':
+        krv_prior_flag = fit_krv
+        krv_prior_vals = krv_priors
+        krv_labels = [None]*len(fit_krv)
+        for m in range(len(fit_krv) - 3):
+            krv_labels[m] = 'A'+str(m)
+        krv_labels[len(fit_krv)-5] = 'lambdae'
+        krv_labels[len(fit_krv)-4] = 'lambdap1'
+        krv_labels[len(fit_krv)-3] = 'PGP1'
+        krv_labels[len(fit_krv)-2] = 'lambdap2'
+        krv_labels[len(fit_krv)-1] = 'PGP2'
+        if len(gprv_labels) < 2 or len(gprv_labels) != len(krv_labels):
+            gprv_labels = krv_labels
     elif kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM':
         krv_prior_flag = fit_krv
         krv_prior_vals = krv_priors
@@ -580,6 +602,8 @@ def joint_fit():
         for m in range(len(fit_krv)- 1):
             krv_labels[m] = 'A'+str(m)
         krv_labels[len(fit_krv)-1] = 'lambdae'
+        if len(gprv_labels) < 2 or len(gprv_labels) != len(krv_labels):
+            gprv_labels = krv_labels
 
     np_rv = len(krv_prior_flag)
 
@@ -601,6 +625,12 @@ def joint_fit():
         ktr_prior_vals = ktr_priors
         ktr_labels = ['A','metric', '$\Gamma$', 'P']
     # Add remaining kernels
+    elif kernel_tr == 'SEK':
+        # fit_krv has to be a four-dimensional vector (A,Gamma1,Gamma2,P)
+        ktr_prior_flag = fit_ktr
+        # This has to be a 4-dimensional vector with the prior limits
+        ktr_prior_vals = ktr_priors
+        ktr_labels = ['A', '$\lambda$']
 
     np_tr = len(ktr_prior_flag)
 

@@ -45,7 +45,7 @@ def plot_rv_timeseries():
         # Compute the residuals for the instrument j
         rv_residuals[j] = np.asarray(rv_no_offset[j] - rv_residuals[j])
 # -------------------------------------------------------------------------------
-    if kernel_rv[0:2] == 'MQ' or kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM':
+    if kernel_rv[0:2] == 'MQ' or kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM' or  kernel_rv[0:2] == 'SQ':
         # How many timeseries do we have?
         #ns = int((len(fit_krv) - 3)/2)
         ns = int(kernel_rv[2])
@@ -123,7 +123,7 @@ def plot_rv_timeseries():
     vec_x = np.concatenate(time_all)
     #yvec_noplanet = np.concatenate(rv_residuals)
     vec_y = np.concatenate(rv_residuals)
-    if kernel_rv[0:2] == 'MQ' or kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM':
+    if kernel_rv[0:2] == 'MQ' or kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM' or kernel_rv[0:2] == 'SQ':
         vec_y = np.array(yvec)
     vec_z = np.concatenate(new_errs_all)/cfactor
     #
@@ -133,7 +133,7 @@ def plot_rv_timeseries():
     ejdata = np.asarray(np.concatenate(new_errs_all))
     res = np.asarray(vec_y)*cfactor
 
-    if kernel_rv[0:2] == 'MQ' or kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM':
+    if kernel_rv[0:2] == 'MQ' or kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM' or kernel_rv[0:2] == 'SQ' :
         ns = int(kernel_rv[2])
         ts_len = int(len(xdata)/ns)
         # Create the vector with the data needed in the create_nice_plot function
@@ -257,7 +257,7 @@ def plot_rv_phasefolded():
 #      plot_rv_fancy([p_rv,rvy,p_all,rv_planet_i,evec,ejvec,res,tlab],fname)
         rv_dvec = np.array([p_all, rv_planet_i, evec, ejvec, res, tlab])
         tellabs = telescopes_labels
-        if kernel_rv[0:2] == 'MQ' or kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM':
+        if kernel_rv[0:2] == 'MQ' or kernel_rv[0:2] == 'ME' or kernel_rv[0:2] == 'MM' or kernel_rv[0:2] == 'SQ':
             ns = int(kernel_rv[2])
             nd = int(len(p_all)/ns)
             rv_dvec = [p_all[0:nd], rv_planet_i[0:nd],
