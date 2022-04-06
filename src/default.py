@@ -347,6 +347,8 @@ scale_error_bars = False
 # If True, it will check for clustering chains in order to remove lost chain in
 # local minima
 is_clustering = True
+#If save_clustered_chains is True, then pyaneti will save a file with the chains that survive the clustering
+save_clustered_chains = False
 
 # If True, the code creates authomatic priors for the RV offests
 # And also checks for maximum values for Rp/R*

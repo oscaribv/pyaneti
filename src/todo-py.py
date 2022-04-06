@@ -664,7 +664,7 @@ def joint_fit():
 
         #Change fortran file to a lighter csv file
         data = np.loadtxt('all_data.dat',unpack=True)
-        np.savetxt('all_data.dat',data.T,delimiter=',',fmt='%1.12e')
+        np.savetxt('all_data.dat',data.T,delimiter=',',fmt='%1.9e')
 
     elif (method == 'plot'):
         print('I will only print the values and generate the plot')

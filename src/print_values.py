@@ -40,6 +40,12 @@ if (is_clustering):
     for o in range(0, len(dparams)):
         params[o] = clustering_fast(dparams[o], good_index, nconv)
     maxloglike = params[1]
+    #If we performed clustering, let us save the clustered chains in the file
+    params = np.array(params)
+    if (save_clustered_chains):
+        clustered_file = outdir+'/'+star+'_all_data_clustered.dat'
+        print("Saving clustered chains in {}".format(clustered_file))
+        np.savetxt(clustered_file,params.T,delimiter=',',fmt='%1.9e')
 
 
 # Create the stellar data
