@@ -347,6 +347,9 @@ scale_error_bars = False
 # If True, it will check for clustering chains in order to remove lost chain in
 # local minima
 is_clustering = True
+#Clustering sigma controls how hard the clustering process will be, it will reject all chains that are
+#clustering_sigma away from the mean of the main group of chains
+clustering_sigma = 3.
 #If save_clustered_chains is True, then pyaneti will save a file with the chains that survive the clustering
 save_clustered_chains = False
 

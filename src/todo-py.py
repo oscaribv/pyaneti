@@ -323,7 +323,10 @@ def good_clustering_likelihood(pos, nconv, nwalkers):
 
     # The mean of each walker
     for i in range(0, nwalkers):
-        pos_mean[i] = np.mean(pos_walkers[i])
+        #pos_mean[i] = np.mean(pos_walkers[i])
+        #Let's see if instaed of working with the mean of the chains, we check the value at the beggining
+        #pos_mean[i] = pos_walkers[i][0]
+        pos_mean[i] = np.mean(pos_walkers[i][:10])
 
 
     sorted_indices = np.argsort(pos_mean)
@@ -333,7 +336,7 @@ def good_clustering_likelihood(pos, nconv, nwalkers):
     for m,i in enumerate(sorted_indices):
         otros = i != sorted_indices
         otros[0:m] = False
-        otros_walkers = np.mean(pos_mean[otros]) - 1*np.std(pos_mean[otros])
+        otros_walkers = np.mean(pos_mean[otros]) - clustering_sigma*np.std(pos_mean[otros])
         if (pos_mean[i] > otros_walkers):
             # We are saving the good chain labels
             good_chain.append(i)
