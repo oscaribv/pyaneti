@@ -229,10 +229,10 @@ implicit none
       lj = trlab(j)
 
       !Each z is independent for each planet
-      call find_z(xd(j),pars(0:5,n),z,1)
+      call find_z(xd(j),pars(0:5,n),z(1),1)
 
       !Now we have z, let us use Agol's routines
-      call occultquad(z,u1(lj),u2(lj),rps(n*nradius+lj*control),flux_model,mu,1)
+      call occultquad(z(1),u1(lj),u2(lj),rps(n*nradius+lj*control),flux_model,mu,1)
       !!!!!call qpower2(z,rp(n),u1,u2,flux_ub(:,n),n_cad)
 
       !Compute the final flux

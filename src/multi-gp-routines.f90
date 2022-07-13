@@ -14,6 +14,7 @@ subroutine get_QP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg,
   le = pars(0)
   lp = pars(1)
   P  = pars(2)
+!  le = le*P
 
   le2 = le*le
   lp2 = lp*lp
@@ -44,6 +45,47 @@ subroutine get_QP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg,
   gamma_dg_dg = gamma_g_g * gamma_dg_dg
 
 end subroutine get_QP_gammas
+
+!Super QP kernel with two sinosoidal terms
+subroutine get_SQP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg,nx1,nx2,npars)
+  use constants
+  implicit none
+  !
+  integer, intent(in) :: nx1, nx2, npars
+  real(kind=mireal), intent(in) :: x1(0:nx1-1), x2(0:nx2-1)
+  real(kind=mireal), intent(in) ::  pars(0:npars-1)
+  real(kind=mireal), intent(out), dimension(0:nx1-1,0:nx2-1) ::  gamma_g_g, gamma_dg_dg, gamma_dg_g, gamma_g_dg
+  !
+  real(kind=mireal), dimension(0:nx1-1,0:nx2-1) :: titj, tau1, tau2, sintau1, sintau2
+  real(kind=mireal) :: le, lp1, lp2, P1, P2
+
+  le  = pars(0)
+  lp1 = pars(1)
+  P1  = pars(2)
+  lp2 = pars(3)
+  P2  = pars(4)
+
+  call fcdist(x1,x2,titj,nx1,nx2)
+
+  tau1 = 2.*pi*titj/P1
+  tau2 = 2.*pi*titj/P2
+
+  sintau1 = sin(tau1)
+  sintau2 = sin(tau2)
+
+
+  gamma_g_g = - (sin(tau1/2.))**2/2./lp1/lp1 - (sin(tau2/2.))**2/2./lp2/lp2 - titj*titj/2./le/le
+  gamma_g_g = exp(gamma_g_g)
+
+  gamma_g_dg = - gamma_g_g * (pi*sintau1/(2.*P1*lp1*lp1) + pi*sintau2/(2.*P2*lp2*lp2) + titj/le/le)
+
+  gamma_dg_g = - gamma_g_dg
+
+  gamma_dg_dg = 1./le/le + pi*pi*cos(tau1)/(P1*P1*lp1*lp1) + pi*pi*cos(tau2)/(P2*P2*lp2*lp2)
+  gamma_dg_dg = gamma_dg_dg - (titj/le/le + pi*sintau1/(2.*lp1*lp1*P1) + pi*sintau2/(2.*lp2*lp2*P2))**2
+  gamma_dg_dg = gamma_g_g * gamma_dg_dg
+
+end subroutine get_SQP_gammas
 
 subroutine get_EXP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg,nx1,nx2,npars)
   use constants
@@ -129,6 +171,8 @@ subroutine get_gammas(x1,x2,pars,kernel,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg
 
   if (kernel == 'MQ') then !Multi-Quasi-periodic Kernel
        call get_QP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg,nx1,nx2,3)
+  else if (kernel == 'SQ') then !Super QP Kernel
+       call get_SQP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg,nx1,nx2,5)
   else if (kernel == 'ME') then !Multi-Exponential Kernel
       call get_EXP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg,nx1,nx2,1)
   else if (kernel == 'MM') then !Multi-Matern 5/2 Kernel
@@ -143,26 +187,26 @@ subroutine MultidimCov(pars,x1,x2,kernel,ndim,cov,nx1,nx2)
 
   !
   integer, intent(in) :: nx1, nx2, ndim
-  real(kind=mireal), intent(in) :: pars(0:ndim*2+3-1)
+  real(kind=mireal), intent(in) :: pars(0:ndim*2+5-1)
   real(kind=mireal), intent(in) :: x1(0:nx1-1)
   real(kind=mireal), intent(in) :: x2(0:nx2-1)
   character(len=2), intent(in)  :: kernel
   real(kind=mireal), intent(out) :: cov(0:nx1-1,0:nx2-1)
   !
 
-  if ( ndim == 1 ) then
-     call Multi1(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
-  else if ( ndim == 2 ) then
-     call Multi2(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
-  else if ( ndim == 3 ) then
-     call Multi3(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
-  else if ( ndim == 4 ) then
-     call Multi4(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
-  else if ( ndim == 5 ) then
-     call Multi5(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
-  else
+  !if ( ndim == 1 ) then
+  !   call Multi1(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
+  !else if ( ndim == 2 ) then
+  !   call Multi2(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
+  !else if ( ndim == 3 ) then
+  !   call Multi3(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
+  !else if ( ndim == 4 ) then
+  !   call Multi4(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
+  !else if ( ndim == 5 ) then
+  !   call Multi5(pars,x1,x2,kernel(1:2),cov,nx1,nx2)
+  !else
      call Multin(pars,x1,x2,kernel(1:2),ndim,cov,nx1,nx2)
-  end if
+  !end if
 
 end subroutine
 
@@ -526,7 +570,7 @@ subroutine Multin(pars,x1,x2,kernel,m,cov,nx1,nx2)
   implicit none
   !
   integer, intent(in) :: nx1, nx2, m
-  real(kind=mireal), intent(in) :: pars(0:m*2+3-1) !m*2 amplitudes, 3 parameters for the QP kernel
+  real(kind=mireal), intent(in) :: pars(0:m*2+5-1) !m*2 amplitudes, 3 parameters for the QP kernel
   real(kind=mireal), intent(in) :: x1(0:nx1-1), x2(0:nx2-1)
   character(len=2), intent(in)  :: kernel
   real(kind=mireal), intent(out) :: cov(0:nx1-1,0:nx2-1)
@@ -534,7 +578,7 @@ subroutine Multin(pars,x1,x2,kernel,m,cov,nx1,nx2)
   real(kind=mireal), dimension(0:nx1/m-1,0:nx2/m-1) :: gamma_g_g, gamma_dg_dg, gamma_g_dg, gamma_dg_g
   real(kind=mireal), dimension(0:nx1/m-1,0:nx2/m-1,0:m-1,0:m-1) :: kas
   real(kind=mireal) :: Amplitudes(0:m*2-1)
-  real(kind=mireal) :: hyperpars(0:2)
+  real(kind=mireal) :: hyperpars(0:4)
   integer :: i, j, npars
 
   !Read the parameters

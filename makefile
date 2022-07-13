@@ -7,7 +7,7 @@
 #    make clean -> removes the pyaneti.so file                            #
 #-------------------------------------------------------------------------#
 
-FP=f2py3.6
+FP=f2py3.8
 #FP=f2py2.7
 fc=gnu95 
 cc=unix 

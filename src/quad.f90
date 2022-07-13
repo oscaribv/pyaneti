@@ -69,6 +69,7 @@ integer :: i
 ! the source is partly occulted and the occulting object crosses the limb:
 ! Equation (26):
         kap1 = 0. !dummy value
+        kap0 = 0. !dummy value
         if(z.ge.abs(1.d0-p).and.z.le.1.d0+p) then
           kap1=acos(min((1.d0-p*p+z*z)/2.d0/z,1.d0))
           kap0=acos(min((p*p+z*z-1.d0)/2.d0/p/z,1.d0))
@@ -198,6 +199,8 @@ use constants
       real(kind=mireal) rc, rf
       real(kind=mireal) a,alamb,alpha,ave,b,beta,delp,delx,dely,delz,ea,eb,ec,ed,ee, &
       fac,pt,rcx,rho,sqrtx,sqrty,sqrtz,sum,tau,xt,yt,zt
+      a=0
+      b=0
       if(min(x,y,z).lt.0..or.min(x+y,x+z,y+z,abs(p)).lt.TINY.or.max(x,y, &
       z,abs(p)).gt.BIG) then
           print *, x, y, z, p

@@ -350,16 +350,16 @@ use constants
   detlog = det + detlog_a
 
   !fill the matrices
-  xi(1:n,1:n)         = ai + matmul(aib,matmul(idbtab,btai))
+  xi(1:nd,1:nd)         = ai + matmul(aib,matmul(idbtab,btai))
   call DGEMM('n','n',nd,na,nd,1.d0,idbtab,nd,btai,nd,0.d0,xi(1:na,1:na),nd)
   !print*,'4'
   call DGEMM('n','n',na,na,nd,1.d0,aib,na,xi(1:na,1:na),nd,0.d0,xi(1:na,1:na),na)
   !print*,'5'
   xi(1:na,1:na) = ai + xi(1:na,1:na)
-  xi(1:n,n+1:2*n)     = - matmul(aib,idbtab)
+  xi(1:na,nd+1:2*nd)     = - matmul(aib,idbtab)
   call DGEMM('n','n',na,nd,nd,-1.d0,aib,na,idbtab,nd,0.d0,xi(na+1:na+nd,1:na),na)
   !print*,'6'
-  xi(n+1:2*n,1:n)     = - matmul(idbtab,btai)
+  xi(na+1:2*na,1:nd)     = - matmul(idbtab,btai)
   call DGEMM('n','n',nd,na,nd,-1.d0,idbtab,nd,btai,nd,0.d0,xi(1:na,na+1:na+nd),nd)
   !print*,'7'
   xi(na+1:na+nd,na+1:na+nd) = idbtab
