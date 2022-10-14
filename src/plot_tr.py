@@ -86,7 +86,7 @@ def fancy_tr_plot(tr_vector, pnumber):
     for m in range(0, nbands):
         if (plot_tr_errorbars):
             plt.errorbar((xtime[m]-local_T0)*tfc, yflux, errors,
-                         color=tr_colors[m], fmt='.', alpha=1.0)
+                         color=tr_colors[m], marker='.', alpha=1.0)
         else:
             local_color = tr_colors[m]
             if plot_binned_data:
@@ -96,7 +96,7 @@ def fancy_tr_plot(tr_vector, pnumber):
             plt.plot((xmodel[m]-local_T0)*tfc, fd_ub[m] -
                      deltay, 'k', linewidth=2.0, alpha=1.0)
             plt.errorbar(-x_lim*(0.95), min(yflux[m]-deltay), eflux[m]
-                         [0], color=local_color, ms=7, fmt=mark_tr[m], alpha=1.0)
+                         [0], color=local_color, ms=7, marker=mark_tr[m], alpha=1.0)
             plt.annotate(
                 'Error bar '+bands[m], xy=(-x_lim*(0.70), min(yflux[m]-deltay)), fontsize=fos*0.7)
             if plot_binned_data:
@@ -150,7 +150,7 @@ def fancy_tr_plot(tr_vector, pnumber):
             local_color = tr_colors[m]
             if plot_binned_data:
                 local_color = '#C0C0C0'
-            plt.plot((xmodel_res[m]-local_T0)*tfc, res_res[m]*1e6-deltay, 'o',
+            plt.plot((xmodel_res[m]-local_T0)*tfc, res_res[m]*1e6-deltay,
                      color=local_color, ms=7, marker=mark_tr[m], alpha=0.5)
             if plot_binned_data:
                 tbin = 10./60.

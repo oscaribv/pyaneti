@@ -19,7 +19,7 @@ fname_tr = ['earth_lc.dat']
 
 #MCMC controls
 #the thin factor for the chains
-thin_factor = 1
+thin_factor = 10
 #The number of iterations to be taken into account
 #The TOTAL number of iterations for the burn-in phase is thin_factor*niter
 niter       = 500
@@ -33,7 +33,7 @@ method = 'mcmc'
 #method = 'plot'
 
 #If you want a plot with the seaborn library, is_seaborn_plot has to be True
-is_seaborn_plot = False
+is_seaborn_plot = True
 
 #Define the star parameters to calculate the planet parameters
 mstar_mean  = 1.0
@@ -52,10 +52,9 @@ is_plot_posterior    = True
 is_plot_correlations = True
 is_plot_chains       = False
 
-#Are we setting gaussian priors on the semi-major axis based on the stellar parameters?
-a_from_kepler = [True]
-#if you are in my_test uncomment the next line
-#a_from_kepler = [False]
+#Control the labels of the time-series plots
+rv_xlabel = "BJD - 2440000 (days)"
+tr_xlabel = "BJD - 2440000 (days)"
 
 #We want to fit transit and RV 
 #For a pure RV fit, fit_tr has to be False
@@ -82,23 +81,22 @@ fit_ew2= ['f']   #We fix sqrt(e) cos w, it works only if is_ew = True
 fit_e  = ['f']   #We fix e, it works only if is_ew = False
 fit_w  = ['f']   #We fix w, it works only if is_ew = False
 fit_b  = ['f']   #We fix the impact factor
-fit_a  = ['g']   #We fit a with gaussian priors (given by the stellar parameters)
+fit_a  = ['u']   #We fit a with gaussian priors (given by the stellar parameters)
 fit_rp = ['u']   #We fit rp with uniform priors
 fit_k  = ['u']   #We fit k with uniform priors
 fit_v0 = 'u'     #We fit systemc velicities with uniform priors
 fit_q1 = 'g'     #We fit q1 with gaussian priors
 fit_q2 = 'g'     #We fit q2 with gaussian priors
 
-#if you are in my_test uncomment the next two line
+#if you are in my_test uncomment the next line
 #fit_b  = ['u']   #We fit the impact factor
-#fit_a  = ['u']   #We fit the scaled semi-major axis
 
 #Prior ranges for a parameter A
 #if 'f' is selected for the parameter A, A is fixed to the one given by min_A
 #if 'u' is selected for the parameter A, sets uniform priors between min_A and max_A
 #if 'g' is selected for the parameter A, sets gaussian priors with mean min_A and standard deviation max_A
-min_t0  = [2448285.05] 
-max_t0  = [2448285.15]  
+min_t0  = [8285.05] 
+max_t0  = [8285.15]  
 min_P   = [365.206]
 max_P   = [365.306]
 min_ew1 = [0.0]

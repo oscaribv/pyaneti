@@ -9,7 +9,7 @@
 def plot_rv_timeseries():
     # -------------------------------------------------------------------------------
     # Convert factor from km to m
-    cfactor = np.float(1.e3)
+    cfactor = float(1.e3)
     data_rv_inst = [None]*nt
     data_erv_inst = [None]*nt
     for i in range(0, nt):
@@ -193,7 +193,7 @@ def plot_rv_timeseries():
 
 def plot_rv_phasefolded():
 
-    cfactor = np.float(1.e3)
+    cfactor = float(1.e3)
 
     for i in range(0, nplanets):
 

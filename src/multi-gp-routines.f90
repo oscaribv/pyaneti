@@ -1,4 +1,9 @@
-!
+!-------------------------------------------------------------------------------
+!Oscar Barragán, Jun 2019
+!Last modified Sept 2022
+!-------------------------------------------------------------------------------
+!This routine computes the gamma terms for the Quasi-Periodic kernel
+!To be used to compute the covariance matrix of a multidimensional GP regression
 subroutine get_QP_gammas(x1,x2,pars,gamma_g_g,gamma_g_dg,gamma_dg_g,gamma_dg_dg,nx1,nx2,npars)
   use constants
   implicit none
