@@ -119,5 +119,3 @@ archivePrefix = {arXiv},
 * Jorge Prieto-Arranz, thank you for all the suggestions which have helped to improve the code.
 
 **THANKS A LOT!**
-
-### For a beta version of pyaneti check [here](https://github.com/oscaribv/pyaneti-dev)
