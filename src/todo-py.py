@@ -428,8 +428,14 @@ def print_values(vector, var, vartex, unit, unittex):
         except:
             pass
     opars.write('{:10s} = {:4.7f} - {:4.7f} + {:4.7f} {:8s} \n'.format(var, medv, minv, maxv, unit))
-    otex.write('\\newcommand{\\'+vartex+'}[1]['+unittex+'] \
-  {$'+str(round(medv, nd))+' _{ - '+str(round(minv, nd))+' } ^ { + '+str(round(maxv, nd))+' }$~#1} \n')
+    nd=max(0,nd) #Avoid negative numbers
+    rmedv = (float(round(medv,nd)))
+    rminv = (float(round(minv,nd)))
+    rmaxv = (float(round(maxv,nd)))
+    if (rminv == rmaxv ):
+        otex.write('\\newcommand{{\\{:s}}}[1][{:s}]{{ $ {:.{width}f} \pm {:.{width}f} $~#1 }} \n'.format(vartex,unittex,rmedv,rmaxv,width=int(nd)))
+    else:
+        otex.write('\\newcommand{{\\{:s}}}[1][{:s}]{{ $ {:.{width}f}_{{-{:.{width}f}}}^{{+{:.{width}f}}} $~#1 }} \n'.format(vartex,unittex,rmedv,rminv,rmaxv,width=int(nd)))
     if (is_print_mode):
         medv, minv, maxv = mode_and_99(vector)
         opars.write('%10s  %4.7f , %4.7f , %4.7f %8s (mode, 1 percent, 99 percent) \n' % (

@@ -150,8 +150,8 @@ def fancy_tr_plot(tr_vector, pnumber):
             local_color = tr_colors[m]
             if plot_binned_data:
                 local_color = '#C0C0C0'
-            plt.plot((xmodel_res[m]-local_T0)*tfc, res_res[m]*1e6-deltay,
-                     color=local_color, ms=7, marker=mark_tr[m], alpha=0.5)
+            plt.plot((xmodel_res[m]-local_T0)*tfc, res_res[m]*1e6-deltay,mark_tr[m],
+                     color=local_color, ms=7, alpha=0.5)
             if plot_binned_data:
                 tbin = 10./60.
                 xbined, fbined, rbined = bin_data(xtime[m]*tfc,yflux[m],res_res[m]*1e6,tbin)
@@ -320,7 +320,7 @@ def plot_lightcurve_timeseries():
     xmodel = np.arange(min(lc_time), max(lc_time), 5./60./24.)
     my_trlab = [0]*len(xmodel)
     ymodel = pti.flux_tr(xmodel, my_trlab, pars_tr.transpose(),
-                         rp_val, my_ldc, n_cad, t_cad, nradius)
+                         rp_val, my_ldc[0:2], n_cad[0], t_cad[0])
     #ymodel = pti.flux_tr(xmodel,my_trlab,pars_tr,rp_val,my_ldc,n_cad,t_cad)
 
     # Calcualte the residuals
