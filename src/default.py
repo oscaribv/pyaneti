@@ -72,7 +72,7 @@ nplanets = 1
 #                     FIT CONTROLS
 # ----------------------------------------------------------------
 
-# Flags to control if we want to fit RV or transit models
+# Flags to control if we want to fit RV or transit mmdels
 # For multiplanet case, fit_rv and fit_tr are list in which each element
 # refers to each fitted planet
 fit_rv = [False]
@@ -292,7 +292,7 @@ sigma_clean = 10
 # Label to appear in the timeseries plot of the light curve
 tr_xlabel = "BJD - 2450000 (days)"
 
-tr_colors = ['#006341','#CE1126', 'b', 'k', 'y', '#ffbf00', '#ff1493']
+tr_colors = ['C0','C1','C2','C3','C4','C5','C6','C7']
 
 mark_tr = ['o', 'D', 's', 'p', 'h', '8', '^',
            '<', '*', 'v', '>', '.', 'H', 'd', '+']

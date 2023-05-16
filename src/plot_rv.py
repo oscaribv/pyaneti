@@ -30,8 +30,8 @@ def plot_rv_timeseries():
     # CREATE TIME VECTOR
     rvx = np.arange(xmin, xmax, (xmax-xmin)/n)
     # COMPUTE MODEL WITH ALL THE PLANETS
-    rvy = pti.rv_curve_mp(rvx, 0.0, t0_val, k_val, P_val,
-                          e_val, w_val, alpha_val, beta_val)
+    rvy = pti.rv_curve_mp(rvx, 0.0, t0_val, P_val,
+                          e_val, w_val, k_val, alpha_val, beta_val)
 # -------------------------------------------------------------------------------
     # CORRECT DATA FOR EACH SPECTROGRAPH OFFSET
     rv_no_offset = [None]*nt
@@ -41,7 +41,7 @@ def plot_rv_timeseries():
         rv_no_offset[j] = np.asarray(data_rv_inst[j] - v_val[j])
         # Store the model with the planets to compute the residuals for instrument j
         rv_residuals[j] = pti.rv_curve_mp(time_all[j], 0.0, t0_val,
-                                          k_val, P_val, e_val, w_val, alpha_val, beta_val)
+                                           P_val, e_val, w_val, k_val,alpha_val, beta_val)
         # Compute the residuals for the instrument j
         rv_residuals[j] = np.asarray(rv_no_offset[j] - rv_residuals[j])
 # -------------------------------------------------------------------------------
@@ -200,7 +200,7 @@ def plot_rv_phasefolded():
         # Create the RV fitted model for the planet i
         rvx = np.arange(t0_val[i], t0_val[i]+P_val[i]*0.999, P_val[i]/4999.)
         rvy = pti.rv_curve_mp(
-            rvx, 0.0, t0_val[i], k_val[i], P_val[i], e_val[i], w_val[i], 0.0, 0.0)
+            rvx, 0.0, t0_val[i],  P_val[i], e_val[i], w_val[i], k_val[i],0.0, 0.0)
         # rvx and rvy are the model timeseries for planet i
 
         #Let us compute the shadow region for the RV plots
@@ -211,7 +211,7 @@ def plot_rv_phasefolded():
             for j in range(1000):
                 my_j = np.random.randint(len(T0_vec[i]))
                 rvy_vec[j] = pti.rv_curve_mp(
-                    rvx, 0.0, T0_vec[i][j], k_vec[i][j], P_vec[i][j], e_vec[i][j], w_vec[i][j], 0.0, 0.0)
+                    rvx, 0.0, T0_vec[i][j],  P_vec[i][j], e_vec[i][j], w_vec[i][j], k_vec[i][j],0.0, 0.0)
             #Compute the standard deviation of the models sample
             rv_std = np.std(rvy_vec,axis=0)
             rv_std *= cfactor
@@ -220,10 +220,10 @@ def plot_rv_phasefolded():
 
         # Now it is time to remove the planets j != i from the data
         rv_pi = pti.rv_curve_mp(
-            rv_time, 0.0, t0_val[i], k_val[i], P_val[i], e_val[i], w_val[i], 0., 0.)
+            rv_time, 0.0, t0_val[i], P_val[i], e_val[i], w_val[i], k_val[i], 0., 0.)
         # This variable has all the planets
         rv_pall = pti.rv_curve_mp(
-            rv_time, 0.0, t0_val, k_val, P_val, e_val, w_val, 0.0, 0.0)
+            rv_time, 0.0, t0_val, P_val, e_val, w_val, k_val, 0.0, 0.0)
 
         # Let us remove all the signals from the data
         res = np.zeros(shape=len(rv_vals))

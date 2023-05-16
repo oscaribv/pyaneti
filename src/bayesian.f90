@@ -489,6 +489,11 @@ implicit none
     if ( fit_pars(j) == 'f' ) then
        pars_out(j) = lims(j*2)
     else if ( fit_pars(j) == 'u' ) then
+      if (lims(2*j+1) < lims(2*j)) then
+        print *, "One of your uniform U[a,b] priors is wrong!"
+        print *, "Such that a > b"
+        stop
+      end if
       call random_number(r_real)
       pars_out(j) = lims(2*j+1) - lims(2*j)
       pars_out(j) = lims(2*j) + r_real * pars_out(j)

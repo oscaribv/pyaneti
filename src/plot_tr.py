@@ -1,4 +1,4 @@
-tbin = 10./60./24.# -----------------------------------------------------------------
+# -----------------------------------------------------------------
 #       TRANSIT PARAMERS TO BE USED TO GENERATE PLOTS
 # -----------------------------------------------------------------
 
@@ -12,6 +12,8 @@ for m in range(0, nplanets):
     pars_tr[m][4] = i_val[m]
     pars_tr[m][5] = a_val[m]
 
+
+tbin = 1.
 
 # ===========================================================
 # ===========================================================
@@ -100,7 +102,6 @@ def fancy_tr_plot(tr_vector, pnumber):
             plt.annotate(
                 'Error bar '+bands[m], xy=(-x_lim*(0.70), min(yflux[m]-deltay)), fontsize=fos*0.7)
             if plot_binned_data:
-                tbin = 10./60.
                 xbined, fbined, rbined = bin_data(xtime[m]*tfc,yflux[m],res_res[m]*1e6,tbin)
                 plt.plot(xbined, fbined-deltay, 'o',color=tr_colors[m])
             if (m < nbands - 1):
@@ -153,7 +154,6 @@ def fancy_tr_plot(tr_vector, pnumber):
             plt.plot((xmodel_res[m]-local_T0)*tfc, res_res[m]*1e6-deltay,mark_tr[m],
                      color=local_color, ms=7, alpha=0.5)
             if plot_binned_data:
-                tbin = 10./60.
                 xbined, fbined, rbined = bin_data(xtime[m]*tfc,yflux[m],res_res[m]*1e6,tbin)
                 plt.plot(xbined,rbined-deltay,'o',color=tr_colors[m])
             if (m < nbands - 1):
@@ -320,7 +320,7 @@ def plot_lightcurve_timeseries():
     xmodel = np.arange(min(lc_time), max(lc_time), 5./60./24.)
     my_trlab = [0]*len(xmodel)
     ymodel = pti.flux_tr(xmodel, my_trlab, pars_tr.transpose(),
-                         rp_val, my_ldc[0:2], n_cad[0], t_cad[0])
+                         rp_val, my_ldc[0:2], n_cad[0], t_cad[0],nradius)
     #ymodel = pti.flux_tr(xmodel,my_trlab,pars_tr,rp_val,my_ldc,n_cad,t_cad)
 
     # Calcualte the residuals
