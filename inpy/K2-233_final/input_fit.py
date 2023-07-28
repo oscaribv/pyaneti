@@ -28,7 +28,7 @@ nchains     = 250
 # mcmc -> runs the mcmc fit program
 # plot -> this option create the plots only if a previus run was done
 method = 'mcmc'
-method = 'plot'
+#method = 'plot'
 
 #We are working with Kepler long-cadence data, integrated over 30 min
 #So we need to integrate the transit model as well
