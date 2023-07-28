@@ -114,7 +114,7 @@ def get_teq(Tstar, albedo, rstar, a):
 def smart_priors():
     # We are using global variables
     global fit_tr, fit_rv, fit_v0
-    global tota_rv_fit, total_tr_fit
+    global total_rv_fit, total_tr_fit
     global min_rv0, max_rv0, v0, min_k, max_k
     global min_P, max_P, min_t0, max_t0, \
         min_rp, max_rp, \

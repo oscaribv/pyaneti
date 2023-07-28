@@ -297,6 +297,8 @@ tr_colors = ['C0','C1','C2','C3','C4','C5','C6','C7']
 mark_tr = ['o', 'D', 's', 'p', 'h', '8', '^',
            '<', '*', 'v', '>', '.', 'H', 'd', '+']
 
+tbin = 1./6.
+
 # RV PLOTS
 
 #RVlabels and residuals
@@ -351,7 +353,7 @@ is_clustering = True
 #clustering_sigma away from the mean of the main group of chains
 clustering_sigma = 3.
 #If save_clustered_chains is True, then pyaneti will save a file with the chains that survive the clustering
-save_clustered_chains = False
+save_clustered_chains= False
 
 # If True, the code creates authomatic priors for the RV offests
 # And also checks for maximum values for Rp/R*

@@ -183,7 +183,7 @@ implicit none
 
   if ( is_limit_good ) then
 
-      call rv_curve_mp(xd,0.d0,t0,k,P,e,w,alpha,beta,model,n_data,npl)
+      call rv_curve_mp(xd,0.d0,t0,P,e,w,k,alpha,beta,model,n_data,npl)
       model(:) = model(:) + rv0(tlab(:))
       res(:)   =  yd(:) - model(:)
   else
