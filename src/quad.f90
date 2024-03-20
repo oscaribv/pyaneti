@@ -7,7 +7,7 @@
 !              Date --> Feb  2016, Oscar Barragán
 !------------------------------------------------------------
 
-subroutine occultquad(z0,u1,u2,k,muo1,mu0,nz)
+subroutine occultquad(z0,u1,u2,k,muo1,nz)
 !  This routine computes the lightcurve for occultation
 !  of a quadratically limb-darkened source without microlensing.
 !  Please cite Mandel & Agol (2002) if you make use of this routine
@@ -15,12 +15,12 @@ subroutine occultquad(z0,u1,u2,k,muo1,mu0,nz)
 use constants
 implicit none
 integer, intent(in) :: nz
-real(kind=mireal), intent(in) :: z0(nz),u1,u2,k
-real(kind=mireal), intent(out) :: muo1(nz),mu0(nz)
+real(kind=mireal), intent(in) :: z0(nz),u1,u2,k(0:0)
+real(kind=mireal), intent(out) :: muo1(nz)
 real(kind=mireal) :: lambdad(nz),etad(nz),lambdae(nz),lam
 real(kind=mireal) :: p,x1,x2,x3,z,omega,kap0,kap1,q,Kk,Ek,Pk,n,ellec,ellk,rj
 integer :: i
-  p = k
+  p = k(0)
   if(abs(p-0.5d0).lt.1.d-3) p=0.5d0
 !
 ! Input:
@@ -150,7 +150,7 @@ integer :: i
 ! Now, using equation (33):
         muo1(i)=1.d0-((1.d0-u1-2.d0*u2)*lambdae(i)+(u1+2.d0*u2)*lambdad(i)+u2*etad(i))/omega
 ! Equation 25:
-        mu0(i)=1.d0-lambdae(i)
+!        mu0(i)=1.d0-lambdae(i)
       enddo
       return
       end
@@ -158,12 +158,12 @@ integer :: i
 
 FUNCTION rc(x,y)
 use constants
-    real(kind=mireal) rc,x,y,ERRTOL,TINY,SQRTNY,BIG,TNBG,COMP1,COMP2,THIRD,C1,C2,C3,C4
-    PARAMETER (ERRTOL=.04d0,TINY=1.69d-38,SQRTNY=1.3d-19,BIG=3.d37, &
-    TNBG=TINY*BIG,COMP1=2.236d0/SQRTNY,COMP2=TNBG*TNBG/25.d0, &
+    real(kind=mireal) rc,x,y,ERRTOL,TINYY,SQRTNY,BIG,TNBG,COMP1,COMP2,THIRD,C1,C2,C3,C4
+    PARAMETER (ERRTOL=.04d0,TINYY=1.69d-38,SQRTNY=1.3d-19,BIG=3.d37, &
+    TNBG=TINYY*BIG,COMP1=2.236/SQRTNY,COMP2=TNBG*TNBG/25, &
     THIRD=1./3.,C1=.3d0,C2=1./7.,C3=.375d0,C4=9./22.)
     real(kind=mireal) alamb,ave,s,w,xt,yt
-      if(x.lt.0..or.y.eq.0..or.(x+abs(y)).lt.TINY.or.(x+ &
+      if(x.lt.0..or.y.eq.0..or.(x+abs(y)).lt.TINYY.or.(x+ &
       abs(y)).gt.BIG.or.(y.lt.-COMP1.and.x.gt.0..and.x.lt.COMP2)) then
         print *, 'quad.f90: invalid argumets in rc'
         stop
@@ -191,8 +191,8 @@ use constants
 
       FUNCTION rj(x,y,z,p)
       use constants
-      real(kind=mireal) rj,p,x,y,z,ERRTOL,TINY,BIG,C1,C2,C3,C4,C5,C6,C7,C8
-      PARAMETER (ERRTOL=.05d0,TINY=2.5d-13,BIG=9.d11,C1=3./14., &
+      real(kind=mireal) rj,p,x,y,z,ERRTOL,TINYY,BIG,C1,C2,C3,C4,C5,C6,C7,C8
+      PARAMETER (ERRTOL=.05d0,TINYY=2.5d-13,BIG=9.d11,C1=3./14., &
       C2=1./3.,C3=3./22.,C4=3./26.,C5=.75*C3, &
       C6=1.5*C4,C7=0.5*C2,C8=C3+C3)
 !CU    USES rc,rf
@@ -201,7 +201,7 @@ use constants
       fac,pt,rcx,rho,sqrtx,sqrty,sqrtz,sum,tau,xt,yt,zt
       a=0
       b=0
-      if(min(x,y,z).lt.0..or.min(x+y,x+z,y+z,abs(p)).lt.TINY.or.max(x,y, &
+      if(min(x,y,z).lt.0..or.min(x+y,x+z,y+z,abs(p)).lt.TINYY.or.max(x,y, &
       z,abs(p)).gt.BIG) then
           print *, x, y, z, p
           print *, 'invalid argumets in rj'
@@ -303,11 +303,11 @@ use constants
 
       FUNCTION rf(x,y,z)
       use constants
-      real(kind=mireal) rf,x,y,z,ERRTOL,TINY,BIG,THIRD,C1,C2,C3,C4
-      PARAMETER (ERRTOL=.08d0,TINY=1.5d-38,BIG=3.d37,THIRD=1./3., &
+      real(kind=mireal) rf,x,y,z,ERRTOL,TINYY,BIG,THIRD,C1,C2,C3,C4
+      PARAMETER (ERRTOL=.08d0,TINYY=1.5d-38,BIG=3.d37,THIRD=1./3., &
       C1=1./24.,C2=.1d0,C3=3./44.,C4=1./14.)
       real(kind=mireal) alamb,ave,delx,dely,delz,e2,e3,sqrtx,sqrty,sqrtz,xt,yt,zt
-      if(min(x,y,z).lt.0.d0.or.min(x+y,x+z,y+z).lt.TINY.or.max(x,y, &
+      if(min(x,y,z).lt.0.d0.or.min(x+y,x+z,y+z).lt.TINYY.or.max(x,y, &
       z).gt.BIG) then
             print *, 'invalid arguments in rf'
            stop!pause 'invalid arguments in rf'

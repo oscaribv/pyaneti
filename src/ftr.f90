@@ -109,7 +109,6 @@ implicit none
   real(kind=mireal), intent(in), dimension (0:2*nbands-1) :: ldc
   real(kind=mireal), intent(out), dimension(0:n_data-1) :: flux_out !output flux model
 !Local variables
-  real(kind=mireal), dimension(0:n_data-1) :: mu
   real(kind=mireal) :: npl_dbl, u1(0:nbands-1), u2(0:nbands-1)
   real(kind=mireal), allocatable, dimension(:)  :: flux_unbinned
   real(kind=mireal)   :: flux_binned
@@ -162,7 +161,7 @@ implicit none
       else
 
         !Now we have z, let us use Agol's routines
-        call occultquad(z,u1(lj),u2(lj),rps(n*nradius+lj*control),flux_unbinned,mu,n_cadj)
+        call occultquad(z,u1(lj),u2(lj),rps(n*nradius+lj*control),flux_unbinned,n_cadj)
         !!!!!call qpower2(z,rp(n),u1,u2,flux_ub(:,n),n_cad)
 
         !Bin the model if needed
@@ -203,8 +202,8 @@ implicit none
   real(kind=mireal), intent(out), dimension(0:n_data-1) :: flux_out !output flux model
 !Local variables
   real(kind=mireal) :: npl_dbl, u1(0:nbands-1), u2(0:nbands-1)
-  real(kind=mireal) :: flux_model
-  real(kind=mireal) :: mu, z(1)
+  real(kind=mireal) :: flux_model(1)
+  real(kind=mireal) ::  z(1)
   integer :: n, j, control, lj
 
   !This flag controls the multi-radius fits
@@ -232,11 +231,11 @@ implicit none
       call find_z(xd(j),pars(0:5,n),z(1),1)
 
       !Now we have z, let us use Agol's routines
-      call occultquad(z(1),u1(lj),u2(lj),rps(n*nradius+lj*control),flux_model,mu,1)
+      call occultquad(z(1),u1(lj),u2(lj),rps(n*nradius+lj*control),flux_model,1)
       !!!!!call qpower2(z,rp(n),u1,u2,flux_ub(:,n),n_cad)
 
       !Compute the final flux
-      flux_out(j) = flux_out(j) * flux_model
+      flux_out(j) = flux_out(j) * flux_model(1)
 
     end do
 
@@ -260,7 +259,7 @@ implicit none
   real(kind=mireal), intent(in), dimension (0:1) :: ldc
   real(kind=mireal), intent(out), dimension(0:n_data-1) :: flux_out
 !Local variables
-  real(kind=mireal), dimension(0:n_cad-1)  :: flux_unbinned, t_unbinned, z, mu
+  real(kind=mireal), dimension(0:n_cad-1)  :: flux_unbinned, t_unbinned, z
   real(kind=mireal) :: npl_dbl, u1, u2
   real(kind=mireal)   :: flux_binned
   integer :: n, i, j, k(0:n_cad-1)
@@ -298,7 +297,7 @@ implicit none
       else
 
         !Now we have z, let us use Agol's routines
-        call occultquad(z,u1,u2,rps(n),flux_unbinned,mu,n_cad)
+        call occultquad(z,u1,u2,rps(n),flux_unbinned,n_cad)
         !call qpower2(z,rps(n),u1,u2,flux_ub(:,n),n_cad)
 
         !Bin the model if needed
@@ -331,7 +330,7 @@ implicit none
   real(kind=mireal), intent(in), dimension (0:1) :: ldc
   real(kind=mireal), intent(out), dimension(0:n_data-1) :: flux_out
 !Local variables
-  real(kind=mireal), dimension(0:n_data-1) :: flux_model, z, mu
+  real(kind=mireal), dimension(0:n_data-1) :: flux_model, z
   real(kind=mireal) :: npl_dbl, u1, u2
   integer :: n
 !External function
@@ -352,7 +351,7 @@ implicit none
       call find_z(xd,pars(0:5,n),z,n_data)
 
       !Now we have z, let us use Agol's routines
-      call occultquad(z,u1,u2,rps(n),flux_model,mu,n_data)
+      call occultquad(z,u1,u2,rps(n),flux_model,n_data)
       !call qpower2(z,rps(n),u1,u2,flux_ub(:,n),n_cad)
 
       !Compute the final flux
