@@ -7,13 +7,18 @@
 #    make clean -> removes the pyaneti.so file                            #
 #-------------------------------------------------------------------------#
 
-FP=f2py3.8
+# let users optionally override f2py, as it could 
+# vary, depending on different OSes / environments
+ifndef FP
+        FP=f2py
+endif
+#FP=f2py3.8
 #FP=f2py2.7
 fc=gnu95 
 cc=unix 
 
-FLAGS_OMP= -c -m --quiet --f90flags='-fopenmp'
-FLAGS = -c -m  --quiet
+FLAGS_OMP= -c --quiet --f90flags='-fopenmp' -m
+FLAGS = -c --quiet -m
 BLIBS = -llapack -lblas
 LGOMP = -lgomp
 
