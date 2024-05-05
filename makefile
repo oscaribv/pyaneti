@@ -17,8 +17,8 @@ endif
 fc=gnu95 
 cc=unix 
 
-FLAGS_OMP= -c -m --quiet --f90flags='-fopenmp'
-FLAGS = -c -m  --quiet
+FLAGS_OMP= -c --quiet --f90flags='-fopenmp' -m
+FLAGS = -c --quiet -m
 BLIBS = -llapack -lblas
 LGOMP = -lgomp
 
