@@ -7,13 +7,13 @@
 #    make clean -> removes the pyaneti.so file                            #
 #-------------------------------------------------------------------------#
 
-FP=f2py3.8
+FP=f2py3.11
 #FP=f2py2.7
 fc=gnu95 
 cc=unix 
 
 FLAGS_OMP= -c -m --quiet --f90flags='-fopenmp'
-FLAGS = -c -m  --quiet
+FLAGS = -c --quiet -m 
 BLIBS = -llapack -lblas
 LGOMP = -lgomp
 
