@@ -49,8 +49,11 @@ SOURCES = src/constants.f90 \
 # Output binary
 EXECUTABLE = pyaneti
 
+# Path to requirements file (override on make command line if needed)
+REQUIREMENTS ?= requirements.txt
+
 # Default rule (sequential build)
-all: $(EXECUTABLE)
+all: install $(EXECUTABLE) para
 
 # Object files
 OBJS = $(SOURCES:.f90=.o)
@@ -65,6 +68,12 @@ $(EXECUTABLE): $(OBJS)
 # Parallel compilation rule
 para: $(OBJS)
 	$(FP) $(FLAGS_OMP) $(EXECUTABLE) $(SOURCES) --fcompiler=$(FC) $(BLIBS) $(LGOMP) --compiler=$(CC)
+
+# Install using system python3 pip (explicit)
+install:
+	@echo "Installing python dependencies from $(REQUIREMENTS) using system python3..."
+	python3 -m pip install --upgrade pip setuptools wheel
+	python3 -m pip install -r $(REQUIREMENTS)
 
 # Compile source files to object files
 %.o: %.f90

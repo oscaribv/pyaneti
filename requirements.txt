@@ -1,0 +1,5 @@
+numpy<=1.26
+pandas
+matplotlib
+seaborn
+setuptools==66.1.1

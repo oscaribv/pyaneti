@@ -77,7 +77,7 @@ end subroutine
 !--------------------------------------------------------------------------------------
 subroutine get_total_GP_likelihood(x_rv,y_rv,x_tr,y_tr,e_rv,e_tr, &
            rvlab,jrvlab,trlab,jtrlab,tff,flags,t_cad,n_cad,pars,kernels, &
-           chi2_rv,chi2_tr,log_like_total,npars,npl,ntels,nbands,nradius,nldc,njrv,njtr,&
+       chi2_rv,chi2_tr,log_like_total,npars,npl,ntels,nbands,nradius,nldc,njrv,njtr,&
            np_rv,np_tr,size_rv,size_tr)
 use constants
 implicit none

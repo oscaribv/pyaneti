@@ -4,7 +4,7 @@
 !    general subroutines or programs.
 ! The subroutines can be called from python by using f2py
 ! They also can be used in a fortran program
-!              Date --> Feb  2016, Oscar Barragán
+!              Date --> Feb  2016, Oscar Barragan
 !------------------------------------------------------------
 !http://stackoverflow.com/questions/18754438/generating-random-numbers-in-a-fortran-module
 subroutine init_random_seed()

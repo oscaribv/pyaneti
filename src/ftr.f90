@@ -5,7 +5,7 @@
 ! from light curve fitting of transit planets
 ! The subroutines can be called from python by using f2py
 ! They also can be used in a fortran program
-!              Date --> Feb  2016, Oscar Barragán
+!              Date --> Feb  2016, Oscar Barragan
 !------------------------------------------------------------
 
 !-----------------------------------------------------------

@@ -1,5 +1,5 @@
 !-------------------------------------------------------------------------------
-!Oscar Barragán, Jun 2019
+!Oscar Barragan, Jun 2019
 !Last modified Sept 2022
 !-------------------------------------------------------------------------------
 !This routine computes the gamma terms for the Quasi-Periodic kernel

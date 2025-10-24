@@ -4,7 +4,7 @@
 !Agol file written in f77. This file was adapted to run in f90.
 ! The subroutines can be called from python by using f2py
 ! They also can be used in a fortran program
-!              Date --> Feb  2016, Oscar Barragán
+!              Date --> Feb  2016, Oscar Barragan
 !------------------------------------------------------------
 
 subroutine occultquad(z0,u1,u2,k,muo1,nz)
