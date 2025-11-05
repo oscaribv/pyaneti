@@ -1,0 +1,13 @@
+[build-system]
+requires = ["meson-python", "meson", "numpy"]
+build-backend = "mesonpy"
+
+[project]
+name = "pyaneti"
+version = "1.1.0"
+description = "Python wrapper for Pyaneti Fortran core"
+authors = [{name = "Oscar Barragán"}]
+license = {text = "GPLv3"}
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = ["matplotlib","seaborn","pandas"]
