@@ -1,13 +1,26 @@
 [build-system]
-requires = ["meson-python", "meson", "numpy"]
+requires = [
+    "meson>=1.0.1",
+    "meson-python>=0.16.0",
+    "numpy<=1.26.1",
+    "ninja",          # optional but recommended
+    "wheel"           # helps with pip install . and wheel builds
+]
 build-backend = "mesonpy"
 
 [project]
 name = "pyaneti"
-version = "1.1.0"
+version = "2.1.0"
 description = "Python wrapper for Pyaneti Fortran core"
-authors = [{name = "Oscar Barragán"}]
-license = {text = "GPLv3"}
+authors = [{ name = "Oscar Barragán" }]
+license = { text = "GPLv3" }
 readme = "README.md"
-requires-python = ">=3.9"
-dependencies = ["matplotlib","seaborn","pandas"]
+requires-python = ">=3.7"
+dependencies = [
+    "numpy<=1.26.1",
+    "matplotlib",
+    "seaborn",
+    "pandas",
+    "scipy",
+]
+
