@@ -127,20 +127,21 @@ kernel_rv = 'QPK'  # Quasi-periodic kernel for RV analysis
 
 # Priors for GP parameters
 fit_krv = ['f'] * 4  # Initialize priors for GP parameters
-fit_krv[0] = 'u'     # Uniform prior for GP parameter A_0
-krv_priors = [0, 0.1]  # Prior range for A_0
+fit_krv[0] = 'u'     # Uniform prior for GP parameter Amplitude
+krv_priors = [0, 0.1]  # Prior range for Amplitude
 
-fit_krv[1] = 'u'  # Uniform prior for GP parameter A_1
-fit_krv[2] = 'u'  # Uniform prior for GP parameter A_2
-fit_krv[3] = 'u'  # Uniform prior for GP parameter A_3
+fit_krv[1] = 'u'  # Uniform prior for GP parameter lambda_e
+fit_krv[2] = 'u'  # Uniform prior for GP parameter lambda_p
+fit_krv[3] = 'u'  # Uniform prior for GP parameter PGP
 
 # Prior ranges for quasi-periodic kernel hyperparameters
-QP_priors = [1., 100.0, 0.1, 2.0, 10, 14]  # Hyperparameters: Amplitude, lambda_e, lambda_p, etc.
+QP_priors = [1., 100.0, 0.1, 2.0, 10, 14]  # Hyperparameter limits: lambda_e, lambda_p, PGP 
 
 # Combine GP parameter priors
-krv_priors = np.concatenate([krv_priors, QP_priors])
+krv_priors = np.concatenate([krv_priors, QP_priors]) #Combining Amplitude and QP priors
 
 #----------------------------------------------------------
 # END
 #----------------------------------------------------------
 
+p
