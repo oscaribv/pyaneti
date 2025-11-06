@@ -143,5 +143,3 @@ krv_priors = np.concatenate([krv_priors, QP_priors]) #Combining Amplitude and QP
 #----------------------------------------------------------
 # END
 #----------------------------------------------------------
-
-p
