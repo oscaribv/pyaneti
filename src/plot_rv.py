@@ -69,6 +69,13 @@ for i,t in enumerate(rv_jitter_labels):
     ix = i == np.array(jrvlab)
     rv_errs_jit[ix] = np.sqrt(df_medians[f'rv_jitter{rv_jitter_labels[i]}']**2 + rv_errs_jit[ix]**2)
 
+# check the rv_colors vector is long enough, lengthen it if not
+rv_labels_length = len(telescopes_labels)
+if len(rv_colors)<rv_labels_length:
+    print('Insufficient RV colours, consider adding more in src/default.py; colours will cycle')
+    for i in range(rv_labels_length - len(rv_colors)):
+        rv_colors.append(rv_colors[i])
+
 #Let's do plots for the nomical case with no GPs
 if kernel_rv == 'None':
 

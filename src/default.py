@@ -269,7 +269,7 @@ font_size_label = 18
 # Label to appear in the timeseries plot of the light curve
 tr_xlabel = "BJD - 2450000 (days)"
 
-tr_colors = ['C0','C1','C2','C3','C4','C5','C6','C7']
+tr_colors = ['C0','C1','C2','C3','C4','C5','C6','C7','C8','C9']
 
 mark_tr = ['o', 'D', 's', 'p', 'h', '8', '^',
            '<', '*', 'v', '>', '.', 'H', 'd', '+']
@@ -296,7 +296,7 @@ is_rv_legend = True
 mark = ['o', 'D', 's', 'p', 'h', '8', '^',
         '<', '*', 'v', '>', '.', 'H', 'd', '+']
 # Default colors for the different instruments of the RV plots
-rv_colors = ['C0','C1','C2','C3','C4','C5','C6','C7']
+rv_colors = ['C0','C1','C2','C3','C4','C5','C6','C7','C8','C9']
 # marker size for the data points of the RV plot
 rv_markersize = 8
 
