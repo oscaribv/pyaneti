@@ -44,12 +44,21 @@ def compute_gp_model(x,df_vec,pred_dl,chunk=512):
     jitter_values = np.array(df_vec[rv_jitter_names])
     is_multigp = kernel_rv[0:2] in ['MQ', 'SQ', 'ME', 'MM']
 
-    ntest = len(x)
-    n_blocks = int(np.ceil(ntest/float(chunk)))
-    idx_blocks = np.array_split(np.arange(ntest), n_blocks)
+    #Coerce to arrays so block indexing below (x[idx], pred_dl[idx]) works
+    #regardless of whether the caller passed a list or an ndarray
+    x = np.asarray(x)
+    pred_dl = np.asarray(pred_dl)
 
+    ntest = len(x)
     mvec = np.empty(ntest)
     var = np.empty(ntest)
+
+    if ntest == 0:
+        return mvec, var
+
+    chunk = max(1, int(chunk))
+    n_blocks = int(np.ceil(ntest/float(chunk)))
+    idx_blocks = np.array_split(np.arange(ntest), n_blocks)
 
     for idx in idx_blocks:
         x_blk = x[idx]
