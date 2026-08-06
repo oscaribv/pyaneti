@@ -441,6 +441,8 @@ unit_to_latex = {
     'K': r'$\mathrm{K}$',
     'g/cm^3': r'$\mathrm{g\,cm^{-3}}$',
     'km/s': r'$\mathrm{km\,s^{-1}}$',
+    'km/s/day': r'$\mathrm{km\,s^{-1}\,day^{-1}}$',
+    'km/s/day^2': r'$\mathrm{km\,s^{-1}\,day^{-2}}$',
     'm/s': r'$\mathrm{m\,s^{-1}}$',
     'm/s/day': r'$\mathrm{m\,s^{-1}\,day^{-1}}$',
     'm/s/day^2': r'$\mathrm{m\,s^{-1}\,day^{-2}}$',

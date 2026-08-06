@@ -284,6 +284,13 @@ if any(fit_tr) == True:
             df[f'u1{band}'], df[f'u2{band}'] = pti.get_us(df[f'q1{band}'],df[f'q2{band}'])
             units.append(['']*2)
 
+if is_linear_trend == 'u':
+    df['linear_trend_ms'] = df['linear_trend'] * 1e3
+    units.append(['m/s/day'])
+
+if is_quadratic_trend == 'u':
+    df['quadratic_trend_ms'] = df['quadratic_trend'] * 1e3
+    units.append(['m/s/day^2'])
 
 derived_param_units = np.concatenate(units)
 derived_parameters = [col for col in df.columns[3:] if col not in sampled_parameters]

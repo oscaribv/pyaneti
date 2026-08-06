@@ -642,17 +642,17 @@ for m in range(nbands):
         units.append(['', ''])  # Limb darkening coefficients for different bands, no units
 
 # RV instrument units
-units.append(['km/s'] * len(telescopes_labels))  # Radial velocity measurements in m/s
+units.append(['km/s'] * len(telescopes_labels))  # Radial velocity measurements in km/s
 
 # Jitter units
 for o in range(n_jrv):
-    units.append(['km/s'])  # RV jitter in m/s
+    units.append(['km/s'])  # RV jitter in km/s
 for o in range(n_jtr):
     units.append([''])  # Transit jitter, no units
 
 # Trends units
-units.append(['m/s/day'])  # Linear trend in RV measurements
-units.append(['m/s/day^2'])  # Quadratic trend in RV measurements
+units.append(['km/s/day'])  # Linear trend in RV measurements
+units.append(['km/s/day^2'])  # Quadratic trend in RV measurements
 #Kernel units
 units.append(krv_labels)
 units.append(ktr_labels)
