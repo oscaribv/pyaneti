@@ -21,18 +21,59 @@ def compute_rv_model_notrends(x,df_vec,planet_labels=plabels[:nplanets]):
         f += pti.rv_curve_mp(x,0.0, df_vec[f't0{p}'],df_vec[f'p{p}'],df_vec[f'e{p}'],df_vec[f'omega{p}'],df_vec[f'k{p}'],0,0)
     return f
 
-def compute_gp_model(x,df_vec,pred_dl):
+def compute_gp_model(x,df_vec,pred_dl,chunk=512):
+    """
+    Compute the GP posterior mean and variance on the (potentially large)
+    prediction vector x.
+
+    We only ever need the diagonal of the posterior covariance (the
+    per-point variance used for the uncertainty bands), never the full
+    dense ntest x ntest matrix. Building the full matrix in one call is
+    extremely memory hungry: for a fine grid combined with a multi-GP
+    kernel, ntest can reach O(1e4), so the dense covariance (plus the
+    several ntest x ntest temporaries used internally to compute it) can
+    require tens of GB of RAM.
+
+    Instead we evaluate the GP prediction in blocks of the test vector.
+    The mean and variance at a given test point only depend on that
+    point's row of the cross-covariance matrix, so this is mathematically
+    identical to the single-call version, just with O(chunk^2) peak
+    memory instead of O(ntest^2).
+    """
 
     jitter_values = np.array(df_vec[rv_jitter_names])
+    is_multigp = kernel_rv[0:2] in ['MQ', 'SQ', 'ME', 'MM']
 
-    if kernel_rv[0:2] in ['MQ', 'SQ', 'ME', 'MM']: #multi-GP run
-        m, C = pti.pred_gp_multigp(kernel_rv,df_vec[krv_labels],rv_time,rv_noplanets,
-                       rv_errs,x,jitter_values,jrvlab,dim_lab,pred_dl)
-    else: #Normal GP run
-        m, C = pti.pred_gp(kernel_rv,df_vec[krv_labels],rv_time,rv_noplanets,
-                       rv_errs,x,jitter_values,jrvlab)
+    #Coerce to arrays so block indexing below (x[idx], pred_dl[idx]) works
+    #regardless of whether the caller passed a list or an ndarray
+    x = np.asarray(x)
+    pred_dl = np.asarray(pred_dl)
 
-    return m, C
+    ntest = len(x)
+    mvec = np.empty(ntest)
+    var = np.empty(ntest)
+
+    if ntest == 0:
+        return mvec, var
+
+    chunk = max(1, int(chunk))
+    n_blocks = int(np.ceil(ntest/float(chunk)))
+    idx_blocks = np.array_split(np.arange(ntest), n_blocks)
+
+    for idx in idx_blocks:
+        x_blk = x[idx]
+        if is_multigp: #multi-GP run
+            dl_blk = pred_dl[idx]
+            m_blk, C_blk = pti.pred_gp_multigp(kernel_rv,df_vec[krv_labels],rv_time,rv_noplanets,
+                           rv_errs,x_blk,jitter_values,jrvlab,dim_lab,dl_blk)
+        else: #Normal GP run
+            m_blk, C_blk = pti.pred_gp(kernel_rv,df_vec[krv_labels],rv_time,rv_noplanets,
+                           rv_errs,x_blk,jitter_values,jrvlab)
+        mvec[idx] = m_blk
+        var[idx] = np.diagonal(np.asarray(C_blk))
+        del C_blk
+
+    return mvec, var
 
 
 def standardize_data(data, errors):
@@ -158,7 +199,7 @@ else:
     #Now we have a vector of residials with no planets and no offsets for activity indicators
 
     #Let us compute the GP model at for the observations
-    m_data, C_data = compute_gp_model(local_time,df_medians,dim_lab)
+    m_data, _ = compute_gp_model(local_time,df_medians,dim_lab)
     #Now lete us compute the predictive continuous model
     #Compute planet models
     npoints = int(local_time.max() - local_time.min())*24
@@ -176,7 +217,7 @@ else:
     #dimension labels that correspond to the xgp stamps
     lgp = np.array(lgp)
     #Compute the full model
-    m_model, C_model = compute_gp_model(xgp,df_medians,lgp)
+    m_model, var_model = compute_gp_model(xgp,df_medians,lgp)
 
     #plotting time
     plt.figure(1, figsize=(fsx, ndim*fsy/2))
@@ -204,7 +245,7 @@ else:
             rv_presiduals = rv_noplanets[idx] - m_data[idx]
         #Plot the model
         ax[i].plot(xgp[idm],ymodel*1e3,'-',color='k',label='GP model')
-        std_model = np.sqrt(np.diagonal(C_model)[idm])
+        std_model = np.sqrt(var_model[idm])
         ax[i].fill_between(xgp[idm],(ymodel-1*std_model)*1e3,(ymodel+1*std_model)*1e3,color='k',alpha=0.1,lw=0,zorder=1)
         ax[i].fill_between(xgp[idm],(ymodel-2*std_model)*1e3,(ymodel+2*std_model)*1e3,color='k',alpha=0.1,lw=0,zorder=1)
         #
